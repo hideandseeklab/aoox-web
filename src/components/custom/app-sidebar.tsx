@@ -4,6 +4,7 @@ import {
   Container,
   DatabaseBackup,
   FolderKanban,
+  Globe,
   HardDrive,
   KeyRound,
   LayoutDashboard,
@@ -62,6 +63,12 @@ const INFRA_NAV = [
     title: "Backup instance",
     href: "/infra/backup",
     icon: DatabaseBackup,
+    owner: true,
+  },
+  {
+    title: "Domain panel",
+    href: "/infra/domain",
+    icon: Globe,
     owner: true,
   },
 ]

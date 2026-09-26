@@ -8,6 +8,16 @@ Versions below 1.0.0 may include breaking changes in a minor release.
 
 ## [Unreleased]
 
+## [0.1.0-alpha.1] - 2026-09-26
+
+### Added
+
+- Settings → "Domain panel" (owner only): configure a custom domain for the dashboard/API from the
+  running panel, without editing `docker-compose.domain.yml`/`.env.dist` over SSH.
+- CI (`.github/workflows/ci.yml`): typecheck + lint + build on every pull request and push to
+  `main` — previously the only workflow ran on version tags (Docker publish), so a broken PR could
+  merge unnoticed.
+
 ## [0.1.0-alpha.0] - 2026-09-25
 
 ### Added
@@ -20,5 +30,6 @@ Versions below 1.0.0 may include breaking changes in a minor release.
   backups, notifications, and account/instance settings.
 - A web terminal (shell on the host or inside the API container) over WebSocket.
 
-[Unreleased]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.0-alpha.0...HEAD
+[Unreleased]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.0-alpha.1...HEAD
+[0.1.0-alpha.1]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.0-alpha.0...v0.1.0-alpha.1
 [0.1.0-alpha.0]: https://github.com/hideandseeklab/aoox-web/releases/tag/v0.1.0-alpha.0
