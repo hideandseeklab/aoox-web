@@ -10,6 +10,7 @@ import {
   LayoutDashboard,
   LayoutTemplate,
   Plug,
+  RefreshCw,
   ScrollText,
   Server,
   TerminalSquare,
@@ -69,6 +70,12 @@ const INFRA_NAV = [
     title: "Domain panel",
     href: "/infra/domain",
     icon: Globe,
+    owner: true,
+  },
+  {
+    title: "Update aoox",
+    href: "/infra/update",
+    icon: RefreshCw,
     owner: true,
   },
 ]

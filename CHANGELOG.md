@@ -16,6 +16,10 @@ Versions below 1.0.0 may include breaking changes in a minor release.
   running panel, without editing `docker-compose.domain.yml`/`.env.dist` over SSH.
 - Registry → Local registry card: "Custom domain" field (owner/admin) to route the self-hosted
   registry through the built-in proxy with a real certificate.
+- Registry provisioning dialog now lets you pick a storage backend (local disk or an existing S3
+  destination) before creating the self-hosted registry.
+- Settings → "Update aoox" (owner only): check for and apply updates to the panel's own
+  `api`/`web` images from the dashboard.
 - CI (`.github/workflows/ci.yml`): typecheck + lint + build on every pull request and push to
   `main` — previously the only workflow ran on version tags (Docker publish), so a broken PR could
   merge unnoticed.

@@ -22,12 +22,13 @@ function fail(err: unknown): { ok: false; error: string } {
   }
 }
 
-export async function provisionSelfHostedAction(): Promise<
-  ActionResult<ProvisionResult>
-> {
+export async function provisionSelfHostedAction(
+  destinationId?: string
+): Promise<ActionResult<ProvisionResult>> {
   try {
     const data = await api<ProvisionResult>("/registries/self-hosted", {
       method: "POST",
+      body: destinationId ? { destinationId } : {},
       token: await requireToken(),
     })
     revalidatePath("/registry")

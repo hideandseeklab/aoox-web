@@ -8,6 +8,7 @@ export interface Registry {
   username: string | null
   imagePrefix: string | null
   domain: string | null
+  storageDestinationId: string | null
   createdAt: string
 }
 

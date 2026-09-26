@@ -24,6 +24,14 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import type { BackupDestination } from "@/features/backup-destination/backup-destination.entity"
+import {
   garbageCollectAction,
   provisionSelfHostedAction,
   removeSelfHostedAction,
@@ -37,9 +45,11 @@ import type {
 export function SelfHostedRegistryCard({
   status,
   canManage,
+  destinations,
 }: {
   status: SelfHostedStatus
   canManage: boolean
+  destinations: BackupDestination[]
 }) {
   const [pending, start] = useTransition()
   const [error, setError] = useState<string | null>(null)
@@ -47,9 +57,15 @@ export function SelfHostedRegistryCard({
   const [gcOutput, setGcOutput] = useState<string | null>(null)
   const [removeOpen, setRemoveOpen] = useState(false)
   const [domainInput, setDomainInput] = useState("")
+  const [provisionOpen, setProvisionOpen] = useState(false)
+  const [destinationId, setDestinationId] = useState("local")
 
   const { container, registry, dockerAvailable, publicUrl } = status
   const installed = container.installed && registry !== null
+  const storageName = registry?.storageDestinationId
+    ? (destinations.find((d) => d.id === registry.storageDestinationId)
+        ?.name ?? "S3")
+    : "Lokal (disk)"
 
   const run = (fn: () => Promise<{ ok: boolean; error?: string }>) =>
     start(async () => {
@@ -95,6 +111,8 @@ export function SelfHostedRegistryCard({
             <dd className="font-mono">
               docker login {publicUrl} -u {registry.username}
             </dd>
+            <dt className="text-muted-foreground">Storage</dt>
+            <dd>{storageName}</dd>
             {registry.domain && (
               <>
                 <dt className="text-muted-foreground">Domain</dt>
@@ -165,16 +183,10 @@ export function SelfHostedRegistryCard({
           {!installed ? (
             <Button
               disabled={pending || !dockerAvailable}
-              onClick={() =>
-                run(async () => {
-                  const r = await provisionSelfHostedAction()
-                  if (r.ok) setCreds(r.data)
-                  return r
-                })
-              }
+              onClick={() => setProvisionOpen(true)}
             >
               <Play data-icon="inline-start" />
-              {pending ? "Menyiapkan…" : "Provision registry"}
+              Provision registry
             </Button>
           ) : (
             <>
@@ -220,6 +232,63 @@ export function SelfHostedRegistryCard({
           )}
         </CardFooter>
       )}
+
+      <Dialog open={provisionOpen} onOpenChange={setProvisionOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Provision registry lokal</DialogTitle>
+            <DialogDescription>
+              Pilih tempat penyimpanan image. Tidak bisa diganti tanpa hapus
+              lalu provision ulang.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-1.5">
+            <Label htmlFor="registry-storage">Storage</Label>
+            <Select value={destinationId} onValueChange={setDestinationId}>
+              <SelectTrigger id="registry-storage" className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="local">Lokal (disk VPS)</SelectItem>
+                {destinations.map((d) => (
+                  <SelectItem key={d.id} value={d.id}>
+                    {d.name} (S3)
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {destinations.length === 0 && (
+              <p className="text-xs text-muted-foreground">
+                Belum ada tujuan S3 — tambah dulu di Backup instance kalau mau
+                pakai object storage.
+              </p>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setProvisionOpen(false)}>
+              Batal
+            </Button>
+            <Button
+              disabled={pending}
+              onClick={() =>
+                run(async () => {
+                  const r = await provisionSelfHostedAction(
+                    destinationId === "local" ? undefined : destinationId
+                  )
+                  if (r.ok) {
+                    setCreds(r.data)
+                    setProvisionOpen(false)
+                  }
+
+                  return r
+                })
+              }
+            >
+              {pending ? "Menyiapkan…" : "Provision"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={creds !== null} onOpenChange={(o) => !o && setCreds(null)}>
         <DialogContent className="sm:max-w-md">

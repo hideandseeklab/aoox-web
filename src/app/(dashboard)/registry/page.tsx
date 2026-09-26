@@ -4,6 +4,7 @@ import { SelfHostedRegistryCard } from "@/components/custom/self-hosted-registry
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { canUseTerminal } from "@/features/auth/auth.entity"
 import { getVerifiedSession } from "@/features/auth/auth.session"
+import { listBackupDestinations } from "@/features/backup-destination/backup-destination.queries"
 import {
   getSelfHostedStatus,
   listRegistries,
@@ -13,10 +14,11 @@ import {
 export const metadata = { title: "Registry · aoox" }
 
 export default async function RegistryPage() {
-  const [session, status, registries] = await Promise.all([
+  const [session, status, registries, destinations] = await Promise.all([
     getVerifiedSession(),
     getSelfHostedStatus(),
     listRegistries(),
+    listBackupDestinations(),
   ])
   // Same roles that may open the terminal manage registries (owner/admin).
   const canManage = session ? canUseTerminal(session.user) : false
@@ -45,7 +47,11 @@ export default async function RegistryPage() {
           </TabsTrigger>
         </TabsList>
         <TabsContent value="local" className="space-y-4 pt-4">
-          <SelfHostedRegistryCard status={status} canManage={canManage} />
+          <SelfHostedRegistryCard
+            status={status}
+            canManage={canManage}
+            destinations={destinations}
+          />
           {selfHosted && (
             <section className="space-y-2">
               <h2 className="text-sm font-medium">Image</h2>
