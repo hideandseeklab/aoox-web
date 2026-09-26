@@ -7,6 +7,7 @@ export interface Registry {
   url: string
   username: string | null
   imagePrefix: string | null
+  domain: string | null
   createdAt: string
 }
 

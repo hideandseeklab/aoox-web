@@ -21,10 +21,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import {
   garbageCollectAction,
   provisionSelfHostedAction,
   removeSelfHostedAction,
+  setRegistryDomainAction,
 } from "@/features/registry/registry.actions"
 import type {
   ProvisionResult,
@@ -43,6 +46,7 @@ export function SelfHostedRegistryCard({
   const [creds, setCreds] = useState<ProvisionResult | null>(null)
   const [gcOutput, setGcOutput] = useState<string | null>(null)
   const [removeOpen, setRemoveOpen] = useState(false)
+  const [domainInput, setDomainInput] = useState("")
 
   const { container, registry, dockerAvailable, publicUrl } = status
   const installed = container.installed && registry !== null
@@ -91,7 +95,59 @@ export function SelfHostedRegistryCard({
             <dd className="font-mono">
               docker login {publicUrl} -u {registry.username}
             </dd>
+            {registry.domain && (
+              <>
+                <dt className="text-muted-foreground">Domain</dt>
+                <dd className="font-mono">{registry.domain}</dd>
+              </>
+            )}
           </dl>
+        )}
+        {installed && canManage && (
+          <form
+            className="flex flex-wrap items-end gap-2 border-t pt-3"
+            onSubmit={(e) => {
+              e.preventDefault()
+              const domain = domainInput.trim()
+              if (!domain || !registry) return
+              start(async () => {
+                setError(null)
+                const r = await setRegistryDomainAction(registry.id, domain)
+                if (r.ok) setDomainInput("")
+                else setError(r.error)
+              })
+            }}
+          >
+            <div className="min-w-0 flex-1 space-y-1">
+              <Label htmlFor="registry-domain">Domain kustom</Label>
+              <Input
+                id="registry-domain"
+                placeholder="registry.example.com"
+                value={domainInput}
+                onChange={(e) => setDomainInput(e.target.value)}
+                disabled={pending}
+              />
+            </div>
+            <Button type="submit" size="sm" disabled={pending || !domainInput.trim()}>
+              Terapkan
+            </Button>
+            {registry?.domain && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={pending}
+                onClick={() => run(() => setRegistryDomainAction(registry.id, null))}
+              >
+                Hapus domain
+              </Button>
+            )}
+            <p className="w-full text-xs text-muted-foreground">
+              Butuh reverse proxy sudah di-provision dengan email ACME diisi —
+              tanpa itu sertifikat tidak terbit dan <code>docker push</code>{" "}
+              akan menolak domainnya.
+            </p>
+          </form>
         )}
         {error && (
           <p className="text-sm text-destructive" role="alert">

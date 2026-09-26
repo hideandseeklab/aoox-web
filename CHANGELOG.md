@@ -14,6 +14,8 @@ Versions below 1.0.0 may include breaking changes in a minor release.
 
 - Settings → "Domain panel" (owner only): configure a custom domain for the dashboard/API from the
   running panel, without editing `docker-compose.domain.yml`/`.env.dist` over SSH.
+- Registry → Local registry card: "Custom domain" field (owner/admin) to route the self-hosted
+  registry through the built-in proxy with a real certificate.
 - CI (`.github/workflows/ci.yml`): typecheck + lint + build on every pull request and push to
   `main` — previously the only workflow ran on version tags (Docker publish), so a broken PR could
   merge unnoticed.

@@ -52,6 +52,23 @@ export async function removeSelfHostedAction(
   }
 }
 
+export async function setRegistryDomainAction(
+  registryId: string,
+  domain: string | null
+): Promise<ActionResult<Registry>> {
+  try {
+    const data = await api<Registry>(`/registries/${registryId}/domain`, {
+      method: "PATCH",
+      body: { domain },
+      token: await requireToken(),
+    })
+    revalidatePath("/registry")
+    return { ok: true, data }
+  } catch (err) {
+    return fail(err)
+  }
+}
+
 export async function garbageCollectAction(
   dryRun: boolean
 ): Promise<ActionResult<{ output: string }>> {
