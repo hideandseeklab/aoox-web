@@ -2,6 +2,7 @@
 
 import { Copy, Play, Trash2, Trash } from "lucide-react"
 import { useState, useTransition } from "react"
+import { toast } from "sonner"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -41,6 +42,7 @@ import type {
   ProvisionResult,
   SelfHostedStatus,
 } from "@/features/registry/registry.entity"
+import { copyToClipboard } from "@/lib/clipboard"
 
 export function SelfHostedRegistryCard({
   status,
@@ -82,7 +84,10 @@ export function SelfHostedRegistryCard({
             <CardTitle>Registry lokal</CardTitle>
             <CardDescription>
               Container <code>registry:3</code> yang dikelola aoox. Alamat
-              push: <code className="text-foreground">{publicUrl}</code>
+              push:{" "}
+              <code className="text-foreground">
+                {registry?.url ?? publicUrl}
+              </code>
             </CardDescription>
           </div>
           <StatusBadge status={status} />
@@ -109,14 +114,14 @@ export function SelfHostedRegistryCard({
             </dd>
             <dt className="text-muted-foreground">Login</dt>
             <dd className="font-mono">
-              docker login {publicUrl} -u {registry.username}
+              docker login {registry.url} -u {registry.username}
             </dd>
             <dt className="text-muted-foreground">Storage</dt>
             <dd>{storageName}</dd>
             {registry.domain && (
               <>
                 <dt className="text-muted-foreground">Domain</dt>
-                <dd className="font-mono">{registry.domain}</dd>
+                <dd className="font-mono text-primary">{registry.domain}</dd>
               </>
             )}
           </dl>
@@ -146,14 +151,13 @@ export function SelfHostedRegistryCard({
                 disabled={pending}
               />
             </div>
-            <Button type="submit" size="sm" disabled={pending || !domainInput.trim()}>
+            <Button type="submit" disabled={pending || !domainInput.trim()}>
               Terapkan
             </Button>
             {registry?.domain && (
               <Button
                 type="button"
                 variant="outline"
-                size="sm"
                 disabled={pending}
                 onClick={() => run(() => setRegistryDomainAction(registry.id, null))}
               >
@@ -161,7 +165,7 @@ export function SelfHostedRegistryCard({
               </Button>
             )}
             <p className="w-full text-xs text-muted-foreground">
-              Butuh reverse proxy sudah di-provision dengan email ACME diisi —
+              Butuh reverse proxy sudah diaktifkan dengan email ACME diisi —
               tanpa itu sertifikat tidak terbit dan <code>docker push</code>{" "}
               akan menolak domainnya.
             </p>
@@ -186,7 +190,7 @@ export function SelfHostedRegistryCard({
               onClick={() => setProvisionOpen(true)}
             >
               <Play data-icon="inline-start" />
-              Provision registry
+              Aktifkan registry
             </Button>
           ) : (
             <>
@@ -236,10 +240,10 @@ export function SelfHostedRegistryCard({
       <Dialog open={provisionOpen} onOpenChange={setProvisionOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Provision registry lokal</DialogTitle>
+            <DialogTitle>Aktifkan registry lokal</DialogTitle>
             <DialogDescription>
               Pilih tempat penyimpanan image. Tidak bisa diganti tanpa hapus
-              lalu provision ulang.
+              lalu aktifkan ulang.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-1.5">
@@ -284,7 +288,7 @@ export function SelfHostedRegistryCard({
                 })
               }
             >
-              {pending ? "Menyiapkan…" : "Provision"}
+              {pending ? "Menyiapkan…" : "Aktifkan"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -308,6 +312,16 @@ export function SelfHostedRegistryCard({
                 label="Login"
                 value={`docker login ${creds.registry.url} -u ${creds.username}`}
               />
+              {creds.registry.url.startsWith("localhost:") && (
+                <p className="text-xs text-muted-foreground">
+                  Alamat <code>localhost</code> ini hanya berfungsi kalau
+                  perintah dijalankan langsung di server ini (mis. lewat
+                  terminal SSH) — bukan dari komputermu sendiri. Untuk bisa
+                  push/pull dari mana saja lewat HTTPS, set{" "}
+                  <strong>Domain kustom</strong> di kartu ini setelah menutup
+                  dialog.
+                </p>
+              )}
             </div>
           )}
           <DialogFooter>
@@ -382,7 +396,13 @@ function CredRow({ label, value }: { label: string; value: string }) {
         variant="ghost"
         size="icon-sm"
         aria-label={`Salin ${label}`}
-        onClick={() => void navigator.clipboard.writeText(value)}
+        onClick={() =>
+          void copyToClipboard(value).then((ok) =>
+            ok
+              ? toast.success(`${label} disalin`)
+              : toast.error(`Gagal menyalin ${label.toLowerCase()}`)
+          )
+        }
       >
         <Copy />
       </Button>

@@ -8,6 +8,7 @@ export interface Notification {
   type: NotificationType
   /** Masked target (chat id / webhook host) for recognition only. */
   targetHint: string
+  onDeploymentStarted: boolean
   onDeploymentSuccess: boolean
   onDeploymentFailure: boolean
   onBackupFailure: boolean

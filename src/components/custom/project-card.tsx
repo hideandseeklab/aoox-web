@@ -42,16 +42,24 @@ function InstanceRow({ instance }: { instance: ProjectInstance }) {
     <li className="flex items-center gap-2 text-sm">
       <Icon className="size-3.5 shrink-0 text-muted-foreground" />
       <span className="min-w-0 flex-1 truncate">{instance.name}</span>
+      {instance.deploying && (
+        <Badge
+          variant="outline"
+          className="shrink-0 border-amber-500/40 px-1.5 py-0 text-[10px] text-amber-500"
+        >
+          deploy…
+        </Badge>
+      )}
       <span className="font-mono text-[11px] text-muted-foreground">
         {instance.engine ?? KIND_LABEL[instance.kind]}
       </span>
       <span
         className={cn(
           "size-2 shrink-0 rounded-full",
-          statusDot(instance.status)
+          instance.deploying ? "bg-amber-500 animate-pulse" : statusDot(instance.status)
         )}
-        title={instance.status}
-        aria-label={active ? "aktif" : instance.status}
+        title={instance.deploying ? "deploying" : instance.status}
+        aria-label={instance.deploying ? "deploying" : active ? "aktif" : instance.status}
       />
     </li>
   )

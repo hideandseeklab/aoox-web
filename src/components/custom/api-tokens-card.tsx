@@ -2,6 +2,7 @@
 
 import { BookOpen, Check, Copy, KeySquare, Plus, Trash2 } from "lucide-react"
 import { useState, useTransition } from "react"
+import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -34,6 +35,7 @@ import {
 } from "@/features/api-token/api-token.actions"
 import type { ApiToken } from "@/features/api-token/api-token.entity"
 import { Switch } from "@/components/ui/switch"
+import { copyToClipboard } from "@/lib/clipboard"
 
 const EXPIRY: { label: string; days: number | null }[] = [
   { label: "30 hari", days: 30 },
@@ -79,12 +81,13 @@ export function ApiTokensCard({
 
   const copy = async () => {
     if (!created) return
-    try {
-      await navigator.clipboard.writeText(created)
+    const ok = await copyToClipboard(created)
+    if (ok) {
       setCopied(true)
       setTimeout(() => setCopied(false), 1500)
-    } catch {
-      /* clipboard blocked: the token stays visible to select manually */
+      toast.success("Token disalin")
+    } else {
+      toast.error("Gagal menyalin token")
     }
   }
 

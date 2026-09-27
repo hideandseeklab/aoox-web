@@ -2,6 +2,7 @@
 
 import { Check, Copy, ShieldCheck, ShieldOff } from "lucide-react"
 import { useState, useTransition } from "react"
+import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -29,6 +30,7 @@ import {
   type TwoFactorSetup,
 } from "@/features/account/account.actions"
 import type { AuthUser } from "@/features/auth/auth.entity"
+import { copyToClipboard } from "@/lib/clipboard"
 
 /** Own account: password change and TOTP two-factor (setup → confirm → backup codes). */
 export function AccountCard({ me }: { me: AuthUser }) {
@@ -57,12 +59,13 @@ export function AccountCard({ me }: { me: AuthUser }) {
 
   const copyCodes = async () => {
     if (!backupCodes) return
-    try {
-      await navigator.clipboard.writeText(backupCodes.join("\n"))
+    const ok = await copyToClipboard(backupCodes.join("\n"))
+    if (ok) {
       setCopied(true)
       setTimeout(() => setCopied(false), 1500)
-    } catch {
-      /* clipboard blocked; codes remain visible */
+      toast.success("Kode cadangan disalin")
+    } else {
+      toast.error("Gagal menyalin kode cadangan")
     }
   }
 

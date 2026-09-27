@@ -65,7 +65,7 @@ export function ProxyCard({
             </span>
           ) : (
             <span>
-              nonaktif — set <code>PROXY_ACME_EMAIL</code> di API lalu provision
+              nonaktif — set <code>PROXY_ACME_EMAIL</code> di API lalu aktifkan
               ulang.
             </span>
           )}
@@ -84,7 +84,7 @@ export function ProxyCard({
               onClick={() => run(provisionProxyAction)}
             >
               <Play data-icon="inline-start" />
-              {pending ? "Menyiapkan…" : "Provision proxy"}
+              {pending ? "Menyiapkan…" : "Aktifkan proxy"}
             </Button>
           ) : (
             <Button

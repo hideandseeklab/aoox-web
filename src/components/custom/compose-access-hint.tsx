@@ -49,7 +49,7 @@ export function ComposeAccessHint({
           <code>http://{browserHost ?? "<ip-server>"}:8080</code>), lalu{" "}
           <em>Deploy ulang</em>.
           {!proxy.running &&
-            " Reverse proxy belum berjalan — untuk domain, provision dulu di Infrastruktur → Reverse proxy."}
+            " Reverse proxy belum berjalan — untuk domain, aktifkan dulu di Infrastruktur → Reverse proxy."}
         </AlertDescription>
       </Alert>
     )

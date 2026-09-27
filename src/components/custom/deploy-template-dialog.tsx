@@ -143,7 +143,7 @@ export function DeployTemplateDialog({
                   proxy (arahkan DNS ke server ini); port host dibuka lewat IP,
                   mis. <code>http://{browserHost ?? "<ip-server>"}:8080</code>.
                   {!proxy.running &&
-                    " Proxy belum berjalan (Infrastruktur → Reverse proxy); domain baru aktif setelah di-provision."}
+                    " Proxy belum berjalan (Infrastruktur → Reverse proxy); domain baru aktif setelah diaktifkan."}
                 </p>
                 {template.services.map((s) => (
                   <div key={key(s)} className="flex items-end gap-2">

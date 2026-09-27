@@ -56,6 +56,7 @@ const schema = z.discriminatedUnion("type", [
 
 const base = z.object({
   name: z.string().trim().min(1, "Nama wajib diisi").max(100),
+  onDeploymentStarted: z.boolean(),
   onDeploymentSuccess: z.boolean(),
   onDeploymentFailure: z.boolean(),
   onBackupFailure: z.boolean(),
@@ -107,6 +108,7 @@ export async function createNotificationAction(
   }
   const parsedBase = base.safeParse({
     name: values.name,
+    onDeploymentStarted: formData.get("onDeploymentStarted") === "on",
     onDeploymentSuccess: formData.get("onDeploymentSuccess") === "on",
     onDeploymentFailure: formData.get("onDeploymentFailure") === "on",
     onBackupFailure: formData.get("onBackupFailure") === "on",

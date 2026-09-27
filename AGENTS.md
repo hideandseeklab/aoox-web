@@ -80,6 +80,13 @@ Baca `AGENTS.md` — versi Next.js ini punya breaking changes; cek `node_modules
   `servers-card.tsx` di Settings (key platform + perintah, daftar server, tes koneksi yang menampilkan `authorizeCommand` bila ditolak, dialog tambah dengan private key opsional).
   `terminal-view.tsx` menerima `servers` dan menampilkan `<Select>` target ("Host aoox" / server); `createTerminalTicket(serverId?)` mengirim `serverId` di body tiket —
   target diikat ke tiket oleh API, bukan dikirim di handshake.
+- **Deteksi origin salah untuk fitur Socket.IO** (Terminal, log realtime deploy): kedua gateway API menolak koneksi dari origin selain `WEB_ORIGIN` yang terkonfigurasi
+  (lihat aoox-api AGENTS.md bagian Terminal) — kalau panel sudah punya domain kustom tapi dibuka lewat IP, dulu ini muncul sebagai teks mentah `origin not allowed` yang
+  ditulis xterm/dilempar sebagai error socket, membingungkan (ditemukan lewat test VPS sungguhan). `use-browser-host.ts` `useBrowserOrigin()` (hook baru, pola sama dengan
+  `useBrowserHost()`) dibandingkan dengan `webOrigin` prop (dari `lib/api.ts` `webOrigin()` — baca `process.env.WEB_ORIGIN` container **web**, bukan API) yang dikirim
+  server-side dari halaman `/terminal` dan `/applications/[id]`. Kalau beda: `terminal-view.tsx` tidak pernah mencoba connect sama sekali (skip render div xterm-nya);
+  `application-deploy-panel.tsx` mengirim `enabled: false` ke `useLogsSocket()` (parameter baru, effect-nya `return` lebih awal — supaya tidak buang tiket log untuk koneksi
+  yang pasti ditolak) — keduanya menampilkan `<Alert>` yang menjelaskan penyebabnya + tombol yang membuka halaman yang sama persis di `webOrigin`.
 - `requireToken()` ada di `src/features/auth/auth.session.ts`, dipakai semua queries/actions.
 
 ## Prinsip
@@ -100,7 +107,32 @@ Baca `AGENTS.md` — versi Next.js ini punya breaking changes; cek `node_modules
 
 - Daftar aplikasi ada di halaman detail project (`create-application-dialog.tsx`); detail di `/applications/[id]` dengan tab Deploy
   (`application-deploy-panel.tsx`: tombol Deploy/Stop/Start, daftar deployment, log deployment & log container **streaming** via Socket.IO `/logs` — hook `src/features/application/use-logs-socket.ts`, protokol di `logs.protocol.ts`; `router.refresh()` saat status terminal)
-  dan tab Pengaturan (`application-form.tsx`, dipakai juga untuk create).
+  dan tab Pengaturan (`application-form.tsx`, dipakai juga untuk create). Tab-tab aplikasi (Deploy/Domain/Mount/Jobs/Webhook/Pengaturan) sekarang di-render oleh
+  `application-tabs.tsx` (client, `Tabs` **terkontrol** lewat `useState`) alih-alih `<Tabs defaultValue>` langsung di `page.tsx` — dibutuhkan supaya tombol di
+  `application-deploy-panel.tsx` (nudge akses) bisa memindah tab dari luar.
+- **Langkah Akses saat create** (`application-form.tsx`, prop `mode: "create" | "edit"` — hanya create yang menampilkan ini, edit tetap field Port host + tab Domain
+  terpisah seperti sebelumnya): tab segmented (`Tabs` shadcn, pola sama dengan `compose-domains.tsx`) **IP & port** / **Domain** / **Nanti saja**. "IP & port" memakai
+  ulang field `hostPort` yang sama (nama field sama, cuma dipindah lokasinya saat create). "Domain" (host + switch HTTPS, disabled tanpa `proxy.acmeEmail`) tidak bisa
+  lewat DTO create (belum ada field domain di sana) — form-nya sendiri mem-bypass `formAction` normal (`onSubmit` kustom, bukan `action={formAction}`) dan memanggil
+  prop `onCreateWithDomain` (diimplementasikan `create-application-dialog.tsx`): `createApplicationForAccessAction` (varian `createApplicationAction` yang
+  **tidak** `redirect()` supaya bisa lanjut memanggil `addDomainAction`) → `addDomainAction` → `router.push` ke halaman app (dengan `?domainProxyAutoProvisioned=1`
+  bila `addDomainAction` melaporkan itu). API `POST /applications/:id/domains` sekarang membalas `{domain, proxyAutoProvisioned}` (bukan `Domain` polos) — `addDomainAction`
+  meratakannya kembali jadi `Domain & {proxyAutoProvisioned}` (lihat AGENTS.md aoox-api bagian Proxy & Domain) supaya kedua pemanggil (`create-application-dialog.tsx`,
+  `application-domains.tsx`) tetap baca `r.data.proxyAutoProvisioned` tanpa tahu bentuk response berubah. Error 400 generik dari create/update yang menyebut
+  kata "port" (bukan `fieldErrors` terstruktur — API belum mengembalikan itu untuk konflik port) ditampilkan di dekat field Port host, bukan cuma banner bawah
+  (`portConflict`, berlaku create maupun edit).
+- Panel deploy (`application-deploy-panel.tsx`) menerima `hasAccess` (dari `!!app.hostPort || domains.length > 0`, dihitung `application-tabs.tsx`): kalau app
+  sudah pernah sukses deploy (`app.currentImage`) tapi `!hasAccess`, tampil Alert "Aplikasi belum punya alamat akses" dengan tombol ke tab Pengaturan/Domain
+  (`onNavigateTab`, prop dari `application-tabs.tsx`). Prop `domainProxyAutoProvisioned` (dari query string yang di-set create dialog) menampilkan Alert
+  peringatan yang sama gayanya dengan `panel-domain-card.tsx` (DNS/firewall/tunggu ACME) — bisa ditutup, tidak menghapus query string.
+- **Asal pemicu deployment & `deployment:created` live** (`application-deploy-panel.tsx`): `DeploymentSummary` (`application.entity.ts`) sekarang punya
+  `trigger` (`manual`|`webhook`|`auto-update`), `commitSha`/`commitMessage`/`triggeredBy` dari API (lihat AGENTS.md aoox-api bagian Application & Deploy). Riwayat
+  menampilkan ikon `Webhook` (lucide) untuk deploy webhook + SHA pendek di baris tanggal, keduanya dengan `title` tooltip (`triggerLabel()`, helper lokal di file
+  ini — bukan komponen `Tooltip` shadcn, konsisten dengan ikon `kind` lain di list yang sudah pakai `title` biasa); deployment terpilih menampilkan label yang sama
+  di subjudul log. `logs.protocol.ts` (salinan `LogsServerEvents` dari aoox-api) punya event baru `deployment:created` — effect terpisah (tidak digabung effect
+  log per-deployment yang sudah ada, supaya tetap mendengarkan meski `selectedId`/`following` berubah) mendengarkannya selama `socket` ada: pilih deployment baru,
+  reset state log, `router.refresh()`, dan `toast.info()` (sonner) dengan `triggerLabel()`. Tunduk pada `useLogsSocket(..., enabled)` yang sudah ada — origin
+  mismatch berarti fitur live ini juga tidak jalan, sama seperti log streaming biasa; tanpa fallback polling.
 - `src/features/application/` — entity (termasuk `ACTIVE_DEPLOYMENT_STATUSES`), schema zod (`hostPort` kosong → null), queries, actions.
 - `application-form.tsx`: select **Server** (Host aoox / server remote dari `listServers()`, hanya tampil bila ada server; member mendapat 403 → daftar kosong) dengan
   catatan batasan remote (tanpa push registry, tanpa domain/proxy); detail aplikasi menampilkan badge nama server.
@@ -144,6 +176,11 @@ Baca `AGENTS.md` — versi Next.js ini punya breaking changes; cek `node_modules
   `templateId`; `updateServiceDomainsAction` / `updateServicePortsAction`, keduanya PATCH `/compose-apps/:id`). Error 400 API (port sudah dipakai) tampil di bawah form. `ComposeApp.gitUrl` sekarang nullable — tampilkan `template · <id>` bila `source === "template"`.
 - `/projects`: kartu `project-card.tsx` — nama, badge active/inactive (≥1 instance `running`), daftar instance dari `ProjectListItem.instances`
   (ikon per jenis, engine/jenis, titik status: hijau running, merah error, kuning berdenyut building/deploying/creating, abu lainnya) dan ringkasan `n/total berjalan`.
+  **`instance.deploying`** (dari API, lihat AGENTS.md aoox-api bagian Project): badge amber "deploy…" + titik status berdenyut, menang atas warna status biasa —
+  ini satu-satunya cara aplikasi (bukan compose/database) menampilkan indikator deploy di sini, karena `Application.status` sendiri tidak pernah berisi
+  `building`/`deploying`. Halaman `/projects` me-render `ProjectsAutoRefresh` (client, `projects-auto-refresh.tsx`) yang `router.refresh()` tiap 4 detik **hanya**
+  selama ada instance `deploying` di project mana pun pada halaman itu (dihitung server-side dari hasil `listProjects()`), berhenti sendiri begitu semua badge hilang —
+  tanpa polling saat tidak ada yang sedang deploy.
 - Dashboard: `live-clock.tsx` di pojok kanan header (hari, tanggal, jam:menit:detik lokal, `useSyncExternalStore` dengan interval 1 s sebagai store; snapshot server `null`
   → placeholder, jadi tanpa hydration mismatch dan tanpa `setState` di effect yang ditolak lint).
 - Dashboard: tiga card project di atas (`getProjectSummary` → total / aktif hijau `emerald` / tidak aktif merah `red`; warna hanya penguat, label tetap menyebut maknanya).
@@ -172,6 +209,8 @@ Baca `AGENTS.md` — versi Next.js ini punya breaking changes; cek `node_modules
 - Tab **Mount** (`application-mounts.tsx`): daftar mount (file = textarea + "Simpan & terapkan"; hapus volume menanyakan purge via `confirm`) + form tambah
   (volume/bind/file; bind hanya bila `canBind` = owner/admin dari `getVerifiedSession`). Aksi `addMountAction`/`updateMountAction`/`deleteMountAction`, query `listMounts`.
 - Tab **Domain** (`application-domains.tsx`): tambah/hapus hostname + toggle HTTPS (aktif hanya bila proxy punya `acmeEmail`); tombol Rollback di panel deploy.
+  Kalau `addDomainAction` melaporkan `proxyAutoProvisioned` (API menyalakan proxy otomatis untuk domain pertama), tampil Alert troubleshooting yang sama gayanya
+  dengan `panel-domain-card.tsx` (DNS/firewall/tunggu ACME) — state lokal (`justAutoProvisioned`), bukan lewat query string seperti jalur create-dengan-domain.
 - Cek DNS per domain (tombol radar di `application-domains.tsx`): `checkDomainDnsAction` → `GET /applications/:id/domains/:domainId/dns`, hasil badge `ok|salah arah|belum ada|?` + pesan;
   bila IP publik dideteksi otomatis, pesan menyarankan `PUBLIC_IP` di API. `DnsCheck` di `application.entity.ts`.
 - `/settings` dikelompokkan dalam `Tabs` (`?tab=` = deep link, default `account`): **Akun** (account-card, api-tokens-card), **Tim** (members-card + link audit log; owner/admin),
@@ -193,9 +232,16 @@ Baca `AGENTS.md` — versi Next.js ini punya breaking changes; cek `node_modules
 - `servers-card.tsx` menyisipkan `server-proxy-panel.tsx` per server: status (diambil saat diminta, lewat SSH), port HTTP/HTTPS, email ACME, staging, Provision/Provision ulang/Hapus
   (`provisionServerProxyAction`/`serverProxyStatusAction`/`removeServerProxyAction`). `Server` entity membawa setting proxy. Teks form aplikasi & backup volume tidak lagi menyebut batasan server remote.
 - `notifications-card.tsx`: toggle `onDiskLow` & `onCertificateFailure`; channel webhook punya field `secret` (opsional, type password) dengan penjelasan header tanda tangan.
+  Toggle `onDeploymentStarted` ("deploy dimulai") **default tidak dicentang** saat bikin channel baru — beda dari semua toggle lain di `EVENT_LABEL` yang defaultnya
+  aktif (`DEFAULT_CHECKED_EVENTS`, dihitung dari `EVENT_LABEL` minus field ini) — menyamai default API (`on_deployment_started = false`) karena event ini bisa sering
+  terpicu lewat webhook/auto-update.
 - `application-form.tsx`: select **Sumber** (`sourceType` git|image): `image` menampilkan `imageRef` + select kredensial registry (`imageRegistryId`, `"public"` → null) dan
   menyembunyikan blok git (`hidden`, tetap ter-submit). Validasi per sumber di `applicationSchema` = `baseSchema.superRefine` (gitUrl wajib untuk git, imageRef untuk image).
-  Halaman project & aplikasi memuat `listRegistries()` (member → `[]`).
+  Halaman project & aplikasi memuat `listRegistries()` (member → `[]`). Field `imageRef`/`imageRegistryId` sekarang **controlled** (bukan `defaultValue`) karena tombol
+  **"Pilih dari registry"** (`image-picker-dialog.tsx`) perlu mengisinya programatik: dialog memakai ulang `fetchRepositoriesAction`/`fetchTagsAction` yang sama dengan halaman
+  Registry (endpoint `GET /registries/:id/repositories[/…/tags]`, OCI catalog — jalan untuk registry manapun, bukan cuma self-hosted, meski registry publik seperti Docker Hub
+  tanpa dukungan `_catalog` akan tampil kosong) untuk cascading select registry → repository → tag, lalu menyusun `imageRef` = `<registry.url>/<repo>:<tag>` saat "Pakai".
+  Tombol ini disembunyikan kalau belum ada registry sama sekali (`registries.length === 0`) — tetap bisa isi manual seperti sebelumnya.
 - `application-form.tsx`: cara build ketiga **Situs statis (nginx)** → field `staticBuildCommand` (kosong = null), `staticOutputDir` (kosong → `dist`), switch `staticSpa`
   (Radix Switch dengan `name` mengirim `on`; `readForm` menormalkan ke `"on" | ""`, `parse` mengubah ke boolean seperti `previewsEnabled`).
 - `disk-card.tsx` di `/settings` (owner/admin; `src/features/maintenance/`): bar pemakaian Docker, "Bisa dibebaskan", tombol **Bersihkan sekarang** (owner; sinkron, bisa ~1 menit)

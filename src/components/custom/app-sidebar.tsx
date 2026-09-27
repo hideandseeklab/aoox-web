@@ -13,6 +13,7 @@ import {
   RefreshCw,
   ScrollText,
   Server,
+  Settings2,
   TerminalSquare,
   UserRound,
   Users,
@@ -76,6 +77,12 @@ const INFRA_NAV = [
     title: "Update aoox",
     href: "/infra/update",
     icon: RefreshCw,
+    owner: true,
+  },
+  {
+    title: "Environment",
+    href: "/infra/environment",
+    icon: Settings2,
     owner: true,
   },
 ]

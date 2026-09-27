@@ -3,10 +3,7 @@
 import { revalidatePath } from "next/cache"
 import { requireToken } from "@/features/auth/auth.session"
 import { api, ApiError } from "@/lib/api"
-import type {
-  UpdatePanelDomainInput,
-  UpdatePanelDomainResult,
-} from "./panel-domain.entity"
+import type { UpdateInstanceEnvInput } from "./instance-env.entity"
 
 export type ActionResult<T = undefined> =
   { ok: true; data: T } | { ok: false; error: string }
@@ -19,17 +16,17 @@ function fail(err: unknown): { ok: false; error: string } {
   }
 }
 
-export async function updatePanelDomainAction(
-  input: UpdatePanelDomainInput
-): Promise<ActionResult<UpdatePanelDomainResult>> {
+export async function updateInstanceEnvAction(
+  input: UpdateInstanceEnvInput
+): Promise<ActionResult> {
   try {
-    const data = await api<UpdatePanelDomainResult>("/instance/domain", {
+    await api<void>("/instance/env", {
       method: "PATCH",
       body: input,
       token: await requireToken(),
     })
-    revalidatePath("/infra/domain")
-    return { ok: true, data }
+    revalidatePath("/infra/environment")
+    return { ok: true, data: undefined }
   } catch (err) {
     return fail(err)
   }

@@ -9,6 +9,7 @@ import {
   UserRound,
 } from "lucide-react"
 import { useActionState, useState, useTransition } from "react"
+import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -58,6 +59,7 @@ import {
   type Invitation,
   type Member,
 } from "@/features/member/member.entity"
+import { copyToClipboard } from "@/lib/clipboard"
 
 /**
  * Settings card: who can sign in to this instance and with which role.
@@ -270,7 +272,13 @@ function InviteDialog({ isOwner }: { isOwner: boolean }) {
                 variant="ghost"
                 size="icon-sm"
                 aria-label="Salin tautan"
-                onClick={() => void navigator.clipboard.writeText(link)}
+                onClick={() =>
+                  void copyToClipboard(link).then((ok) =>
+                    ok
+                      ? toast.success("Tautan disalin")
+                      : toast.error("Gagal menyalin tautan")
+                  )
+                }
               >
                 <Copy />
               </Button>

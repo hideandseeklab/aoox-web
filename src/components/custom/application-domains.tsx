@@ -42,6 +42,9 @@ export function ApplicationDomains({
   const [error, setError] = useState<string | null>(null)
   const [pending, start] = useTransition()
   const [dns, setDns] = useState<Record<string, DnsCheck>>({})
+  const [justAutoProvisioned, setJustAutoProvisioned] = useState<
+    string | null
+  >(null)
 
   const checkDns = (id: string) =>
     start(async () => {
@@ -63,7 +66,7 @@ export function ApplicationDomains({
         <Alert>
           <AlertTitle>Proxy belum berjalan</AlertTitle>
           <AlertDescription>
-            Domain baru berlaku setelah reverse proxy di-provision di halaman
+            Domain baru berlaku setelah reverse proxy diaktifkan di halaman
             Settings.
           </AlertDescription>
         </Alert>
@@ -72,6 +75,39 @@ export function ApplicationDomains({
         <p className="text-sm text-muted-foreground">
           Domain dipasang ke container saat aplikasi di-deploy.
         </p>
+      )}
+      {justAutoProvisioned && (
+        <Alert variant="destructive">
+          <AlertTitle>
+            Reverse proxy belum aktif — sudah dinyalakan otomatis
+          </AlertTitle>
+          <AlertDescription>
+            <p>
+              Proxy (Traefik) belum jalan sebelum ini, jadi sudah diaktifkan
+              otomatis untuk domain <code>{justAutoProvisioned}</code>. Cek
+              satu per satu kalau domain belum bisa diakses setelah beberapa
+              menit:
+            </p>
+            <ol className="ml-4 list-decimal space-y-1">
+              <li>
+                DNS A record <code>{justAutoProvisioned}</code> sudah
+                mengarah ke IP server ini.
+              </li>
+              <li>
+                Port <code>80</code> dan <code>443</code> terbuka untuk
+                publik — baik firewall OS (<code>ufw</code>) maupun
+                firewall/security group dari provider VPS/server kamu.
+              </li>
+              <li>
+                Kalau meminta HTTPS: sertifikat (Let&apos;s Encrypt) baru
+                diterbitkan Traefik saat pertama kali domain diakses, butuh
+                beberapa detik sampai semenit — dan hanya terbit kalau email
+                ACME sudah diisi (host: Domain panel; server remote:
+                pengaturan server).
+              </li>
+            </ol>
+          </AlertDescription>
+        </Alert>
       )}
 
       <form
@@ -82,6 +118,7 @@ export function ApplicationDomains({
             setError(null)
             const r = await addDomainAction(applicationId, host, https)
             if (!r.ok) return setError(r.error)
+            setJustAutoProvisioned(r.data.proxyAutoProvisioned ? host : null)
             setHost("")
           })
         }}

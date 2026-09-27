@@ -7,6 +7,7 @@ import type {
   ProvisionResult,
   Registry,
   RegistryTestResult,
+  RepositorySummary,
   Tag,
 } from "./registry.entity"
 import { externalRegistrySchema } from "./registry.schema"
@@ -97,6 +98,20 @@ export async function deleteTagAction(
     )
     revalidatePath("/registry")
     return { ok: true, data: undefined }
+  } catch (err) {
+    return fail(err)
+  }
+}
+
+export async function fetchRepositoriesAction(
+  registryId: string
+): Promise<ActionResult<RepositorySummary[]>> {
+  try {
+    const data = await api<RepositorySummary[]>(
+      `/registries/${registryId}/repositories`,
+      { token: await requireToken() }
+    )
+    return { ok: true, data }
   } catch (err) {
     return fail(err)
   }

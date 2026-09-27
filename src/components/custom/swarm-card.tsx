@@ -2,6 +2,7 @@
 
 import { Copy, Network, Trash2 } from "lucide-react"
 import { useState, useTransition } from "react"
+import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -20,6 +21,7 @@ import {
   updateNodeAction,
 } from "@/features/swarm/swarm.actions"
 import type { SwarmNode, SwarmStatus } from "@/features/swarm/swarm.entity"
+import { copyToClipboard } from "@/lib/clipboard"
 
 function gb(n: number) {
   return `${(n / 1024 ** 3).toFixed(1)} GB`
@@ -53,9 +55,14 @@ export function SwarmCard({
     `docker swarm join --token ${token} ${status.nodeAddr ?? "<ip-manager>"}:2377`
 
   const copy = (label: string, text: string) => {
-    void navigator.clipboard.writeText(text).then(() => {
-      setCopied(label)
-      setTimeout(() => setCopied(null), 1500)
+    void copyToClipboard(text).then((ok) => {
+      if (ok) {
+        setCopied(label)
+        setTimeout(() => setCopied(null), 1500)
+        toast.success(`${label} disalin`)
+      } else {
+        toast.error(`Gagal menyalin ${label}`)
+      }
     })
   }
 
@@ -227,7 +234,7 @@ export function SwarmCard({
                 menarik image hasil build. Set <code>REGISTRY_PUBLIC_HOST</code>{" "}
                 ke alamat host yang dijangkau semua node (dan{" "}
                 <code>insecure-registries</code> atau TLS di tiap daemon), lalu
-                provision ulang registry. Image publik (Docker Hub, GHCR) tidak
+                aktifkan ulang registry. Image publik (Docker Hub, GHCR) tidak
                 terpengaruh.
               </p>
             )}

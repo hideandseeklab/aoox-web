@@ -19,6 +19,8 @@ export interface ProjectInstance {
   /** Status as last observed by the API (`running` = active). */
   status: string
   engine: string | null
+  /** A build/redeploy is in flight right now (active deployment/creating/deploying). */
+  deploying: boolean
 }
 
 export type ProjectListItem = Project & { instances: ProjectInstance[] }

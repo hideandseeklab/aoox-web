@@ -2,6 +2,7 @@
 
 import { Copy, Plug, Plus, ServerIcon, Trash2 } from "lucide-react"
 import { useActionState, useState, useTransition } from "react"
+import { toast } from "sonner"
 import { ServerProxyPanel } from "@/components/custom/server-proxy-panel"
 import { Button } from "@/components/ui/button"
 import {
@@ -39,6 +40,7 @@ import type {
   Server,
   ServerTestResult,
 } from "@/features/server/server.entity"
+import { copyToClipboard } from "@/lib/clipboard"
 
 /**
  * Settings card for remote servers: the platform's
@@ -177,7 +179,13 @@ function CommandBox({ label, value }: { label: string; value: string }) {
         variant="ghost"
         size="icon-sm"
         aria-label={`Salin ${label}`}
-        onClick={() => void navigator.clipboard.writeText(value)}
+        onClick={() =>
+          void copyToClipboard(value).then((ok) =>
+            ok
+              ? toast.success(`${label} disalin`)
+              : toast.error(`Gagal menyalin ${label}`)
+          )
+        }
       >
         <Copy />
       </Button>

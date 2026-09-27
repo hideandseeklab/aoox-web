@@ -3,7 +3,7 @@ import { TerminalView } from "@/components/custom/terminal-view"
 import { canUseTerminal } from "@/features/auth/auth.entity"
 import { getVerifiedSession } from "@/features/auth/auth.session"
 import { listServers } from "@/features/server/server.queries"
-import { publicApiUrl } from "@/lib/api"
+import { publicApiUrl, webOrigin } from "@/lib/api"
 
 export const metadata = { title: "Terminal · aoox" }
 
@@ -22,7 +22,11 @@ export default async function TerminalPage() {
           remote). Hati-hati: perintah dijalankan langsung di mesin tujuan.
         </p>
       </div>
-      <TerminalView publicApiUrl={publicApiUrl()} servers={servers} />
+      <TerminalView
+        publicApiUrl={publicApiUrl()}
+        webOrigin={webOrigin()}
+        servers={servers}
+      />
     </div>
   )
 }

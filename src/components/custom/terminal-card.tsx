@@ -1,6 +1,7 @@
 "use client"
 
 import { Copy } from "lucide-react"
+import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -11,6 +12,7 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import type { TerminalStatus } from "@/features/terminal/terminal.entity"
+import { copyToClipboard } from "@/lib/clipboard"
 
 const KEY_SOURCE_LABEL = {
   "env-key": "key dari konfigurasi",
@@ -95,7 +97,13 @@ function CommandBox({ label, value }: { label: string; value: string }) {
         variant="ghost"
         size="icon-sm"
         aria-label={`Salin ${label}`}
-        onClick={() => void navigator.clipboard.writeText(value)}
+        onClick={() =>
+          void copyToClipboard(value).then((ok) =>
+            ok
+              ? toast.success(`${label} disalin`)
+              : toast.error(`Gagal menyalin ${label}`)
+          )
+        }
       >
         <Copy />
       </Button>

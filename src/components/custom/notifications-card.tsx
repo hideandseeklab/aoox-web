@@ -55,6 +55,7 @@ const TYPE_LABEL: Record<NotificationType, string> = {
 }
 
 const EVENT_LABEL: Array<[keyof Notification & `on${string}`, string]> = [
+  ["onDeploymentStarted", "deploy dimulai"],
   ["onDeploymentSuccess", "deploy sukses"],
   ["onDeploymentFailure", "deploy gagal"],
   ["onBackupFailure", "backup gagal"],
@@ -64,6 +65,12 @@ const EVENT_LABEL: Array<[keyof Notification & `on${string}`, string]> = [
   ["onDnsIssue", "DNS domain bermasalah"],
   ["onContainerDown", "container mati"],
 ]
+
+/** `onDeploymentStarted` defaults off (API default too) — it fires once per
+ * deploy/redeploy and would be noisy for channels that just want outcomes. */
+const DEFAULT_CHECKED_EVENTS = new Set<keyof Notification & `on${string}`>(
+  EVENT_LABEL.map(([name]) => name).filter((name) => name !== "onDeploymentStarted")
+)
 
 /** Settings card: channels that receive deployment success/failure messages. */
 export function NotificationsCard({
@@ -97,8 +104,9 @@ export function NotificationsCard({
           <div>
             <CardTitle>Notifikasi</CardTitle>
             <CardDescription>
-              Deploy sukses/gagal, backup gagal, dan container mati ke Telegram,
-              Slack, Discord, email, atau webhook. Token disimpan terenkripsi.
+              Deploy dimulai/sukses/gagal, backup gagal, dan container mati ke
+              Telegram, Slack, Discord, email, atau webhook. Token disimpan
+              terenkripsi.
             </CardDescription>
           </div>
           <AddNotificationDialog />
@@ -400,7 +408,10 @@ function AddNotificationDialog() {
                   key={name}
                   className="flex items-center gap-2 text-sm capitalize"
                 >
-                  <Switch name={name} defaultChecked />
+                  <Switch
+                    name={name}
+                    defaultChecked={DEFAULT_CHECKED_EVENTS.has(name)}
+                  />
                   {label}
                 </label>
               ))}

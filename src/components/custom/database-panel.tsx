@@ -3,6 +3,7 @@
 import { Copy, Database, Eye, EyeOff, Play, Square, Trash2 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useEffect, useState, useTransition } from "react"
+import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -37,6 +38,7 @@ import type {
   DatabaseConnection,
   ManagedDatabaseDetail,
 } from "@/features/managed-database/managed-database.entity"
+import { copyToClipboard } from "@/lib/clipboard"
 
 /** Swaps the database name at the end of a connection URL (`…:5432/app` → `…:5432/reports`). */
 function withDatabase(url: string, name: string): string {
@@ -132,7 +134,7 @@ export function DatabasePanel({
 
       {db.status === "error" && (
         <p className="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
-          Provisioning gagal: {db.errorMessage}
+          Pembuatan database gagal: {db.errorMessage}
         </p>
       )}
 
@@ -278,7 +280,13 @@ function Row({
         variant="ghost"
         size="icon-sm"
         aria-label={`Salin ${label}`}
-        onClick={() => void navigator.clipboard.writeText(copy ?? value)}
+        onClick={() =>
+          void copyToClipboard(copy ?? value).then((ok) =>
+            ok
+              ? toast.success(`${label} disalin`)
+              : toast.error(`Gagal menyalin ${label.toLowerCase()}`)
+          )
+        }
       >
         <Copy />
       </Button>

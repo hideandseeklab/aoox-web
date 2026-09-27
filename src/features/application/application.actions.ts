@@ -152,6 +152,38 @@ export async function createApplicationAction(
   redirect(`/applications/${app.id}`)
 }
 
+/**
+ * Same as `createApplicationAction` but returns the created app instead of
+ * redirecting — used by the create dialog's "Domain" access option, which
+ * needs to call `addDomainAction` right after creation and only then
+ * navigate (a `redirect()` inside the action would abort before that call).
+ */
+export async function createApplicationForAccessAction(
+  projectId: string,
+  formData: FormData
+): Promise<ActionResult<Application>> {
+  const values = readForm(formData)
+  const { data, fieldErrors } = parse(values)
+  if (!data) {
+    const message =
+      Object.values(fieldErrors ?? {})
+        .flat()
+        .join("; ") || "Data tidak valid"
+    return { ok: false, error: message }
+  }
+  try {
+    const app = await api<Application>("/applications", {
+      method: "POST",
+      body: { projectId, ...data },
+      token: await requireToken(),
+    })
+    revalidatePath(`/projects/${projectId}`)
+    return { ok: true, data: app }
+  } catch (err) {
+    return fail(err)
+  }
+}
+
 export async function updateApplicationAction(
   id: string,
   _prev: ApplicationFormState,
@@ -283,13 +315,20 @@ export async function addDomainAction(
   https: boolean
 ): Promise<ActionResult<Domain>> {
   try {
-    const data = await api<Domain>(`/applications/${applicationId}/domains`, {
+    // The API returns `{ domain, proxyAutoProvisioned }`, not a bare Domain —
+    // flattened here so `Domain.proxyAutoProvisioned` stays the one place
+    // callers read it from, matching how `proxyAutoProvisioned` is already
+    // modeled on the type.
+    const { domain, proxyAutoProvisioned } = await api<{
+      domain: Domain
+      proxyAutoProvisioned: boolean
+    }>(`/applications/${applicationId}/domains`, {
       method: "POST",
       body: { host: host.trim().toLowerCase(), https },
       token: await requireToken(),
     })
     revalidatePath(`/applications/${applicationId}`)
-    return { ok: true, data }
+    return { ok: true, data: { ...domain, proxyAutoProvisioned } }
   } catch (err) {
     return fail(err)
   }

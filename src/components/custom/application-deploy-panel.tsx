@@ -1,8 +1,20 @@
 "use client"
 
-import { History, Play, Radio, RefreshCw, Rocket, Square } from "lucide-react"
+import {
+  ExternalLink,
+  Globe,
+  History,
+  Play,
+  Radio,
+  RefreshCw,
+  Rocket,
+  Square,
+  Webhook,
+} from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useEffect, useRef, useState, useTransition } from "react"
+import { toast } from "sonner"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -19,6 +31,7 @@ import {
   type DeploymentSummary,
 } from "@/features/application/application.entity"
 import { useLogsSocket } from "@/features/application/use-logs-socket"
+import { useBrowserOrigin } from "./use-browser-host"
 
 const STATUS_VARIANT: Record<
   DeploymentSummary["status"],
@@ -35,18 +48,54 @@ const STATUS_VARIANT: Record<
 const isActive = (s: string) =>
   ACTIVE_DEPLOYMENT_STATUSES.includes(s as DeploymentStatus)
 
+/** Short, human line naming who/what queued a deployment — used for both the
+ * toast on `deployment:created` and the tooltip on a history row. */
+function triggerLabel(d: {
+  trigger: string
+  commitSha: string | null
+  commitMessage: string | null
+  triggeredBy: string | null
+}): string {
+  const sha = d.commitSha ? d.commitSha.slice(0, 7) : null
+  if (d.trigger === "webhook") {
+    const parts = [sha, d.commitMessage, d.triggeredBy && `oleh ${d.triggeredBy}`]
+      .filter(Boolean)
+      .join(" · ")
+    return `Webhook${parts ? ` — ${parts}` : ""}`
+  }
+  if (d.trigger === "auto-update") return "Update otomatis (image berubah)"
+  return d.triggeredBy ? `Manual oleh ${d.triggeredBy}` : "Manual"
+}
+
 export function ApplicationDeployPanel({
   app,
   deployments,
   publicApiUrl,
+  webOrigin,
+  hasAccess = true,
+  domainProxyAutoProvisioned = false,
+  onNavigateTab,
 }: {
   app: ApplicationDetail
   deployments: DeploymentSummary[]
   publicApiUrl: string
+  /** The panel's configured `WEB_ORIGIN` — the only origin its Socket.IO gateways accept. */
+  webOrigin: string
+  /** Whether the app has a host port or at least one domain already. */
+  hasAccess?: boolean
+  /** The create dialog's "Domain" option had to auto-start the proxy. */
+  domainProxyAutoProvisioned?: boolean
+  /** Lets the post-deploy nudge jump to the Pengaturan/Domain tab. */
+  onNavigateTab?: (tab: "settings" | "domains") => void
 }) {
   const router = useRouter()
+  const browserOrigin = useBrowserOrigin()
+  // `null` until hydration — don't flash the warning before we know.
+  const originMismatch =
+    browserOrigin !== null && browserOrigin !== webOrigin
   const [pending, start] = useTransition()
   const [error, setError] = useState<string | null>(null)
+  const [proxyWarningDismissed, setProxyWarningDismissed] = useState(false)
   const [imageNote, setImageNote] = useState<string | null>(null)
   const [selectedId, setSelectedId] = useState<string | null>(
     deployments[0]?.id ?? null
@@ -62,7 +111,7 @@ export function ApplicationDeployPanel({
     socket,
     error: socketError,
     reconnect,
-  } = useLogsSocket(app.id, publicApiUrl)
+  } = useLogsSocket(app.id, publicApiUrl, !originMismatch)
 
   const running = app.container?.state === "running"
   const active = deployments.some((d) => isActive(d.status))
@@ -110,6 +159,31 @@ export function ApplicationDeployPanel({
     }
   }, [socket, selectedId, following, router])
 
+  // A new deployment from anywhere (webhook, auto-update, another user's
+  // manual deploy) — broadcast to every socket ticketed for this app, not
+  // just one already subscribed to a specific deployment (see logs.gateway.ts).
+  useEffect(() => {
+    if (!socket) return
+    const onCreated = (payload: {
+      id: string
+      trigger: string
+      commitSha: string | null
+      commitMessage: string | null
+      triggeredBy: string | null
+    }) => {
+      toast.info(`Deploy dimulai — ${triggerLabel(payload)}`)
+      setFollowing(false)
+      setLogText("")
+      setLiveStatus(null)
+      setSelectedId(payload.id)
+      router.refresh()
+    }
+    socket.on("deployment:created", onCreated)
+    return () => {
+      socket.off("deployment:created", onCreated)
+    }
+  }, [socket, router])
+
   // Follow container stdout/stderr live while toggled on.
   useEffect(() => {
     if (!socket || !following) return
@@ -154,6 +228,68 @@ export function ApplicationDeployPanel({
 
   return (
     <div className="space-y-4">
+      {domainProxyAutoProvisioned && !proxyWarningDismissed && (
+        <Alert variant="destructive">
+          <AlertTitle>
+            Reverse proxy belum aktif — sudah dinyalakan otomatis
+          </AlertTitle>
+          <AlertDescription className="space-y-2">
+            <p>
+              Proxy (Traefik) belum jalan sebelum domain ini disimpan, jadi
+              sudah diaktifkan otomatis. Domain baru bisa diakses kalau tiga
+              hal ini juga sudah benar:
+            </p>
+            <ol className="ms-4 list-decimal space-y-1">
+              <li>DNS domain sudah mengarah ke IP server ini.</li>
+              <li>
+                Port <code>80</code> dan <code>443</code> terbuka untuk
+                publik (firewall OS maupun provider VPS).
+              </li>
+              <li>
+                Sertifikat HTTPS (Let&apos;s Encrypt) baru diterbitkan saat
+                domain pertama kali diakses — tunggu semenit.
+              </li>
+            </ol>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setProxyWarningDismissed(true)}
+            >
+              Tutup
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {!!app.currentImage && !hasAccess && (
+        <Alert>
+          <Globe />
+          <AlertTitle>Aplikasi belum punya alamat akses</AlertTitle>
+          <AlertDescription className="space-y-2">
+            <p>
+              Tanpa port host atau domain, aplikasi ini hanya bisa dijangkau
+              di dalam network Docker.
+            </p>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onNavigateTab?.("settings")}
+              >
+                Atur port host
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onNavigateTab?.("domains")}
+              >
+                Tambah domain
+              </Button>
+            </div>
+          </AlertDescription>
+        </Alert>
+      )}
+
       {app.service && (
         <div className="rounded-md border text-xs">
           <div className="flex items-center gap-2 border-b px-3 py-1.5">
@@ -299,6 +435,31 @@ export function ApplicationDeployPanel({
         )}
       </div>
 
+      {originMismatch && (
+        <Alert variant="destructive">
+          <AlertTitle>Log realtime tidak tersedia lewat alamat ini</AlertTitle>
+          <AlertDescription className="space-y-2">
+            <p>
+              Panel ini punya domain kustom (<code>{webOrigin}</code>), dan log
+              realtime hanya menerima koneksi dari domain itu — bukan dari{" "}
+              <code>{browserOrigin}</code> yang sedang kamu pakai.
+            </p>
+            <Button size="sm" asChild>
+              <a
+                href={
+                  webOrigin +
+                  window.location.pathname +
+                  window.location.search
+                }
+              >
+                <ExternalLink data-icon="inline-start" />
+                Buka halaman ini di {webOrigin}
+              </a>
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
+
       {following && (
         <pre
           ref={containerLogRef}
@@ -351,12 +512,24 @@ export function ApplicationDeployPanel({
                             ⟳
                           </span>
                         )}
+                        {d.trigger === "webhook" && (
+                          <span
+                            className="ms-1 inline-flex align-middle text-muted-foreground"
+                            title={triggerLabel(d)}
+                          >
+                            <Webhook className="size-3" />
+                          </span>
+                        )}
                       </span>
-                      <span className="block text-muted-foreground">
+                      <span
+                        className="block truncate text-muted-foreground"
+                        title={triggerLabel(d)}
+                      >
                         {new Date(d.createdAt).toLocaleString("id-ID", {
                           dateStyle: "short",
                           timeStyle: "short",
                         })}
+                        {d.commitSha && ` · ${d.commitSha.slice(0, 7)}`}
                       </span>
                     </span>
                     <Badge variant={STATUS_VARIANT[status as DeploymentStatus]}>
@@ -384,6 +557,10 @@ export function ApplicationDeployPanel({
                         : "build"}{" "}
                   · {shownStatus}
                   {selected.imageRef && ` · ${selected.imageRef}`}
+                  {" · "}
+                  <span title={triggerLabel(selected)}>
+                    {triggerLabel(selected)}
+                  </span>
                 </span>
               )}
             </h3>

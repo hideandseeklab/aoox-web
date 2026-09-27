@@ -1,6 +1,6 @@
 "use client"
 
-import { useActionState, useState } from "react"
+import { useActionState, useState, type FormEvent } from "react"
 import { Button } from "@/components/ui/button"
 import {
   Field,
@@ -18,13 +18,22 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Textarea } from "@/components/ui/textarea"
 import { EnvEditor } from "@/components/custom/env-editor"
-import type { ApplicationFormState } from "@/features/application/application.actions"
+import { ImagePickerDialog } from "@/components/custom/image-picker-dialog"
+import { useBrowserHost } from "@/components/custom/use-browser-host"
+import type {
+  ActionResult,
+  ApplicationFormState,
+} from "@/features/application/application.actions"
 import type { GitCredential } from "@/features/git-credential/git-credential.entity"
+import type { ProxyStatus } from "@/features/proxy/proxy.entity"
 import type { Registry } from "@/features/registry/registry.entity"
 import type { Server } from "@/features/server/server.entity"
 import type { SwarmNode } from "@/features/swarm/swarm.entity"
+
+type Akses = "port" | "domain" | "later"
 
 type Values = NonNullable<ApplicationFormState["values"]>
 
@@ -65,6 +74,7 @@ const EMPTY: Values = {
 
 export function ApplicationForm({
   action,
+  mode = "edit",
   defaultValues,
   submitLabel,
   credentials,
@@ -73,11 +83,15 @@ export function ApplicationForm({
   registries = [],
   swarmActive = false,
   swarmNodes = [],
+  proxy,
+  onCreateWithDomain,
 }: {
   action: (
     prev: ApplicationFormState,
     formData: FormData
   ) => Promise<ApplicationFormState>
+  /** Create mode adds the "Akses" step (host port / domain / later). */
+  mode?: "create" | "edit"
   defaultValues?: Partial<Values>
   submitLabel: string
   credentials: GitCredential[]
@@ -91,6 +105,15 @@ export function ApplicationForm({
   swarmActive?: boolean
   /** Nodes to pin a service to (from the swarm status). */
   swarmNodes?: SwarmNode[]
+  /** Create mode only: whether HTTPS/domains can actually work right now. */
+  proxy?: Pick<ProxyStatus, "running" | "acmeEmail">
+  /**
+   * Create mode, "Domain" access option only: creates the app (without a
+   * host port), then adds the domain, then navigates — `createApplicationAction`
+   * can't be reused here because it redirects on success, which would abort
+   * before the add-domain call.
+   */
+  onCreateWithDomain?: (formData: FormData) => Promise<ActionResult>
 }) {
   const initial = { ...EMPTY, ...defaultValues }
   const [state, formAction, pending] = useActionState(action, {
@@ -100,12 +123,53 @@ export function ApplicationForm({
   const [buildType, setBuildType] = useState(v.buildType)
   const [sourceType, setSourceType] = useState(v.sourceType)
   const [deployMode, setDeployMode] = useState(v.deployMode)
+  const [imageRef, setImageRef] = useState(v.imageRef)
+  const [imageRegistryId, setImageRegistryId] = useState(
+    v.imageRegistryId || "public"
+  )
+  const [akses, setAkses] = useState<Akses>(v.hostPort ? "port" : "later")
+  const [domainHost, setDomainHost] = useState("")
+  const [domainHttps, setDomainHttps] = useState(false)
+  const [domainPending, setDomainPending] = useState(false)
+  const [domainError, setDomainError] = useState<string | null>(null)
+  const browserHost = useBrowserHost()
   const errs = (k: keyof Values) =>
     state.fieldErrors?.[k]?.map((message) => ({ message }))
   const invalid = (k: keyof Values) => !!state.fieldErrors?.[k] || undefined
+  // The API doesn't (yet) shape port-conflict errors as a field error, so a
+  // generic create/update failure that mentions "port" is shown next to the
+  // host port input instead of the generic banner at the bottom.
+  const portConflict =
+    !!state.error &&
+    /port/i.test(state.error) &&
+    (mode === "edit" || akses === "port")
+  const domainMode = mode === "create" && akses === "domain"
+
+  const submitDomain = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    if (!onCreateWithDomain) return
+    if (!domainHost.trim()) {
+      setDomainError("Host wajib diisi")
+      return
+    }
+    const formData = new FormData(e.currentTarget)
+    formData.set("hostPort", "")
+    formData.set("domainHost", domainHost.trim())
+    formData.set("domainHttps", domainHttps ? "on" : "")
+    setDomainError(null)
+    setDomainPending(true)
+    onCreateWithDomain(formData).then((r) => {
+      setDomainPending(false)
+      if (!r.ok) setDomainError(r.error)
+    })
+  }
 
   return (
-    <form action={formAction} noValidate>
+    <form
+      action={domainMode ? undefined : formAction}
+      onSubmit={domainMode ? submitDomain : undefined}
+      noValidate
+    >
       <FieldGroup>
         <Field data-invalid={invalid("name")}>
           <FieldLabel htmlFor="app-name">Nama</FieldLabel>
@@ -134,13 +198,25 @@ export function ApplicationForm({
           <div className="grid gap-4 sm:grid-cols-[1fr_auto]">
             <Field data-invalid={invalid("imageRef")}>
               <FieldLabel htmlFor="app-image">Image</FieldLabel>
-              <Input
-                id="app-image"
-                name="imageRef"
-                placeholder="ghcr.io/org/app:1.2 atau nginx:1.27"
-                defaultValue={v.imageRef}
-                className="font-mono"
-              />
+              <div className="flex gap-2">
+                <Input
+                  id="app-image"
+                  name="imageRef"
+                  placeholder="ghcr.io/org/app:1.2 atau nginx:1.27"
+                  value={imageRef}
+                  onChange={(e) => setImageRef(e.target.value)}
+                  className="font-mono"
+                />
+                {registries.length > 0 && (
+                  <ImagePickerDialog
+                    registries={registries}
+                    onPick={(ref, registryId) => {
+                      setImageRef(ref)
+                      setImageRegistryId(registryId)
+                    }}
+                  />
+                )}
+              </div>
               <FieldDescription>
                 Di-pull ulang tiap deploy, jadi tag bergerak seperti{" "}
                 <code>latest</code> ikut terbarui. Tanpa build & registry lokal.
@@ -151,7 +227,8 @@ export function ApplicationForm({
               <FieldLabel htmlFor="app-image-registry">Kredensial</FieldLabel>
               <Select
                 name="imageRegistryId"
-                defaultValue={v.imageRegistryId || "public"}
+                value={imageRegistryId}
+                onValueChange={setImageRegistryId}
               >
                 <SelectTrigger id="app-image-registry" className="w-48">
                   <SelectValue />
@@ -526,7 +603,11 @@ export function ApplicationForm({
           </FieldDescription>
         </Field>
 
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div
+          className={
+            mode === "create" ? "grid gap-4" : "grid gap-4 sm:grid-cols-2"
+          }
+        >
           <Field data-invalid={invalid("containerPort")}>
             <FieldLabel htmlFor="app-cport">Port container</FieldLabel>
             <Input
@@ -539,20 +620,123 @@ export function ApplicationForm({
             />
             <FieldError errors={errs("containerPort")} />
           </Field>
-          <Field data-invalid={invalid("hostPort")}>
-            <FieldLabel htmlFor="app-hport">Port host</FieldLabel>
-            <Input
-              id="app-hport"
-              name="hostPort"
-              type="number"
-              min={1}
-              max={65535}
-              placeholder="kosong = tidak dipublikasikan"
-              defaultValue={v.hostPort}
-            />
-            <FieldError errors={errs("hostPort")} />
-          </Field>
+          {mode === "edit" && (
+            <Field data-invalid={invalid("hostPort") || portConflict || undefined}>
+              <FieldLabel htmlFor="app-hport">Port host</FieldLabel>
+              <Input
+                id="app-hport"
+                name="hostPort"
+                type="number"
+                min={1}
+                max={65535}
+                placeholder="kosong = tidak dipublikasikan"
+                defaultValue={v.hostPort}
+              />
+              <FieldError errors={errs("hostPort")} />
+              {portConflict && (
+                <p className="text-sm text-destructive" role="alert">
+                  {state.error}
+                </p>
+              )}
+            </Field>
+          )}
         </div>
+
+        {mode === "create" && (
+          <Field
+            data-invalid={
+              akses === "port"
+                ? invalid("hostPort") || portConflict || undefined
+                : undefined
+            }
+          >
+            <FieldLabel>Akses</FieldLabel>
+            <FieldDescription>
+              Tanpa port host atau domain, aplikasi berjalan tapi tidak bisa
+              dibuka dari luar — ini bisa diatur nanti juga di tab Pengaturan
+              atau Domain.
+            </FieldDescription>
+            <Tabs
+              value={akses}
+              onValueChange={(next) => setAkses(next as Akses)}
+            >
+              <TabsList>
+                <TabsTrigger value="port">IP &amp; port</TabsTrigger>
+                <TabsTrigger value="domain">Domain</TabsTrigger>
+                <TabsTrigger value="later">Nanti saja</TabsTrigger>
+              </TabsList>
+            </Tabs>
+            {akses === "port" && (
+              <div className="space-y-1">
+                <FieldLabel htmlFor="app-hport">Port host</FieldLabel>
+                <Input
+                  id="app-hport"
+                  name="hostPort"
+                  type="number"
+                  min={1}
+                  max={65535}
+                  placeholder="mis. 8080"
+                  defaultValue={v.hostPort}
+                />
+                <FieldDescription>
+                  Dibuka langsung lewat IP:{" "}
+                  <code>
+                    http://{browserHost ?? "<ip-server>"}:&lt;port&gt;
+                  </code>
+                  , tanpa domain/proxy.
+                </FieldDescription>
+                <FieldError errors={errs("hostPort")} />
+                {portConflict && (
+                  <p className="text-sm text-destructive" role="alert">
+                    {state.error}
+                  </p>
+                )}
+              </div>
+            )}
+            {akses === "domain" && (
+              <div className="space-y-3">
+                <div className="flex flex-wrap items-end gap-3">
+                  <div className="min-w-64 flex-1 space-y-1">
+                    <FieldLabel htmlFor="app-domain-host">Hostname</FieldLabel>
+                    <Input
+                      id="app-domain-host"
+                      value={domainHost}
+                      onChange={(e) => setDomainHost(e.target.value)}
+                      placeholder="app.example.com"
+                    />
+                  </div>
+                  <label className="flex items-center gap-2 pb-1.5 text-sm">
+                    <Switch
+                      checked={domainHttps}
+                      onCheckedChange={setDomainHttps}
+                      disabled={!proxy?.acmeEmail}
+                    />
+                    HTTPS
+                  </label>
+                </div>
+                <FieldDescription>
+                  Dibuka lewat reverse proxy (arahkan DNS host ini ke server
+                  ini).
+                  {proxy && !proxy.running &&
+                    " Proxy belum berjalan — akan diaktifkan otomatis kalau perlu."}
+                  {proxy && !proxy.acmeEmail &&
+                    " HTTPS memerlukan PROXY_ACME_EMAIL di API."}
+                </FieldDescription>
+                {domainError && (
+                  <p className="text-sm text-destructive" role="alert">
+                    {domainError}
+                  </p>
+                )}
+              </div>
+            )}
+            {akses === "later" && (
+              <FieldDescription>
+                Aplikasi dibuat tanpa alamat akses — atur port host atau
+                domain belakangan.
+              </FieldDescription>
+            )}
+          </Field>
+        )}
 
         <Field data-invalid={invalid("healthcheckPath")}>
           <FieldLabel htmlFor="app-health">Health check path</FieldLabel>
@@ -697,7 +881,7 @@ export function ApplicationForm({
           <FieldError errors={errs("buildArgs")} />
         </Field>
 
-        {state.error && (
+        {state.error && !portConflict && (
           <FieldDescription className="text-destructive" role="alert">
             {state.error}
           </FieldDescription>
@@ -707,8 +891,13 @@ export function ApplicationForm({
         )}
 
         <div className="flex justify-end">
-          <Button type="submit" disabled={pending}>
-            {pending ? "Menyimpan…" : submitLabel}
+          <Button
+            type="submit"
+            disabled={domainMode ? domainPending : pending}
+          >
+            {(domainMode ? domainPending : pending)
+              ? "Menyimpan…"
+              : submitLabel}
           </Button>
         </div>
       </FieldGroup>

@@ -118,7 +118,7 @@ export function ServerProxyPanel({ server }: { server: Server }) {
           staging
         </label>
         <Button type="submit" size="sm" disabled={pending}>
-          {status?.installed ? "Provision ulang" : "Provision"}
+          {status?.installed ? "Aktifkan ulang" : "Aktifkan"}
         </Button>
         {status?.installed && (
           <Button

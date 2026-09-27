@@ -2,9 +2,10 @@
 
 import "@xterm/xterm/css/xterm.css"
 
-import { RotateCw } from "lucide-react"
+import { ExternalLink, RotateCw } from "lucide-react"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { io, type Socket } from "socket.io-client"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -22,6 +23,7 @@ import {
   type TerminalHandshakeAuth,
   type TerminalServerEvents,
 } from "@/features/terminal/terminal.protocol"
+import { useBrowserOrigin } from "./use-browser-host"
 
 type TerminalSocket = Socket<TerminalServerEvents, TerminalClientEvents>
 
@@ -39,15 +41,22 @@ const LOCAL_TARGET = "local"
 
 export function TerminalView({
   publicApiUrl,
+  webOrigin,
   servers,
 }: {
   publicApiUrl: string
+  /** The panel's configured `WEB_ORIGIN` — the only origin its Socket.IO gateways accept. */
+  webOrigin: string
   servers: Server[]
 }) {
   const hostRef = useRef<HTMLDivElement>(null)
   const [status, setStatus] = useState<Status>("connecting")
   const [attempt, setAttempt] = useState(0)
   const [target, setTarget] = useState(LOCAL_TARGET)
+  const browserOrigin = useBrowserOrigin()
+  // `null` until hydration — don't flash the warning before we know.
+  const originMismatch =
+    browserOrigin !== null && browserOrigin !== webOrigin
   const serverId = target === LOCAL_TARGET ? undefined : target
 
   const reconnect = useCallback(() => setAttempt((n) => n + 1), [])
@@ -191,6 +200,30 @@ export function TerminalView({
       cleanup?.()
     }
   }, [attempt, publicApiUrl, serverId])
+
+  if (originMismatch) {
+    const target =
+      webOrigin + window.location.pathname + window.location.search
+    return (
+      <Alert variant="destructive">
+        <AlertTitle>Terminal tidak bisa diakses lewat alamat ini</AlertTitle>
+        <AlertDescription className="space-y-3">
+          <p>
+            Panel ini sudah punya domain kustom (<code>{webOrigin}</code>), dan
+            fitur Terminal hanya menerima koneksi dari domain itu — bukan dari{" "}
+            <code>{browserOrigin}</code> yang sedang kamu pakai. Ini proteksi
+            keamanan bawaan, bukan bug.
+          </p>
+          <Button size="sm" asChild>
+            <a href={target}>
+              <ExternalLink data-icon="inline-start" />
+              Buka Terminal di {webOrigin}
+            </a>
+          </Button>
+        </AlertDescription>
+      </Alert>
+    )
+  }
 
   return (
     <div className="flex h-full min-h-0 flex-col gap-3">

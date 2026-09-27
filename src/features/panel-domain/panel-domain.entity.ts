@@ -18,3 +18,9 @@ export interface UpdatePanelDomainInput {
   apiHost: string
   acmeEmail?: string
 }
+
+/** Mirrors `UpdatePanelDomainResult` (`PATCH /instance/domain`). */
+export interface UpdatePanelDomainResult {
+  settings: PanelDomainSettings
+  proxyAutoProvisioned: boolean
+}

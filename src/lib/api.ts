@@ -6,6 +6,17 @@ export function publicApiUrl(): string {
   return process.env.PUBLIC_API_URL ?? API_URL
 }
 
+/**
+ * The one origin the API's WebSocket gateways (Terminal, realtime logs)
+ * accept — set by the panel-domain feature when a custom domain is saved.
+ * A page opened from any other origin (e.g. the host's bare IP, once a
+ * domain is configured) has its socket connections rejected with
+ * "origin not allowed".
+ */
+export function webOrigin(): string {
+  return process.env.WEB_ORIGIN ?? "http://localhost:3000"
+}
+
 export class ApiError extends Error {
   constructor(
     public readonly status: number,

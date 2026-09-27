@@ -35,6 +35,7 @@ import { updateProjectAction } from "@/features/project/project.actions"
 import { getProject } from "@/features/project/project.queries"
 import { listProjectMembers } from "@/features/project-member/project-member.queries"
 import { getSession } from "@/features/auth/auth.session"
+import { getProxyStatus } from "@/features/proxy/proxy.queries"
 
 export default async function ProjectDetailPage({
   params,
@@ -56,6 +57,7 @@ export default async function ProjectDetailPage({
     registries,
     session,
     members,
+    proxy,
   ] = await Promise.all([
     listApplications(project.id),
     listGitCredentials(),
@@ -66,6 +68,7 @@ export default async function ProjectDetailPage({
     listRegistries().catch(() => []),
     getSession(),
     listProjectMembers(project.id).catch(() => null),
+    getProxyStatus(),
   ])
   const canWrite = members ? members.myRole !== "viewer" : true
 
@@ -118,6 +121,7 @@ export default async function ProjectDetailPage({
                   credentials={credentials}
                   servers={servers}
                   registries={registries}
+                  proxy={proxy}
                 />
               )}
             </div>

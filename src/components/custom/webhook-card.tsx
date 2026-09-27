@@ -2,6 +2,7 @@
 
 import { Copy, RefreshCw, ShieldCheck, ShieldOff } from "lucide-react"
 import { useState, useTransition } from "react"
+import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -11,6 +12,7 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import type { WebhookInfo } from "@/features/application/application.entity"
+import { copyToClipboard } from "@/lib/clipboard"
 
 /** What the card needs to change a webhook; both return the fresh info. */
 export type WebhookResult = Promise<
@@ -67,7 +69,13 @@ export function WebhookCard({
             variant="outline"
             size="icon-sm"
             aria-label="Salin URL webhook"
-            onClick={() => void navigator.clipboard.writeText(current.url)}
+            onClick={() =>
+              void copyToClipboard(current.url).then((ok) =>
+                ok
+                  ? toast.success("URL webhook disalin")
+                  : toast.error("Gagal menyalin URL webhook")
+              )
+            }
           >
             <Copy />
           </Button>
@@ -125,7 +133,11 @@ export function WebhookCard({
                 size="icon-sm"
                 aria-label="Salin secret"
                 onClick={() =>
-                  void navigator.clipboard.writeText(current.secret ?? "")
+                  void copyToClipboard(current.secret ?? "").then((ok) =>
+                    ok
+                      ? toast.success("Secret disalin")
+                      : toast.error("Gagal menyalin secret")
+                  )
                 }
               >
                 <Copy />

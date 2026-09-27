@@ -2,15 +2,20 @@ import { FolderKanban } from "lucide-react"
 import { CreateProjectDialog } from "@/components/custom/create-project-dialog"
 import { ImportProjectDialog } from "@/components/custom/import-project-dialog"
 import { ProjectCard } from "@/components/custom/project-card"
+import { ProjectsAutoRefresh } from "@/components/custom/projects-auto-refresh"
 import { listProjects } from "@/features/project/project.queries"
 
 export const metadata = { title: "Projects · aoox" }
 
 export default async function ProjectsPage() {
   const projects = await listProjects()
+  const anyDeploying = projects.some((p) =>
+    p.instances.some((i) => i.deploying)
+  )
 
   return (
     <>
+      <ProjectsAutoRefresh active={anyDeploying} />
       <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="text-lg font-semibold">Projects</h1>

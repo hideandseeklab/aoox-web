@@ -100,6 +100,9 @@ export interface ApplicationDetail extends Application {
 
 export type DeploymentKind = "build" | "rollback" | "auto-update" | "config"
 
+/** Who/what queued the deployment — separate from `kind` (the build/rollback/config code path). */
+export type DeploymentTrigger = "manual" | "webhook" | "auto-update"
+
 export interface DeploymentSummary {
   id: string
   applicationId: string
@@ -108,6 +111,12 @@ export interface DeploymentSummary {
   rolledBackFromId: string | null
   imageRef: string | null
   errorMessage: string | null
+  trigger: DeploymentTrigger
+  /** From the webhook's push payload; null for manual/rollback/config/auto-update. */
+  commitSha: string | null
+  commitMessage: string | null
+  /** Actor's email for manual/rollback/config, or the webhook's pusher name. */
+  triggeredBy: string | null
   createdAt: string
   finishedAt: string | null
 }
@@ -135,6 +144,13 @@ export interface Domain {
   host: string
   https: boolean
   createdAt: string
+  /**
+   * True when the proxy wasn't running and the API started it automatically
+   * for this domain (mirrors `panel-domain`'s flag). Not present on every API
+   * version — treat as absent/undefined until the add-domain endpoint is
+   * confirmed to return it.
+   */
+  proxyAutoProvisioned?: boolean
 }
 
 /** Mirrors Mount in aoox-api. `file` mounts are always read-only. */
