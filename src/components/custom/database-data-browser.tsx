@@ -79,7 +79,15 @@ export function DatabaseDataBrowser({
   running: boolean
   canWrite: boolean
 }) {
-  const isRedis = db.engine === "redis"
+  // Valkey is a Redis drop-in (same key-value commands), so it shares every
+  // Redis-specific UI branch here.
+  const isRedis = db.engine === "redis" || db.engine === "valkey"
+  const kvLabel = db.engine === "valkey" ? "Valkey" : "Redis"
+  // MongoDB is schemaless and has no SQL: no table structure/create-table,
+  // no row edit/delete, no SQL export/import (see AGENTS.md "Belum"). It
+  // still gets the database (schema) selector, the rows grid, sorting and
+  // CSV export — those already work against the backend's collection model.
+  const isMongo = db.engine === "mongodb"
   // Which database on the server we are browsing; the primary by default.
   const [schemas, setSchemas] = useState<SchemaInfo[] | null>(null)
   const [schema, setSchema] = useState(db.databaseName)
@@ -218,7 +226,7 @@ export function DatabaseDataBrowser({
     setView("data")
     setColumns(null)
     loadRows(t, 0, null)
-    if (!isRedis) loadColumns(t)
+    if (!isRedis && !isMongo) loadColumns(t)
   }
 
   const sort = (col: string) => {
@@ -367,9 +375,12 @@ export function DatabaseDataBrowser({
             </div>
           )}
           <div className="flex items-center justify-between">
-            <CardTitle>{isRedis ? "Key" : "Tabel"}</CardTitle>
+            <CardTitle>{isRedis ? "Key" : isMongo ? "Koleksi" : "Tabel"}</CardTitle>
             <div className="flex items-center">
-              {canWrite && db.engine !== "redis" && (
+              {canWrite &&
+                db.engine !== "redis" &&
+                db.engine !== "valkey" &&
+                db.engine !== "mongodb" && (
                 <CreateTableDialog
                   databaseId={db.id}
                   engine={db.engine}
@@ -403,7 +414,11 @@ export function DatabaseDataBrowser({
             <p className="px-4 pb-4 text-sm text-muted-foreground">Memuat…</p>
           ) : tables.length === 0 ? (
             <p className="px-4 pb-4 text-sm text-muted-foreground">
-              {isRedis ? "Belum ada key." : "Belum ada tabel."}
+              {isRedis
+                ? "Belum ada key."
+                : isMongo
+                  ? "Belum ada koleksi."
+                  : "Belum ada tabel."}
             </p>
           ) : (
             <ul className="max-h-[480px] divide-y overflow-y-auto text-sm">
@@ -444,10 +459,12 @@ export function DatabaseDataBrowser({
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between gap-2">
-              <CardTitle>{isRedis ? "Perintah Redis" : "SQL"}</CardTitle>
+              <CardTitle>
+                {isRedis ? `Perintah ${kvLabel}` : isMongo ? "Query MongoDB" : "SQL"}
+              </CardTitle>
               <div className="flex items-center gap-1">
                 <QueryHistoryMenu databaseId={db.id} onPick={setSql} />
-                {!isRedis && (
+                {!isRedis && !isMongo && (
                   <Button asChild variant="outline" size="sm">
                     <a
                       href={`/api/databases/${db.id}/export${dbParam ? `?db=${encodeURIComponent(dbParam)}` : ""}`}
@@ -457,7 +474,7 @@ export function DatabaseDataBrowser({
                     </a>
                   </Button>
                 )}
-                {!isRedis && canWrite && (
+                {!isRedis && !isMongo && canWrite && (
                   <>
                     <input
                       ref={fileInput}
@@ -492,10 +509,13 @@ export function DatabaseDataBrowser({
             <CardDescription>
               {isRedis
                 ? "Satu perintah, mis. HGETALL user:1 atau SCAN 0 MATCH sess:* COUNT 100."
-                : "Satu statement per eksekusi; SELECT tanpa LIMIT dibatasi 500 baris, timeout 15 detik."}{" "}
-              {canWrite
-                ? "Kamu bisa menulis (INSERT/UPDATE/DELETE/DDL) — hati-hati, tidak ada undo."
-                : "Sesi ini read-only; hanya owner/admin yang bisa mengubah data."}
+                : isMongo
+                  ? "Satu query, mis. users.find({\"age\":{\"$gt\":18}}) — hanya find(), read-only untuk saat ini."
+                  : "Satu statement per eksekusi; SELECT tanpa LIMIT dibatasi 500 baris, timeout 15 detik."}{" "}
+              {!isMongo &&
+                (canWrite
+                  ? "Kamu bisa menulis (INSERT/UPDATE/DELETE/DDL) — hati-hati, tidak ada undo."
+                  : "Sesi ini read-only; hanya owner/admin yang bisa mengubah data.")}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-2">
@@ -509,7 +529,11 @@ export function DatabaseDataBrowser({
                 }
               }}
               placeholder={
-                isRedis ? "KEYS *" : "select * from users order by id desc"
+                isRedis
+                  ? "KEYS *"
+                  : isMongo
+                    ? "users.find({})"
+                    : "select * from users order by id desc"
               }
               className="min-h-24 font-mono text-xs"
               spellCheck={false}
@@ -558,7 +582,7 @@ export function DatabaseDataBrowser({
                 {grid?.message && (
                   <Badge variant="secondary">{grid.message}</Badge>
                 )}
-                {rows && !result && !isRedis && (
+                {rows && !result && !isRedis && !isMongo && (
                   <div className="inline-flex overflow-hidden rounded-md border text-xs">
                     <button
                       type="button"

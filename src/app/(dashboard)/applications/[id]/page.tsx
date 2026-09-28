@@ -34,7 +34,7 @@ export default async function ApplicationPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>
-  /** Set by the create dialog's "Domain" option; see create-application-dialog.tsx. */
+  /** Set by the "Aplikasi baru" page's "Domain" option; see create-application-page-form.tsx. */
   searchParams: Promise<{ domainProxyAutoProvisioned?: string }>
 }) {
   const { id } = await params

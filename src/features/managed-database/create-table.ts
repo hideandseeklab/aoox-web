@@ -20,7 +20,7 @@ export interface TypeOption {
 
 /** Per-engine type menu; `value` is emitted verbatim into the DDL. */
 export const COLUMN_TYPES: Record<
-  Exclude<DatabaseEngine, "redis">,
+  Exclude<DatabaseEngine, "redis" | "valkey" | "mongodb">,
   TypeOption[]
 > = {
   postgres: [
@@ -75,7 +75,7 @@ export const COLUMN_TYPES: Record<
 const IDENT = /^[A-Za-z_][A-Za-z0-9_]{0,62}$/
 
 export function emptyColumn(
-  engine: Exclude<DatabaseEngine, "redis">
+  engine: Exclude<DatabaseEngine, "redis" | "valkey" | "mongodb">
 ): ColumnDraft {
   return {
     name: "",
@@ -93,7 +93,7 @@ export function emptyColumn(
  * anything fancier belongs in the SQL box.
  */
 export function buildCreateTable(
-  engine: Exclude<DatabaseEngine, "redis">,
+  engine: Exclude<DatabaseEngine, "redis" | "valkey" | "mongodb">,
   table: string,
   columns: ColumnDraft[]
 ): string {

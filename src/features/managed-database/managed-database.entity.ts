@@ -1,11 +1,16 @@
-export type DatabaseEngine = "postgres" | "mysql" | "mariadb" | "redis"
+export type DatabaseEngine =
+  "postgres" | "mysql" | "mariadb" | "redis" | "valkey" | "mongodb"
 export type ManagedDatabaseStatus = "creating" | "running" | "stopped" | "error"
+/** Postgres only; a different preinstalled-extension image, same wire protocol. */
+export type PostgresVariant = "pgvector" | "postgis" | "timescaledb" | null
 
 export const ENGINE_LABEL: Record<DatabaseEngine, string> = {
   postgres: "PostgreSQL",
   mysql: "MySQL",
   mariadb: "MariaDB",
   redis: "Redis",
+  valkey: "Valkey",
+  mongodb: "MongoDB",
 }
 
 export const ENGINE_DEFAULT_TAG: Record<DatabaseEngine, string> = {
@@ -13,6 +18,30 @@ export const ENGINE_DEFAULT_TAG: Record<DatabaseEngine, string> = {
   mysql: "8",
   mariadb: "11",
   redis: "7-alpine",
+  valkey: "8-alpine",
+  mongodb: "7",
+}
+
+/** Postgres variant -> label + one-line description, shown in the create dialog. */
+export const POSTGRES_VARIANT_INFO: Record<
+  Exclude<PostgresVariant, null>,
+  { label: string; description: string; defaultTag: string }
+> = {
+  pgvector: {
+    label: "pgvector",
+    description: "Vector similarity search for embeddings (AI/ML workloads).",
+    defaultTag: "pg16",
+  },
+  postgis: {
+    label: "PostGIS",
+    description: "Geographic/spatial data types, indexes and queries.",
+    defaultTag: "16-3.4",
+  },
+  timescaledb: {
+    label: "TimescaleDB",
+    description: "Time-series data: hypertables, continuous aggregates.",
+    defaultTag: "latest-pg16",
+  },
 }
 
 export interface ManagedDatabase {
@@ -21,6 +50,7 @@ export interface ManagedDatabase {
   name: string
   slug: string
   engine: DatabaseEngine
+  variant: PostgresVariant
   imageTag: string
   databaseName: string
   username: string

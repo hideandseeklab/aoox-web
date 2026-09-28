@@ -48,3 +48,15 @@ export interface RegistryTestResult {
   ok: boolean
   message: string
 }
+
+export interface RepositoryUsage {
+  applicationId: string
+  applicationName: string
+  projectId: string
+}
+
+export interface DeleteRepositoryResult {
+  deletedTags: number
+  deletedManifests: number
+  gcOutput: string
+}

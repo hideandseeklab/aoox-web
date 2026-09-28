@@ -58,7 +58,7 @@ export default async function DashboardPage() {
         <Card>
           <CardHeader>
             <CardDescription>Total project</CardDescription>
-            <CardTitle className="text-3xl">{total}</CardTitle>
+            <CardTitle className="text-3xl tracking-tighter">{total}</CardTitle>
           </CardHeader>
           <CardContent>
             <Button asChild variant="outline" size="sm">
@@ -73,7 +73,7 @@ export default async function DashboardPage() {
             <CardDescription className="text-emerald-700 dark:text-emerald-400">
               Project aktif
             </CardDescription>
-            <CardTitle className="text-3xl text-emerald-700 dark:text-emerald-400">
+            <CardTitle className="text-3xl tracking-tighter text-emerald-700 dark:text-emerald-400">
               {active}
             </CardTitle>
           </CardHeader>
@@ -86,7 +86,7 @@ export default async function DashboardPage() {
             <CardDescription className="text-red-700 dark:text-red-400">
               Project tidak aktif
             </CardDescription>
-            <CardTitle className="text-3xl text-red-700 dark:text-red-400">
+            <CardTitle className="text-3xl tracking-tighter text-red-700 dark:text-red-400">
               {total - active}
             </CardTitle>
           </CardHeader>

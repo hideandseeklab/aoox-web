@@ -2,7 +2,12 @@ import { z } from "zod"
 
 export const databaseSchema = z.object({
   name: z.string().trim().min(1, "Nama wajib diisi").max(100),
-  engine: z.enum(["postgres", "mysql", "mariadb", "redis"]),
+  engine: z.enum(["postgres", "mysql", "mariadb", "redis", "valkey", "mongodb"]),
+  // Only meaningful when engine === "postgres"; empty = plain Postgres.
+  variant: z
+    .enum(["pgvector", "postgis", "timescaledb", ""])
+    .optional()
+    .transform((v) => (v ? v : null)),
   imageTag: z
     .string()
     .trim()

@@ -1,4 +1,4 @@
-import { Fira_Code, Geist, JetBrains_Mono } from "next/font/google"
+import { Fira_Code, Inter, JetBrains_Mono } from "next/font/google"
 
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
@@ -6,7 +6,7 @@ import { Toaster } from "@/components/ui/sonner"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
 
-const fontSans = Geist({
+const fontSans = Inter({
   subsets: ["latin"],
   variable: "--font-sans",
 })
@@ -33,8 +33,8 @@ export default function RootLayout({
       suppressHydrationWarning
       className={cn(
         "antialiased",
+        "font-sans",
         fontSans.variable,
-        "font-mono",
         jetbrainsMono.variable,
         firaCode.variable
       )}

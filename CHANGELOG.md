@@ -8,6 +8,125 @@ Versions below 1.0.0 may include breaking changes in a minor release.
 
 ## [Unreleased]
 
+## [0.1.0-alpha.3] - 2026-09-28
+
+### Added
+
+- Registry page: new **"Hapus image"** button on each repository row (icon button next to the tag
+  count) that deletes the whole repository — every tag, its storage folder, and a garbage-collect
+  pass on the API side — not just one tag. The confirm dialog fetches and shows which applications'
+  current/running image looks like it points at this repo before letting the delete proceed (the API
+  409s without confirmation otherwise); `ApiError` now carries the parsed error body's `details` so
+  the action can read that `usage` array instead of only the message string. Uses `sonner` toasts
+  (loading → success/error) rather than the plain inline error `delete-tag` uses, since this is a
+  bigger, slower, less reversible action. The repository list also updates locally (no full refetch)
+  when a repo is removed. The stale "Tidak ada tag (manifest sudah dihapus, jalankan garbage
+  collect)" hint — which didn't actually make the 0-tag repo disappear, since garbage-collect only
+  reclaims blobs, never the repository's own folder — now points at this new button instead.
+- New **Console** tab on the application page (`application-tabs.tsx`, next to Webhook): an interactive
+  `docker exec -it` into the app's own container, backed by the API's new `/console` Socket.IO gateway.
+  `console-view.tsx` reuses the same xterm.js setup as `/terminal` (font handling, refit-on-resize,
+  origin-mismatch `<Alert>`) minus the server picker (the container is already fixed) plus an optional
+  task picker for a swarm-service app with more than one running task on this node, sourced straight
+  from `app.service.tasks` (already returned by `get-application`, filtered to `local && running`).
+  Hidden entirely for a project viewer (the API rejects it with 403 too; hiding the tab just avoids
+  showing something guaranteed to fail). Verified in a real browser against a real container: typed
+  commands echo back correctly, prompt reflects the container id.
+- Settings → Notifikasi: new **"error di log aplikasi"** toggle (off by default, like "deploy
+  dimulai") for the API's new `on_app_error` event, which scans running apps' container logs for
+  common error shapes and notifies once per app per check.
+- Application form (Pengaturan, edit only): new **"Abaikan error di log"** switch (`ignoreErrorLogs`)
+  to opt an app out of that log scan entirely, for apps whose normal output just looks like errors.
+- Creating an application, database, compose stack (git or one-click template), or importing a
+  project now shows a `toast.loading()` the moment you submit, updated in place to success/error
+  (not stacked) once the result is known, plus a spinner + "Membuat…" on the submit button and a
+  locked dialog (no close/cancel) while the request is in flight. The plain application/database/
+  compose-from-git create actions no longer call a server-side `redirect()` on success — that would
+  abort before the toast could ever resolve to success, leaving it stuck on "loading" forever after
+  navigating away. They now return the created row's id and the dialog navigates itself, right after
+  updating the toast. Database/stack success messages are explicit that provisioning/deploy keeps
+  running in the background (their detail pages already poll while `creating`/`deploying`).
+- Create-database dialog: new engine option **Valkey**, and for **PostgreSQL** a new **Varian**
+  picker (pgvector, PostGIS, TimescaleDB — each with a one-line description and its own default
+  image tag replacing the placeholder). Every place that special-cased Redis (data browser key/value
+  view, hidden "create table"/schemas UI, "backup all databases" toggle) now also covers Valkey,
+  since it's a key-value engine with no named tables either.
+- Create-database dialog: new engine option **MongoDB** (no Variant field — Mongo has no variants).
+  Data browser (`database-data-browser.tsx`) gets a third mode alongside SQL and Redis/Valkey
+  (`isMongo`): the collection list ("Koleksi"), rows grid, column sorting, and CSV export all work,
+  since the backend already supports them for Mongo; the Structure tab, "create table" dialog, row
+  edit/delete, and SQL export/import are hidden (not supported by the API yet — it rejects them with
+  400). Query box shows a `users.find({})` placeholder and read-only-find-only copy. Fixed a real bug
+  found while wiring this up: `managed-database.schema.ts`'s `z.enum([...])` engine list doesn't
+  participate in the `Record<DatabaseEngine, ...>` exhaustiveness check that caught every other spot
+  needing an update — it was still missing `valkey`/`mongodb`, so submitting the create-database form
+  for either engine would have failed client-side Zod validation before the request ever reached the
+  API. Found by grepping every `DatabaseEngine`/`valkey` reference in the repo per the same
+  methodology used for the Valkey change above, not by `tsc`.
+- **Resource usage per project**: project cards on `/projects` now show a compact "CPU 12% · RAM 340 MB ·
+  ↓2.1 MB/s ↑0.4 MB/s" line (`project-card.tsx`, hidden entirely when nothing in the project is
+  running) from the new `resourceUsage` field the API's `GET /projects` already returns. The project
+  detail page gets a new "Resource usage" card above the Aplikasi/Stack compose/Database sections
+  (`ProjectResourcePanel`, `project-resource-panel.tsx`) — the same CPU/Memori/Jaringan tile-plus-
+  sparkline layout as the application/database `MetricsPanel`, minus the range picker (the API's
+  `GET /projects/:id/resource-usage` is live-only, no stored history), polling every 15s to match the
+  sampler. `ProjectsAutoRefresh` (the existing 4s poller that clears "deploying…" badges) now also
+  triggers — at a calmer 10s — whenever any project has something running, so the list page's numbers
+  keep updating without adding a second poller to the same page; still fully idle when every project is
+  stopped.
+
+### Changed
+
+- "New application", "Stack compose", and "New database" on the project page are no longer dialogs —
+  each is now its own full-width page (`/projects/[id]/applications/new`, `/projects/[id]/compose/new`,
+  `/projects/[id]/databases/new`) with a breadcrumb/back link to the project and a "Batal" button next
+  to submit, since the application form in particular (Sumber, Akses, Swarm, build args, …) was too
+  packed for a dialog's width. The buttons on the project page are now plain links instead of dialog
+  triggers; `create-application-dialog.tsx`, `create-compose-dialog.tsx`, and `create-database-dialog.tsx`
+  are deleted. `application-form.tsx`/`compose-form.tsx` gained an optional `cancelHref` prop (renders
+  the "Batal" link, create pages only) and are otherwise unchanged; the application page's
+  create-with-domain/toast glue moved into a new `create-application-page-form.tsx` wrapper, and the
+  create-database form itself was extracted out of its old dialog into a new reusable
+  `database-form.tsx` (there's still no database edit form — engine/variant can't be changed after
+  creation). All the toast/spinner/redirect-avoidance behavior from the dialogs carries over
+  unchanged — sonner's toast store is global, not tied to the dialog's lifetime, so navigating
+  to/from these pages never orphans a "loading" toast. `deploy-template-dialog.tsx` is unaffected
+  and stays a dialog (opened from the template catalog, not the project page).
+- UI font switched from Geist to **Inter** for both body text and headings (`layout.tsx`'s
+  `--font-sans`, and `globals.css`'s `--font-heading` now points at it too). The `<html>` element
+  was also forcing `font-mono` app-wide — removed, so `font-sans` actually applies instead of every
+  page rendering in JetBrains Mono. Technical text (code/pre, image refs, hashes, paths, commit SHAs,
+  logs, technical form fields) keeps its explicit `font-mono` class unchanged; the web terminal keeps
+  Fira Code via `--font-terminal`, untouched.
+- Headings now carry tight letter-spacing (helipod.io-style), scaled to size: `h1`/`h2` (page
+  titles like `InfraPage`, dashboard "Total project" card, dialog headers) at `-0.03em`, `h3`/
+  `CardTitle`/`DialogTitle`/`SheetTitle`/`AlertTitle` at `-0.015em`, and a `tracking-tighter`
+  (`-0.05em`) "display" tier for the very large stat numbers on the dashboard home page. Rules
+  live centrally in `globals.css` (element/`data-slot` selectors, low specificity on purpose so a
+  `tracking-*` utility on one element can still override), not spread across components. Body
+  text, buttons, labels, inputs, badges, and tables are untouched, and any `.font-mono` element
+  is explicitly reset to normal tracking even if it matches one of the heading selectors above.
+
+### Fixed
+
+- Creating an application (any source/engine) was completely broken — every submission 400'd with
+  `property ignoreErrorLogs should not exist`. `createApplicationAction`/`createApplicationForAccessAction`
+  always sent the full parsed form (including `ignoreErrorLogs`, defaulted `false` by the zod schema
+  shared with the edit form) straight to `POST /applications`, but `CreateApplicationDto` never declared
+  that field (it's edit-only — see `update-application.dto.ts`) and the API's global `forbidNonWhitelisted`
+  `ValidationPipe` rejects unknown properties. Caught while manually verifying the new "Aplikasi baru"
+  page above, not by `tsc`/lint/tests (the type is structurally valid, just semantically wrong for the
+  create endpoint) — both actions now strip `ignoreErrorLogs` from the request body via a shared
+  `omitIgnoreErrorLogs()` helper before posting.
+- Settings → Integrasi → Notifikasi: the **"DNS domain bermasalah"** toggle (`onDnsIssue`) never
+  actually reached the API — `notifications-card.tsx`'s switch and `Notification` entity type already
+  had it, but `notification.actions.ts`'s zod schema and form-reading code didn't, so it was silently
+  dropped from every create request and the channel always ended up with whatever the API defaulted to
+  (`true`), no matter what the toggle showed in the dialog. Found while auditing every `on_*` toggle
+  against its web/docs coverage for the same task that added the missing DTO field on the API side.
+  Added `onDnsIssue` to the `base` zod schema and the `formData.get(...)` block, matching every other
+  toggle's pattern.
+
 ## [0.1.0-alpha.2] - 2026-09-27
 
 ### Added
@@ -112,7 +231,8 @@ Versions below 1.0.0 may include breaking changes in a minor release.
   backups, notifications, and account/instance settings.
 - A web terminal (shell on the host or inside the API container) over WebSocket.
 
-[Unreleased]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.0-alpha.2...HEAD
+[Unreleased]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.0-alpha.3...HEAD
+[0.1.0-alpha.3]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.0-alpha.2...v0.1.0-alpha.3
 [0.1.0-alpha.2]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.0-alpha.1...v0.1.0-alpha.2
 [0.1.0-alpha.1]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.0-alpha.0...v0.1.0-alpha.1
 [0.1.0-alpha.0]: https://github.com/hideandseeklab/aoox-web/releases/tag/v0.1.0-alpha.0

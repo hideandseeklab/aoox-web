@@ -23,7 +23,32 @@ export interface ProjectInstance {
   deploying: boolean
 }
 
-export type ProjectListItem = Project & { instances: ProjectInstance[] }
+/** CPU/RAM/network snapshot, summed across every container the project owns. */
+export interface ProjectResourceUsageSummary {
+  cpuPercent: number | null
+  memoryBytes: number
+  netRxBytesPerSec: number | null
+  netTxBytesPerSec: number | null
+}
+
+export type ProjectListItem = Project & {
+  instances: ProjectInstance[]
+  /** From the API's live sampler; null when nothing is running. */
+  resourceUsage: ProjectResourceUsageSummary | null
+}
+
+/** One point of GET /projects/:id/resource-usage's history — same fields as the summary, plus the limit. */
+export interface ProjectResourceUsagePoint extends ProjectResourceUsageSummary {
+  at: string
+  memoryLimitBytes: number
+}
+
+/** GET /projects/:id/resource-usage — live only, no historical ranges. */
+export interface ProjectResourceUsageResponse {
+  current: ProjectResourceUsagePoint | null
+  history: ProjectResourceUsagePoint[]
+  containers: number
+}
 
 /** Dashboard counters (GET /projects/summary). */
 export interface ProjectSummary {

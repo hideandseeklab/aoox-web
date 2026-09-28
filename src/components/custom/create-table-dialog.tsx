@@ -43,7 +43,7 @@ export function CreateTableDialog({
   onCreated,
 }: {
   databaseId: string
-  engine: Exclude<DatabaseEngine, "redis">
+  engine: Exclude<DatabaseEngine, "redis" | "valkey" | "mongodb">
   /** Selected database on the server (undefined = primary). */
   db?: string
   onCreated: (table: string) => void

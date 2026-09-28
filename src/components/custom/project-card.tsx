@@ -11,7 +11,9 @@ import {
 import type {
   ProjectInstance,
   ProjectListItem,
+  ProjectResourceUsageSummary,
 } from "@/features/project/project.entity"
+import { formatBytes } from "@/features/monitoring/monitoring.entity"
 import { cn } from "@/lib/utils"
 
 const KIND_ICON = {
@@ -33,6 +35,24 @@ function statusDot(status: string) {
   if (["building", "deploying", "creating"].includes(status))
     return "bg-amber-500 animate-pulse"
   return "bg-muted-foreground/40"
+}
+
+/** "CPU 12% · RAM 340 MB · ↓2.1 MB/s ↑0.4 MB/s" — nothing running = no line at all. */
+function ResourceUsageLine({ usage }: { usage: ProjectResourceUsageSummary }) {
+  return (
+    <p className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-0.5 font-mono text-[11px] text-muted-foreground">
+      <span>
+        CPU {usage.cpuPercent === null ? "–" : `${usage.cpuPercent.toFixed(1)}%`}
+      </span>
+      <span aria-hidden>·</span>
+      <span>RAM {formatBytes(usage.memoryBytes)}</span>
+      <span aria-hidden>·</span>
+      <span>
+        ↓{usage.netRxBytesPerSec === null ? "–" : `${formatBytes(usage.netRxBytesPerSec)}/s`}{" "}
+        ↑{usage.netTxBytesPerSec === null ? "–" : `${formatBytes(usage.netTxBytesPerSec)}/s`}
+      </span>
+    </p>
+  )
 }
 
 function InstanceRow({ instance }: { instance: ProjectInstance }) {
@@ -112,6 +132,9 @@ export function ProjectCard({ project }: { project: ProjectListItem }) {
               <p className="mt-3 text-xs text-muted-foreground">
                 {running}/{total} berjalan
               </p>
+              {project.resourceUsage && (
+                <ResourceUsageLine usage={project.resourceUsage} />
+              )}
             </>
           )}
         </CardContent>

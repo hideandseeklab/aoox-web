@@ -4,17 +4,16 @@ import {
   Database,
   Layers,
   LayoutTemplate,
+  Plus,
 } from "lucide-react"
 import { SetBreadcrumb } from "@/components/custom/breadcrumb-store"
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { CreateApplicationDialog } from "@/components/custom/create-application-dialog"
-import { CreateComposeDialog } from "@/components/custom/create-compose-dialog"
-import { CreateDatabaseDialog } from "@/components/custom/create-database-dialog"
 import { DeleteProjectButton } from "@/components/custom/delete-project-button"
 import { ExportProjectButton } from "@/components/custom/export-project-button"
 import { ProjectForm } from "@/components/custom/project-form"
 import { ProjectMembers } from "@/components/custom/project-members"
+import { ProjectResourcePanel } from "@/components/custom/project-resource-panel"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -26,16 +25,15 @@ import {
 } from "@/components/ui/card"
 import { listApplications } from "@/features/application/application.queries"
 import { listComposeApps } from "@/features/compose/compose.queries"
-import { listServers } from "@/features/server/server.queries"
-import { listGitCredentials } from "@/features/git-credential/git-credential.queries"
-import { listRegistries } from "@/features/registry/registry.queries"
 import { ENGINE_LABEL } from "@/features/managed-database/managed-database.entity"
 import { listDatabases } from "@/features/managed-database/managed-database.queries"
 import { updateProjectAction } from "@/features/project/project.actions"
-import { getProject } from "@/features/project/project.queries"
+import {
+  getProject,
+  getProjectResourceUsage,
+} from "@/features/project/project.queries"
 import { listProjectMembers } from "@/features/project-member/project-member.queries"
 import { getSession } from "@/features/auth/auth.session"
-import { getProxyStatus } from "@/features/proxy/proxy.queries"
 
 export default async function ProjectDetailPage({
   params,
@@ -48,28 +46,19 @@ export default async function ProjectDetailPage({
 
   const updateAction = updateProjectAction.bind(null, project.id)
   // Viewers read; developers/admins may create and edit (API enforces it too).
-  const [
-    applications,
-    credentials,
-    databases,
-    composeApps,
-    servers,
-    registries,
-    session,
-    members,
-    proxy,
-  ] = await Promise.all([
-    listApplications(project.id),
-    listGitCredentials(),
-    listDatabases(project.id),
-    listComposeApps(project.id),
-    // Members get 403 here; they can still create apps on the host.
-    listServers().catch(() => []),
-    listRegistries().catch(() => []),
-    getSession(),
-    listProjectMembers(project.id).catch(() => null),
-    getProxyStatus(),
-  ])
+  const [applications, databases, composeApps, session, members, resourceUsage] =
+    await Promise.all([
+      listApplications(project.id),
+      listDatabases(project.id),
+      listComposeApps(project.id),
+      getSession(),
+      listProjectMembers(project.id).catch(() => null),
+      getProjectResourceUsage(project.id).catch(() => ({
+        current: null,
+        history: [],
+        containers: 0,
+      })),
+    ])
   const canWrite = members ? members.myRole !== "viewer" : true
 
   return (
@@ -113,16 +102,27 @@ export default async function ProjectDetailPage({
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_400px] lg:items-start">
         <div className="space-y-6">
           <section className="space-y-3">
+            <h2 className="text-sm font-medium">Resource usage</h2>
+            <Card>
+              <CardContent>
+                <ProjectResourcePanel
+                  projectId={project.id}
+                  initial={resourceUsage}
+                />
+              </CardContent>
+            </Card>
+          </section>
+
+          <section className="space-y-3">
             <div className="flex items-center justify-between">
               <h2 className="text-sm font-medium">Aplikasi</h2>
               {canWrite && (
-                <CreateApplicationDialog
-                  projectId={project.id}
-                  credentials={credentials}
-                  servers={servers}
-                  registries={registries}
-                  proxy={proxy}
-                />
+                <Button asChild size="sm">
+                  <Link href={`/projects/${project.id}/applications/new`}>
+                    <Plus data-icon="inline-start" />
+                    New application
+                  </Link>
+                </Button>
               )}
             </div>
             {applications.length === 0 ? (
@@ -176,11 +176,12 @@ export default async function ProjectDetailPage({
                       Dari template
                     </Link>
                   </Button>
-                  <CreateComposeDialog
-                    projectId={project.id}
-                    credentials={credentials}
-                    databaseSlugs={databases.map((d) => d.slug)}
-                  />
+                  <Button asChild size="sm">
+                    <Link href={`/projects/${project.id}/compose/new`}>
+                      <Plus data-icon="inline-start" />
+                      Stack compose
+                    </Link>
+                  </Button>
                 </div>
               )}
             </div>
@@ -227,7 +228,14 @@ export default async function ProjectDetailPage({
           <section className="space-y-3">
             <div className="flex items-center justify-between">
               <h2 className="text-sm font-medium">Database</h2>
-              {canWrite && <CreateDatabaseDialog projectId={project.id} />}
+              {canWrite && (
+                <Button asChild size="sm" variant="outline">
+                  <Link href={`/projects/${project.id}/databases/new`}>
+                    <Plus data-icon="inline-start" />
+                    New database
+                  </Link>
+                </Button>
+              )}
             </div>
             {databases.length === 0 ? (
               <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed p-8 text-center">

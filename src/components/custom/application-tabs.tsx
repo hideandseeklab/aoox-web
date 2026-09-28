@@ -7,6 +7,7 @@ import { ApplicationForm } from "@/components/custom/application-form"
 import { ApplicationJobs } from "@/components/custom/application-jobs"
 import { ApplicationMounts } from "@/components/custom/application-mounts"
 import { ApplicationWebhook } from "@/components/custom/application-webhook"
+import { ConsoleView } from "@/components/custom/console-view"
 import { MetricsPanel } from "@/components/custom/metrics-panel"
 import { PreviewsPanel } from "@/components/custom/previews-panel"
 import { VolumeBackups } from "@/components/custom/volume-backups"
@@ -43,6 +44,7 @@ export type ApplicationTab =
   | "mounts"
   | "jobs"
   | "webhook"
+  | "console"
   | "settings"
 
 /**
@@ -98,6 +100,9 @@ export function ApplicationTabs({
 }) {
   const [tab, setTab] = useState<ApplicationTab>("deploy")
   const running = app.container?.state === "running"
+  // Console is developer+ (see AGENTS.md "Console container") — the API
+  // enforces this too, but hiding the tab keeps a viewer from hitting a 403.
+  const canUseConsole = app.projectRole !== "viewer"
 
   return (
     <Tabs value={tab} onValueChange={(v) => setTab(v as ApplicationTab)}>
@@ -107,6 +112,7 @@ export function ApplicationTabs({
         <TabsTrigger value="mounts">Mount ({mounts.length})</TabsTrigger>
         <TabsTrigger value="jobs">Jobs ({jobs.length})</TabsTrigger>
         <TabsTrigger value="webhook">Webhook</TabsTrigger>
+        {canUseConsole && <TabsTrigger value="console">Console</TabsTrigger>}
         <TabsTrigger value="settings">Pengaturan</TabsTrigger>
       </TabsList>
       <TabsContent value="deploy" className="space-y-4 pt-4">
@@ -163,6 +169,25 @@ export function ApplicationTabs({
           />
         </div>
       </TabsContent>
+      {canUseConsole && (
+        <TabsContent value="console" className="pt-4">
+          <Card className="h-[600px]">
+            <CardContent className="h-full p-4">
+              <ConsoleView
+                applicationId={app.id}
+                publicApiUrl={publicApiUrl}
+                webOrigin={webOrigin}
+                tasks={app.service?.tasks
+                  .filter((t) => t.local && t.state === "running" && t.containerId)
+                  .map((t) => ({
+                    containerId: t.containerId as string,
+                    label: `Task ${t.slot ?? "?"}${t.node ? ` · ${t.node}` : ""}`,
+                  }))}
+              />
+            </CardContent>
+          </Card>
+        </TabsContent>
+      )}
       <TabsContent value="settings" className="pt-4">
         <Card className="max-w-2xl">
           <CardHeader>
@@ -209,6 +234,7 @@ export function ApplicationTabs({
                 serverId: app.serverId ?? "",
                 previewsEnabled: app.previewsEnabled ? "on" : "",
                 previewDomain: app.previewDomain ?? "",
+                ignoreErrorLogs: app.ignoreErrorLogs ? "on" : "",
               }}
               submitLabel="Simpan"
               credentials={credentials}

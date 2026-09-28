@@ -17,6 +17,7 @@ export interface Notification {
   onCertificateFailure: boolean
   onDnsIssue: boolean
   onContainerDown: boolean
+  onAppError: boolean
   createdAt: string
 }
 

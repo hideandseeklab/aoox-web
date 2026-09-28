@@ -5,7 +5,7 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-    --font-heading: var(--font-mono);
+    --font-heading: var(--font-sans);
     --font-mono: var(--font-mono);
     --color-sidebar-ring: var(--sidebar-ring);
     --color-sidebar-border: var(--sidebar-border);
@@ -127,7 +127,30 @@
     cursor: pointer;
     }
   html {
-    @apply font-mono;
+    @apply font-sans;
+    }
+  /* Tight tracking on headings, helipod.io-style — scaled to size so small
+     text (body, buttons, labels, inputs, badges, tables) stays untouched.
+     Low-specificity selectors so a `tracking-*` utility on a specific
+     element (e.g. a big stat number) still wins. Monospace text never
+     carries these — set font-mono explicitly if a heading needs it. */
+  h1, h2 {
+    letter-spacing: -0.03em;
+    }
+  h3 {
+    letter-spacing: -0.015em;
+    }
+  [data-slot="card-title"],
+  [data-slot="dialog-title"],
+  [data-slot="sheet-title"],
+  [data-slot="alert-title"] {
+    letter-spacing: -0.015em;
+    }
+  /* Belt-and-suspenders: a heading/title that opts into font-mono (e.g. a
+     mount path or app name shown in a monospace CardTitle) never gets tight
+     tracking, even though it matches one of the selectors above. */
+  .font-mono {
+    letter-spacing: normal;
     }
 }
 /* Project overrides for provider (shadcn) components — keep src/components/ui untouched.

@@ -64,12 +64,19 @@ const EVENT_LABEL: Array<[keyof Notification & `on${string}`, string]> = [
   ["onCertificateFailure", "sertifikat gagal"],
   ["onDnsIssue", "DNS domain bermasalah"],
   ["onContainerDown", "container mati"],
+  ["onAppError", "error di log aplikasi"],
 ]
 
-/** `onDeploymentStarted` defaults off (API default too) — it fires once per
- * deploy/redeploy and would be noisy for channels that just want outcomes. */
+/** `onDeploymentStarted` and `onAppError` default off (API default too) —
+ * the first fires once per deploy/redeploy and would be noisy for channels
+ * that just want outcomes, the second is a log-text guess prone to false
+ * positives. */
+const DEFAULT_OFF_EVENTS = new Set<keyof Notification & `on${string}`>([
+  "onDeploymentStarted",
+  "onAppError",
+])
 const DEFAULT_CHECKED_EVENTS = new Set<keyof Notification & `on${string}`>(
-  EVENT_LABEL.map(([name]) => name).filter((name) => name !== "onDeploymentStarted")
+  EVENT_LABEL.map(([name]) => name).filter((name) => !DEFAULT_OFF_EVENTS.has(name))
 )
 
 /** Settings card: channels that receive deployment success/failure messages. */

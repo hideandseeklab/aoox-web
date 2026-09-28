@@ -295,7 +295,7 @@ export function DatabaseBackups({
                 </SelectContent>
               </Select>
             </div>
-            {db.engine !== "redis" && (
+            {db.engine !== "redis" && db.engine !== "valkey" && (
               <div className="flex items-center gap-2 pb-1.5">
                 <Switch
                   id="bk-all"

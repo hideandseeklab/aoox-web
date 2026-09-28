@@ -52,7 +52,9 @@ export default async function DatabasePage({
     listBackupDestinations(),
     getVerifiedSession(),
     // Needs the server up (runs a query); skip otherwise to keep the page fast.
-    running && db.engine !== "redis" ? listSchemas(db.id) : [],
+    running && db.engine !== "redis" && db.engine !== "valkey"
+      ? listSchemas(db.id)
+      : [],
     listMounts({ kind: "database", id: db.id }),
     listJobs({ kind: "database", id: db.id }),
   ])

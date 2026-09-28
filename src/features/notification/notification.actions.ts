@@ -64,6 +64,8 @@ const base = z.object({
   onDiskLow: z.boolean(),
   onCertificateFailure: z.boolean(),
   onContainerDown: z.boolean(),
+  onDnsIssue: z.boolean(),
+  onAppError: z.boolean(),
 })
 
 type Fields =
@@ -116,6 +118,8 @@ export async function createNotificationAction(
     onDiskLow: formData.get("onDiskLow") === "on",
     onCertificateFailure: formData.get("onCertificateFailure") === "on",
     onContainerDown: formData.get("onContainerDown") === "on",
+    onDnsIssue: formData.get("onDnsIssue") === "on",
+    onAppError: formData.get("onAppError") === "on",
   })
   const parsedType = schema.safeParse({
     ...values,

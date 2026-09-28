@@ -1,7 +1,8 @@
 "use client"
 
-import { ChevronDown, ChevronRight, Trash2 } from "lucide-react"
+import { ChevronDown, ChevronRight, ImageOff, Trash2 } from "lucide-react"
 import { useState, useTransition } from "react"
+import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -20,11 +21,14 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import {
+  deleteRepositoryAction,
   deleteTagAction,
+  fetchRepositoryUsageAction,
   fetchTagsAction,
 } from "@/features/registry/registry.actions"
 import type {
   RepositorySummary,
+  RepositoryUsage,
   Tag,
 } from "@/features/registry/registry.entity"
 
@@ -49,7 +53,9 @@ export function RegistryRepositories({
   repositories: RepositorySummary[]
   canManage: boolean
 }) {
-  if (repositories.length === 0) {
+  const [repos, setRepos] = useState(repositories)
+
+  if (repos.length === 0) {
     return (
       <div className="rounded-lg border border-dashed p-8 text-center text-sm text-muted-foreground">
         Belum ada image. Push pertama:{" "}
@@ -59,12 +65,15 @@ export function RegistryRepositories({
   }
   return (
     <div className="divide-y rounded-lg border">
-      {repositories.map((repo) => (
+      {repos.map((repo) => (
         <RepositoryRow
           key={repo.name}
           registryId={registryId}
           repo={repo}
           canManage={canManage}
+          onImageDeleted={() =>
+            setRepos((rs) => rs.filter((r) => r.name !== repo.name))
+          }
         />
       ))}
     </div>
@@ -75,16 +84,43 @@ function RepositoryRow({
   registryId,
   repo,
   canManage,
+  onImageDeleted,
 }: {
   registryId: string
   repo: RepositorySummary
   canManage: boolean
+  onImageDeleted: () => void
 }) {
   const [open, setOpen] = useState(false)
   const [tags, setTags] = useState<Tag[] | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [pending, start] = useTransition()
   const [toDelete, setToDelete] = useState<Tag | null>(null)
+  const [imageDialogOpen, setImageDialogOpen] = useState(false)
+  const [usage, setUsage] = useState<RepositoryUsage[] | null>(null)
+  const [imagePending, startImage] = useTransition()
+
+  const openImageDialog = () => {
+    setImageDialogOpen(true)
+    setUsage(null)
+    startImage(async () => {
+      const r = await fetchRepositoryUsageAction(registryId, repo.name)
+      if (r.ok) setUsage(r.data)
+    })
+  }
+
+  const confirmDeleteImage = () =>
+    startImage(async () => {
+      const id = toast.loading(`Menghapus image ${repo.name}…`)
+      const r = await deleteRepositoryAction(registryId, repo.name, true)
+      if (r.ok) {
+        toast.success(`Image ${repo.name} dihapus`, { id })
+        setImageDialogOpen(false)
+        onImageDeleted()
+      } else {
+        toast.error(r.error, { id })
+      }
+    })
 
   const load = () =>
     start(async () => {
@@ -104,21 +140,33 @@ function RepositoryRow({
 
   return (
     <div>
-      <button
-        type="button"
-        onClick={toggle}
-        className="flex w-full items-center gap-2 px-4 py-3 text-left text-sm hover:bg-muted/50"
-      >
-        {open ? (
-          <ChevronDown className="size-4 text-muted-foreground" />
-        ) : (
-          <ChevronRight className="size-4 text-muted-foreground" />
-        )}
-        <span className="font-mono font-medium">{repo.name}</span>
-        <span className="ms-auto text-xs text-muted-foreground">
+      <div className="flex items-center gap-2 px-4 py-3 hover:bg-muted/50">
+        <button
+          type="button"
+          onClick={toggle}
+          className="flex flex-1 items-center gap-2 text-left text-sm"
+        >
+          {open ? (
+            <ChevronDown className="size-4 text-muted-foreground" />
+          ) : (
+            <ChevronRight className="size-4 text-muted-foreground" />
+          )}
+          <span className="font-mono font-medium">{repo.name}</span>
+        </button>
+        <span className="text-xs text-muted-foreground">
           {repo.tagCount} tag
         </span>
-      </button>
+        {canManage && (
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            aria-label={`Hapus image ${repo.name}`}
+            onClick={openImageDialog}
+          >
+            <ImageOff />
+          </Button>
+        )}
+      </div>
       {open && (
         <div className="border-t bg-muted/20 px-4 py-2">
           {error && (
@@ -130,7 +178,9 @@ function RepositoryRow({
             <p className="py-2 text-sm text-muted-foreground">Memuat…</p>
           ) : tags && tags.length === 0 ? (
             <p className="py-2 text-sm text-muted-foreground">
-              Tidak ada tag (manifest sudah dihapus, jalankan garbage collect).
+              {canManage
+                ? 'Tidak ada tag (manifest sudah dihapus). Pakai tombol "Hapus image" untuk membuang repo ini sepenuhnya dari katalog.'
+                : "Tidak ada tag (manifest sudah dihapus)."}
             </p>
           ) : (
             tags && (
@@ -228,6 +278,54 @@ function RepositoryRow({
               }
             >
               {pending ? "Menghapus…" : "Hapus"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={imageDialogOpen}
+        onOpenChange={(o) => !imagePending && setImageDialogOpen(o)}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Hapus image {repo.name}?</DialogTitle>
+            <DialogDescription>
+              Menghapus repo ini sepenuhnya dari katalog: semua{" "}
+              {repo.tagCount} tag dan manifest-nya, foldernya di storage, lalu
+              garbage collect otomatis. Registry di-restart singkat agar cache
+              blob-nya ikut bersih — push ulang dengan nama yang sama tetap
+              bisa dilakukan setelahnya. Tidak bisa dibatalkan.
+            </DialogDescription>
+          </DialogHeader>
+          {usage === null ? (
+            <p className="text-sm text-muted-foreground">
+              Memeriksa pemakaian…
+            </p>
+          ) : usage.length > 0 ? (
+            <p className="text-sm text-destructive">
+              Dipakai oleh {usage.length} aplikasi:{" "}
+              <span className="font-medium">
+                {usage.map((u) => u.applicationName).join(", ")}
+              </span>
+              . Rollback atau redeploy tanpa build ke image itu akan gagal
+              setelah dihapus.
+            </p>
+          ) : null}
+          <DialogFooter>
+            <Button
+              variant="outline"
+              disabled={imagePending}
+              onClick={() => setImageDialogOpen(false)}
+            >
+              Batal
+            </Button>
+            <Button
+              variant="destructive"
+              disabled={imagePending || usage === null}
+              onClick={confirmDeleteImage}
+            >
+              {imagePending ? "Menghapus…" : "Hapus image"}
             </Button>
           </DialogFooter>
         </DialogContent>

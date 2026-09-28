@@ -4,10 +4,12 @@ import { revalidatePath } from "next/cache"
 import { requireToken } from "@/features/auth/auth.session"
 import { api, ApiError } from "@/lib/api"
 import type {
+  DeleteRepositoryResult,
   ProvisionResult,
   Registry,
   RegistryTestResult,
   RepositorySummary,
+  RepositoryUsage,
   Tag,
 } from "./registry.entity"
 import { externalRegistrySchema } from "./registry.schema"
@@ -98,6 +100,54 @@ export async function deleteTagAction(
     )
     revalidatePath("/registry")
     return { ok: true, data: undefined }
+  } catch (err) {
+    return fail(err)
+  }
+}
+
+export type DeleteRepositoryActionResult =
+  | { ok: true; data: DeleteRepositoryResult }
+  | { ok: false; error: string; usage?: RepositoryUsage[] }
+
+/**
+ * Deletes an entire repository (all tags/manifests, its storage folder, then
+ * a GC pass) — distinct from `deleteTagAction`, which only drops one tag.
+ * Without `force`, the API 409s with a `usage` list of applications whose
+ * current/running image looks like it came from this repository; the caller
+ * shows that in a confirmation dialog and retries with `force: true`.
+ */
+export async function deleteRepositoryAction(
+  registryId: string,
+  repository: string,
+  force = false
+): Promise<DeleteRepositoryActionResult> {
+  try {
+    const data = await api<DeleteRepositoryResult>(
+      `/registries/${registryId}/repositories/${repository}?force=${force}`,
+      { method: "DELETE", token: await requireToken() }
+    )
+    revalidatePath("/registry")
+    return { ok: true, data }
+  } catch (err) {
+    if (err instanceof ApiError && err.status === 409) {
+      const usage = (err.details as { usage?: RepositoryUsage[] } | undefined)
+        ?.usage
+      return { ok: false, error: err.message, usage }
+    }
+    return fail(err)
+  }
+}
+
+export async function fetchRepositoryUsageAction(
+  registryId: string,
+  repository: string
+): Promise<ActionResult<RepositoryUsage[]>> {
+  try {
+    const data = await api<RepositoryUsage[]>(
+      `/registries/${registryId}/repositories/${repository}/usage`,
+      { token: await requireToken() }
+    )
+    return { ok: true, data }
   } catch (err) {
     return fail(err)
   }

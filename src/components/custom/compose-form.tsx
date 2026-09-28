@@ -1,6 +1,10 @@
 "use client"
 
-import { useActionState } from "react"
+import { Loader2 } from "lucide-react"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { useActionState, useEffect, useRef } from "react"
+import { toast } from "sonner"
 import { EnvEditor } from "@/components/custom/env-editor"
 import { Button } from "@/components/ui/button"
 import {
@@ -36,34 +40,87 @@ const EMPTY: Values = {
 
 export function ComposeForm({
   action,
+  mode = "edit",
   defaultValues,
   submitLabel,
   credentials,
   databaseSlugs,
   source = "git",
+  onPendingChange,
+  cancelHref,
 }: {
   action: (
     prev: ComposeFormState,
     formData: FormData
   ) => Promise<ComposeFormState>
+  /** Create mode shows a "creating…" toast and navigates on success instead of staying put. */
+  mode?: "create" | "edit"
   defaultValues?: Partial<Values>
   submitLabel: string
   credentials: GitCredential[]
   databaseSlugs?: string[]
   /** Template stacks edit the compose file itself instead of git settings. */
   source?: "git" | "template"
+  /** Create dialog only: lets the dialog lock its close button while submitting. */
+  onPendingChange?: (pending: boolean) => void
+  /** Standalone create page only: renders a "Batal" link back to the project. */
+  cancelHref?: string
 }) {
   const initial = { ...EMPTY, ...defaultValues }
   const [state, formAction, pending] = useActionState(action, {
     values: initial,
   })
+  const router = useRouter()
+  const toastIdRef = useRef<string | number | undefined>(undefined)
+  const wasPendingRef = useRef(false)
   const v = state.values ?? initial
   const errs = (k: keyof Values) =>
     state.fieldErrors?.[k]?.map((message) => ({ message }))
   const invalid = (k: keyof Values) => !!state.fieldErrors?.[k] || undefined
 
+  // `createComposeAppAction` no longer redirects itself (a server `redirect()`
+  // would fire before this toast could be resolved) — navigate once the row
+  // exists; the actual deploy keeps running in the background (status
+  // `deploying`, polled by the compose page itself).
+  useEffect(() => {
+    if (mode !== "create") return
+    if (wasPendingRef.current && !pending) {
+      if (state.createdId) {
+        toast.success(
+          `Stack "${state.values?.name ?? ""}" dibuat — sedang deploy.`,
+          { id: toastIdRef.current }
+        )
+        router.push(`/compose/${state.createdId}`)
+      } else if (state.error || state.fieldErrors) {
+        toast.error(state.error ?? "Periksa isian form", {
+          id: toastIdRef.current,
+        })
+      }
+    }
+    wasPendingRef.current = pending
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only react to a pending->settled transition
+  }, [pending])
+
+  useEffect(() => {
+    onPendingChange?.(pending)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pending])
+
   return (
-    <form action={formAction} noValidate>
+    <form
+      action={formAction}
+      onSubmit={
+        mode === "create"
+          ? (e) => {
+              const formData = new FormData(e.currentTarget)
+              toastIdRef.current = toast.loading(
+                `Membuat stack ${String(formData.get("name") || "").trim() || "baru"}…`
+              )
+            }
+          : undefined
+      }
+      noValidate
+    >
       <input type="hidden" name="source" value={source} />
       <FieldGroup>
         <Field data-invalid={invalid("name")}>
@@ -190,9 +247,21 @@ export function ComposeForm({
           </FieldDescription>
         )}
 
-        <div className="flex justify-end">
+        <div className="flex justify-end gap-2">
+          {cancelHref && (
+            <Button asChild variant="outline">
+              <Link href={cancelHref}>Batal</Link>
+            </Button>
+          )}
           <Button type="submit" disabled={pending}>
-            {pending ? "Menyimpan…" : submitLabel}
+            {pending && (
+              <Loader2 data-icon="inline-start" className="animate-spin" />
+            )}
+            {pending
+              ? mode === "create"
+                ? "Membuat…"
+                : "Menyimpan…"
+              : submitLabel}
           </Button>
         </div>
       </FieldGroup>

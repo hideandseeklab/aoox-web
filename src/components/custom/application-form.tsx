@@ -1,6 +1,10 @@
 "use client"
 
-import { useActionState, useState, type FormEvent } from "react"
+import { Loader2 } from "lucide-react"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { useActionState, useEffect, useRef, useState, type FormEvent } from "react"
+import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import {
   Field,
@@ -70,6 +74,7 @@ const EMPTY: Values = {
   serverId: "",
   previewsEnabled: "",
   previewDomain: "",
+  ignoreErrorLogs: "",
 }
 
 export function ApplicationForm({
@@ -85,6 +90,8 @@ export function ApplicationForm({
   swarmNodes = [],
   proxy,
   onCreateWithDomain,
+  onPendingChange,
+  cancelHref,
 }: {
   action: (
     prev: ApplicationFormState,
@@ -113,12 +120,22 @@ export function ApplicationForm({
    * can't be reused here because it redirects on success, which would abort
    * before the add-domain call.
    */
-  onCreateWithDomain?: (formData: FormData) => Promise<ActionResult>
+  onCreateWithDomain?: (
+    formData: FormData,
+    toastId: string | number
+  ) => Promise<ActionResult>
+  /** Create mode only: lets the dialog lock its close/cancel button while a submission is in flight. */
+  onPendingChange?: (pending: boolean) => void
+  /** Standalone create page only: renders a "Batal" link back to the project. */
+  cancelHref?: string
 }) {
   const initial = { ...EMPTY, ...defaultValues }
   const [state, formAction, pending] = useActionState(action, {
     values: initial,
   })
+  const router = useRouter()
+  const toastIdRef = useRef<string | number | undefined>(undefined)
+  const wasPendingRef = useRef(false)
   const v = state.values ?? initial
   const [buildType, setBuildType] = useState(v.buildType)
   const [sourceType, setSourceType] = useState(v.sourceType)
@@ -145,6 +162,41 @@ export function ApplicationForm({
     (mode === "edit" || akses === "port")
   const domainMode = mode === "create" && akses === "domain"
 
+  // Plain create (IP+port / later): the action no longer redirects itself
+  // (a server `redirect()` would abort before this toast could be resolved,
+  // per the "Domain" option's comment above), so navigation happens here
+  // once the row exists — the app keeps provisioning in the background.
+  useEffect(() => {
+    if (mode !== "create" || domainMode) return
+    if (wasPendingRef.current && !pending) {
+      if (state.createdId) {
+        toast.success(`Aplikasi "${state.values?.name ?? ""}" dibuat.`, {
+          id: toastIdRef.current,
+        })
+        router.push(`/applications/${state.createdId}`)
+      } else if (state.error || state.fieldErrors) {
+        toast.error(state.error ?? "Periksa isian form", {
+          id: toastIdRef.current,
+        })
+      }
+    }
+    wasPendingRef.current = pending
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only react to a pending->settled transition
+  }, [pending])
+
+  useEffect(() => {
+    onPendingChange?.(domainMode ? domainPending : pending)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pending, domainPending, domainMode])
+
+  const submitCreate = (e: FormEvent<HTMLFormElement>) => {
+    if (mode !== "create" || domainMode) return
+    const formData = new FormData(e.currentTarget)
+    toastIdRef.current = toast.loading(
+      `Membuat aplikasi ${String(formData.get("name") || "").trim() || "baru"}…`
+    )
+  }
+
   const submitDomain = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     if (!onCreateWithDomain) return
@@ -158,7 +210,10 @@ export function ApplicationForm({
     formData.set("domainHttps", domainHttps ? "on" : "")
     setDomainError(null)
     setDomainPending(true)
-    onCreateWithDomain(formData).then((r) => {
+    const toastId = toast.loading(
+      `Membuat aplikasi ${String(formData.get("name") || "").trim() || "baru"}…`
+    )
+    onCreateWithDomain(formData, toastId).then((r) => {
       setDomainPending(false)
       if (!r.ok) setDomainError(r.error)
     })
@@ -167,7 +222,7 @@ export function ApplicationForm({
   return (
     <form
       action={domainMode ? undefined : formAction}
-      onSubmit={domainMode ? submitDomain : undefined}
+      onSubmit={domainMode ? submitDomain : submitCreate}
       noValidate
     >
       <FieldGroup>
@@ -756,6 +811,23 @@ export function ApplicationForm({
           <FieldError errors={errs("healthcheckPath")} />
         </Field>
 
+        {mode === "edit" && (
+          <Field>
+            <label className="flex items-center gap-2 text-sm">
+              <Switch
+                name="ignoreErrorLogs"
+                defaultChecked={v.ignoreErrorLogs === "on"}
+              />
+              Abaikan error di log
+            </label>
+            <FieldDescription>
+              Lewati aplikasi ini dari pemindaian log otomatis (notifikasi{" "}
+              <em>Error aplikasi</em>) — untuk aplikasi yang output normalnya
+              memang terlihat seperti error.
+            </FieldDescription>
+          </Field>
+        )}
+
         <div className="grid gap-4 sm:grid-cols-2">
           <Field data-invalid={invalid("cpuMillicores")}>
             <FieldLabel htmlFor="app-cpu">Batas CPU (millicore)</FieldLabel>
@@ -890,13 +962,23 @@ export function ApplicationForm({
           <FieldDescription>Tersimpan.</FieldDescription>
         )}
 
-        <div className="flex justify-end">
+        <div className="flex justify-end gap-2">
+          {cancelHref && (
+            <Button asChild variant="outline">
+              <Link href={cancelHref}>Batal</Link>
+            </Button>
+          )}
           <Button
             type="submit"
             disabled={domainMode ? domainPending : pending}
           >
+            {(domainMode ? domainPending : pending) && (
+              <Loader2 data-icon="inline-start" className="animate-spin" />
+            )}
             {(domainMode ? domainPending : pending)
-              ? "Menyimpan…"
+              ? mode === "create"
+                ? "Membuat…"
+                : "Menyimpan…"
               : submitLabel}
           </Button>
         </div>

@@ -65,12 +65,17 @@ type Field =
   | "serverId"
   | "previewsEnabled"
   | "previewDomain"
+  | "ignoreErrorLogs"
 
 export interface ApplicationFormState {
   error?: string
   fieldErrors?: Partial<Record<Field, string[]>>
   values?: Record<Field, string>
   saved?: boolean
+  /** Set on a successful create — the caller navigates itself instead of a
+   * server-side `redirect()`, so a toast tracking the submission can be
+   * updated to success/error before/around the navigation. */
+  createdId?: string
 }
 
 function readForm(formData: FormData): Record<Field, string> {
@@ -110,7 +115,22 @@ function readForm(formData: FormData): Record<Field, string> {
     serverId: get("serverId") === "local" ? "" : get("serverId"),
     previewsEnabled: formData.get("previewsEnabled") === "on" ? "on" : "",
     previewDomain: get("previewDomain"),
+    ignoreErrorLogs: formData.get("ignoreErrorLogs") === "on" ? "on" : "",
   }
+}
+
+/**
+ * `ignoreErrorLogs` is edit-only (CreateApplicationDto doesn't declare it,
+ * and the API's `forbidNonWhitelisted` ValidationPipe 400s on unknown
+ * properties) — the parsed schema always includes it (`.default(false)`)
+ * since the same schema backs both create and edit.
+ */
+function omitIgnoreErrorLogs<T extends { ignoreErrorLogs: boolean }>(
+  data: T
+): Omit<T, "ignoreErrorLogs"> {
+  const rest: Record<string, unknown> = { ...data }
+  delete rest.ignoreErrorLogs
+  return rest as Omit<T, "ignoreErrorLogs">
 }
 
 function parse(values: Record<Field, string>) {
@@ -119,6 +139,7 @@ function parse(values: Record<Field, string>) {
     previewsEnabled: values.previewsEnabled === "on",
     staticSpa: values.staticSpa === "on",
     autoUpdate: values.autoUpdate === "on",
+    ignoreErrorLogs: values.ignoreErrorLogs === "on",
   })
   if (parsed.success) return { data: parsed.data, fieldErrors: undefined }
   const fieldErrors: ApplicationFormState["fieldErrors"] = {}
@@ -142,14 +163,14 @@ export async function createApplicationAction(
   try {
     app = await api<Application>("/applications", {
       method: "POST",
-      body: { projectId, ...data },
+      body: { projectId, ...omitIgnoreErrorLogs(data) },
       token: await requireToken(),
     })
   } catch (err) {
     return { ...fail(err), values }
   }
   revalidatePath(`/projects/${projectId}`)
-  redirect(`/applications/${app.id}`)
+  return { values, createdId: app.id }
 }
 
 /**
@@ -174,7 +195,7 @@ export async function createApplicationForAccessAction(
   try {
     const app = await api<Application>("/applications", {
       method: "POST",
-      body: { projectId, ...data },
+      body: { projectId, ...omitIgnoreErrorLogs(data) },
       token: await requireToken(),
     })
     revalidatePath(`/projects/${projectId}`)

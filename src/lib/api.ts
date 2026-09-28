@@ -20,7 +20,10 @@ export function webOrigin(): string {
 export class ApiError extends Error {
   constructor(
     public readonly status: number,
-    message: string
+    message: string,
+    /** Full parsed JSON error body, for callers that need more than `message`
+     *  (e.g. the `usage` array on a 409 from delete-repository). */
+    public readonly details?: unknown
   ) {
     super(message)
     this.name = "ApiError"
@@ -52,8 +55,10 @@ export async function api<T>(
 
   if (!res.ok) {
     let message = res.statusText
+    let details: unknown
     try {
       const data = (await res.json()) as { message?: string | string[] }
+      details = data
       if (data.message) {
         message = Array.isArray(data.message)
           ? data.message.join(", ")
@@ -62,7 +67,7 @@ export async function api<T>(
     } catch {
       // non-JSON error body; keep statusText
     }
-    throw new ApiError(res.status, message)
+    throw new ApiError(res.status, message, details)
   }
 
   if (res.status === 204) return undefined as T

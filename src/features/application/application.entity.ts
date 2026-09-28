@@ -44,6 +44,8 @@ export interface Application {
   hostPort: number | null
   /** HTTP path probed in the container; enables health-gated (blue/green) deploys. */
   healthcheckPath: string | null
+  /** Skip this app in the app-error-watcher's container-log scan (for apps whose normal output looks like errors). */
+  ignoreErrorLogs: boolean
   backupCron: string | null
   backupKeep: number
   backupDestinationId: string | null

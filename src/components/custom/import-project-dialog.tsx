@@ -1,8 +1,9 @@
 "use client"
 
-import { Upload } from "lucide-react"
+import { Loader2, Upload } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useState, useTransition } from "react"
+import { toast } from "sonner"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import {
@@ -45,18 +46,27 @@ export function ImportProjectDialog() {
     if (!file) return
     start(async () => {
       setError(null)
+      const toastId = toast.loading(`Mengimpor project ${name.trim() || file.name}…`)
       let parsed: unknown
       try {
         parsed = JSON.parse(await file.text())
       } catch {
         setError("File bukan JSON yang valid")
+        toast.error("File bukan JSON yang valid", { id: toastId })
         return
       }
       const r = await importProjectAction(parsed, name)
       if (!r.ok) {
         setError(r.error)
+        toast.error(r.error, { id: toastId })
         return
       }
+      toast.success(
+        r.data.warnings.length === 0
+          ? "Project diimpor."
+          : `Project diimpor dengan ${r.data.warnings.length} catatan — periksa di bawah.`,
+        { id: toastId }
+      )
       if (r.data.warnings.length === 0) {
         setOpen(false)
         router.push(`/projects/${r.data.projectId}`)
@@ -70,6 +80,7 @@ export function ImportProjectDialog() {
     <Dialog
       open={open}
       onOpenChange={(o) => {
+        if (pending) return
         setOpen(o)
         if (!o) reset()
       }}
@@ -80,7 +91,7 @@ export function ImportProjectDialog() {
           Impor
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md" showCloseButton={!pending}>
         <DialogHeader>
           <DialogTitle>Impor project</DialogTitle>
           <DialogDescription>
@@ -153,6 +164,9 @@ export function ImportProjectDialog() {
             )}
             <DialogFooter>
               <Button type="submit" disabled={pending || !file}>
+                {pending && (
+                  <Loader2 data-icon="inline-start" className="animate-spin" />
+                )}
                 {pending ? "Mengimpor…" : "Impor"}
               </Button>
             </DialogFooter>

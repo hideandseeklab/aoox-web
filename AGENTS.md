@@ -23,6 +23,20 @@ Baca `AGENTS.md` — versi Next.js ini punya breaking changes; cek `node_modules
 - `src/components/custom/` — semua komponen custom buatan sendiri.
 - `src/hooks/`, `src/lib/` — hooks dan util umum.
 
+## Font
+
+- UI (teks biasa **dan** heading) = **Inter** (`next/font/google` → variabel `--font-sans` di `layout.tsx`; `globals.css` `@theme` `--font-heading: var(--font-sans)`
+  dan `html { @apply font-sans; }`). Sebelumnya Geist + `html` dipaksa `font-mono` (seluruh UI monospace) — keduanya sudah diganti.
+  **JetBrains Mono** (`--font-mono`) tetap dipakai eksplisit lewat kelas `font-mono` untuk hal teknis: `<code>`/`<pre>`, nama image/URL/hash/commit SHA/log/perintah,
+  path mount, dan field form yang isinya identifier teknis (nama repo, env var, dsb) — jangan hapus kelas itu di komponen yang memang menampilkan nilai teknis.
+  Terminal (xterm) tetap **Fira Code** lewat `--font-terminal`, lihat bagian Terminal — tidak terpengaruh perubahan ini sama sekali.
+- **Letter-spacing berjenjang** (gaya helipod.io, ditegakkan di `globals.css` `@layer base` — selector elemen/`data-slot`, spesifisitas rendah supaya kelas
+  `tracking-*` di satu elemen tetap bisa menimpa, jangan tulis `letter-spacing` per komponen): `h1`/`h2` (judul halaman seperti `InfraPage`, header dialog) = `-0.03em`;
+  `h3` dan `[data-slot="card-title"|"dialog-title"|"sheet-title"|"alert-title"]` (`CardTitle`/`DialogTitle`/`SheetTitle`/`AlertTitle`) = `-0.015em`; teks
+  display/angka sangat besar (mis. kartu statistik `text-3xl` di dashboard home) pakai kelas Tailwind bawaan `tracking-tighter` (`-0.05em`) langsung di elemen itu.
+  Teks isi, tombol, label, input, badge, tabel, dan **apa pun berkelas `font-mono`** tetap `letter-spacing: normal` (ada rule pengaman `.font-mono { letter-spacing: normal }`
+  di base layer) — jangan tambahkan tracking pada heading yang isinya teknis (path, hash, dsb).
+
 ## Perintah
 
 - `npm run dev` — dev server
@@ -89,9 +103,34 @@ Baca `AGENTS.md` — versi Next.js ini punya breaking changes; cek `node_modules
   yang pasti ditolak) — keduanya menampilkan `<Alert>` yang menjelaskan penyebabnya + tombol yang membuka halaman yang sama persis di `webOrigin`.
 - `requireToken()` ada di `src/features/auth/auth.session.ts`, dipakai semua queries/actions.
 
+## Console
+
+- Tab **Console** di halaman aplikasi (`application-tabs.tsx`, di samping "Webhook"): `docker exec -it` masuk ke container aplikasi itu sendiri — beda dari `/terminal`
+  yang SSH ke host. `console-view.tsx` adalah salinan `terminal-view.tsx` (xterm.js + `--font-terminal`, refit sama, deteksi origin-mismatch dengan `<Alert>` sama)
+  dikurangi pemilih server (tidak relevan — kontainer sudah tertentu) ditambah pemilih **task** opsional untuk app mode `service` yang task lokalnya lebih dari satu
+  (`ConsoleTask[]`, muncul hanya kalau `tasks.length > 1`, sama seperti pemilih server di terminal). `src/features/console/` — `console.protocol.ts` (cermin
+  `console.protocol.ts` API + `consoleNamespaceUrl`), `console.actions.ts` (`createConsoleTicket(applicationId, containerId?)`).
+- **Tab disembunyikan untuk viewer** (`app.projectRole !== "viewer"`, dicek di `application-tabs.tsx` sebelum merender `TabsTrigger`/`TabsContent` — API sudah menolak
+  403 juga, ini cuma supaya viewer tidak melihat tab yang pasti gagal). Daftar task diambil dari `app.service.tasks` yang **sudah ada** di `ApplicationDetail`
+  (`get-application` — lihat AGENTS.md aoox-api bagian Docker Swarm): difilter `local && state === "running"` (task tanpa `containerId` atau bukan di node ini tidak
+  bisa di-exec dari sini, sama seperti batasan job/metrik swarm lintas node), label `Task <slot> · <node>`.
+  Teks kecil "Shell ini ada di dalam container. Perubahan file hilang saat redeploy, kecuali di mount volume." selalu tampil — pengingat bahwa ini bukan mount, bukan editor kode.
+- Verifikasi visual: dev server API + web, container sungguhan (`debian:bookworm-slim` sebagai container app palsu bernama `aoox-app-<appName>`), buka tab Console,
+  ketik perintah nyata (`echo`/`hostname`), lihat output asli via `get_page_text` (browser real, bukan mock) — prompt shell (`root@<container-id>:/#`) dan hasil
+  perintah tampil benar.
+
 ## Prinsip
 
 - Selalu ikuti dokumentasi resmi (Next.js di `node_modules/next/dist/docs/`, shadcn, dll.) untuk pemilihan paket dan pola kode.
+
+## Toast & loading saat create (aplikasi, database, stack compose, template, impor project)
+
+- Pola: `toast.loading(...)` (sonner) saat submit → simpan id yang dikembalikan (di `useRef`, bukan `useState` — tidak perlu re-render) → `toast.success`/`toast.error` dengan `{ id }` yang sama saat hasil ada, supaya **update** toast yang sama alih-alih menumpuk toast baru. Tombol submit dapat ikon `Loader2` (lucide) `animate-spin` + teks kerja ("Membuat…") selain `disabled={pending}`. Untuk yang masih dialog (`deploy-template-dialog.tsx`, `import-project-dialog.tsx`), dialog juga dikunci (`onOpenChange` menolak menutup, `DialogContent showCloseButton={!pending}`) supaya request yang sedang jalan tidak terputus oleh Escape/klik overlay/tombol X.
+- **Kenapa bukan `redirect()` server action**: `createApplicationAction`/`createDatabaseAction`/`createComposeAppAction` dulu memanggil `redirect()` di server saat sukses — ini memutus promise `useActionState` sebelum sempat meng-update toast (toast tetap "loading" selamanya di halaman tujuan, sonner tidak tahu harus menyelesaikannya). Ketiganya sekarang **mengembalikan `{ values, createdId }`** (field baru di `ApplicationFormState`/`DatabaseFormState`/`ComposeFormState`) alih-alih redirect; komponen form (`application-form.tsx` mode create, `compose-form.tsx` prop `mode`, `database-form.tsx`) yang melakukan `router.push()` sendiri di `useEffect` yang mengamati transisi `pending: true → false` — begitu `state.createdId` ada, toast di-update ke sukses dulu baru navigasi (bukan sebaliknya), jadi toast tidak pernah macet meski komponen lama langsung unmount setelah push. Field error tervalidasi tetap tampil inline seperti sebelumnya (tidak berubah — hanya penanganan sukses yang pindah dari server ke client).
+- `deploy-template-dialog.tsx` dan `import-project-dialog.tsx` sudah memakai `useTransition` + `router.push()` manual dari awal (tidak pernah `redirect()` server) — cuma ditambah toast+spinner, tanpa perubahan action.
+- Pesan sukses **jujur soal proses di background**: database ("...sedang disiapkan, pull image bisa beberapa menit"), stack ("...sedang deploy") — baris ini merujuk status `creating`/`deploying` yang halaman detailnya **sudah** memoll sendiri (`database-panel.tsx`, `compose-panel.tsx`, `setInterval` tiap 3 detik selama status belum terminal) — jangan tambah polling baru di sana, cukup pastikan toast tidak mengklaim "selesai".
+- `onCreateWithDomain` di `application-form.tsx` (opsi Akses → Domain) sekarang menerima `(formData, toastId)` — `create-application-page-form.tsx` yang menaruh `toast.success`/`toast.error` dengan id itu, karena alur ini juga memanggil `addDomainAction` setelah create dan pesannya perlu tahu apakah domain-nya berhasil ditambahkan atau tidak.
+- **Halaman penuh, bukan dialog** (`/projects/[id]/applications/new`, `/projects/[id]/compose/new`, `/projects/[id]/databases/new`): form "New application"/"Stack compose"/"New database" awalnya dialog di halaman project — terlalu penuh untuk lebar dialog, terutama form aplikasi (Sumber, Akses, Swarm, dll). Sekarang tiap route punya `page.tsx` sendiri (breadcrumb + tombol kembali + `Card` `max-w-3xl` membungkus form yang sama persis) dan tombol "New application"/"Stack compose"/"New database" di halaman project jadi `Link` biasa, bukan trigger dialog. `application-form.tsx`/`compose-form.tsx`/`database-form.tsx` menerima prop `cancelHref?: string` baru — dirender sebagai tombol "Batal" (`Button asChild variant="outline"`) di sebelah tombol submit, cuma dipakai halaman create (edit di tab Pengaturan tidak butuh Batal). Karena toast sonner disimpan di store global (`<Toaster/>` di root layout), bukan di komponen form, navigasi lewat "Batal" atau `router.push` sukses tidak pernah memutus toast yang sedang berjalan. `create-application-page-form.tsx` (client, tanpa `Dialog`) membungkus `application-form.tsx` untuk opsi Akses → Domain — logikanya sama persis dengan dialog yang dihapus, cuma tanpa `open`/`setOpen`. `deploy-template-dialog.tsx` **tetap dialog** (di luar cakupan perubahan ini) karena dipanggil dari katalog template (`/templates`), bukan dari halaman project.
 
 ## Docker
 
@@ -105,7 +144,7 @@ Baca `AGENTS.md` — versi Next.js ini punya breaking changes; cek `node_modules
 
 ## Application
 
-- Daftar aplikasi ada di halaman detail project (`create-application-dialog.tsx`); detail di `/applications/[id]` dengan tab Deploy
+- Daftar aplikasi ada di halaman detail project (tombol "New application" → `/projects/[id]/applications/new`, lihat bagian Toast & loading); detail di `/applications/[id]` dengan tab Deploy
   (`application-deploy-panel.tsx`: tombol Deploy/Stop/Start, daftar deployment, log deployment & log container **streaming** via Socket.IO `/logs` — hook `src/features/application/use-logs-socket.ts`, protokol di `logs.protocol.ts`; `router.refresh()` saat status terminal)
   dan tab Pengaturan (`application-form.tsx`, dipakai juga untuk create). Tab-tab aplikasi (Deploy/Domain/Mount/Jobs/Webhook/Pengaturan) sekarang di-render oleh
   `application-tabs.tsx` (client, `Tabs` **terkontrol** lewat `useState`) alih-alih `<Tabs defaultValue>` langsung di `page.tsx` — dibutuhkan supaya tombol di
@@ -114,16 +153,16 @@ Baca `AGENTS.md` — versi Next.js ini punya breaking changes; cek `node_modules
   terpisah seperti sebelumnya): tab segmented (`Tabs` shadcn, pola sama dengan `compose-domains.tsx`) **IP & port** / **Domain** / **Nanti saja**. "IP & port" memakai
   ulang field `hostPort` yang sama (nama field sama, cuma dipindah lokasinya saat create). "Domain" (host + switch HTTPS, disabled tanpa `proxy.acmeEmail`) tidak bisa
   lewat DTO create (belum ada field domain di sana) — form-nya sendiri mem-bypass `formAction` normal (`onSubmit` kustom, bukan `action={formAction}`) dan memanggil
-  prop `onCreateWithDomain` (diimplementasikan `create-application-dialog.tsx`): `createApplicationForAccessAction` (varian `createApplicationAction` yang
+  prop `onCreateWithDomain` (diimplementasikan `create-application-page-form.tsx`): `createApplicationForAccessAction` (varian `createApplicationAction` yang
   **tidak** `redirect()` supaya bisa lanjut memanggil `addDomainAction`) → `addDomainAction` → `router.push` ke halaman app (dengan `?domainProxyAutoProvisioned=1`
   bila `addDomainAction` melaporkan itu). API `POST /applications/:id/domains` sekarang membalas `{domain, proxyAutoProvisioned}` (bukan `Domain` polos) — `addDomainAction`
-  meratakannya kembali jadi `Domain & {proxyAutoProvisioned}` (lihat AGENTS.md aoox-api bagian Proxy & Domain) supaya kedua pemanggil (`create-application-dialog.tsx`,
+  meratakannya kembali jadi `Domain & {proxyAutoProvisioned}` (lihat AGENTS.md aoox-api bagian Proxy & Domain) supaya kedua pemanggil (`create-application-page-form.tsx`,
   `application-domains.tsx`) tetap baca `r.data.proxyAutoProvisioned` tanpa tahu bentuk response berubah. Error 400 generik dari create/update yang menyebut
   kata "port" (bukan `fieldErrors` terstruktur — API belum mengembalikan itu untuk konflik port) ditampilkan di dekat field Port host, bukan cuma banner bawah
   (`portConflict`, berlaku create maupun edit).
 - Panel deploy (`application-deploy-panel.tsx`) menerima `hasAccess` (dari `!!app.hostPort || domains.length > 0`, dihitung `application-tabs.tsx`): kalau app
   sudah pernah sukses deploy (`app.currentImage`) tapi `!hasAccess`, tampil Alert "Aplikasi belum punya alamat akses" dengan tombol ke tab Pengaturan/Domain
-  (`onNavigateTab`, prop dari `application-tabs.tsx`). Prop `domainProxyAutoProvisioned` (dari query string yang di-set create dialog) menampilkan Alert
+  (`onNavigateTab`, prop dari `application-tabs.tsx`). Prop `domainProxyAutoProvisioned` (dari query string yang di-set halaman "Aplikasi baru") menampilkan Alert
   peringatan yang sama gayanya dengan `panel-domain-card.tsx` (DNS/firewall/tunggu ACME) — bisa ditutup, tidak menghapus query string.
 - **Asal pemicu deployment & `deployment:created` live** (`application-deploy-panel.tsx`): `DeploymentSummary` (`application.entity.ts`) sekarang punya
   `trigger` (`manual`|`webhook`|`auto-update`), `commitSha`/`commitMessage`/`triggeredBy` dari API (lihat AGENTS.md aoox-api bagian Application & Deploy). Riwayat
@@ -159,8 +198,8 @@ Baca `AGENTS.md` — versi Next.js ini punya breaking changes; cek `node_modules
 - Env: `env-editor.tsx` (client) = editor per baris dengan nilai disamarkan (input password + toggle tampilkan) dan mode teks untuk paste `.env`;
   submit tetap satu field teks `KEY=VALUE` (kontrak API tidak berubah — API tetap mengembalikan nilai asli, masking hanya di UI). Dipakai `application-form.tsx`
   (plus field build args dan hint slug database project) dan `project-form.tsx` (`showEnv`, env bersama di halaman project).
-- Compose: `src/features/compose/` (entity/schema/queries/actions — aksi server harus `async function`, alias arrow ditolak Next) + `compose-form.tsx` (dipakai dialog
-  `create-compose-dialog.tsx` di halaman project dan tab Pengaturan), `compose-panel.tsx` (client: deploy/stop/start/hapus, daftar container, log aksi terakhir; poll 3 detik selama
+- Compose: `src/features/compose/` (entity/schema/queries/actions — aksi server harus `async function`, alias arrow ditolak Next) + `compose-form.tsx` (dipakai halaman
+  `/projects/[id]/compose/new` dan tab Pengaturan), `compose-panel.tsx` (client: deploy/stop/start/hapus, daftar container, log aksi terakhir; poll 3 detik selama
   `deploying`), route `/compose/[id]`. Halaman project menampilkan section **Stack compose** di antara Aplikasi dan Database.
   Tab Deploy compose diawali `compose-access-hint.tsx` (client): tanpa `serviceDomains` & `servicePorts` → Alert "belum punya alamat" (container stack hanya buka port di
   network Docker; arahkan ke tab Pengaturan → Akses, `*.localhost` untuk dev, ingatkan bila proxy belum jalan); selain itu tombol "Buka" per service — domain
@@ -234,7 +273,17 @@ Baca `AGENTS.md` — versi Next.js ini punya breaking changes; cek `node_modules
 - `notifications-card.tsx`: toggle `onDiskLow` & `onCertificateFailure`; channel webhook punya field `secret` (opsional, type password) dengan penjelasan header tanda tangan.
   Toggle `onDeploymentStarted` ("deploy dimulai") **default tidak dicentang** saat bikin channel baru — beda dari semua toggle lain di `EVENT_LABEL` yang defaultnya
   aktif (`DEFAULT_CHECKED_EVENTS`, dihitung dari `EVENT_LABEL` minus field ini) — menyamai default API (`on_deployment_started = false`) karena event ini bisa sering
-  terpicu lewat webhook/auto-update.
+  terpicu lewat webhook/auto-update. Toggle `onAppError` ("error di log aplikasi") ikut daftar `DEFAULT_OFF_EVENTS` yang sama (bukan `Set` satu elemen lagi) —
+  default mati juga di API, karena deteksi dari teks log rawan salah tebak (lihat AGENTS.md aoox-api bagian Notifikasi).
+- `application-form.tsx`: switch **"Abaikan error di log"** (`ignoreErrorLogs`, mode edit saja — sama pola dengan `staticSpa`/`previewsEnabled`) melewatkan aplikasi
+  dari pemindaian log `app-error-watcher.service.ts` di API, untuk app yang output normalnya memang terlihat seperti error.
+  **Jebakan yang ditemukan** (ditemukan lewat verifikasi manual halaman "Aplikasi baru" — bukan `tsc`/lint/test, karena tipenya valid secara struktur, cuma salah
+  secara semantik): `applicationSchema` (zod) dipakai bersama create & edit, jadi `ignoreErrorLogs` selalu ada di `data` hasil parse (`.default(false)`) — tapi
+  `CreateApplicationDto` di API **tidak** mendeklarasikan field ini (edit-only, lihat `update-application.dto.ts`), dan `ValidationPipe` global `forbidNonWhitelisted`
+  menolak 400 `property ignoreErrorLogs should not exist` untuk **setiap** pembuatan aplikasi, apa pun sumber/engine-nya — bug ini membuat create-application 100%
+  gagal sampai ditemukan di sini. Fix: `createApplicationAction`/`createApplicationForAccessAction` (`application.actions.ts`) memfilter field ini lewat helper
+  `omitIgnoreErrorLogs()` sebelum `POST /applications`. Field lain dengan pola sama (schema gabungan create+edit, field edit-only) berisiko sama — cek DTO create
+  di aoox-api benar-benar mendeklarasikan tiap field yang dikirim sebelum menambah field baru ke schema bersama ini.
 - `application-form.tsx`: select **Sumber** (`sourceType` git|image): `image` menampilkan `imageRef` + select kredensial registry (`imageRegistryId`, `"public"` → null) dan
   menyembunyikan blok git (`hidden`, tetap ter-submit). Validasi per sumber di `applicationSchema` = `baseSchema.superRefine` (gitUrl wajib untuk git, imageRef untuk image).
   Halaman project & aplikasi memuat `listRegistries()` (member → `[]`). Field `imageRef`/`imageRegistryId` sekarang **controlled** (bukan `defaultValue`) karena tombol
@@ -255,8 +304,23 @@ Baca `AGENTS.md` — versi Next.js ini punya breaking changes; cek `node_modules
 
 ## Managed database
 
-- Section **Database** di halaman project (`create-database-dialog.tsx`), detail di `/databases/[id]` (`database-panel.tsx`: start/stop, kredensial dengan mask/salin,
+- Section **Database** di halaman project (tombol "New database" → `/projects/[id]/databases/new`, form di `database-form.tsx` — tidak ada mode edit, ganti
+  engine/varian setelah dibuat tidak didukung), detail di `/databases/[id]` (`database-panel.tsx`: start/stop, kredensial dengan mask/salin,
   URL internal & eksternal, hapus dengan/tanpa volume; auto-refresh selama `creating`). `src/features/managed-database/` entity, schema, queries, actions.
+  **Engine**: `postgres`|`mysql`|`mariadb`|`redis`|`valkey`|`mongodb` (`ENGINE_LABEL`/`ENGINE_DEFAULT_TAG`, `Record<DatabaseEngine, ...>` jadi menambah engine baru dipaksa
+  compiler untuk mengisi semua tempat). Untuk `postgres`, `database-form.tsx` menampilkan select **Varian** tambahan (`POSTGRES_VARIANT_INFO`: pgvector/PostGIS/
+  TimescaleDB, tiap opsi punya deskripsi + tag default sendiri yang menggantikan placeholder tag) — dikirim sebagai field `variant` (sentinel `"none"` di UI,
+  dikonversi ke `""` lalu `null` sebelum ke API, pola yang sama dengan `gitCredentialId`/`imageRegistryId` "none"/"public"). Tempat lain yang membedakan
+  redis dari engine SQL (`isRedis` di `database-data-browser.tsx`, `Exclude<DatabaseEngine, "redis">` di `create-table.ts`/`create-table-dialog.tsx`, cek
+  `engine !== "redis"` di `database-backups.tsx` dan halaman detail database) semuanya diperluas mencakup `"valkey"` juga — Valkey sama-sama key-value,
+  tidak punya tabel/skema bernama. **Perhatikan `z.enum([...])` di `managed-database.schema.ts`** — daftar literal ini tidak ikut ketangkap oleh
+  `Record<DatabaseEngine, ...>` exhaustiveness check (baru ketahuan lewat grep manual saat menambah `mongodb`, bukan dari `tsc`), jadi tiap engine baru
+  wajib ditambahkan ke sana juga atau form create akan gagal validasi Zod sebelum sempat sampai ke API.
+  **MongoDB** dapat mode ketiga `isMongo` di `database-data-browser.tsx` (di samping SQL dan `isRedis`): daftar koleksi ("Koleksi"), grid baris, sort, dan
+  ekspor CSV tetap jalan (backend sudah mendukungnya); tab Struktur, `CreateTableDialog` (di-`Exclude` juga di `create-table.ts`/`create-table-dialog.tsx`,
+  sama seperti redis/valkey — MongoDB tanpa `CREATE TABLE`), ekspor/impor SQL, dan edit/hapus baris disembunyikan (backend menolak 400; kolom `columns`
+  sengaja tidak pernah diisi untuk mongo jadi tombol aksi berbasis PK otomatis tidak muncul tanpa cek eksplisit tambahan). Query box menampilkan placeholder
+  `users.find({})` dan deskripsi yang menyebut hanya `.find()` yang didukung (read-only).
 - Backup: `database-backups.tsx` di bawah panel (backup sekarang, daftar dengan unduh/restore/hapus, dialog konfirmasi restore, form jadwal cron preset/kustom + jumlah simpan).
   Data via `listBackups`, aksi `createBackupAction`/`restoreBackupAction`/`deleteBackupAction`/`updateBackupScheduleAction` (cron, keep, `backupDestinationId`).
   Form jadwal punya select "Tujuan S3" (`local` = null) dari `listBackupDestinations`; backup yang tersalin ke S3 (`remoteKey`) diberi ikon awan.
@@ -315,3 +379,13 @@ Baca `AGENTS.md` — versi Next.js ini punya breaking changes; cek `node_modules
 
 - Form aplikasi: opsi **Railpack (deteksi otomatis, cache build)** di select "Cara build" + penjelasan (cache antar deploy, butuh BuildKit di host, tidak untuk server remote).
   Kartu Disk menampilkan hasil prune cache BuildKit (`CleanupReport.buildkitCache`).
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+# This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->

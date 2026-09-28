@@ -42,6 +42,9 @@ export interface ComposeFormState {
   fieldErrors?: Partial<Record<Field, string[]>>
   values?: Record<Field, string>
   saved?: boolean
+  /** Set on a successful create — the dialog navigates itself instead of a
+   * server-side `redirect()`, so its loading toast can be resolved first. */
+  createdId?: string
 }
 
 function readForm(formData: FormData): Record<Field, string> {
@@ -91,7 +94,7 @@ export async function createComposeAppAction(
     return { ...fail(err), values }
   }
   revalidatePath(`/projects/${projectId}`)
-  redirect(`/compose/${app.id}`)
+  return { values, createdId: app.id }
 }
 
 export async function updateComposeAppAction(

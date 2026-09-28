@@ -1,6 +1,11 @@
 import { requireToken } from "@/features/auth/auth.session"
 import { api, ApiError } from "@/lib/api"
-import type { Project, ProjectListItem, ProjectSummary } from "./project.entity"
+import type {
+  Project,
+  ProjectListItem,
+  ProjectResourceUsageResponse,
+  ProjectSummary,
+} from "./project.entity"
 
 export async function listProjects(
   search?: string
@@ -24,6 +29,15 @@ export async function getProject(id: string): Promise<Project | null> {
 
 export async function getProjectSummary(): Promise<ProjectSummary> {
   return api<ProjectSummary>("/projects/summary", {
+    token: await requireToken(),
+  })
+}
+
+/** Live CPU/RAM/network for the project detail page's resource card. */
+export async function getProjectResourceUsage(
+  id: string
+): Promise<ProjectResourceUsageResponse> {
+  return api<ProjectResourceUsageResponse>(`/projects/${id}/resource-usage`, {
     token: await requireToken(),
   })
 }

@@ -3,8 +3,9 @@
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import { api, ApiError } from "@/lib/api"
-import type { Project } from "./project.entity"
+import type { Project, ProjectResourceUsageResponse } from "./project.entity"
 import { requireToken } from "@/features/auth/auth.session"
+import { getProjectResourceUsage } from "./project.queries"
 import { projectSchema } from "./project.schema"
 
 export interface ProjectFormState {
@@ -80,6 +81,17 @@ export async function updateProjectAction(
   revalidatePath("/projects")
   revalidatePath(`/projects/${id}`)
   return { values }
+}
+
+/** Polled by the project detail page's resource panel; a failure yields an empty reading, not an error page. */
+export async function fetchProjectResourceUsageAction(
+  id: string
+): Promise<ProjectResourceUsageResponse> {
+  try {
+    return await getProjectResourceUsage(id)
+  } catch {
+    return { current: null, history: [], containers: 0 }
+  }
 }
 
 export async function deleteProjectAction(id: string): Promise<void> {

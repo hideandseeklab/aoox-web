@@ -12,10 +12,14 @@ export default async function ProjectsPage() {
   const anyDeploying = projects.some((p) =>
     p.instances.some((i) => i.deploying)
   )
+  const anyRunning = projects.some((p) => p.resourceUsage !== null)
 
   return (
     <>
-      <ProjectsAutoRefresh active={anyDeploying} />
+      <ProjectsAutoRefresh
+        active={anyDeploying || anyRunning}
+        intervalMs={anyDeploying ? 4000 : 10000}
+      />
       <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="text-lg font-semibold">Projects</h1>

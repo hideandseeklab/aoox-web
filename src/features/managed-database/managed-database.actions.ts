@@ -18,12 +18,15 @@ function fail(err: unknown): { ok: false; error: string } {
   }
 }
 
-type Field = "name" | "engine" | "imageTag" | "hostPort"
+type Field = "name" | "engine" | "variant" | "imageTag" | "hostPort"
 
 export interface DatabaseFormState {
   error?: string
   fieldErrors?: Partial<Record<Field, string[]>>
   values?: Record<Field, string>
+  /** Set on a successful create — the dialog navigates itself instead of a
+   * server-side `redirect()`, so its loading toast can be resolved first. */
+  createdId?: string
 }
 
 export async function createDatabaseAction(
@@ -34,6 +37,10 @@ export async function createDatabaseAction(
   const values: Record<Field, string> = {
     name: String(formData.get("name") ?? ""),
     engine: String(formData.get("engine") ?? "postgres"),
+    variant:
+      formData.get("variant") === "none"
+        ? ""
+        : String(formData.get("variant") ?? ""),
     imageTag: String(formData.get("imageTag") ?? ""),
     hostPort: String(formData.get("hostPort") ?? ""),
   }
@@ -62,7 +69,7 @@ export async function createDatabaseAction(
     return { ...fail(err), values }
   }
   revalidatePath(`/projects/${projectId}`)
-  redirect(`/databases/${db.id}`)
+  return { values, createdId: db.id }
 }
 
 export async function stopDatabaseAction(id: string): Promise<ActionResult> {

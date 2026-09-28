@@ -1,8 +1,9 @@
 "use client"
 
-import { Rocket } from "lucide-react"
+import { Loader2, Rocket } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useState, useTransition } from "react"
+import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -65,6 +66,9 @@ export function DeployTemplateDialog({
     start(async () => {
       if (!template) return
       setError(null)
+      const toastId = toast.loading(
+        `Membuat stack ${name.trim() || template.name}…`
+      )
       const serviceDomains = template.services
         .filter((s) => hosts[key(s)]?.trim())
         .map((s) => ({
@@ -88,16 +92,28 @@ export function DeployTemplateDialog({
         serviceDomains,
         servicePorts,
       })
-      if (!r.ok) setError(r.error)
-      else {
+      if (!r.ok) {
+        setError(r.error)
+        toast.error(r.error, { id: toastId })
+      } else {
+        toast.success(
+          `Stack "${name.trim() || template.name}" dibuat — sedang deploy.`,
+          { id: toastId }
+        )
         onClose()
         router.push(`/compose/${r.id}`)
       }
     })
 
   return (
-    <Dialog open={template !== null} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-h-[90svh] overflow-y-auto sm:max-w-lg">
+    <Dialog
+      open={template !== null}
+      onOpenChange={(o) => !pending && !o && onClose()}
+    >
+      <DialogContent
+        className="max-h-[90svh] overflow-y-auto sm:max-w-lg"
+        showCloseButton={!pending}
+      >
         {template && (
           <>
             <DialogHeader>
@@ -241,7 +257,11 @@ export function DeployTemplateDialog({
                 Batal
               </Button>
               <Button onClick={submit} disabled={pending || !projectId}>
-                <Rocket data-icon="inline-start" />
+                {pending ? (
+                  <Loader2 data-icon="inline-start" className="animate-spin" />
+                ) : (
+                  <Rocket data-icon="inline-start" />
+                )}
                 {pending ? "Membuat…" : "Deploy"}
               </Button>
             </DialogFooter>

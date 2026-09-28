@@ -104,6 +104,7 @@ const baseSchema = z.object({
     .trim()
     .transform((v) => (v ? v : null)),
   previewsEnabled: z.boolean().default(false),
+  ignoreErrorLogs: z.boolean().default(false),
   previewDomain: z
     .string()
     .trim()
