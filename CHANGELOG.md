@@ -8,6 +8,44 @@ Versions below 1.0.0 may include breaking changes in a minor release.
 
 ## [Unreleased]
 
+### Fixed
+
+- "Terapkan update" on Settings → Update aoox: a user upgrading a real VPS reported a red "Tidak
+  dapat terhubung ke server" error right after clicking it, and the card just kept showing the old
+  version forever with no indication of what was happening — even though the update itself had
+  applied successfully. The error was expected (the `api`/`web` containers were mid-restart) but
+  looked like a failure, and there was previously no polling at all: the card was a single static
+  "reload the page yourself, eventually" message.
+  - Clicking "Terapkan update" now opens a confirmation dialog first (panel will restart, ~1–3
+    minutes, the page reloads itself when it's back), then the card switches to an "applying" view
+    (step list, buttons disabled, no more Cek/Terapkan) instead of the old always-visible buttons.
+  - A connection failure while in that mode — a fetch failure, or the server action's own RPC
+    rejecting because the web container it runs in was itself being replaced mid-request (Next
+    surfaces that as a thrown rejection at the call site rather than routing it through the action's
+    normal `try`/`catch`, so the call site now wraps it too) — is swallowed and retried, never shown
+    as a red error. `applyInstanceUpdateAction` now distinguishes a real `ApiError` rejection (e.g.
+    `INSTALL_DIR` not set — a genuine failure, shown as an error, does *not* enter applying mode) from
+    "couldn't connect" (treated as "probably restarting, proceed").
+  - A new `pingInstanceUpdateAction` polls a cheap API endpoint (`GET /instance/update/progress` — no
+    registry calls, unlike the existing status endpoint) every few seconds, backing off from 3s up to
+    a 10s cap, until it reports the panel is back on a new version — then a full
+    `window.location.reload()`, since the old page's JS bundle no longer matches the new build.
+  - A 5-minute timeout without a version change shows a clear message plus manual recovery steps
+    (`docker ps -a`, `docker logs`, the manual `docker compose … up -d` command) instead of polling
+    forever.
+  - Reloading the page mid-update still shows the "applying" view and resumes polling instead of
+    reverting to the normal buttons: the card's initial state comes from `status.applying`/
+    `status.applyStartedAt`, both returned by `GET /instance/update` and backed by new persistent
+    state on the API side (see its changelog) — this also means the elapsed-time-until-timeout is
+    counted from when the update actually started, not from the reload.
+  - The "done" check now requires **two** consecutive polls reporting `applying: false`, a couple
+    seconds apart, before reloading — one successful poll only proves the `api` container answered
+    with a new version, not that the `web` container (the one actually serving this poll, as a server
+    action) has cycled to the new build too; it can still be the old one on its way out for a moment
+    if it happens to restart slightly after `api` does. A poll that comes back reachable-but-still-
+    applying resets that confirmation, so an earlier premature "done" from a stale response can't
+    carry through to a later stale-again reading.
+
 ## [0.1.0-alpha.3] - 2026-09-28
 
 ### Added
