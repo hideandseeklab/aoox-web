@@ -71,7 +71,7 @@
     --chart-3: oklch(0.648 0.2 131.684);
     --chart-4: oklch(0.532 0.157 131.589);
     --chart-5: oklch(0.453 0.124 130.933);
-    --radius: 0;
+    --radius: 0.5rem;
     --sidebar: oklch(0.987 0.002 197.1);
     --sidebar-foreground: oklch(0.148 0.004 228.8);
     --sidebar-primary: oklch(0.648 0.2 131.684);
@@ -152,9 +152,4 @@
   .font-mono {
     letter-spacing: normal;
     }
-}
-/* Project overrides for provider (shadcn) components — keep src/components/ui untouched.
-   Unlayered on purpose so they beat Tailwind's utility layer. */
-[data-slot="badge"] {
-  border-radius: 0;
 }

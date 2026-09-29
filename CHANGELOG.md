@@ -8,6 +8,16 @@ Versions below 1.0.0 may include breaking changes in a minor release.
 
 ## [Unreleased]
 
+### Changed
+
+- **Medium border radius across the panel**: `--radius` goes from `0` (everything square) to `0.5rem`; the existing scale
+  (sm 4.8 / md 6.4 / lg 8 / xl 11 px) is unchanged. Cards, buttons, inputs, tabs, dialogs, selects/popovers, tooltips, alerts,
+  log/terminal/console panes (already `rounded-md` + `overflow-hidden`), skeletons and toasts pick it up through the variables.
+  The one forced override, `[data-slot="badge"] { border-radius: 0 }` in `globals.css`, is removed, so badges are the standard
+  pills again. Deliberately left square: the brand logo tile, the navigation progress bar (a thin line), and the mobile sidebar
+  sheet, which is flush with the screen edge. Checked on sign-in, dashboard, projects, project/app/database/compose detail,
+  registry, templates, terminal, environment, settings and audit log, light and dark, and at 375 px.
+
 ## [0.1.0-alpha.4] - 2026-09-29
 
 ### Added
