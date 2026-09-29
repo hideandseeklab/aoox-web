@@ -1,6 +1,6 @@
 "use client"
 
-import { useRouter } from "next/navigation"
+import { useRouter } from "@/lib/use-router"
 import { toast } from "sonner"
 import { ApplicationForm } from "@/components/custom/application-form"
 import {

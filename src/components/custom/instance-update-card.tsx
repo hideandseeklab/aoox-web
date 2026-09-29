@@ -48,7 +48,11 @@ const POLL_TIMEOUT_MS = 5 * 60 * 1000
  * try/catch — the container can die mid-request) and just keeps retrying
  * until the panel reports a new version, or the 5-minute timeout below.
  */
-export function InstanceUpdateCard({ status }: { status: InstanceUpdateStatus }) {
+export function InstanceUpdateCard({
+  status,
+}: {
+  status: InstanceUpdateStatus
+}) {
   const [pending, start] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const [current, setCurrent] = useState(status)
@@ -71,7 +75,10 @@ export function InstanceUpdateCard({ status }: { status: InstanceUpdateStatus })
     startedAtRef.current = status.applyStartedAt
       ? new Date(status.applyStartedAt).getTime()
       : Date.now()
-    if (status.applying && Date.now() - startedAtRef.current > POLL_TIMEOUT_MS) {
+    if (
+      status.applying &&
+      Date.now() - startedAtRef.current > POLL_TIMEOUT_MS
+    ) {
       setApplying(false)
       setTimedOut(true)
     }
@@ -94,7 +101,10 @@ export function InstanceUpdateCard({ status }: { status: InstanceUpdateStatus })
     const tick = () => {
       void (async () => {
         if (cancelled) return
-        if (Date.now() - (startedAtRef.current ?? Date.now()) > POLL_TIMEOUT_MS) {
+        if (
+          Date.now() - (startedAtRef.current ?? Date.now()) >
+          POLL_TIMEOUT_MS
+        ) {
           setApplying(false)
           setTimedOut(true)
           toast.error(
@@ -144,7 +154,10 @@ export function InstanceUpdateCard({ status }: { status: InstanceUpdateStatus })
     }
   }, [applying])
 
-  const available = current.api.updateAvailable || current.web.updateAvailable
+  const available =
+    current.api.updateAvailable ||
+    current.web.updateAvailable ||
+    current.version.updateAvailable
 
   const confirmApply = () => {
     setConfirmOpen(false)
@@ -189,11 +202,13 @@ export function InstanceUpdateCard({ status }: { status: InstanceUpdateStatus })
             <AlertTitle>INSTALL_DIR belum diisi</AlertTitle>
             <AlertDescription>
               Set <code>INSTALL_DIR</code> di <code>.env.dist</code> ke path
-              absolut folder <code>docker-compose.dist.yml</code> di server
-              ini, lalu restart stack sebelum menerapkan update dari sini.
+              absolut folder <code>docker-compose.dist.yml</code> di server ini,
+              lalu restart stack sebelum menerapkan update dari sini.
             </AlertDescription>
           </Alert>
         )}
+
+        <VersionSummary version={current.version} />
 
         <ul className="divide-y rounded-md border text-sm">
           <ImageRow label="api" image={current.api} />
@@ -240,16 +255,15 @@ export function InstanceUpdateCard({ status }: { status: InstanceUpdateStatus })
             <AlertTitle>Belum kembali setelah 5 menit</AlertTitle>
             <AlertDescription className="space-y-2">
               <p>
-                Panel mungkin masih memproses, atau butuh perhatian manual.
-                Cek lewat SSH ke server:
+                Panel mungkin masih memproses, atau butuh perhatian manual. Cek
+                lewat SSH ke server:
               </p>
               <pre className="overflow-x-auto rounded bg-muted p-2 font-mono text-xs">
                 {`docker ps -a\ndocker logs <container-api>`}
               </pre>
               <p>
-                Kalau container tidak kembali, jalankan perintah compose
-                manual dari{" "}
-                <code>INSTALL_DIR</code>:
+                Kalau container tidak kembali, jalankan perintah compose manual
+                dari <code>INSTALL_DIR</code>:
               </p>
               <pre className="overflow-x-auto rounded bg-muted p-2 font-mono text-xs">
                 {`docker compose -f docker-compose.dist.yml \\\n  --env-file .env.dist up -d`}
@@ -265,9 +279,9 @@ export function InstanceUpdateCard({ status }: { status: InstanceUpdateStatus })
           <DialogHeader>
             <DialogTitle>Terapkan update?</DialogTitle>
             <DialogDescription>
-              Panel akan restart (biasanya 1–3 menit) — koneksi ke dashboard
-              ini akan sempat terputus, itu wajar. Halaman ini akan memuat
-              ulang sendiri begitu panel kembali dengan versi baru.
+              Panel akan restart (biasanya 1–3 menit) — koneksi ke dashboard ini
+              akan sempat terputus, itu wajar. Halaman ini akan memuat ulang
+              sendiri begitu panel kembali dengan versi baru.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -279,6 +293,69 @@ export function InstanceUpdateCard({ status }: { status: InstanceUpdateStatus })
         </DialogContent>
       </Dialog>
     </Card>
+  )
+}
+
+/** Same signal as the sidebar badge, so the two can never contradict each other. */
+function VersionSummary({
+  version,
+}: {
+  version: InstanceUpdateStatus["version"]
+}) {
+  const checked = version.latestCheckedAt
+    ? // Fixed zone: rendered on the server and again on the client.
+      new Date(version.latestCheckedAt).toLocaleString("id-ID", {
+        timeZone: "UTC",
+        dateStyle: "medium",
+        timeStyle: "short",
+      }) + " UTC"
+    : null
+
+  let message: React.ReactNode
+  if (!version.latestVersion) {
+    message =
+      "Versi terbaru belum bisa dicek (server ini mungkin tidak punya akses ke registry). Dicoba lagi otomatis tiap beberapa jam."
+  } else if (version.tracking === "pinned") {
+    message = (
+      <>
+        Image dipasang dengan tag <code>{version.trackedTag}</code> (bukan{" "}
+        <code>:latest</code>), jadi update tidak dipantau otomatis. Versi
+        terbaru yang dipublikasikan: <code>v{version.latestVersion}</code>.
+      </>
+    )
+  } else if (version.tracking === "unknown") {
+    message = (
+      <>
+        Tag image yang terpasang tidak bisa dipastikan, jadi tombol di sidebar
+        tidak ditampilkan. Versi terbaru yang dipublikasikan:{" "}
+        <code>v{version.latestVersion}</code>.
+      </>
+    )
+  } else if (version.updateAvailable) {
+    message = (
+      <>
+        <Badge>Update tersedia</Badge> <code>v{version.latestVersion}</code>{" "}
+        sudah dipublikasikan.
+      </>
+    )
+  } else {
+    message = (
+      <>
+        Sudah versi terbaru yang dipublikasikan (
+        <code>v{version.latestVersion}</code>).
+      </>
+    )
+  }
+
+  return (
+    <div className="rounded-md border px-3 py-2 text-sm">
+      <p>{message}</p>
+      {checked && (
+        <p className="mt-1 text-xs text-muted-foreground">
+          Terakhir dicek {checked}
+        </p>
+      )}
+    </div>
   )
 }
 

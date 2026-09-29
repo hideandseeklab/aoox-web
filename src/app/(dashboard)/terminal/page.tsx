@@ -26,6 +26,7 @@ export default async function TerminalPage() {
         publicApiUrl={publicApiUrl()}
         webOrigin={webOrigin()}
         servers={servers}
+        isOwner={session.user.role === "owner"}
       />
     </div>
   )

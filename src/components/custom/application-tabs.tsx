@@ -39,13 +39,7 @@ import type { SwarmNode } from "@/features/swarm/swarm.entity"
 import type { VolumeBackup } from "@/features/volume-backup/volume-backup.entity"
 
 export type ApplicationTab =
-  | "deploy"
-  | "domains"
-  | "mounts"
-  | "jobs"
-  | "webhook"
-  | "console"
-  | "settings"
+  "deploy" | "domains" | "mounts" | "jobs" | "webhook" | "console" | "settings"
 
 /**
  * The Deploy tab's post-deploy nudge needs to switch to Pengaturan/Domain
@@ -156,7 +150,10 @@ export function ApplicationTabs({
         </div>
       </TabsContent>
       <TabsContent value="jobs" className="pt-4">
-        <ApplicationJobs owner={{ kind: "application", id: app.id }} jobs={jobs} />
+        <ApplicationJobs
+          owner={{ kind: "application", id: app.id }}
+          jobs={jobs}
+        />
       </TabsContent>
       <TabsContent value="webhook" className="pt-4">
         <div className="space-y-4">
@@ -178,7 +175,9 @@ export function ApplicationTabs({
                 publicApiUrl={publicApiUrl}
                 webOrigin={webOrigin}
                 tasks={app.service?.tasks
-                  .filter((t) => t.local && t.state === "running" && t.containerId)
+                  .filter(
+                    (t) => t.local && t.state === "running" && t.containerId
+                  )
                   .map((t) => ({
                     containerId: t.containerId as string,
                     label: `Task ${t.slot ?? "?"}${t.node ? ` · ${t.node}` : ""}`,
@@ -193,7 +192,9 @@ export function ApplicationTabs({
           <CardHeader>
             <CardTitle>Pengaturan</CardTitle>
             <CardDescription>
-              Perubahan berlaku pada deploy berikutnya.
+              Port host, domain, dan limit resource diterapkan langsung ke
+              aplikasi yang berjalan; pengaturan lain berlaku pada deploy
+              berikutnya.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -222,7 +223,9 @@ export function ApplicationTabs({
                 containerPort: String(app.containerPort),
                 hostPort: app.hostPort ? String(app.hostPort) : "",
                 healthcheckPath: app.healthcheckPath ?? "",
-                cpuMillicores: app.cpuMillicores ? String(app.cpuMillicores) : "",
+                cpuMillicores: app.cpuMillicores
+                  ? String(app.cpuMillicores)
+                  : "",
                 memoryMb: app.memoryMb ? String(app.memoryMb) : "",
                 deploymentKeep: String(app.deploymentKeep ?? 10),
                 staticBuildCommand: app.staticBuildCommand ?? "",
@@ -237,6 +240,15 @@ export function ApplicationTabs({
                 ignoreErrorLogs: app.ignoreErrorLogs ? "on" : "",
               }}
               submitLabel="Simpan"
+              hostPortApply={
+                !app.currentImage
+                  ? "next-deploy"
+                  : app.status === "stopped"
+                    ? "on-start"
+                    : app.deployMode === "service"
+                      ? "rolling"
+                      : "recreate"
+              }
               credentials={credentials}
               registries={registries}
               databaseSlugs={databaseSlugs}

@@ -2,7 +2,7 @@
 
 import { ChevronDown, ChevronRight, Search } from "lucide-react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { useRouter } from "@/lib/use-router"
 import { useState } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"

@@ -1,6 +1,7 @@
 "use client"
 
 import {
+  CircleArrowUp,
   Container,
   DatabaseBackup,
   FolderKanban,
@@ -25,6 +26,7 @@ import { usePathname, useSearchParams } from "next/navigation"
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
@@ -97,10 +99,17 @@ const SETTINGS_NAV = [
 export function AppSidebar({
   showTerminal,
   isOwner,
+  version,
+  update,
 }: {
   showTerminal: boolean
   isOwner: boolean
+  /** Running API version from `/auth/me`; absent when unavailable. */
+  version?: string
+  /** Owner only (from `/auth/me`): a newer aoox is published. */
+  update?: { version: string; applying: boolean }
 }) {
+  const webVersion = process.env.NEXT_PUBLIC_WEB_VERSION
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const items = NAV.filter((item) => !item.terminal || showTerminal)
@@ -124,8 +133,15 @@ export function AppSidebar({
                 <BrandLogo />
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-semibold">aoox</span>
-                  <span className="truncate text-xs text-muted-foreground">
-                    self-hosted PaaS
+                  <span
+                    className="truncate font-mono text-xs text-muted-foreground"
+                    title={
+                      version && webVersion && version !== webVersion
+                        ? `API v${version} · Web v${webVersion}`
+                        : undefined
+                    }
+                  >
+                    {version && version !== "unknown" ? `v${version}` : "—"}
                   </span>
                 </div>
               </Link>
@@ -220,6 +236,50 @@ export function AppSidebar({
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+      {update && (
+        <SidebarFooter>
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                size="lg"
+                asChild
+                isActive={pathname.startsWith("/infra/update")}
+                tooltip={
+                  update.applying
+                    ? "Sedang memperbarui…"
+                    : `Update tersedia: v${update.version}`
+                }
+              >
+                <Link href="/infra/update">
+                  <span className="relative flex size-8 shrink-0 items-center justify-center">
+                    {update.applying ? (
+                      <RefreshCw className="size-4 animate-spin" />
+                    ) : (
+                      <CircleArrowUp className="size-4" />
+                    )}
+                    {!update.applying && (
+                      <span
+                        aria-hidden
+                        className="absolute top-0.5 right-0.5 size-2 rounded-full bg-primary ring-2 ring-sidebar"
+                      />
+                    )}
+                  </span>
+                  <div className="grid flex-1 text-left text-sm leading-tight">
+                    <span className="truncate font-medium">
+                      {update.applying
+                        ? "Sedang memperbarui…"
+                        : "Update tersedia"}
+                    </span>
+                    <span className="truncate font-mono text-xs text-muted-foreground">
+                      v{update.version}
+                    </span>
+                  </div>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarFooter>
+      )}
       <SidebarRail />
     </Sidebar>
   )

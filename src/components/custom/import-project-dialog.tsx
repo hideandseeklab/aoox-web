@@ -1,7 +1,7 @@
 "use client"
 
 import { Loader2, Upload } from "lucide-react"
-import { useRouter } from "next/navigation"
+import { useRouter } from "@/lib/use-router"
 import { useState, useTransition } from "react"
 import { toast } from "sonner"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"

@@ -23,6 +23,8 @@ export default async function DashboardLayout({
       <AppSidebar
         showTerminal={canUseTerminal(session.user)}
         isOwner={session.user.role === "owner"}
+        version={session.user.version}
+        update={session.user.updateAvailable}
       />
       <SidebarInset>
         <AppNavbar user={session.user} />

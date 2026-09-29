@@ -1,25 +1,31 @@
 import { cn } from "@/lib/utils"
 
 /**
- * The aoox mark: a salmon silhouette on the primary tile. Inline SVG
- * (no asset request, inherits `currentColor`), used in the sidebar header
- * and anywhere else the brand shows up.
+ * The aoox mark, identical to `app/icon.svg` (the favicon; the landing site
+ * ships the same file): a dark tile with a lime `$` glyph. Inlined so it needs
+ * no asset request. Keep the geometry in sync with `icon.svg` — do not redraw.
+ *
+ * The tile is nearly the same shade as the dark-theme sidebar, so a hairline
+ * ring keeps its edge visible there (and is barely noticeable on light).
  */
 export function BrandLogo({ className }: { className?: string }) {
+  // A wrapper, not the <svg> itself: `SidebarMenuButton` forces `size-4` on
+  // its direct <svg> children, which would shrink the mark in icon mode.
   return (
     <div
       className={cn(
-        "flex aspect-square size-8 items-center justify-center rounded-md bg-primary text-primary-foreground",
+        "size-8 shrink-0 overflow-hidden rounded-[12.5%] ring-1 ring-black/10 dark:ring-white/20",
         className
       )}
       aria-hidden
     >
-      <svg viewBox="0 0 32 32" className="size-5" fill="currentColor">
-        {/* body, head to the left; the tail overlaps it so there is no gap */}
-        <path d="M3 16c3.5-6.5 9.5-9.5 17-8.5 3 2 4.5 5 4.5 8.5s-1.5 6.5-4.5 8.5C12.5 25.5 6.5 22.5 3 16z" />
-        <path d="M21.5 16c2.5-2.6 5.2-5.4 8.5-7-1.7 2.4-2.5 4.7-2.5 7s.8 4.6 2.5 7c-3.3-1.6-6-4.4-8.5-7z" />
-        <path d="M10.5 9.2C12 6.5 14.5 5 17.5 4.8c-1 1.5-1.6 3-1.8 4.6-1.8-.4-3.5-.5-5.2-.2z" />
-        <circle cx="8.5" cy="15" r="1.4" fill="var(--primary)" />
+      <svg viewBox="0 0 64 64" className="size-full">
+        <rect width="64" height="64" rx="8" fill="#0c1013" />
+        <path
+          fill="#84cc16"
+          transform="translate(18.931 47.901) scale(0.04356 -0.04356)"
+          d="M268.6 -140V-8.4Q171.1 -0.4 114.6 54.1Q58.2 108.7 57.4 195.9H182.5Q182.5 159.1 205.2 134.6Q228 110 268.6 102.4V313.5L250.9 318.6Q165.4 341 118.5 398.2Q71.5 455.4 71.5 536.1Q71.5 621.3 124.5 675.7Q177.5 730 268.6 738V870H331.5V739Q423.3 731 477.4 677.5Q531.5 624.1 531.9 539.1H406.8Q406.8 575 387.2 598.1Q367.7 621.2 331.5 628.2V426.4L363.9 417.5Q450.9 395.1 496.8 338.6Q542.6 282.1 542.6 199.4Q542.6 112.1 485.4 55.8Q428.3 -0.6 331.5 -9V-140ZM331.5 101.3Q372.3 107.5 394.9 131.6Q417.5 155.8 417.5 194.4Q417.5 237.9 387 266.8Q356.5 295.7 302 298.7L331.5 336.6ZM268.6 387.8V628.2Q233.9 621.2 215.3 599.4Q196.6 577.7 196.6 542.9Q196.6 497.9 227.5 468.3Q258.3 438.6 313 436.6Z"
+        />
       </svg>
     </div>
   )

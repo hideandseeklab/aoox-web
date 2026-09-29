@@ -38,6 +38,8 @@ export function TerminalCard({ status }: { status: TerminalStatus }) {
               {status.mode === "ssh" ? (
                 <>
                   Shell di host lewat SSH ke <code>{target}</code>
+                  {status.usernameSource === "default" &&
+                    " (user default — TERMINAL_SSH_USER kosong)"}
                   {status.keySource &&
                     ` (${KEY_SOURCE_LABEL[status.keySource]})`}
                   .

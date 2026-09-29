@@ -2,8 +2,14 @@
 
 import { Loader2 } from "lucide-react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { useActionState, useEffect, useRef, useState, type FormEvent } from "react"
+import { useRouter } from "@/lib/use-router"
+import {
+  useActionState,
+  useEffect,
+  useRef,
+  useState,
+  type FormEvent,
+} from "react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import {
@@ -91,6 +97,7 @@ export function ApplicationForm({
   proxy,
   onCreateWithDomain,
   onPendingChange,
+  hostPortApply,
   cancelHref,
 }: {
   action: (
@@ -124,6 +131,13 @@ export function ApplicationForm({
     formData: FormData,
     toastId: string | number
   ) => Promise<ActionResult>
+  /**
+   * Edit mode: how a changed Port host reaches the app — `recreate` (running
+   * container is recreated now, brief downtime), `rolling` (swarm service,
+   * queued as a config deployment), `on-start` (stopped: applied on the next
+   * start) or `next-deploy` (never deployed).
+   */
+  hostPortApply?: "recreate" | "rolling" | "on-start" | "next-deploy"
   /** Create mode only: lets the dialog lock its close/cancel button while a submission is in flight. */
   onPendingChange?: (pending: boolean) => void
   /** Standalone create page only: renders a "Batal" link back to the project. */
@@ -136,8 +150,15 @@ export function ApplicationForm({
   const router = useRouter()
   const toastIdRef = useRef<string | number | undefined>(undefined)
   const wasPendingRef = useRef(false)
+  const editToastRef = useRef<{ id: string | number; message: string } | null>(
+    null
+  )
   const v = state.values ?? initial
   const [buildType, setBuildType] = useState(v.buildType)
+  // Create mode pre-fills the port per build type (nginx serves static sites on 80);
+  // once the user types a port themselves it is never overwritten.
+  const [containerPort, setContainerPort] = useState(v.containerPort)
+  const portTouched = useRef(false)
   const [sourceType, setSourceType] = useState(v.sourceType)
   const [deployMode, setDeployMode] = useState(v.deployMode)
   const [imageRef, setImageRef] = useState(v.imageRef)
@@ -184,6 +205,24 @@ export function ApplicationForm({
     // eslint-disable-next-line react-hooks/exhaustive-deps -- only react to a pending->settled transition
   }, [pending])
 
+  // Edit mode: one toast per save (loading → success/error, same id). A
+  // changed Port host says what actually happened to the running app.
+  useEffect(() => {
+    if (mode !== "edit") return
+    const t = editToastRef.current
+    if (t && !pending) {
+      if (state.error || state.fieldErrors) {
+        toast.error(state.error ?? "Periksa isian form", { id: t.id })
+      } else if (state.saved) {
+        toast.success(t.message, { id: t.id })
+      } else {
+        toast.dismiss(t.id)
+      }
+      editToastRef.current = null
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only react to a pending->settled transition
+  }, [pending])
+
   useEffect(() => {
     onPendingChange?.(domainMode ? domainPending : pending)
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -195,6 +234,31 @@ export function ApplicationForm({
     toastIdRef.current = toast.loading(
       `Membuat aplikasi ${String(formData.get("name") || "").trim() || "baru"}…`
     )
+  }
+
+  const submitEdit = (e: FormEvent<HTMLFormElement>) => {
+    if (mode !== "edit") return
+    const next = String(
+      new FormData(e.currentTarget).get("hostPort") ?? ""
+    ).trim()
+    const changed = next !== (defaultValues?.hostPort ?? "")
+    const what = next ? "diterapkan" : "dihapus"
+    const message =
+      !changed || hostPortApply === "next-deploy" || !hostPortApply
+        ? "Tersimpan."
+        : hostPortApply === "recreate"
+          ? `Port host ${what}, container dibuat ulang.`
+          : hostPortApply === "rolling"
+            ? "Port host disimpan; diterapkan lewat deployment konfigurasi (lihat Riwayat)."
+            : "Port host disimpan; berlaku saat aplikasi dijalankan lagi."
+    editToastRef.current = {
+      id: toast.loading(
+        changed && hostPortApply === "recreate"
+          ? "Menerapkan port host — container dibuat ulang…"
+          : "Menyimpan…"
+      ),
+      message,
+    }
   }
 
   const submitDomain = (e: FormEvent<HTMLFormElement>) => {
@@ -222,7 +286,9 @@ export function ApplicationForm({
   return (
     <form
       action={domainMode ? undefined : formAction}
-      onSubmit={domainMode ? submitDomain : submitCreate}
+      onSubmit={
+        domainMode ? submitDomain : mode === "edit" ? submitEdit : submitCreate
+      }
       noValidate
     >
       <FieldGroup>
@@ -366,7 +432,12 @@ export function ApplicationForm({
               <Select
                 name="buildType"
                 value={buildType}
-                onValueChange={(t) => setBuildType(t as typeof buildType)}
+                onValueChange={(t) => {
+                  setBuildType(t as typeof buildType)
+                  if (mode === "create" && !portTouched.current) {
+                    setContainerPort(t === "static" ? "80" : "3000")
+                  }
+                }}
               >
                 <SelectTrigger id="app-build-type">
                   <SelectValue />
@@ -489,9 +560,9 @@ export function ApplicationForm({
                 </SelectContent>
               </Select>
               <FieldDescription>
-                Service hanya di host aoox. Stop/start = skala ke 0 dan
-                kembali; log & metrik dari task-nya. Ganti mode = deploy ulang
-                image terakhir. Replika &gt; 1 berbagi mount volume yang sama.
+                Service hanya di host aoox. Stop/start = skala ke 0 dan kembali;
+                log & metrik dari task-nya. Ganti mode = deploy ulang image
+                terakhir. Replika &gt; 1 berbagi mount volume yang sama.
               </FieldDescription>
             </Field>
             <Field data-invalid={invalid("replicas")}>
@@ -671,12 +742,24 @@ export function ApplicationForm({
               type="number"
               min={1}
               max={65535}
-              defaultValue={v.containerPort}
+              value={containerPort}
+              onChange={(e) => {
+                portTouched.current = true
+                setContainerPort(e.target.value)
+              }}
             />
+            {buildType === "static" &&
+              (mode === "create" || containerPort !== "80") && (
+                <FieldDescription>
+                  Situs statis dilayani nginx di port 80.
+                </FieldDescription>
+              )}
             <FieldError errors={errs("containerPort")} />
           </Field>
           {mode === "edit" && (
-            <Field data-invalid={invalid("hostPort") || portConflict || undefined}>
+            <Field
+              data-invalid={invalid("hostPort") || portConflict || undefined}
+            >
               <FieldLabel htmlFor="app-hport">Port host</FieldLabel>
               <Input
                 id="app-hport"
@@ -687,6 +770,15 @@ export function ApplicationForm({
                 placeholder="kosong = tidak dipublikasikan"
                 defaultValue={v.hostPort}
               />
+              <FieldDescription>
+                {hostPortApply === "recreate"
+                  ? "Diterapkan langsung: container dibuat ulang dari image yang berjalan (tanpa build; ada downtime singkat karena port yang sama tidak bisa dipakai dua container)."
+                  : hostPortApply === "rolling"
+                    ? "Diterapkan sebagai deployment konfigurasi (rolling update service swarm)."
+                    : hostPortApply === "on-start"
+                      ? "Aplikasi sedang berhenti: berlaku saat dijalankan lagi."
+                      : "Berlaku pada deploy pertama."}
+              </FieldDescription>
               <FieldError errors={errs("hostPort")} />
               {portConflict && (
                 <p className="text-sm text-destructive" role="alert">
@@ -772,9 +864,11 @@ export function ApplicationForm({
                 <FieldDescription>
                   Dibuka lewat reverse proxy (arahkan DNS host ini ke server
                   ini).
-                  {proxy && !proxy.running &&
+                  {proxy &&
+                    !proxy.running &&
                     " Proxy belum berjalan — akan diaktifkan otomatis kalau perlu."}
-                  {proxy && !proxy.acmeEmail &&
+                  {proxy &&
+                    !proxy.acmeEmail &&
                     " HTTPS memerlukan PROXY_ACME_EMAIL di API."}
                 </FieldDescription>
                 {domainError && (
@@ -786,8 +880,8 @@ export function ApplicationForm({
             )}
             {akses === "later" && (
               <FieldDescription>
-                Aplikasi dibuat tanpa alamat akses — atur port host atau
-                domain belakangan.
+                Aplikasi dibuat tanpa alamat akses — atur port host atau domain
+                belakangan.
               </FieldDescription>
             )}
           </Field>
@@ -968,10 +1062,7 @@ export function ApplicationForm({
               <Link href={cancelHref}>Batal</Link>
             </Button>
           )}
-          <Button
-            type="submit"
-            disabled={domainMode ? domainPending : pending}
-          >
+          <Button type="submit" disabled={domainMode ? domainPending : pending}>
             {(domainMode ? domainPending : pending) && (
               <Loader2 data-icon="inline-start" className="animate-spin" />
             )}

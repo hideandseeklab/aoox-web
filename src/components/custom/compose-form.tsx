@@ -2,7 +2,7 @@
 
 import { Loader2 } from "lucide-react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { useRouter } from "@/lib/use-router"
 import { useActionState, useEffect, useRef } from "react"
 import { toast } from "sonner"
 import { EnvEditor } from "@/components/custom/env-editor"

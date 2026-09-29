@@ -15,8 +15,11 @@ export interface TerminalClientEvents {
 export interface TerminalServerEvents {
   output: (data: string) => void
   exit: (code: number) => void
-  error: (message: string) => void
+  /** `hint` = which settings page fixes a configuration failure of the target. */
+  error: (message: string, hint?: TerminalErrorHint) => void
 }
+
+export type TerminalErrorHint = "environment" | "servers"
 
 export interface TerminalHandshakeAuth extends TerminalSize {
   ticket: string

@@ -111,8 +111,14 @@ export function InstanceEnvCard({ status }: { status: InstanceEnvStatus }) {
                 id="env-ssh-user"
                 value={sshUser}
                 onChange={(e) => setSshUser(e.target.value)}
-                placeholder="root"
+                placeholder={`${status.terminalSshUserDefault} (default)`}
               />
+              {status.terminalSshUser === null && (
+                <p className="text-xs text-muted-foreground">
+                  Belum diisi — terminal masuk sebagai{" "}
+                  <code>{status.terminalSshUserDefault}</code> (default).
+                </p>
+              )}
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="env-ssh-password">

@@ -8,8 +8,65 @@ Versions below 1.0.0 may include breaking changes in a minor release.
 
 ## [Unreleased]
 
+## [0.1.0-alpha.4] - 2026-09-29
+
+### Added
+
+- **"Update tersedia" button at the bottom of the sidebar** (owner only, from `/auth/me`): a real link
+  to Settings → Update aoox with an icon, a lime dot and the new version (`v0.1.0-alpha.4`); it becomes
+  "Sedang memperbarui…" with a spinner while an update is being applied, and disappears by itself
+  once the panel is back on the new version (the update card already reloads the page). In icon mode it
+  is just the icon with a tooltip; it works in the mobile sheet and in light and dark themes. Other
+  roles never receive the field and never see the button. The Update aoox card now also states the
+  newest published version and when it was last checked (same signal as the sidebar), and explains
+  when no badge is shown (image pinned to another tag, tag unknown, registry unreachable).
+- **Sidebar header**: the logo is now the aoox favicon mark (`app/icon.svg` — dark tile, lime `$`), drawn
+  by a single `BrandLogo` component with a hairline ring so the tile stays visible on the dark theme,
+  replacing the old lime fish tile. The static "self-hosted PaaS" subtitle became the running version
+  (e.g. `v0.1.0-alpha.4`, small mono, muted; "—" while unavailable), visible to every role and hidden in
+  icon mode like the subtitle before it. The version is the API's, taken from `/auth/me` on the request
+  the layout already makes; when the web image's own version differs (a partial update) a tooltip shows
+  both. The sign-in page is unauthenticated and shows neither.
+- **Page-navigation progress bar**: a thin lime (`--primary`) bar at the top of the screen while a page change is in
+  flight — sidebar/card/tab clicks, `router.push/replace` (create app/database/compose, import, settings tabs) and browser
+  back/forward. It appears only if the navigation takes longer than ~150 ms (no flicker on fast ones), stays until the new page's
+  content — not just its skeleton — has arrived, and has a 15 s safety cap so a cancelled/failed navigation can't leave it
+  hanging. `router.refresh()` (projects auto-refresh, deploy panel, live metrics…) never shows it: a refresh keeps the same
+  URL. Decorative (`aria-hidden`; Next already announces route changes) and a static line under `prefers-reduced-motion`.
+  Hand-written (~150 lines, no dependency) instead of `nextjs-toploader`: programmatic `router.push` only touches the History
+  API once the page is ready, so any library needs a router wrapper anyway (`@/lib/use-router`, used where the code calls
+  `push`/`replace`), and a small component gives exact control over refresh-vs-navigation and the "still on a skeleton" case.
+  Client JS grew by roughly 12 KiB gzip in the measured build (about 4 KiB of that is this code; the rest is chunking noise).
+- Route skeletons (`loading.tsx`) for `/projects`, project detail, and application/database/compose detail, sharing
+  `components/custom/page-skeletons.tsx` (header + cards, or header + tab strip + panels) next to the existing generic dashboard
+  one, so the sidebar and navbar stay put while the page loads. Skeleton roots carry `data-route-loading`, which is how the
+  progress bar knows the content hasn't arrived yet.
+
+### Changed
+
+- Create form: choosing **Cara build → Situs statis** pre-fills **Port container** with 80 (nginx serves static
+  sites on 80; the old default 3000 deployed "successfully" but the page never opened). Switching to another build
+  type restores 3000, but only while the port is still an auto-filled value — a port the user typed is never
+  overwritten. A hint ("Situs statis dilayani nginx di port 80.") shows under the field in create mode, and in edit
+  mode when a static app's saved port isn't 80; editing never changes a saved port. Deliberately a hint, not
+  validation — the API still accepts any port for static sites.
+
 ### Fixed
 
+- Settings tab of an application: the card said every change applies on the next deploy, which is no
+  longer true for Port host, domains and resource limits (applied directly, see the API changelog).
+  The text now says so, the Port host field explains how the change will reach the app (container
+  recreated now with a brief downtime / queued config deployment for a swarm service / applied when the
+  stopped app is started / first deploy), and saving shows a single toast (loading, then success or
+  error), e.g. "Port host diterapkan, container dibuat ulang.", instead of only the inline "Tersimpan.".
+- Terminal on older installs: with `TERMINAL_SSH_USER` missing from `.env.dist` (installs made
+  before the installer wrote it) the terminal used to fail with `TERMINAL_SSH_USER is not set`; the
+  API now defaults to `root`, the Terminal settings card labels it "user default", and Settings →
+  Infrastruktur → Environment shows `root (default)` as the placeholder plus a note while the field is
+  empty. When the terminal cannot connect to its target (wrong host/port, key problem, auth failure),
+  the page now shows an alert linking to **Infrastruktur → Environment** (host) or **Server remote**
+  (remote server) instead of only the raw error text; for admins, who cannot open the owner-only
+  Environment page, it names the page instead of linking.
 - "Terapkan update" on Settings → Update aoox: a user upgrading a real VPS reported a red "Tidak
   dapat terhubung ke server" error right after clicking it, and the card just kept showing the old
   version forever with no indication of what was happening — even though the update itself had
@@ -269,7 +326,8 @@ Versions below 1.0.0 may include breaking changes in a minor release.
   backups, notifications, and account/instance settings.
 - A web terminal (shell on the host or inside the API container) over WebSocket.
 
-[Unreleased]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.0-alpha.3...HEAD
+[Unreleased]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.0-alpha.4...HEAD
+[0.1.0-alpha.4]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.0-alpha.3...v0.1.0-alpha.4
 [0.1.0-alpha.3]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.0-alpha.2...v0.1.0-alpha.3
 [0.1.0-alpha.2]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.0-alpha.1...v0.1.0-alpha.2
 [0.1.0-alpha.1]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.0-alpha.0...v0.1.0-alpha.1

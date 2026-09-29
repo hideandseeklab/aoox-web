@@ -7,6 +7,14 @@ export interface AuthUser {
   role: UserRole
   /** Present on `/auth/me` responses. */
   twoFactorEnabled?: boolean
+  /** Running API version; present on `/auth/me` responses (any role). */
+  version?: string
+  /**
+   * Owner only: a newer aoox is published for the tag this install follows
+   * (`/auth/me`, from the API's cached check — no registry call). Absent for
+   * every other role and when nothing newer is known.
+   */
+  updateAvailable?: { version: string; applying: boolean }
 }
 
 export interface SignInResponse {

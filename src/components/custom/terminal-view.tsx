@@ -4,6 +4,7 @@ import "@xterm/xterm/css/xterm.css"
 
 import { ExternalLink, RotateCw } from "lucide-react"
 import { useCallback, useEffect, useRef, useState } from "react"
+import Link from "next/link"
 import { io, type Socket } from "socket.io-client"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
@@ -20,6 +21,7 @@ import { createTerminalTicket } from "@/features/terminal/terminal.actions"
 import {
   terminalNamespaceUrl,
   type TerminalClientEvents,
+  type TerminalErrorHint,
   type TerminalHandshakeAuth,
   type TerminalServerEvents,
 } from "@/features/terminal/terminal.protocol"
@@ -39,18 +41,38 @@ const STATUS_LABEL: Record<Status, string> = {
 /** Sentinel for the aoox host itself (no serverId in the ticket). */
 const LOCAL_TARGET = "local"
 
+/** Where each API error hint points; Environment is owner-only (the page 404s for admins). */
+const HINT_LINK: Record<
+  TerminalErrorHint,
+  { href: string; label: string; ownerOnly: boolean }
+> = {
+  environment: {
+    href: "/infra/environment",
+    label: "Infrastruktur → Environment",
+    ownerOnly: true,
+  },
+  servers: {
+    href: "/infra/servers",
+    label: "Infrastruktur → Server remote",
+    ownerOnly: false,
+  },
+}
+
 export function TerminalView({
   publicApiUrl,
   webOrigin,
   servers,
+  isOwner,
 }: {
   publicApiUrl: string
   /** The panel's configured `WEB_ORIGIN` — the only origin its Socket.IO gateways accept. */
   webOrigin: string
   servers: Server[]
+  isOwner: boolean
 }) {
   const hostRef = useRef<HTMLDivElement>(null)
   const [status, setStatus] = useState<Status>("connecting")
+  const [errorHint, setErrorHint] = useState<TerminalErrorHint | null>(null)
   const [attempt, setAttempt] = useState(0)
   const [target, setTarget] = useState(LOCAL_TARGET)
   const browserOrigin = useBrowserOrigin()
@@ -139,6 +161,7 @@ export function TerminalView({
       const inputSub = term.onData((d) => socket?.emit("input", d))
 
       setStatus("connecting")
+      setErrorHint(null)
       let ticket: string
       try {
         ;({ ticket } = await createTerminalTicket(serverId))
@@ -171,8 +194,9 @@ export function TerminalView({
 
 [33m[shell keluar dengan kode ${code}][0m`)
       )
-      socket.on("error", (message) => {
+      socket.on("error", (message, hint) => {
         setStatus("error")
+        setErrorHint(hint ?? null)
         term.writeln(`
 
 [31m${message}[0m`)
@@ -262,6 +286,31 @@ export function TerminalView({
           Sambung ulang
         </Button>
       </div>
+      {status === "error" && errorHint && (
+        <Alert variant="destructive">
+          <AlertTitle>Terminal belum bisa terhubung ke targetnya</AlertTitle>
+          <AlertDescription>
+            {HINT_LINK[errorHint].ownerOnly && !isOwner ? (
+              <>
+                Periksa pengaturan koneksinya di{" "}
+                <strong>{HINT_LINK[errorHint].label}</strong> — halaman itu
+                hanya bisa dibuka owner.
+              </>
+            ) : (
+              <>
+                Periksa pengaturan koneksinya di{" "}
+                <Link
+                  href={HINT_LINK[errorHint].href}
+                  className="font-medium underline underline-offset-4"
+                >
+                  {HINT_LINK[errorHint].label}
+                </Link>
+                , lalu klik Sambung ulang.
+              </>
+            )}
+          </AlertDescription>
+        </Alert>
+      )}
       <div
         ref={hostRef}
         className="min-h-0 flex-1 overflow-hidden rounded-md border bg-[#0a0a0a] p-2 [&_.xterm]:h-full"

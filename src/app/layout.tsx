@@ -1,6 +1,8 @@
 import { Fira_Code, Inter, JetBrains_Mono } from "next/font/google"
+import { Suspense } from "react"
 
 import "./globals.css"
+import { NavigationProgress } from "@/components/custom/navigation-progress"
 import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "@/components/ui/sonner"
 import { TooltipProvider } from "@/components/ui/tooltip"
@@ -41,6 +43,9 @@ export default function RootLayout({
     >
       <body>
         <ThemeProvider>
+          <Suspense fallback={null}>
+            <NavigationProgress />
+          </Suspense>
           <TooltipProvider>{children}</TooltipProvider>
           <Toaster />
         </ThemeProvider>
