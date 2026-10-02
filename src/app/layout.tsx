@@ -1,3 +1,4 @@
+import type { Metadata } from "next"
 import { Fira_Code, Inter, JetBrains_Mono } from "next/font/google"
 import { Suspense } from "react"
 
@@ -23,6 +24,20 @@ const firaCode = Fira_Code({
   subsets: ["latin"],
   variable: "--font-terminal",
 })
+
+// Both icons are declared here: a `metadata.icons` entry replaces the link the
+// `app/icon.svg` file convention would add on its own, so the SVG (served by
+// that convention at /icon.svg) is listed again next to `public/favicon.ico`,
+// the fallback for crawlers and browsers that ignore SVG icons. The ICO is made
+// from the same rounded tile — the panel has no full-bleed variant.
+export const metadata: Metadata = {
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "48x48" },
+      { url: "/icon.svg", sizes: "any", type: "image/svg+xml" },
+    ],
+  },
+}
 
 export default function RootLayout({
   children,

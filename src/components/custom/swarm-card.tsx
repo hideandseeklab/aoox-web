@@ -106,10 +106,9 @@ export function SwarmCard({
                 value={advertise}
                 onChange={(e) => setAdvertise(e.target.value)}
                 placeholder="IP publik/privat host, untuk node lain"
-                className="h-8"
               />
             </div>
-            <Button type="submit" size="sm" disabled={pending}>
+            <Button type="submit" disabled={pending}>
               <Network data-icon="inline-start" />
               {status.state === "error" ? "Init ulang swarm" : "Init swarm"}
             </Button>
@@ -307,11 +306,11 @@ function NodeLabels({
         value={text}
         onChange={(e) => setText(e.target.value)}
         placeholder="label: zone=eu tier=db"
-        className="h-7 font-mono text-xs"
+        className="font-mono text-xs"
         aria-label={`Label node ${node.hostname}`}
       />
       {dirty && (
-        <Button type="submit" size="sm" variant="outline" disabled={disabled}>
+        <Button type="submit" variant="outline" disabled={disabled}>
           Simpan
         </Button>
       )}

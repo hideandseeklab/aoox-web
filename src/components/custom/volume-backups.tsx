@@ -144,7 +144,6 @@ export function VolumeBackups({
                   </Select>
                 )}
                 <Button
-                  size="sm"
                   disabled={pending || !mountId}
                   onClick={() =>
                     run(() => createVolumeBackupAction(app.id, mountId))

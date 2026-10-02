@@ -8,6 +8,9 @@ import { ApplicationJobs } from "@/components/custom/application-jobs"
 import { ApplicationMounts } from "@/components/custom/application-mounts"
 import { ApplicationWebhook } from "@/components/custom/application-webhook"
 import { ConsoleView } from "@/components/custom/console-view"
+import { ApplicationEnvironment } from "@/components/custom/application-environment"
+import { ApplicationSecretSource } from "@/components/custom/application-secret-source"
+import { ApplicationMonitor } from "@/components/custom/application-monitor"
 import { MetricsPanel } from "@/components/custom/metrics-panel"
 import { PreviewsPanel } from "@/components/custom/previews-panel"
 import { VolumeBackups } from "@/components/custom/volume-backups"
@@ -31,6 +34,8 @@ import type { PreviewDeployment } from "@/features/application/preview.entity"
 import type { BackupDestination } from "@/features/backup-destination/backup-destination.entity"
 import type { GitCredential } from "@/features/git-credential/git-credential.entity"
 import type { Job } from "@/features/job/job.entity"
+import type { HttpMonitorView } from "@/features/http-monitor/http-monitor.entity"
+import type { SecretConnection } from "@/features/secret-connection/secret-connection.entity"
 import type { MetricsResponse } from "@/features/monitoring/monitoring.entity"
 import type { ProxyStatus } from "@/features/proxy/proxy.entity"
 import type { Registry } from "@/features/registry/registry.entity"
@@ -39,7 +44,15 @@ import type { SwarmNode } from "@/features/swarm/swarm.entity"
 import type { VolumeBackup } from "@/features/volume-backup/volume-backup.entity"
 
 export type ApplicationTab =
-  "deploy" | "domains" | "mounts" | "jobs" | "webhook" | "console" | "settings"
+  | "deploy"
+  | "domains"
+  | "mounts"
+  | "environment"
+  | "jobs"
+  | "monitor"
+  | "webhook"
+  | "console"
+  | "settings"
 
 /**
  * The Deploy tab's post-deploy nudge needs to switch to Pengaturan/Domain
@@ -60,6 +73,8 @@ export function ApplicationTabs({
   registries,
   databaseSlugs,
   metrics,
+  monitor,
+  secretConnections,
   servers,
   previews,
   canBind,
@@ -82,6 +97,9 @@ export function ApplicationTabs({
   registries: Registry[]
   databaseSlugs: string[]
   metrics: MetricsResponse
+  /** null when the monitor could not be loaded: the tab is then hidden. */
+  monitor: HttpMonitorView | null
+  secretConnections: SecretConnection[]
   servers: Server[]
   previews: PreviewDeployment[]
   canBind: boolean
@@ -104,7 +122,9 @@ export function ApplicationTabs({
         <TabsTrigger value="deploy">Deploy</TabsTrigger>
         <TabsTrigger value="domains">Domain ({domains.length})</TabsTrigger>
         <TabsTrigger value="mounts">Mount ({mounts.length})</TabsTrigger>
+        <TabsTrigger value="environment">Environment</TabsTrigger>
         <TabsTrigger value="jobs">Jobs ({jobs.length})</TabsTrigger>
+        {monitor && <TabsTrigger value="monitor">Monitor</TabsTrigger>}
         <TabsTrigger value="webhook">Webhook</TabsTrigger>
         {canUseConsole && <TabsTrigger value="console">Console</TabsTrigger>}
         <TabsTrigger value="settings">Pengaturan</TabsTrigger>
@@ -149,6 +169,31 @@ export function ApplicationTabs({
           />
         </div>
       </TabsContent>
+      <TabsContent value="environment" className="space-y-4 pt-4">
+        <ApplicationEnvironment
+          applicationId={app.id}
+          env={app.env}
+          databaseSlugs={databaseSlugs}
+          canEdit={app.projectRole !== "viewer"}
+        />
+        <ApplicationSecretSource
+          applicationId={app.id}
+          source={app.secretSource ?? null}
+          connections={secretConnections}
+          canEdit={app.projectRole !== "viewer"}
+          canManageConnections={canBind}
+        />
+      </TabsContent>
+      {monitor && (
+        <TabsContent value="monitor" className="pt-4">
+          <ApplicationMonitor
+            applicationId={app.id}
+            initial={monitor}
+            canEdit={app.projectRole !== "viewer"}
+            running={running}
+          />
+        </TabsContent>
+      )}
       <TabsContent value="jobs" className="pt-4">
         <ApplicationJobs
           owner={{ kind: "application", id: app.id }}
@@ -219,6 +264,8 @@ export function ApplicationTabs({
                 ),
                 gitBranch: app.gitBranch,
                 dockerfilePath: app.dockerfilePath,
+                rootDirectory: app.rootDirectory ?? "",
+                watchRootOnly: app.watchRootOnly ? "on" : "",
                 gitCredentialId: app.gitCredentialId ?? "",
                 containerPort: String(app.containerPort),
                 hostPort: app.hostPort ? String(app.hostPort) : "",

@@ -87,7 +87,7 @@ export function ServerProxyPanel({ server }: { server: Server }) {
             max={65535}
             value={httpPort}
             onChange={(e) => setHttpPort(e.target.value)}
-            className="h-8 w-20"
+            className="w-20"
           />
         </div>
         <div className="space-y-1">
@@ -99,7 +99,7 @@ export function ServerProxyPanel({ server }: { server: Server }) {
             max={65535}
             value={httpsPort}
             onChange={(e) => setHttpsPort(e.target.value)}
-            className="h-8 w-20"
+            className="w-20"
           />
         </div>
         <div className="min-w-40 flex-1 space-y-1">
@@ -110,20 +110,18 @@ export function ServerProxyPanel({ server }: { server: Server }) {
             value={acmeEmail}
             onChange={(e) => setAcmeEmail(e.target.value)}
             placeholder="admin@example.com"
-            className="h-8"
           />
         </div>
         <label className="mb-1.5 flex items-center gap-1.5">
           <Switch checked={acmeStaging} onCheckedChange={setAcmeStaging} />
           staging
         </label>
-        <Button type="submit" size="sm" disabled={pending}>
+        <Button type="submit" disabled={pending}>
           {status?.installed ? "Aktifkan ulang" : "Aktifkan"}
         </Button>
         {status?.installed && (
           <Button
             type="button"
-            size="sm"
             variant="outline"
             disabled={pending}
             onClick={() =>

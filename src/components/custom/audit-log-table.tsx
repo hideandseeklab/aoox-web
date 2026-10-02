@@ -1,5 +1,6 @@
 "use client"
 
+import { LinkArrow } from "@/components/custom/arrows"
 import { ChevronDown, ChevronRight, Search } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "@/lib/use-router"
@@ -53,7 +54,7 @@ export function AuditLogTable({
           className="max-w-md font-mono text-xs"
           aria-label="Filter aksi"
         />
-        <Button type="submit" variant="outline" size="sm">
+        <Button type="submit" variant="outline">
           <Search data-icon="inline-start" />
           Cari
         </Button>
@@ -114,7 +115,8 @@ export function AuditLogTable({
             <Link
               href={`/settings/audit-log?before=${encodeURIComponent(last.createdAt)}${action ? `&action=${encodeURIComponent(action)}` : ""}`}
             >
-              Lebih lama →
+              Lebih lama
+              <LinkArrow />
             </Link>
           </Button>
         </div>

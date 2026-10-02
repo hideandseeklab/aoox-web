@@ -306,6 +306,33 @@ export function DatabaseDataBrowser({
         <CardHeader>
           {!isRedis && (
             <div className="mb-2 space-y-2">
+              {canWrite && (
+                <form
+                  className="flex items-center gap-1 pl-[18px]"
+                  onSubmit={(e) => {
+                    e.preventDefault()
+                    addSchema()
+                  }}
+                >
+                  <Input
+                    value={newSchema}
+                    onChange={(e) => setNewSchema(e.target.value)}
+                    placeholder="database baru"
+                    className="min-w-0 flex-1 font-mono text-xs"
+                    aria-label="Nama database baru"
+                  />
+                  <Button
+                    type="submit"
+                    variant="outline"
+                    size="icon"
+                    aria-label="Buat database"
+                    className="shrink-0"
+                    disabled={pending || !newSchema.trim()}
+                  >
+                    <Plus />
+                  </Button>
+                </form>
+              )}
               <div className="flex items-center gap-1">
                 <Database className="size-3.5 shrink-0 text-muted-foreground" />
                 <Select value={schema} onValueChange={switchSchema}>
@@ -345,33 +372,6 @@ export function DatabaseDataBrowser({
                   </Button>
                 )}
               </div>
-              {canWrite && (
-                <form
-                  className="flex items-center gap-1"
-                  onSubmit={(e) => {
-                    e.preventDefault()
-                    addSchema()
-                  }}
-                >
-                  <Input
-                    value={newSchema}
-                    onChange={(e) => setNewSchema(e.target.value)}
-                    placeholder="database baru"
-                    className="h-7 min-w-0 flex-1 font-mono text-xs"
-                    aria-label="Nama database baru"
-                  />
-                  <Button
-                    type="submit"
-                    variant="outline"
-                    size="icon-sm"
-                    aria-label="Buat database"
-                    className="shrink-0"
-                    disabled={pending || !newSchema.trim()}
-                  >
-                    <Plus />
-                  </Button>
-                </form>
-              )}
             </div>
           )}
           <div className="flex items-center justify-between">

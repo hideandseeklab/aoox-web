@@ -1,5 +1,6 @@
 "use client"
 
+import { PathArrow } from "@/components/custom/arrows"
 import { Trash2, UserPlus } from "lucide-react"
 import { useState, useTransition } from "react"
 import { Badge } from "@/components/ui/badge"
@@ -64,7 +65,9 @@ export function ProjectMembers({
         <CardDescription>
           Siapa yang melihat project ini. Owner/admin platform dan pembuat
           project selalu termasuk; anggota lain ditambah lewat e-mail akun yang
-          sudah ada (undang dari Settings → Tim).
+          sudah ada (undang dari Settings
+          <PathArrow />
+          Tim).
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-3">
@@ -102,7 +105,7 @@ export function ProjectMembers({
                       )
                     }
                   >
-                    <SelectTrigger className="h-8 w-32" aria-label="Peran">
+                    <SelectTrigger className="w-32" aria-label="Peran">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -115,7 +118,7 @@ export function ProjectMembers({
                   </Select>
                   <Button
                     variant="ghost"
-                    size="icon-sm"
+                    size="icon"
                     aria-label="Keluarkan"
                     disabled={pending}
                     onClick={() =>
@@ -150,14 +153,14 @@ export function ProjectMembers({
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="email@akun-yang-sudah-ada"
-              className="h-8 min-w-48 flex-1"
+              className="min-w-48 flex-1"
               aria-label="E-mail anggota"
             />
             <Select
               value={role}
               onValueChange={(r) => setRole(r as ProjectRole)}
             >
-              <SelectTrigger className="h-8 w-32" aria-label="Peran baru">
+              <SelectTrigger className="w-32" aria-label="Peran baru">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -168,7 +171,7 @@ export function ProjectMembers({
                 ))}
               </SelectContent>
             </Select>
-            <Button type="submit" size="sm" disabled={pending || !email}>
+            <Button type="submit" disabled={pending || !email}>
               <UserPlus data-icon="inline-start" />
               Tambah
             </Button>

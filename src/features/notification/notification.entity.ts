@@ -18,6 +18,8 @@ export interface Notification {
   onDnsIssue: boolean
   onContainerDown: boolean
   onAppError: boolean
+  onServerDown: boolean
+  onHttpDown: boolean
   createdAt: string
 }
 

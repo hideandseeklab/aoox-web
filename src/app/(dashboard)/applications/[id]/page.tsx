@@ -23,6 +23,8 @@ import { listVolumeBackups } from "@/features/volume-backup/volume-backup.querie
 import { listRegistries } from "@/features/registry/registry.queries"
 import { listGitCredentials } from "@/features/git-credential/git-credential.queries"
 import { listDatabases } from "@/features/managed-database/managed-database.queries"
+import { getHttpMonitor } from "@/features/http-monitor/http-monitor.queries"
+import { listSecretConnections } from "@/features/secret-connection/secret-connection.queries"
 import { fetchMetricsAction } from "@/features/monitoring/monitoring.actions"
 import { listServers } from "@/features/server/server.queries"
 import { getProxyStatus } from "@/features/proxy/proxy.queries"
@@ -54,6 +56,8 @@ export default async function ApplicationPage({
     registries,
     databases,
     metrics,
+    monitor,
+    secretConnections,
     servers,
     previews,
     session,
@@ -71,6 +75,9 @@ export default async function ApplicationPage({
     listRegistries().catch(() => []),
     listDatabases(app.projectId),
     fetchMetricsAction("application", app.id),
+    getHttpMonitor(app.id).catch(() => null),
+    // Names only, for the "Sumber secret" picker; [] when the API has none.
+    listSecretConnections().catch(() => []),
     // Members get 403 here; they simply cannot move apps between servers.
     listServers().catch(() => []),
     listPreviews(app.id),
@@ -96,8 +103,8 @@ export default async function ApplicationPage({
           { label: app.name },
         ]}
       />
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex items-start gap-3">
+      <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-3">
+        <div className="flex min-w-0 items-start gap-3">
           <Button asChild variant="ghost" size="icon" className="mt-0.5">
             <Link
               href={`/projects/${app.projectId}`}
@@ -106,8 +113,8 @@ export default async function ApplicationPage({
               <ArrowLeft />
             </Link>
           </Button>
-          <div>
-            <div className="flex items-center gap-2">
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
               <h1 className="text-lg font-semibold">{app.name}</h1>
               <Badge variant={running ? "default" : "secondary"}>
                 {app.container ? app.container.state : "belum deploy"}
@@ -130,11 +137,11 @@ export default async function ApplicationPage({
                 </Badge>
               )}
             </div>
-            <p className="font-mono text-xs text-muted-foreground">
+            <p className="font-mono text-sm break-all text-muted-foreground">
               {app.appName} ·{" "}
               {app.sourceType === "image"
                 ? app.imageRef
-                : `${app.gitUrl}#${app.gitBranch}`}
+                : `${app.gitUrl}#${app.gitBranch}${app.rootDirectory ? `:${app.rootDirectory}` : ""}`}
               {app.hostPort && (
                 <>
                   {" "}
@@ -177,6 +184,8 @@ export default async function ApplicationPage({
         registries={registries}
         databaseSlugs={databases.map((d) => d.slug)}
         metrics={metrics}
+        monitor={monitor}
+        secretConnections={secretConnections}
         servers={servers}
         previews={previews}
         canBind={canBind}

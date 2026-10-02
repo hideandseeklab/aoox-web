@@ -1,8 +1,10 @@
+import { LinkArrow } from "@/components/custom/arrows"
 import Link from "next/link"
 import { AccountCard } from "@/components/custom/account-card"
 import { ApiTokensCard } from "@/components/custom/api-tokens-card"
 import { BackupDestinationsCard } from "@/components/custom/backup-destinations-card"
 import { GitCredentialsCard } from "@/components/custom/git-credentials-card"
+import { SecretConnectionsCard } from "@/components/custom/secret-connections-card"
 import { MembersCard } from "@/components/custom/members-card"
 import { NotificationsCard } from "@/components/custom/notifications-card"
 import { Button } from "@/components/ui/button"
@@ -16,6 +18,7 @@ import { listGitCredentials } from "@/features/git-credential/git-credential.que
 import { listInvitations, listMembers } from "@/features/member/member.queries"
 import { listNotifications } from "@/features/notification/notification.queries"
 import { listProjects } from "@/features/project/project.queries"
+import { listSecretConnections } from "@/features/secret-connection/secret-connection.queries"
 import { publicApiUrl } from "@/lib/api"
 
 export const metadata = { title: "Settings · aoox" }
@@ -30,14 +33,17 @@ export default async function SettingsPage() {
   ])
   const canManage = session ? canUseTerminal(session.user) : false
   // These endpoints are owner/admin only; members just don't get the cards.
-  const [notifications, members, invitations, destinations] = canManage
-    ? await Promise.all([
-        listNotifications(),
-        listMembers(),
-        listInvitations(),
-        listBackupDestinations(),
-      ])
-    : [null, null, null, null]
+  const [notifications, members, invitations, destinations, secretConnections] =
+    canManage
+      ? await Promise.all([
+          listNotifications(),
+          listMembers(),
+          listInvitations(),
+          listBackupDestinations(),
+          // An older API without the secret manager answers 404: no card then.
+          listSecretConnections().catch(() => null),
+        ])
+      : [null, null, null, null, null]
 
   return (
     <>
@@ -78,7 +84,10 @@ export default async function SettingsPage() {
               />
             )}
             <Button asChild variant="link" size="sm" className="px-0">
-              <Link href="/settings/audit-log">Lihat audit log →</Link>
+              <Link href="/settings/audit-log">
+                Lihat audit log
+                <LinkArrow />
+              </Link>
             </Button>
           </TabsContent>
         )}
@@ -94,6 +103,9 @@ export default async function SettingsPage() {
             )}
             {destinations && (
               <BackupDestinationsCard destinations={destinations} />
+            )}
+            {secretConnections && (
+              <SecretConnectionsCard connections={secretConnections} />
             )}
           </div>
         </TabsContent>

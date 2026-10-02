@@ -32,6 +32,15 @@ import { runQueryAction } from "@/features/managed-database/data-browser.actions
 import type { DatabaseEngine } from "@/features/managed-database/managed-database.entity"
 
 /**
+ * Columns: Kolom, Tipe, Panjang, Null, PK, Default, hapus. On a phone each column is a small card (labels above each
+ * field); from `sm` up it is the table below. Template for the column header and every column row
+ * so they line up; all cells are the default field height (h-7). Tipe is the widest so
+ * "bigserial (auto increment)" fits.
+ */
+const COLUMNS_GRID =
+  "sm:grid-cols-[minmax(0,1.1fr)_minmax(0,1.9fr)_4.5rem_2.5rem_2.5rem_minmax(0,1.1fr)_1.75rem]"
+
+/**
  * Form → `CREATE TABLE`, executed through the same query endpoint as the SQL
  * box (so the API's owner/admin check applies). The generated statement is
  * shown so nothing happens that the user has not read.
@@ -103,7 +112,7 @@ export function CreateTableDialog({
           <Plus />
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-2xl">
+      <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-3xl">
         <DialogHeader>
           <DialogTitle>Buat tabel</DialogTitle>
           <DialogDescription>
@@ -125,12 +134,17 @@ export function CreateTableDialog({
           </div>
 
           <div className="space-y-2">
-            <div className="grid grid-cols-[1fr_1fr_64px_56px_56px_1fr_32px] items-center gap-2 text-xs text-muted-foreground">
+            {/* Header and every row share COLUMNS_GRID, so each column lines up.
+                Below `sm` the header disappears and each column becomes a small
+                card with a label above every field. */}
+            <div
+              className={`hidden items-center gap-2 text-xs text-muted-foreground sm:grid ${COLUMNS_GRID}`}
+            >
               <span>Kolom</span>
               <span>Tipe</span>
               <span>Panjang</span>
-              <span>Null</span>
-              <span>PK</span>
+              <span className="text-center">Null</span>
+              <span className="text-center">PK</span>
               <span>Default</span>
               <span />
             </div>
@@ -139,72 +153,107 @@ export function CreateTableDialog({
               return (
                 <div
                   key={i}
-                  className="grid grid-cols-[1fr_1fr_64px_56px_56px_1fr_32px] items-center gap-2"
+                  className={`grid grid-cols-3 items-center gap-2 rounded-md border p-2 sm:rounded-none sm:border-0 sm:p-0 ${COLUMNS_GRID}`}
                 >
-                  <Input
-                    value={c.name}
-                    onChange={(e) => update(i, { name: e.target.value })}
-                    placeholder="nama"
-                    className="h-8 font-mono text-xs"
-                    aria-label={`Nama kolom ${i + 1}`}
-                  />
-                  <Select
-                    value={c.type}
-                    onValueChange={(v) => update(i, { type: v })}
-                  >
-                    <SelectTrigger
-                      size="sm"
+                  <div className="col-span-3 min-w-0 space-y-1 sm:col-span-1 sm:space-y-0">
+                    <span className="text-xs text-muted-foreground sm:hidden">
+                      Kolom
+                    </span>
+                    <Input
+                      value={c.name}
+                      onChange={(e) => update(i, { name: e.target.value })}
+                      placeholder="nama"
                       className="font-mono text-xs"
-                      aria-label={`Tipe kolom ${i + 1}`}
+                      aria-label={`Nama kolom ${i + 1}`}
+                    />
+                  </div>
+                  <div className="col-span-3 min-w-0 space-y-1 sm:col-span-1 sm:space-y-0">
+                    <span className="text-xs text-muted-foreground sm:hidden">
+                      Tipe
+                    </span>
+                    <Select
+                      value={c.type}
+                      onValueChange={(v) => update(i, { type: v })}
                     >
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {types.map((t) => (
-                        <SelectItem key={t.value} value={t.value}>
-                          {t.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Input
-                    value={c.length}
-                    onChange={(e) => update(i, { length: e.target.value })}
-                    disabled={!opt?.hasLength}
-                    className="h-8 font-mono text-xs"
-                    aria-label={`Panjang kolom ${i + 1}`}
-                  />
-                  <Switch
-                    checked={c.nullable && !c.primaryKey}
-                    disabled={c.primaryKey}
-                    onCheckedChange={(v) => update(i, { nullable: v })}
-                    aria-label={`Kolom ${i + 1} boleh NULL`}
-                  />
-                  <Switch
-                    checked={c.primaryKey}
-                    onCheckedChange={(v) => update(i, { primaryKey: v })}
-                    aria-label={`Kolom ${i + 1} primary key`}
-                  />
-                  <Input
-                    value={c.defaultValue}
-                    onChange={(e) =>
-                      update(i, { defaultValue: e.target.value })
-                    }
-                    placeholder="mis. 0, 'x', now()"
-                    className="h-8 font-mono text-xs"
-                    aria-label={`Default kolom ${i + 1}`}
-                  />
-                  <Button
-                    variant="ghost"
-                    size="icon-sm"
-                    aria-label={`Hapus kolom ${i + 1}`}
-                    disabled={columns.length === 1}
-                    onClick={() =>
-                      setColumns((cols) => cols.filter((_, j) => j !== i))
-                    }
-                  >
-                    <Trash2 />
-                  </Button>
+                      <SelectTrigger
+                        className="w-full min-w-0 font-mono text-xs"
+                        aria-label={`Tipe kolom ${i + 1}`}
+                      >
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {types.map((t) => (
+                          <SelectItem key={t.value} value={t.value}>
+                            {t.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="min-w-0 space-y-1 sm:space-y-0">
+                    <span className="text-xs text-muted-foreground sm:hidden">
+                      Panjang
+                    </span>
+                    <Input
+                      value={c.length}
+                      onChange={(e) => update(i, { length: e.target.value })}
+                      disabled={!opt?.hasLength}
+                      className="font-mono text-xs"
+                      aria-label={`Panjang kolom ${i + 1}`}
+                    />
+                  </div>
+                  <div className="space-y-1 sm:space-y-0">
+                    <span className="text-xs text-muted-foreground sm:hidden">
+                      Null
+                    </span>
+                    <div className="flex h-7 items-center sm:justify-center">
+                      <Switch
+                        checked={c.nullable && !c.primaryKey}
+                        disabled={c.primaryKey}
+                        onCheckedChange={(v) => update(i, { nullable: v })}
+                        aria-label={`Kolom ${i + 1} boleh NULL`}
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-1 sm:space-y-0">
+                    <span className="text-xs text-muted-foreground sm:hidden">
+                      PK
+                    </span>
+                    <div className="flex h-7 items-center sm:justify-center">
+                      <Switch
+                        checked={c.primaryKey}
+                        onCheckedChange={(v) => update(i, { primaryKey: v })}
+                        aria-label={`Kolom ${i + 1} primary key`}
+                      />
+                    </div>
+                  </div>
+                  <div className="col-span-3 min-w-0 space-y-1 sm:col-span-1 sm:space-y-0">
+                    <span className="text-xs text-muted-foreground sm:hidden">
+                      Default
+                    </span>
+                    <Input
+                      value={c.defaultValue}
+                      onChange={(e) =>
+                        update(i, { defaultValue: e.target.value })
+                      }
+                      placeholder="mis. 0, 'x', now()"
+                      className="font-mono text-xs"
+                      aria-label={`Default kolom ${i + 1}`}
+                    />
+                  </div>
+                  <div className="col-span-3 flex justify-end sm:col-span-1">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      aria-label={`Hapus kolom ${i + 1}`}
+                      disabled={columns.length === 1}
+                      onClick={() =>
+                        setColumns((cols) => cols.filter((_, j) => j !== i))
+                      }
+                    >
+                      <Trash2 />
+                    </Button>
+                  </div>
                 </div>
               )
             })}

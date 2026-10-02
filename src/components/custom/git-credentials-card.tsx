@@ -1,5 +1,6 @@
 "use client"
 
+import { PathArrow } from "@/components/custom/arrows"
 import { KeyRound, Plus, Trash2 } from "lucide-react"
 import { useActionState, useState, useTransition } from "react"
 import { Button } from "@/components/ui/button"
@@ -135,11 +136,19 @@ function AddCredentialDialog() {
     state.fieldErrors?.[k]?.map((message) => ({ message }))
 
   const hint =
-    provider === "github"
-      ? "Personal access token (classic: scope repo; fine-grained: Contents read). Username bebas, mis. x-access-token."
-      : provider === "gitlab"
-        ? "Deploy token (Settings → Repository → Deploy tokens, scope read_repository) — isi username token-nya."
-        : "Username + password/token HTTPS dari server git kamu."
+    provider === "github" ? (
+      "Personal access token (classic: scope repo; fine-grained: Contents read). Username bebas, mis. x-access-token."
+    ) : provider === "gitlab" ? (
+      <>
+        Deploy token (Settings
+        <PathArrow />
+        Repository
+        <PathArrow />
+        Deploy tokens, scope read_repository) — isi username token-nya.
+      </>
+    ) : (
+      "Username + password/token HTTPS dari server git kamu."
+    )
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>

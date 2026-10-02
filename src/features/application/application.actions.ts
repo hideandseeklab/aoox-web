@@ -37,6 +37,8 @@ type Field =
   | "gitUrl"
   | "gitBranch"
   | "dockerfilePath"
+  | "rootDirectory"
+  | "watchRootOnly"
   | "gitCredentialId"
   | "containerPort"
   | "hostPort"
@@ -85,6 +87,8 @@ function readForm(formData: FormData): Record<Field, string> {
     gitUrl: get("gitUrl"),
     gitBranch: get("gitBranch"),
     dockerfilePath: get("dockerfilePath"),
+    rootDirectory: get("rootDirectory"),
+    watchRootOnly: formData.get("watchRootOnly") === "on" ? "on" : "",
     gitCredentialId:
       get("gitCredentialId") === "none" ? "" : get("gitCredentialId"),
     containerPort: get("containerPort"),
@@ -138,6 +142,7 @@ function parse(values: Record<Field, string>) {
     ...values,
     previewsEnabled: values.previewsEnabled === "on",
     staticSpa: values.staticSpa === "on",
+    watchRootOnly: values.watchRootOnly === "on",
     autoUpdate: values.autoUpdate === "on",
     ignoreErrorLogs: values.ignoreErrorLogs === "on",
   })
@@ -213,10 +218,14 @@ export async function updateApplicationAction(
   const values = readForm(formData)
   const { data, fieldErrors } = parse(values)
   if (!data) return { fieldErrors, values }
+  // The Settings form has no env field any more (it lives in the Environment
+  // tab); its absent FormData entry reads as "" and would wipe the stored env.
+  const { env: _env, ...settings } = data
+  void _env
   try {
     await api<Application>(`/applications/${id}`, {
       method: "PATCH",
-      body: data,
+      body: settings,
       token: await requireToken(),
     })
   } catch (err) {
@@ -224,6 +233,30 @@ export async function updateApplicationAction(
   }
   revalidatePath(`/applications/${id}`)
   return { values, saved: true }
+}
+
+/** Saves only the environment (PATCH with `{ env }`), from the Environment tab. */
+export async function updateApplicationEnvAction(
+  id: string,
+  env: string
+): Promise<ActionResult> {
+  if (env.length > 20_000) {
+    return {
+      ok: false,
+      error: "Environment terlalu panjang (maks 20.000 karakter)",
+    }
+  }
+  try {
+    await api<Application>(`/applications/${id}`, {
+      method: "PATCH",
+      body: { env },
+      token: await requireToken(),
+    })
+    revalidatePath(`/applications/${id}`)
+    return { ok: true, data: undefined }
+  } catch (err) {
+    return fail(err)
+  }
 }
 
 export async function deployApplicationAction(

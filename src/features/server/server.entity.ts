@@ -12,6 +12,16 @@ export interface Server {
   proxyHttpsPort: number
   acmeEmail: string | null
   acmeStaging: boolean
+  /** Result of the API's periodic reachability check (no live call on page load). */
+  health: {
+    status: "unknown" | "up" | "down"
+    checkedAt: string | null
+    /** Since when the status is what it is (down since …). */
+    since: string | null
+    error: string | null
+    /** Running managed containers seen by the last check. */
+    monitoredContainers: number | null
+  }
   createdAt: string
 }
 

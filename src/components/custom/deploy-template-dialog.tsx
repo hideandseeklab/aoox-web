@@ -1,5 +1,6 @@
 "use client"
 
+import { PathArrow } from "@/components/custom/arrows"
 import { Loader2, Rocket } from "lucide-react"
 import { useRouter } from "@/lib/use-router"
 import { useState, useTransition } from "react"
@@ -158,8 +159,14 @@ export function DeployTemplateDialog({
                   Opsional, bisa diatur nanti di Pengaturan. Domain dibuka lewat
                   proxy (arahkan DNS ke server ini); port host dibuka lewat IP,
                   mis. <code>http://{browserHost ?? "<ip-server>"}:8080</code>.
-                  {!proxy.running &&
-                    " Proxy belum berjalan (Infrastruktur → Reverse proxy); domain baru aktif setelah diaktifkan."}
+                  {!proxy.running && (
+                    <>
+                      {" "}
+                      Proxy belum berjalan (Infrastruktur
+                      <PathArrow />
+                      Reverse proxy); domain baru aktif setelah diaktifkan.
+                    </>
+                  )}
                 </p>
                 {template.services.map((s) => (
                   <div key={key(s)} className="flex items-end gap-2">

@@ -1,8 +1,10 @@
 "use client"
 
+import { PathArrow } from "@/components/custom/arrows"
 import "@xterm/xterm/css/xterm.css"
 
 import { ExternalLink, RotateCw } from "lucide-react"
+import type { ReactNode } from "react"
 import { useCallback, useEffect, useRef, useState } from "react"
 import Link from "next/link"
 import { io, type Socket } from "socket.io-client"
@@ -44,16 +46,28 @@ const LOCAL_TARGET = "local"
 /** Where each API error hint points; Environment is owner-only (the page 404s for admins). */
 const HINT_LINK: Record<
   TerminalErrorHint,
-  { href: string; label: string; ownerOnly: boolean }
+  { href: string; label: ReactNode; ownerOnly: boolean }
 > = {
   environment: {
     href: "/infra/environment",
-    label: "Infrastruktur → Environment",
+    label: (
+      <>
+        Infrastruktur
+        <PathArrow />
+        Environment
+      </>
+    ),
     ownerOnly: true,
   },
   servers: {
     href: "/infra/servers",
-    label: "Infrastruktur → Server remote",
+    label: (
+      <>
+        Infrastruktur
+        <PathArrow />
+        Server remote
+      </>
+    ),
     ownerOnly: false,
   },
 }
@@ -77,8 +91,7 @@ export function TerminalView({
   const [target, setTarget] = useState(LOCAL_TARGET)
   const browserOrigin = useBrowserOrigin()
   // `null` until hydration — don't flash the warning before we know.
-  const originMismatch =
-    browserOrigin !== null && browserOrigin !== webOrigin
+  const originMismatch = browserOrigin !== null && browserOrigin !== webOrigin
   const serverId = target === LOCAL_TARGET ? undefined : target
 
   const reconnect = useCallback(() => setAttempt((n) => n + 1), [])
@@ -226,8 +239,7 @@ export function TerminalView({
   }, [attempt, publicApiUrl, serverId])
 
   if (originMismatch) {
-    const target =
-      webOrigin + window.location.pathname + window.location.search
+    const target = webOrigin + window.location.pathname + window.location.search
     return (
       <Alert variant="destructive">
         <AlertTitle>Terminal tidak bisa diakses lewat alamat ini</AlertTitle>

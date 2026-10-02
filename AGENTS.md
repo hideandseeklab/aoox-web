@@ -123,6 +123,12 @@ Baca `AGENTS.md` — versi Next.js ini punya breaking changes; cek `node_modules
 
 - Selalu ikuti dokumentasi resmi (Next.js di `node_modules/next/dist/docs/`, shadcn, dll.) untuk pemilihan paket dan pola kode.
 
+## Tinggi field dan tombol (satu baris)
+
+- Field (`Input`, `SelectTrigger`) dan `Button` default = **h-7 (28 px)**. Dalam satu baris yang berisi field **dan** tombol, semuanya harus setinggi sama: **jangan** beri override `h-*` pada field (mis. `h-8`) dan **jangan** pakai `Button size="sm"`/`icon-sm` di sebelah field default. `size="sm"`/`xs` tetap untuk toolbar, baris daftar/tabel, dan header kartu yang tidak berisi field default; baris yang seluruhnya kecil (mis. `SelectTrigger size="sm"` + `icon-sm`, seperti toolbar Terminal/Console) juga boleh karena seragam.
+- Field berlabel di atas + tombol di kanan: bungkus dalam baris `flex items-end` (label+field di satu kolom `space-y-1`), sehingga dasar tombol = dasar field. `SelectTrigger` sudah `mb-0` (di dalam `<form>` Radix menambah `<select>` tersembunyi sebagai anak terakhir, dan `space-y-*` Tailwind v4 memberi margin-bawah 4 px ke trigger yang bukan `:last-child`).
+- `npm run check:ui` (`scripts/check-field-heights.mjs`, tanpa dependency baru) menandai override tinggi pada field dan baris dengan tinggi kontrol campur; sengaja manual (heuristik, tidak di build/CI). Pengecualian disengaja: komentar `ui-check-ignore: alasan` di baris atas. Pengukur sebenarnya tetap `getBoundingClientRect` di browser.
+
 ## Toast & loading saat create (aplikasi, database, stack compose, template, impor project)
 
 - Pola: `toast.loading(...)` (sonner) saat submit → simpan id yang dikembalikan (di `useRef`, bukan `useState` — tidak perlu re-render) → `toast.success`/`toast.error` dengan `{ id }` yang sama saat hasil ada, supaya **update** toast yang sama alih-alih menumpuk toast baru. Tombol submit dapat ikon `Loader2` (lucide) `animate-spin` + teks kerja ("Membuat…") selain `disabled={pending}`. Untuk yang masih dialog (`deploy-template-dialog.tsx`, `import-project-dialog.tsx`), dialog juga dikunci (`onOpenChange` menolak menutup, `DialogContent showCloseButton={!pending}`) supaya request yang sedang jalan tidak terputus oleh Escape/klik overlay/tombol X.

@@ -1,6 +1,24 @@
 {
   "name": "aoox-web",
   "version": "0.1.0-alpha.4",
+  "description": "Dashboard for aoox, a self-hosted PaaS: deploy from Git, manage databases, domains, logs and servers (Next.js)",
+  "keywords": [
+    "self-hosted",
+    "paas",
+    "docker",
+    "deploy",
+    "git-deploy",
+    "dashboard",
+    "nextjs"
+  ],
+  "homepage": "https://aoox.dev",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hideandseeklab/aoox-web.git"
+  },
+  "bugs": {
+    "url": "https://github.com/hideandseeklab/aoox-web/issues"
+  },
   "type": "module",
   "private": true,
   "license": "Apache-2.0",
@@ -12,7 +30,8 @@
     "start": "next start",
     "lint": "eslint",
     "format": "prettier --write \"**/*.{ts,tsx}\"",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "check:ui": "node scripts/check-field-heights.mjs"
   },
   "dependencies": {
     "@xterm/addon-fit": "^0.11.0",

@@ -13,8 +13,12 @@ import { DeleteProjectButton } from "@/components/custom/delete-project-button"
 import { ExportProjectButton } from "@/components/custom/export-project-button"
 import { ProjectForm } from "@/components/custom/project-form"
 import { ProjectMembers } from "@/components/custom/project-members"
+import {
+  ApplicationInstanceCard,
+  ComposeInstanceCard,
+  DatabaseInstanceCard,
+} from "@/components/custom/project-instance-card"
 import { ProjectResourcePanel } from "@/components/custom/project-resource-panel"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -23,9 +27,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { getProxyStatus } from "@/features/proxy/proxy.queries"
 import { listApplications } from "@/features/application/application.queries"
 import { listComposeApps } from "@/features/compose/compose.queries"
-import { ENGINE_LABEL } from "@/features/managed-database/managed-database.entity"
 import { listDatabases } from "@/features/managed-database/managed-database.queries"
 import { updateProjectAction } from "@/features/project/project.actions"
 import {
@@ -46,19 +50,31 @@ export default async function ProjectDetailPage({
 
   const updateAction = updateProjectAction.bind(null, project.id)
   // Viewers read; developers/admins may create and edit (API enforces it too).
-  const [applications, databases, composeApps, session, members, resourceUsage] =
-    await Promise.all([
-      listApplications(project.id),
-      listDatabases(project.id),
-      listComposeApps(project.id),
-      getSession(),
-      listProjectMembers(project.id).catch(() => null),
-      getProjectResourceUsage(project.id).catch(() => ({
-        current: null,
-        history: [],
-        containers: 0,
-      })),
-    ])
+  const [
+    applications,
+    databases,
+    composeApps,
+    session,
+    members,
+    resourceUsage,
+    proxyStatus,
+  ] = await Promise.all([
+    listApplications(project.id),
+    listDatabases(project.id),
+    listComposeApps(project.id),
+    getSession(),
+    listProjectMembers(project.id).catch(() => null),
+    getProjectResourceUsage(project.id).catch(() => ({
+      current: null,
+      history: [],
+      containers: 0,
+    })),
+    // Only for the port of a domain link (dev proxies listen on 8088/8443).
+    getProxyStatus().catch(() => null),
+  ])
+  const proxy = proxyStatus
+    ? { httpPort: proxyStatus.httpPort, httpsPort: proxyStatus.httpsPort }
+    : null
   const canWrite = members ? members.myRole !== "viewer" : true
 
   return (
@@ -69,15 +85,17 @@ export default async function ProjectDetailPage({
           { label: project.name },
         ]}
       />
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex items-start gap-3">
+      <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-3">
+        <div className="flex min-w-0 items-start gap-3">
           <Button asChild variant="ghost" size="icon" className="mt-0.5">
             <Link href="/projects" aria-label="Kembali ke projects">
               <ArrowLeft />
             </Link>
           </Button>
-          <div>
-            <h1 className="text-lg font-semibold">{project.name}</h1>
+          <div className="min-w-0">
+            <h1 className="text-lg font-semibold break-words">
+              {project.name}
+            </h1>
             <p className="text-sm text-muted-foreground">
               Dibuat{" "}
               {new Date(project.createdAt).toLocaleString("id-ID", {
@@ -87,7 +105,7 @@ export default async function ProjectDetailPage({
             </p>
           </div>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <ExportProjectButton
             id={project.id}
             canExportSecrets={session?.user.role === "owner"}
@@ -103,14 +121,10 @@ export default async function ProjectDetailPage({
         <div className="space-y-6">
           <section className="space-y-3">
             <h2 className="text-sm font-medium">Resource usage</h2>
-            <Card>
-              <CardContent>
-                <ProjectResourcePanel
-                  projectId={project.id}
-                  initial={resourceUsage}
-                />
-              </CardContent>
-            </Card>
+            <ProjectResourcePanel
+              projectId={project.id}
+              initial={resourceUsage}
+            />
           </section>
 
           <section className="space-y-3">
@@ -135,31 +149,11 @@ export default async function ProjectDetailPage({
             ) : (
               <div className="grid gap-4 sm:grid-cols-2 2xl:grid-cols-3">
                 {applications.map((app) => (
-                  <Link key={app.id} href={`/applications/${app.id}`}>
-                    <Card className="h-full transition-colors hover:bg-muted/50">
-                      <CardHeader>
-                        <div className="flex items-start justify-between gap-2">
-                          <CardTitle className="truncate">{app.name}</CardTitle>
-                          <Badge
-                            variant={
-                              app.status === "running"
-                                ? "default"
-                                : app.status === "error"
-                                  ? "destructive"
-                                  : "secondary"
-                            }
-                          >
-                            {app.status}
-                          </Badge>
-                        </div>
-                        <CardDescription className="truncate font-mono text-xs">
-                          {app.sourceType === "image"
-                            ? `image · ${app.imageRef ?? ""}`
-                            : `${(app.gitUrl ?? "").replace(/^https?:\/\//, "")}#${app.gitBranch}`}
-                        </CardDescription>
-                      </CardHeader>
-                    </Card>
-                  </Link>
+                  <ApplicationInstanceCard
+                    key={app.id}
+                    app={app}
+                    proxy={proxy}
+                  />
                 ))}
               </div>
             )}
@@ -195,31 +189,7 @@ export default async function ProjectDetailPage({
             ) : (
               <div className="grid gap-4 sm:grid-cols-2 2xl:grid-cols-3">
                 {composeApps.map((c) => (
-                  <Link key={c.id} href={`/compose/${c.id}`}>
-                    <Card className="h-full transition-colors hover:bg-muted/50">
-                      <CardHeader>
-                        <div className="flex items-start justify-between gap-2">
-                          <CardTitle className="truncate">{c.name}</CardTitle>
-                          <Badge
-                            variant={
-                              c.status === "running"
-                                ? "default"
-                                : c.status === "error"
-                                  ? "destructive"
-                                  : "secondary"
-                            }
-                          >
-                            {c.status === "deploying" ? "berjalan…" : c.status}
-                          </Badge>
-                        </div>
-                        <CardDescription className="truncate font-mono text-xs">
-                          {c.source === "template"
-                            ? `template · ${c.templateId}`
-                            : `${(c.gitUrl ?? "").replace(/^https?:\/\//, "")}#${c.gitBranch} · ${c.composePath}`}
-                        </CardDescription>
-                      </CardHeader>
-                    </Card>
-                  </Link>
+                  <ComposeInstanceCard key={c.id} stack={c} proxy={proxy} />
                 ))}
               </div>
             )}
@@ -247,30 +217,7 @@ export default async function ProjectDetailPage({
             ) : (
               <div className="grid gap-4 sm:grid-cols-2 2xl:grid-cols-3">
                 {databases.map((db) => (
-                  <Link key={db.id} href={`/databases/${db.id}`}>
-                    <Card className="h-full transition-colors hover:bg-muted/50">
-                      <CardHeader>
-                        <div className="flex items-start justify-between gap-2">
-                          <CardTitle className="truncate">{db.name}</CardTitle>
-                          <Badge
-                            variant={
-                              db.status === "running"
-                                ? "default"
-                                : db.status === "error"
-                                  ? "destructive"
-                                  : "secondary"
-                            }
-                          >
-                            {db.status}
-                          </Badge>
-                        </div>
-                        <CardDescription className="font-mono text-xs">
-                          {ENGINE_LABEL[db.engine]} {db.imageTag}
-                          {db.hostPort ? ` · :${db.hostPort}` : ""}
-                        </CardDescription>
-                      </CardHeader>
-                    </Card>
-                  </Link>
+                  <DatabaseInstanceCard key={db.id} db={db} />
                 ))}
               </div>
             )}

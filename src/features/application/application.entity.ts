@@ -39,6 +39,10 @@ export interface Application {
   updateOrder: "auto" | "start-first" | "stop-first"
   gitBranch: string
   dockerfilePath: string
+  /** Monorepo subfolder that is built; null = repository root. */
+  rootDirectory: string | null
+  /** Webhook deploys only when a changed file is under `rootDirectory`. */
+  watchRootOnly: boolean
   gitCredentialId: string | null
   containerPort: number
   hostPort: number | null
@@ -75,6 +79,8 @@ export interface Application {
 }
 
 export interface ApplicationDetail extends Application {
+  /** Where secrets come from (secret manager), or null/absent when the app has none. */
+  secretSource?: import("@/features/secret-connection/secret-connection.entity").SecretSource | null
   container: { id: string; state: string; status: string } | null
   /** The signed-in user's role in the owning project. */
   projectRole: "admin" | "developer" | "viewer"

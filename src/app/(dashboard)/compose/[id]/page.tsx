@@ -89,7 +89,7 @@ export default async function ComposeAppPage({
           { label: app.name },
         ]}
       />
-      <div className="flex items-start gap-3">
+      <div className="flex min-w-0 items-start gap-3">
         <Button asChild variant="ghost" size="icon" className="mt-0.5">
           <Link
             href={`/projects/${app.projectId}`}
@@ -98,8 +98,8 @@ export default async function ComposeAppPage({
             <ArrowLeft />
           </Link>
         </Button>
-        <div>
-          <div className="flex items-center gap-2">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
             <h1 className="text-lg font-semibold">{app.name}</h1>
             <Badge
               variant={
@@ -114,7 +114,7 @@ export default async function ComposeAppPage({
             </Badge>
             <Badge variant="outline">compose</Badge>
           </div>
-          <p className="font-mono text-xs text-muted-foreground">
+          <p className="font-mono text-sm break-all text-muted-foreground">
             {app.source === "template"
               ? `template · ${app.templateId}`
               : `${(app.gitUrl ?? "").replace(/^https?:\/\//, "")}#${app.gitBranch} · ${app.composePath}`}

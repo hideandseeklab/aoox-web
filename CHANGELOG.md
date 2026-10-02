@@ -8,7 +8,55 @@ Versions below 1.0.0 may include breaking changes in a minor release.
 
 ## [Unreleased]
 
+## [0.1.0-alpha.5] - 2026-10-02
+
+### Added
+
+- **Monitor tab on the application page** (developers and up edit, viewers read): switch, path, interval, timeout, healthy status codes, failures before an alert, internal-address switch; the target actually used (read-only, with where it comes from and the "checked from the panel machine" caveat); status badge, last result, 24 h/7 d uptime, average and p95 latency, a 24 h latency chart with failed buckets marked, recent down incidents, and "Periksa sekarang". New `application-monitor.tsx` (no fields added to the application form).
+- **Remote servers show their status**: the server list has an up/down/not-checked badge, when it was checked, since when it is down, the error, and how many containers are monitored, read from the last check (no live call when the page opens). Applications on a remote server now show CPU/memory/network in the Deploy tab and the project's resource card. Two new notification toggles, "server remote tidak terjangkau" and "monitor HTTP gagal" (on by default, see the API changelog).
+
+- **Root directory field** in the application form (create and edit, Git section) for monorepos: the folder to build (for example `apps/web`; empty = repository root), validated with
+  the same rules as the API, shown in the application header as `url#branch:folder`. A switch next to it turns on "deploy only when files in this folder change" for webhook pushes.
+  Dockerfile path and static output folder are relative to that folder, and the hint says so.
+
+- **Instance cards on the project page show where to open them.** Application cards list the domain(s) as `https://`/`http://` links (per the domain's HTTPS flag, with the
+  proxy's port when it is not 80/443), or `host:port` when there is only a host port; stack cards list their service domains and host ports (`service · address`, one per
+  line); database cards show the published `host:port` as a copy button (toast), or "internal". Links open in a new tab (`rel="noopener noreferrer"`, `aria-label` "Buka … di tab baru")
+  and only while the instance is `running` (otherwise the same addresses as dim text); more than two addresses collapse into "+N". `host:port` uses the host the
+  panel was opened on (`useBrowserHost`), like the compose Deploy tab. Remote-server apps with only a host port show `:port (server remote)` without a link. Needs the
+  `domains` field on the applications list in aoox-api. New `project-instance-card.tsx` / `instance-access.ts`.
+
+- **Seven new templates in the catalog** (Vaultwarden, Umami, Grafana, Metabase, Directus, Mattermost, Nextcloud) come straight from the API's template list: cards, search and the deploy
+  dialog with its variable fields needed no change. Checked in the browser with 13 cards (all logos load, Directus dialog with six variables fits the viewport).
+
+- **Odoo Community appears in the template catalog** from the API list: card (logo, description, tags), search and the deploy dialog with its variable hint needed no change. The
+  generated master password can be read from the stack page (Pengaturan, environment, "Tampilkan nilai"), so no new UI was needed. Checked in the browser: 14 cards, Odoo logo loads, dialog
+  shows the master-password hint.
+
+- **Secret source for applications (Infisical).** Settings → Integrasi has a "Secret manager" card (owner/admin): connections (name, optional URL, client ID; the client secret is write-only), add, delete and "Tes koneksi". The application's Environment tab has a "Sumber secret" section: pick a connection, project ID, environment and path (default `/`), a "Sync semua secret ke container" switch, "Simpan" and "Lihat key" (key names only, never values), plus the rules in plain words (values are read when the container is created, `${{secret.KEY}}` in env, the application's env wins on a clash, PR previews do not inherit, an unreachable secret manager fails the deployment and leaves the old container running). Without a connection it points to Settings → Integrasi (a link for owner/admin, text for others). Viewers read only. Needs the matching API (`/secret-connections`, `/applications/:id/secret-source`).
+
 ### Changed
+
+- Project metadata for discoverability (no behavior change): `package.json` gets `description`, `keywords`, `homepage` (https://aoox.dev), `repository` and `bugs`; the
+  README links to the website, docs and changelog and to the other repos; the runner image carries OCI labels
+  (`title`, `description`, `url`, `documentation`, `source`, `licenses`, `vendor`; no `version`/`revision`), validated on their own
+  because a full local `docker build` is blocked here by TLS interception.
+
+### Fixed
+
+- **`/favicon.ico` returned 404** (crawlers and older browsers request it on their own). `public/favicon.ico` (16/32/48 px,
+  made from the same tile as `src/app/icon.svg`) is served now, and the root layout declares both icons
+  (`<link rel="icon">` for the ICO with `sizes="48x48"`, then the SVG): a `metadata.icons` entry replaces the link the
+  `app/icon.svg` convention adds by itself, so the SVG has to be listed explicitly next to it.
+
+### UI UX Improvement
+
+- Three small UI fixes. **Data tab (database):** the "database baru" input + button now sit above the database select (input, then
+  select, then Tabel), aligned with the select; behavior (validation, toast, owner/admin only, hidden for Redis/Valkey) is unchanged.
+  **Headers:** the monospace subtitle under the database, application and compose titles is `text-sm` like the project header's
+  subtitle (it was `text-xs`); the identifiers stay monospace. **Project page:** "Resource usage" is just the three CPU / Memori /
+  Jaringan tiles under the section heading — the wrapping card is gone (no card inside a card); polling, sparklines and the empty
+  state are unchanged. `MetricsPanel` (application/database pages) is untouched.
 
 - **Medium border radius across the panel**: `--radius` goes from `0` (everything square) to `0.5rem`; the existing scale
   (sm 4.8 / md 6.4 / lg 8 / xl 11 px) is unchanged. Cards, buttons, inputs, tabs, dialogs, selects/popovers, tooltips, alerts,
@@ -17,6 +65,55 @@ Versions below 1.0.0 may include breaking changes in a minor release.
   pills again. Deliberately left square: the brand logo tile, the navigation progress bar (a thin line), and the mobile sidebar
   sheet, which is flush with the screen edge. Checked on sign-in, dashboard, projects, project/app/database/compose detail,
   registry, templates, terminal, environment, settings and audit log, light and dark, and at 375 px.
+
+- **`→` in the panel's text became icons.** Arrows on links and buttons ("Lihat audit log", "Lebih lama") are a small
+  `ArrowRight` that nudges right on hover; arrows between the steps of a path or flow inside a sentence ("Settings → Audit log",
+  "Infrastruktur → Reverse proxy", "GitHub: Settings → Webhooks → Add webhook", "284 s → 54 s") are a small chevron on the text
+  baseline. Both come from one module, `components/custom/arrows.tsx` (`LinkArrow`, `PathArrow`), instead of repeated markup.
+  `PathArrow` carries a visually hidden "→" (and its own spaces, in a `relative` wrapper so the absolutely positioned text cannot widen scrolling table cells), so screen readers and copy-paste still get "Settings → Audit
+  log" (checked: a selection copied from the rendered page reads `Settings → Webhooks`). Hints that were plain strings but are
+  only ever rendered as JSX text (Discord webhook hint, GitLab deploy-token hint, the terminal error-link labels, the proxy
+  notices in the compose/template forms) became JSX so they can hold the icon. Left as `→` on purpose: code comments and
+  docblocks — there are no `→` left in rendered text, toasts or error strings.
+
+- **Horizontal scrollbar on `/terminal` (and any page with fixed-width content, e.g. the application Console tab).** The
+  dashboard's `<main>` is a flex item next to the sidebar and, as a flex item, never shrinks below its content's
+  minimum width; the xterm terminal is a fixed number of pixels wide, so the moment any scrollbar took a few pixels
+  (a 1 px overflow is enough — the page is exactly one viewport tall, so a horizontal bar makes it overflow vertically,
+  the vertical bar then takes 15 px of width, and `<main>` cannot follow), `<main>` stayed too wide and the page scrolled
+  sideways. The dashboard layout now gives `SidebarInset` `min-w-0`. Verified with fixed-width content at 1280, 1024,
+  768 and 375 px: before, `scrollWidth` exceeded `clientWidth` at every width above the mobile breakpoint; now it never does.
+
+- **Headers of the application, database, compose and project pages no longer overflow on a phone** (the application
+  page's "Hapus" button was cut off at 375 px): the title row wraps (`flex-wrap`), the block next to the back arrow can
+  shrink (`min-w-0`), badges wrap, and the monospace line under the title (image / git URL / slug) breaks anywhere instead
+  of forcing the page wider; the project page's action buttons wrap too.
+
+- **Tab strips scroll on their own when they are wider than the screen.** `TabsList` is `w-fit`, so the application page's
+  ten tabs made the whole page 503 px wide on a 375 px phone; it now sits in a horizontally scrolling wrapper (scrollbar
+  hidden, the cut-off tab at the edge shows there is more). Applies to every tab strip in the panel.
+- **Project page instance cards: spacing and structure.** Looser spacing (20 px padding, 8 px title→subtitle, 12 px to the access row; 16 px between cards as on `/projects`), and a long
+  name now truncates with an ellipsis instead of pushing the status badge out of the card (the header row is a grid item and needed `min-w-0`). The card is no longer one big `<a>`
+  (links inside links are invalid): the name is the link to the detail page and stretches over the card, the access links sit above it, so they never open the detail page while a click
+  anywhere else still does; keyboard focus shows a ring on the card.
+
+- **"Buat tabel" dialog (database Data tab) lines up.** The column header and every column row now share one grid template
+  (Kolom, Tipe, Panjang, Null, PK, Default, delete), so the headings sit exactly over their fields and every row has the same
+  widths; Null/PK toggles are centered under their headings and the delete buttons line up. Every field (table name, column name,
+  Tipe, Panjang, Default) uses the default control height (28 px, no more mixed h-8 inputs and h-6 selects), the toggles and the
+  delete button are vertically centered on it, and a disabled Panjang just dims instead of changing size. The dialog is wider
+  (`sm:max-w-3xl`) so "bigserial (auto increment)" is not cut off. On a phone (< 640 px) each column becomes a small card with a
+  label above every field instead of a cramped row, and the dialog scrolls inside the screen (`max-h` + `overflow-y-auto`) so the
+  buttons stay reachable with many columns. The generated SQL, validation and PK/Null behavior are untouched (a real table was
+  created through the dialog to check). Same pass: the add-member form on the project page (`project-members.tsx`) had an
+  `h-8` input and select next to a short `sm` button; they are now the same height as the default controls.
+- **Fields and buttons on one row are the same height now.** Root causes: (1) a few fields carried a height override (`<Input className="h-8">` = 32 px, `h-7`) next to a `Button size="sm"` (24 px) or a default button (28 px), so the input towered over the button; (2) `Button size="sm"`/`icon-sm` sitting beside default-size fields; (3) a real bug in `SelectTrigger`: inside a `<form>` Radix appends a hidden native `<select>` as the last child, so under Tailwind v4's `space-y-*` (margin-bottom on every non-last child) the trigger got a 4 px bottom margin and a button on an `items-end` row sat 4 px below the select — the trigger now has `mb-0`. Measured in the browser (`getBoundingClientRect` of every field/button pair on the same row, all pages, their tabs, the swarm card in both states): 13 mismatched pairs before, 0 after. Fixed: Docker Swarm (Init swarm row; node label editor), Server remote proxy form, Backup instance schedule form, Audit log filter, the Jobs form on application/database/compose pages and the database Backup schedule (select + button), volume backup select + button, environment editor and project member delete buttons (`icon-sm` → `icon`), and the new-database input in the data browser. Left alone on purpose: toolbars where everything is small (Terminal/Console task select + "Sambung ulang", members list role select, `SelectTrigger size="sm"` + `icon-sm` buttons) — they are uniform. `npm run check:ui` (`scripts/check-field-heights.mjs`, no new dependency, manual, not part of the build) flags field height overrides and rows that mix control heights; the convention is in `AGENTS.md`.
+
+- **Template catalog cards have one height.** With 13 templates the rows took different heights depending on the description length (196 px vs 216 px); the grid now uses equal rows.
+
+- **Environment is its own tab on the application page** (after Mount): the env editor, a short explanation (applies on the next deploy, `${{project.KEY}}` and the project's `${{database.<slug>.url}}` references) and its own Simpan button, which saves only the env (`PATCH` with `{ env }`). The field is gone from the Settings form, so the two can no longer overwrite each other: saving Settings no longer sends the env at all (it used to send whatever the form held). Creating an application still has the env field. Viewers see the env read-only (values masked, nothing to add or remove).
+
+- **The New application form is split into cards** (the same form serves Pengaturan, where what can be edited is unchanged). "Sumber" is two selectable cards (repo git / ready image) with an icon and one line each, a clear selected state and keyboard arrows, replacing the dropdown. Then a source-detail card (Repository git, or Image), "Jaringan & akses" (container port, access, health check), the create-only "Environment" card, and "Sumber daya & lanjutan" (server, swarm, CPU/memory, deployment history, previews, build args). Choosing an image now shows only the image, registry credential and auto-update fields: "Kredensial Git" no longer stays visible next to them.
 
 ## [0.1.0-alpha.4] - 2026-09-29
 
@@ -336,7 +433,8 @@ Versions below 1.0.0 may include breaking changes in a minor release.
   backups, notifications, and account/instance settings.
 - A web terminal (shell on the host or inside the API container) over WebSocket.
 
-[Unreleased]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.0-alpha.4...HEAD
+[Unreleased]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.0-alpha.5...HEAD
+[0.1.0-alpha.5]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.0-alpha.4...v0.1.0-alpha.5
 [0.1.0-alpha.4]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.0-alpha.3...v0.1.0-alpha.4
 [0.1.0-alpha.3]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.0-alpha.2...v0.1.0-alpha.3
 [0.1.0-alpha.2]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.0-alpha.1...v0.1.0-alpha.2

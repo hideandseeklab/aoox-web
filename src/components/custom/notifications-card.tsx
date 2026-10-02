@@ -1,5 +1,7 @@
 "use client"
 
+import type { ReactNode } from "react"
+import { PathArrow } from "@/components/custom/arrows"
 import { BellRing, Plus, Send, Trash2 } from "lucide-react"
 import { useActionState, useState, useTransition } from "react"
 import { Button } from "@/components/ui/button"
@@ -65,6 +67,8 @@ const EVENT_LABEL: Array<[keyof Notification & `on${string}`, string]> = [
   ["onDnsIssue", "DNS domain bermasalah"],
   ["onContainerDown", "container mati"],
   ["onAppError", "error di log aplikasi"],
+  ["onServerDown", "server remote tidak terjangkau"],
+  ["onHttpDown", "monitor HTTP gagal"],
 ]
 
 /** `onDeploymentStarted` and `onAppError` default off (API default too) —
@@ -182,12 +186,22 @@ export function NotificationsCard({
 
 const initialState: NotificationFormState = {}
 
-const HINT: Record<NotificationType, string> = {
+const HINT: Record<NotificationType, ReactNode> = {
   telegram:
     "Buat bot lewat @BotFather, tambahkan ke grup/chat, lalu isi token dan chat ID (grup biasanya negatif).",
   slack:
     "Incoming Webhook dari Slack app (https://hooks.slack.com/services/…).",
-  discord: "Server Settings → Integrations → Webhooks → Copy Webhook URL.",
+  discord: (
+    <>
+      Server Settings
+      <PathArrow />
+      Integrations
+      <PathArrow />
+      Webhooks
+      <PathArrow />
+      Copy Webhook URL.
+    </>
+  ),
   webhook:
     "Endpoint kamu sendiri; menerima POST JSON (title, level, event, …).",
   email:

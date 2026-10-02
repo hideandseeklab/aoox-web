@@ -21,6 +21,15 @@ RUN npm run build
 # ---- runner ----
 FROM node:${NODE_VERSION} AS runner
 WORKDIR /app
+# OCI image metadata (Docker Hub / GHCR show these). Version and revision are
+# intentionally not set here: they change every build and would go stale in the file.
+LABEL org.opencontainers.image.title="aoox-web" \
+      org.opencontainers.image.description="Dashboard of aoox, a self-hosted PaaS: deploy from Git, manage databases, domains, logs and servers" \
+      org.opencontainers.image.url="https://aoox.dev" \
+      org.opencontainers.image.documentation="https://aoox.dev/docs" \
+      org.opencontainers.image.source="https://github.com/hideandseeklab/aoox-web" \
+      org.opencontainers.image.licenses="Apache-2.0" \
+      org.opencontainers.image.vendor="hideandseeklab"
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV PORT=3000

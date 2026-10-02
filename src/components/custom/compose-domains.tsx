@@ -1,5 +1,6 @@
 "use client"
 
+import { PathArrow } from "@/components/custom/arrows"
 import { ExternalLink, Plus, Trash2 } from "lucide-react"
 import { useState, useTransition } from "react"
 import { Badge } from "@/components/ui/badge"
@@ -115,8 +116,14 @@ export function ComposeAccess({
           <span className="block">
             <strong>Domain</strong>: lewat proxy (Traefik), arahkan DNS ke
             server ini.
-            {!proxy.running &&
-              " Proxy belum berjalan (Infrastruktur → Reverse proxy)."}
+            {!proxy.running && (
+              <>
+                {" "}
+                Proxy belum berjalan (Infrastruktur
+                <PathArrow />
+                Reverse proxy).
+              </>
+            )}
           </span>
           <span className="block">
             <strong>IP &amp; port</strong>: port dipublikasikan langsung di

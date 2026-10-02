@@ -1,3 +1,4 @@
+import { PathArrow } from "@/components/custom/arrows"
 import { redirect } from "next/navigation"
 import { TerminalView } from "@/components/custom/terminal-view"
 import { canUseTerminal } from "@/features/auth/auth.entity"
@@ -18,8 +19,10 @@ export default async function TerminalPage() {
       <div>
         <h1 className="text-lg font-semibold">Terminal</h1>
         <p className="text-sm text-muted-foreground">
-          Shell di host aoox atau server remote (Infrastruktur → Server
-          remote). Hati-hati: perintah dijalankan langsung di mesin tujuan.
+          Shell di host aoox atau server remote (Infrastruktur
+          <PathArrow />
+          Server remote). Hati-hati: perintah dijalankan langsung di mesin
+          tujuan.
         </p>
       </div>
       <TerminalView

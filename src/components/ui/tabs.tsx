@@ -44,13 +44,18 @@ function TabsList({
   ...props
 }: React.ComponentProps<typeof TabsPrimitive.List> &
   VariantProps<typeof tabsListVariants>) {
+  // The wrapper lets a strip with many tabs scroll on its own on a narrow
+  // screen instead of widening the whole page (`w-fit` grows to the sum of the
+  // tabs). The scrollbar is hidden: the cut-off tab at the edge hints at it.
   return (
-    <TabsPrimitive.List
-      data-slot="tabs-list"
-      data-variant={variant}
-      className={cn(tabsListVariants({ variant }), className)}
-      {...props}
-    />
+    <div className="max-w-full [scrollbar-width:none] overflow-x-auto group-data-vertical/tabs:overflow-visible [&::-webkit-scrollbar]:hidden">
+      <TabsPrimitive.List
+        data-slot="tabs-list"
+        data-variant={variant}
+        className={cn(tabsListVariants({ variant }), className)}
+        {...props}
+      />
+    </div>
   )
 }
 

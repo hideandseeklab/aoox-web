@@ -1,5 +1,6 @@
 "use client"
 
+import { PathArrow } from "@/components/custom/arrows"
 import { Copy, RefreshCw, ShieldCheck, ShieldOff } from "lucide-react"
 import { useState, useTransition } from "react"
 import { toast } from "sonner"
@@ -83,8 +84,11 @@ export function WebhookCard({
 
         <ol className="list-decimal space-y-1 ps-5 text-muted-foreground">
           <li>
-            <span className="text-foreground">GitHub:</span> Settings → Webhooks
-            → Add webhook. Payload URL = URL di atas, Content type{" "}
+            <span className="text-foreground">GitHub:</span> Settings
+            <PathArrow />
+            Webhooks
+            <PathArrow />
+            Add webhook. Payload URL = URL di atas, Content type{" "}
             <code>application/json</code>, event <em>Just the push event</em>
             {current.secret && (
               <>
@@ -94,7 +98,8 @@ export function WebhookCard({
             .
           </li>
           <li>
-            <span className="text-foreground">GitLab:</span> Settings →
+            <span className="text-foreground">GitLab:</span> Settings
+            <PathArrow />
             Webhooks. URL = URL di atas, trigger <em>Push events</em>
             {current.secret && (
               <>

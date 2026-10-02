@@ -46,10 +46,13 @@ export function EnvEditor({
   name,
   defaultValue,
   placeholder,
+  readOnly = false,
 }: {
   name: string
   defaultValue: string
   placeholder?: string
+  /** Viewers: values stay masked/revealable, nothing can be edited, added or removed. */
+  readOnly?: boolean
 }) {
   const [text, setText] = useState(defaultValue)
   const [rows, setRows] = useState<Row[]>(() => toRows(defaultValue))
@@ -107,6 +110,7 @@ export function EnvEditor({
           rows={6}
           value={text}
           onChange={(e) => setText(e.target.value)}
+          readOnly={readOnly}
           placeholder={placeholder ?? "KEY=value\nANOTHER=value"}
           className="font-mono text-xs"
           aria-label="Environment (teks)"
@@ -127,6 +131,7 @@ export function EnvEditor({
                   )
                 }
                 placeholder="KEY"
+                readOnly={readOnly}
                 className="w-2/5 font-mono text-xs"
                 autoComplete="off"
                 spellCheck={false}
@@ -144,35 +149,42 @@ export function EnvEditor({
                   )
                 }
                 placeholder="value"
+                readOnly={readOnly}
                 className="flex-1 font-mono text-xs"
                 autoComplete="off"
                 spellCheck={false}
               />
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon-sm"
-                aria-label={`Hapus ${row.key || `baris ${i + 1}`}`}
-                onClick={() => updateRows(rows.filter((r) => r.id !== row.id))}
-              >
-                <Trash2 />
-              </Button>
+              {!readOnly && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  aria-label={`Hapus ${row.key || `baris ${i + 1}`}`}
+                  onClick={() =>
+                    updateRows(rows.filter((r) => r.id !== row.id))
+                  }
+                >
+                  <Trash2 />
+                </Button>
+              )}
             </div>
           ))}
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() =>
-              updateRows([
-                ...rows,
-                { id: (rows.at(-1)?.id ?? -1) + 1, key: "", value: "" },
-              ])
-            }
-          >
-            <Plus data-icon="inline-start" />
-            Tambah variabel
-          </Button>
+          {!readOnly && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() =>
+                updateRows([
+                  ...rows,
+                  { id: (rows.at(-1)?.id ?? -1) + 1, key: "", value: "" },
+                ])
+              }
+            >
+              <Plus data-icon="inline-start" />
+              Tambah variabel
+            </Button>
+          )}
         </div>
       )}
     </div>

@@ -1,5 +1,6 @@
 "use client"
 
+import { PathArrow } from "@/components/custom/arrows"
 import { ExternalLink, Globe } from "lucide-react"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
@@ -41,15 +42,24 @@ export function ComposeAccessHint({
         <AlertDescription>
           Container stack hanya membuka port di dalam network Docker. Supaya
           bisa dibuka dari browser, atur di tab{" "}
-          <span className="font-medium text-foreground">Pengaturan</span> →
+          <span className="font-medium text-foreground">Pengaturan</span>
+          <PathArrow />
           Akses: pakai <strong>domain</strong> lewat proxy (mis.{" "}
           <code>wordpress.localhost</code> untuk dev — <code>*.localhost</code>{" "}
           otomatis mengarah ke komputer ini) atau <strong>IP &amp; port</strong>{" "}
-          (port host langsung, mis. <code>8080</code> → dibuka di{" "}
-          <code>http://{browserHost ?? "<ip-server>"}:8080</code>), lalu{" "}
-          <em>Deploy ulang</em>.
-          {!proxy.running &&
-            " Reverse proxy belum berjalan — untuk domain, aktifkan dulu di Infrastruktur → Reverse proxy."}
+          (port host langsung, mis. <code>8080</code>
+          <PathArrow />
+          dibuka di <code>http://{browserHost ?? "<ip-server>"}:8080</code>),
+          lalu <em>Deploy ulang</em>.
+          {!proxy.running && (
+            <>
+              {" "}
+              Reverse proxy belum berjalan — untuk domain, aktifkan dulu di
+              Infrastruktur
+              <PathArrow />
+              Reverse proxy.
+            </>
+          )}
         </AlertDescription>
       </Alert>
     )

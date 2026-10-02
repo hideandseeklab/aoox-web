@@ -4,6 +4,7 @@ import { Copy, Plug, Plus, ServerIcon, Trash2 } from "lucide-react"
 import { useActionState, useState, useTransition } from "react"
 import { toast } from "sonner"
 import { ServerProxyPanel } from "@/components/custom/server-proxy-panel"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -41,6 +42,54 @@ import type {
   ServerTestResult,
 } from "@/features/server/server.entity"
 import { copyToClipboard } from "@/lib/clipboard"
+
+const when = (iso: string | null) =>
+  iso
+    ? new Date(iso).toLocaleString("id-ID", {
+        dateStyle: "medium",
+        timeStyle: "short",
+      })
+    : null
+
+/**
+ * Status from the API's once-a-minute reachability check, read from the row:
+ * opening this page does not call any server. "Down" is declared after two
+ * failed checks in a row, so a single blip never shows here.
+ */
+function ServerHealthLine({ server }: { server: Server }) {
+  const { status, checkedAt, since, error, monitoredContainers } = server.health
+  const label =
+    status === "up"
+      ? "terjangkau"
+      : status === "down"
+        ? "tidak terjangkau"
+        : "belum dicek"
+  return (
+    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+      <Badge
+        variant={
+          status === "up"
+            ? "default"
+            : status === "down"
+              ? "destructive"
+              : "secondary"
+        }
+      >
+        {label}
+      </Badge>
+      {checkedAt && <span>dicek {when(checkedAt)}</span>}
+      {status === "down" && since && <span>sejak {when(since)}</span>}
+      {monitoredContainers !== null && status !== "down" && (
+        <span>{monitoredContainers} container dipantau</span>
+      )}
+      {status === "down" && error && (
+        <span className="truncate text-destructive" title={error}>
+          {error}
+        </span>
+      )}
+    </div>
+  )
+}
 
 /**
  * Settings card for remote servers: the platform's
@@ -136,6 +185,7 @@ export function ServersCard({
                       <Trash2 />
                     </Button>
                   </div>
+                  <ServerHealthLine server={s} />
                   <ServerProxyPanel server={s} />
                   {result && (
                     <div className="space-y-1.5 text-xs">
@@ -281,8 +331,8 @@ function AddServerDialog() {
                 autoComplete="off"
               />
               <FieldDescription>
-                Kosongkan untuk memakai key aoox (tinggal jalankan
-                perintah di kartu ini pada server). Key tanpa passphrase.
+                Kosongkan untuk memakai key aoox (tinggal jalankan perintah di
+                kartu ini pada server). Key tanpa passphrase.
               </FieldDescription>
               <FieldError errors={errs("privateKey")} />
             </Field>

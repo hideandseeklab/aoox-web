@@ -55,7 +55,7 @@ export function TemplatesCatalog({
           Buat project dulu — template di-deploy ke dalam sebuah project.
         </p>
       )}
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+      <div className="grid auto-rows-fr gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {shown.map((t) => (
           <Card key={t.id} className="flex flex-col">
             <CardHeader>

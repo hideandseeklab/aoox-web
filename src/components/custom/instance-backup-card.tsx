@@ -281,7 +281,7 @@ export function InstanceBackupCard({
               </SelectContent>
             </Select>
           </div>
-          <Button type="submit" size="sm" variant="outline" disabled={pending}>
+          <Button type="submit" variant="outline" disabled={pending}>
             Simpan jadwal
           </Button>
         </form>

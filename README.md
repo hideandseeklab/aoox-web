@@ -3,6 +3,12 @@
 Dashboard for [aoox](https://github.com/hideandseeklab/aoox-api), a self-hosted PaaS. Built with
 Next.js 16, React 19, Tailwind CSS and shadcn/ui.
 
+Website: [aoox.dev](https://aoox.dev) · Docs: [aoox.dev/docs](https://aoox.dev/docs) · Changelog: [aoox.dev/changelog](https://aoox.dev/changelog)
+
+Related repos: [aoox-api](https://github.com/hideandseeklab/aoox-api) (backend) ·
+[aoox-cli](https://github.com/hideandseeklab/aoox-cli) (CLI) ·
+[aoox-landing](https://github.com/hideandseeklab/aoox-landing) (website and docs).
+
 ## Development
 
 ```bash
@@ -19,6 +25,7 @@ repo for backend setup, or use `docker-compose.dist.yml` there to run the full s
 - `npm run build` / `npm run start` — production build and start
 - `npm run lint` — eslint
 - `npm run typecheck` — `tsc --noEmit`
+- `npm run check:ui` — flags fields and buttons of different heights on one row (heuristic, run by hand; not part of the build)
 
 ## Versioning
 

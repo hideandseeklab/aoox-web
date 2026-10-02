@@ -74,7 +74,7 @@ export default async function DatabasePage({
           { label: db.name },
         ]}
       />
-      <div className="flex items-start gap-3">
+      <div className="flex min-w-0 items-start gap-3">
         <Button asChild variant="ghost" size="icon" className="mt-0.5">
           <Link
             href={`/projects/${db.projectId}`}
@@ -83,8 +83,8 @@ export default async function DatabasePage({
             <ArrowLeft />
           </Link>
         </Button>
-        <div>
-          <div className="flex items-center gap-2">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
             <h1 className="text-lg font-semibold">{db.name}</h1>
             <Badge
               variant={
@@ -102,7 +102,7 @@ export default async function DatabasePage({
                 : (db.container?.state ?? db.status)}
             </Badge>
           </div>
-          <p className="font-mono text-xs text-muted-foreground">
+          <p className="font-mono text-sm break-all text-muted-foreground">
             {ENGINE_LABEL[db.engine]} {db.imageTag} · {db.slug}
           </p>
         </div>

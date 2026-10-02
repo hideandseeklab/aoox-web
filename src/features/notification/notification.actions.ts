@@ -66,6 +66,8 @@ const base = z.object({
   onContainerDown: z.boolean(),
   onDnsIssue: z.boolean(),
   onAppError: z.boolean(),
+  onServerDown: z.boolean(),
+  onHttpDown: z.boolean(),
 })
 
 type Fields =
@@ -120,6 +122,8 @@ export async function createNotificationAction(
     onContainerDown: formData.get("onContainerDown") === "on",
     onDnsIssue: formData.get("onDnsIssue") === "on",
     onAppError: formData.get("onAppError") === "on",
+    onServerDown: formData.get("onServerDown") === "on",
+    onHttpDown: formData.get("onHttpDown") === "on",
   })
   const parsedType = schema.safeParse({
     ...values,

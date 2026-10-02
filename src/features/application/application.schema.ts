@@ -55,6 +55,21 @@ const baseSchema = z.object({
     .max(200)
     .regex(/^[\w./-]*$/, "Path tidak valid")
     .optional(),
+  // Empty string = repository root. Same rule as the API (root-directory.ts):
+  // relative folder, segments of letters/digits/. _ -, no .. or leading /.
+  rootDirectory: z
+    .string()
+    .trim()
+    .max(200)
+    .refine(
+      (v) =>
+        v === "" ||
+        (/^[A-Za-z0-9._-]+(\/[A-Za-z0-9._-]+)*$/.test(v) &&
+          v.split("/").every((s) => !/^\.+$/.test(s) && s !== ".git")),
+      "Folder relatif, mis. apps/web (tanpa .. dan tanpa / di awal)"
+    )
+    .transform((v) => (v ? v : null)),
+  watchRootOnly: z.boolean().default(false),
   // Empty string = anonymous clone.
   gitCredentialId: z
     .string()
