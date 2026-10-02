@@ -1,6 +1,6 @@
 {
   "name": "aoox-web",
-  "version": "0.1.0-alpha.4",
+  "version": "0.1.0-alpha.5",
   "description": "Dashboard for aoox, a self-hosted PaaS: deploy from Git, manage databases, domains, logs and servers (Next.js)",
   "keywords": [
     "self-hosted",
