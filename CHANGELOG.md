@@ -8,6 +8,8 @@ Versions below 1.0.0 may include breaking changes in a minor release.
 
 ## [Unreleased]
 
+## [0.1.0-alpha.6] - 2026-10-05
+
 ### Added
 
 - **Custom SSL certificates for application domains.** Settings → Integrasi has a "Sertifikat SSL" card (owner/admin): upload a certificate (PEM, with its chain) and its private key by pasting or picking the files, see each certificate's names, issuer, expiry (green, amber under 14 days, red when expired) and how many domains use it, replace its content with "Perbarui" (e.g. after a renewal) or delete it (refused while a domain uses it). The private key is write-only: it is sent once, never shown again and wiped from the form afterwards. In an application's Domain tab every https domain shows its certificate and (developer and up) can switch between "Otomatis (Let's Encrypt)" and an uploaded certificate that covers the host; the add-domain form has the same choice, and a certificate that is close to or past its expiry is flagged. Needs the matching API (`/certificates`, `PATCH /applications/:id/domains/:domainId`).
@@ -460,7 +462,8 @@ Versions below 1.0.0 may include breaking changes in a minor release.
   backups, notifications, and account/instance settings.
 - A web terminal (shell on the host or inside the API container) over WebSocket.
 
-[Unreleased]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.0-alpha.5...HEAD
+[Unreleased]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.0-alpha.6...HEAD
+[0.1.0-alpha.6]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.0-alpha.5...v0.1.0-alpha.6
 [0.1.0-alpha.5]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.0-alpha.4...v0.1.0-alpha.5
 [0.1.0-alpha.4]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.0-alpha.3...v0.1.0-alpha.4
 [0.1.0-alpha.3]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.0-alpha.2...v0.1.0-alpha.3
