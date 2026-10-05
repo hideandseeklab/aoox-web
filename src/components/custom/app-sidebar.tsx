@@ -129,9 +129,8 @@ export function AppSidebar({
 
   return (
     <Sidebar collapsible="icon">
-      {/* Text only for now (the logo tile is not rendered; `BrandLogo` is kept in
-          brand-logo.tsx). With no mark there is nothing that fits the 32px icon
-          rail, so the header is hidden in icon mode; the toggle lives in the top bar. */}
+      {/* Text only: name and version. Nothing here fits the 32px icon rail, so the
+          header is hidden in icon mode; the toggle lives in the top bar. */}
       <SidebarHeader className="group-data-[collapsible=icon]:hidden">
         <SidebarMenu>
           <SidebarMenuItem>
