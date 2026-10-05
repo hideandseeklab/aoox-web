@@ -10,6 +10,7 @@ import {
 } from "lucide-react"
 import { useState, useTransition } from "react"
 import { Badge } from "@/components/ui/badge"
+import { ConfirmDialog } from "@/components/custom/confirm-dialog"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -259,22 +260,41 @@ function MountRow({ owner, mount }: { owner: MountOwner; mount: Mount }) {
           </div>
           <Badge variant="outline">{TYPE_LABEL[mount.type]}</Badge>
           {mount.readOnly && <Badge variant="secondary">ro</Badge>}
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            aria-label="Hapus mount"
-            disabled={pending}
-            onClick={() => {
-              const purge =
-                mount.type === "volume" &&
-                confirm(
-                  "Hapus juga volume Docker beserta datanya? (Batal = lepas mount saja, data tetap ada)"
-                )
-              run(() => deleteMountAction(owner, mount.id, purge))
-            }}
-          >
-            <Trash2 />
-          </Button>
+          <ConfirmDialog
+            trigger={
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                aria-label="Hapus mount"
+                disabled={pending}
+              >
+                <Trash2 />
+              </Button>
+            }
+            title={`Lepas mount ${mount.name}?`}
+            description={
+              mount.type === "volume"
+                ? "Mount dilepas dari container. Pilih apa yang terjadi pada volume Docker-nya: dibiarkan (data tetap ada) atau ikut dihapus (data hilang permanen dan tidak bisa dibatalkan)."
+                : "Mount dilepas dari container. Ini tidak bisa dibatalkan."
+            }
+            confirmLabel={
+              mount.type === "volume"
+                ? "Lepas dan hapus volume (data hilang)"
+                : "Lepas mount"
+            }
+            tone={mount.type === "volume" ? "destructive" : "neutral"}
+            onConfirm={() =>
+              deleteMountAction(owner, mount.id, mount.type === "volume")
+            }
+            alternative={
+              mount.type === "volume"
+                ? {
+                    label: "Lepas mount saja (data tetap ada)",
+                    onConfirm: () => deleteMountAction(owner, mount.id, false),
+                  }
+                : undefined
+            }
+          />
         </div>
       </CardHeader>
       {mount.type === "file" && (

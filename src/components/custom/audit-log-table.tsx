@@ -9,19 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import type { AuditLog } from "@/features/audit-log/audit-log.entity"
-
-const VIA_LABEL: Record<string, string> = {
-  session: "sesi",
-  token: "API token",
-  webhook: "webhook",
-  anonymous: "anonim",
-}
-
-function statusVariant(s: number) {
-  if (s >= 500) return "destructive" as const
-  if (s >= 400) return "outline" as const
-  return "default" as const
-}
+import { statusVariant, VIA_LABEL } from "@/features/audit-log/audit-log.format"
 
 /** Newest first; `before` cursor from the last row for the next page. */
 export function AuditLogTable({

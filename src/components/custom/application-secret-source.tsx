@@ -127,10 +127,10 @@ export function ApplicationSecretSource({
   }
 
   return (
-    <Card className="max-w-2xl">
+    <Card>
       <CardHeader>
         <CardTitle>Sumber secret</CardTitle>
-        <CardDescription>
+        <CardDescription className="max-w-3xl">
           Ambil secret dari secret manager (Infisical) alih-alih menyalinnya ke
           env. Nilai diambil saat container dibuat (deploy, apply config,
           rollback); rujuk satu secret dengan <code>{"${{secret.KEY}}"}</code>{" "}
@@ -167,8 +167,8 @@ export function ApplicationSecretSource({
           </p>
         ) : (
           <>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div className="space-y-1 sm:col-span-2">
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="space-y-1 sm:col-span-2 lg:col-span-1">
                 <Label htmlFor={ids.connection}>Koneksi</Label>
                 <Select
                   value={form.connectionId}
@@ -190,7 +190,7 @@ export function ApplicationSecretSource({
               </div>
               {active && (
                 <>
-                  <div className="space-y-1 sm:col-span-2">
+                  <div className="space-y-1 sm:col-span-2 lg:col-span-1">
                     <Label htmlFor={ids.project}>Project ID</Label>
                     <Input
                       id={ids.project}
@@ -234,7 +234,7 @@ export function ApplicationSecretSource({
                       autoComplete="off"
                     />
                   </div>
-                  <div className="flex items-center gap-2 sm:col-span-2">
+                  <div className="flex items-center gap-2 sm:col-span-2 lg:col-span-4">
                     <Switch
                       id={ids.sync}
                       checked={form.sync}

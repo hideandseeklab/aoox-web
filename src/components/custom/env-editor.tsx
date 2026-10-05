@@ -132,7 +132,7 @@ export function EnvEditor({
                 }
                 placeholder="KEY"
                 readOnly={readOnly}
-                className="w-2/5 font-mono text-xs"
+                className="w-2/5 max-w-sm font-mono text-xs"
                 autoComplete="off"
                 spellCheck={false}
               />

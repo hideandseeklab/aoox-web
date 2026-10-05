@@ -1,9 +1,19 @@
 "use client"
 
-import { Copy, Database, Eye, EyeOff, Play, Square, Trash2 } from "lucide-react"
+import {
+  Copy,
+  Database,
+  Eye,
+  EyeOff,
+  Play,
+  Plus,
+  Square,
+  Trash2,
+} from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useEffect, useState, useTransition } from "react"
 import { toast } from "sonner"
+import { ConfirmDialog } from "@/components/custom/confirm-dialog"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -21,6 +31,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
 import {
   Select,
   SelectContent,
@@ -29,6 +40,10 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import type { SchemaInfo } from "@/features/managed-database/data-browser.entity"
+import {
+  createSchemaAction,
+  dropSchemaAction,
+} from "@/features/managed-database/data-browser.actions"
 import {
   deleteDatabaseAction,
   startDatabaseAction,
@@ -49,11 +64,14 @@ export function DatabasePanel({
   db,
   connection: primary,
   schemas = [],
+  canManageDatabases = false,
 }: {
   db: ManagedDatabaseDetail
   connection: DatabaseConnection
   /** Other databases on the same server (see the Data tab); primary first. */
   schemas?: SchemaInfo[]
+  /** Owner/admin on a running SQL/Mongo server: add or drop databases on it. */
+  canManageDatabases?: boolean
 }) {
   const router = useRouter()
   // Same host/user/password for every database on the server; only the
@@ -138,8 +156,8 @@ export function DatabasePanel({
         </p>
       )}
 
-      {schemas.length > 1 && (
-        <div className="flex items-center gap-2 text-xs">
+      {(schemas.length > 1 || canManageDatabases) && (
+        <div className="flex flex-wrap items-center gap-2 text-xs">
           <Database className="size-4 text-muted-foreground" />
           <span className="text-muted-foreground">Koneksi untuk database</span>
           <Select value={selected ?? ""} onValueChange={setSelected}>
@@ -157,6 +175,25 @@ export function DatabasePanel({
               ))}
             </SelectContent>
           </Select>
+          {canManageDatabases && selected && selected !== primary.database && (
+            <DropDatabaseDialog
+              databaseId={db.id}
+              name={selected}
+              onDropped={() => {
+                setSelected(primary.database)
+                router.refresh()
+              }}
+            />
+          )}
+          {canManageDatabases && (
+            <AddDatabaseDialog
+              databaseId={db.id}
+              onCreated={(name) => {
+                setSelected(name)
+                router.refresh()
+              }}
+            />
+          )}
         </div>
       )}
 
@@ -291,5 +328,125 @@ function Row({
         <Copy />
       </Button>
     </div>
+  )
+}
+
+/** "Tambah database": creates another database on the same server (POST /databases/:id/schemas). */
+function AddDatabaseDialog({
+  databaseId,
+  onCreated,
+}: {
+  databaseId: string
+  onCreated: (name: string) => void
+}) {
+  const [open, setOpen] = useState(false)
+  const [name, setName] = useState("")
+  const [error, setError] = useState<string | null>(null)
+  const [pending, start] = useTransition()
+
+  const submit = () =>
+    start(async () => {
+      const value = name.trim()
+      if (!value) return
+      setError(null)
+      const r = await createSchemaAction(databaseId, value)
+      if (!r.ok) return setError(r.error)
+      setOpen(false)
+      setName("")
+      onCreated(r.data.name)
+    })
+
+  return (
+    <Dialog
+      open={open}
+      onOpenChange={(next) => {
+        setOpen(next)
+        if (!next) {
+          setName("")
+          setError(null)
+        }
+      }}
+    >
+      <DialogTrigger asChild>
+        <Button variant="outline" size="sm">
+          <Plus data-icon="inline-start" />
+          Tambah database
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-sm">
+        <DialogHeader>
+          <DialogTitle>Tambah database</DialogTitle>
+          <DialogDescription>
+            Membuat database lain di server ini. Host, user, dan password sama;
+            hanya nama database di URL koneksi yang berbeda.
+          </DialogDescription>
+        </DialogHeader>
+        <form
+          className="space-y-3"
+          onSubmit={(e) => {
+            e.preventDefault()
+            submit()
+          }}
+        >
+          <Input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="nama database"
+            className="font-mono"
+            aria-label="Nama database baru"
+            autoFocus
+          />
+          {error && (
+            <p className="text-xs text-destructive" role="alert">
+              {error}
+            </p>
+          )}
+          <DialogFooter>
+            <Button type="submit" disabled={pending || !name.trim()}>
+              Buat
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+/** Confirmation to drop one extra database on the server (DELETE /databases/:id/schemas/:name). */
+function DropDatabaseDialog({
+  databaseId,
+  name,
+  onDropped,
+}: {
+  databaseId: string
+  name: string
+  onDropped: () => void
+}) {
+  return (
+    <ConfirmDialog
+      trigger={
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          aria-label={`Hapus database ${name}`}
+        >
+          <Trash2 />
+        </Button>
+      }
+      title={`Hapus database ${name}?`}
+      description={
+        <>
+          Database <code>{name}</code> beserta seluruh tabel dan datanya dihapus
+          permanen dan tidak bisa dibatalkan. Aplikasi yang masih memakainya
+          akan gagal terhubung.
+        </>
+      }
+      confirmLabel="Hapus"
+      onConfirm={async () => {
+        const r = await dropSchemaAction(databaseId, name)
+        if (r.ok) onDropped()
+        return r
+      }}
+    />
   )
 }

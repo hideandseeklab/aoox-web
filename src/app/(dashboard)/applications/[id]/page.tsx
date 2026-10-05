@@ -18,6 +18,7 @@ import {
   listPreviews,
 } from "@/features/application/application.queries"
 import { listBackupDestinations } from "@/features/backup-destination/backup-destination.queries"
+import { listCertificates } from "@/features/certificate/certificate.queries"
 import { listJobs } from "@/features/job/job.queries"
 import { listVolumeBackups } from "@/features/volume-backup/volume-backup.queries"
 import { listRegistries } from "@/features/registry/registry.queries"
@@ -46,6 +47,7 @@ export default async function ApplicationPage({
   const [
     deployments,
     domains,
+    certificates,
     mounts,
     jobs,
     volumeBackups,
@@ -65,6 +67,8 @@ export default async function ApplicationPage({
   ] = await Promise.all([
     listDeployments(app.id),
     listDomains(app.id),
+    // Names and coverage only, for the domain's certificate picker; [] on an older API.
+    listCertificates().catch(() => []),
     listMounts({ kind: "application", id: app.id }),
     listJobs({ kind: "application", id: app.id }),
     listVolumeBackups(app.id),
@@ -174,6 +178,7 @@ export default async function ApplicationPage({
         app={app}
         deployments={deployments}
         domains={domains}
+        certificates={certificates}
         mounts={mounts}
         jobs={jobs}
         volumeBackups={volumeBackups}

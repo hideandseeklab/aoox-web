@@ -51,10 +51,10 @@ export function WebhookCard({
     })
 
   return (
-    <Card className="max-w-2xl">
+    <Card>
       <CardHeader>
         <CardTitle>Webhook auto-deploy</CardTitle>
-        <CardDescription>
+        <CardDescription className="max-w-3xl">
           Setiap push ke branch <code>{current.branch}</code> memicu deploy.
           Push ke branch lain diabaikan; kalau deploy sedang berjalan, event
           dilewati.

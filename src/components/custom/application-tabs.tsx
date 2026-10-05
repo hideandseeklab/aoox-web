@@ -33,6 +33,7 @@ import type {
 } from "@/features/application/application.entity"
 import type { PreviewDeployment } from "@/features/application/preview.entity"
 import type { BackupDestination } from "@/features/backup-destination/backup-destination.entity"
+import type { Certificate } from "@/features/certificate/certificate.entity"
 import type { GitCredential } from "@/features/git-credential/git-credential.entity"
 import type { Job } from "@/features/job/job.entity"
 import type { HttpMonitorView } from "@/features/http-monitor/http-monitor.entity"
@@ -64,6 +65,7 @@ export function ApplicationTabs({
   app,
   deployments,
   domains,
+  certificates,
   mounts,
   jobs,
   volumeBackups,
@@ -88,6 +90,8 @@ export function ApplicationTabs({
   app: ApplicationDetail
   deployments: DeploymentSummary[]
   domains: Domain[]
+  /** Custom SSL certificates a https domain can pick (no key material). */
+  certificates: Certificate[]
   mounts: Mount[]
   jobs: Job[]
   volumeBackups: VolumeBackup[]
@@ -151,6 +155,8 @@ export function ApplicationTabs({
         <ApplicationDomains
           applicationId={app.id}
           domains={domains}
+          certificates={certificates}
+          canEdit={app.projectRole !== "viewer"}
           proxy={proxy}
           deployed={!!app.currentImage}
         />
@@ -234,10 +240,10 @@ export function ApplicationTabs({
         </TabsContent>
       )}
       <TabsContent value="settings" className="pt-4">
-        <Card className="max-w-2xl">
+        <Card>
           <CardHeader>
             <CardTitle>Pengaturan</CardTitle>
-            <CardDescription>
+            <CardDescription className="max-w-3xl">
               Port host, domain, dan limit resource diterapkan langsung ke
               aplikasi yang berjalan; pengaturan lain berlaku pada deploy
               berikutnya.

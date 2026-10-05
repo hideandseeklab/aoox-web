@@ -80,7 +80,9 @@ export interface Application {
 
 export interface ApplicationDetail extends Application {
   /** Where secrets come from (secret manager), or null/absent when the app has none. */
-  secretSource?: import("@/features/secret-connection/secret-connection.entity").SecretSource | null
+  secretSource?:
+    | import("@/features/secret-connection/secret-connection.entity").SecretSource
+    | null
   container: { id: string; state: string; status: string } | null
   /** The signed-in user's role in the owning project. */
   projectRole: "admin" | "developer" | "viewer"
@@ -151,6 +153,9 @@ export interface Domain {
   applicationId: string
   host: string
   https: boolean
+  /** Custom SSL certificate in use; null = automatic Let's Encrypt. */
+  certificateId?: string | null
+  certificateName?: string | null
   createdAt: string
   /**
    * True when the proxy wasn't running and the API started it automatically

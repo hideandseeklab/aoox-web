@@ -8,13 +8,13 @@ import {
   Database,
   Download,
   Play,
-  Plus,
   RefreshCw,
   Table2,
   Trash2,
   Upload,
 } from "lucide-react"
 import { QueryHistoryMenu } from "@/components/custom/query-history-menu"
+import { ConfirmDialog } from "@/components/custom/confirm-dialog"
 import { RowEditDialog } from "@/components/custom/row-edit-dialog"
 import { useCallback, useEffect, useRef, useState, useTransition } from "react"
 import { Badge } from "@/components/ui/badge"
@@ -34,7 +34,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { Input } from "@/components/ui/input"
 import {
   Select,
   SelectContent,
@@ -45,9 +44,7 @@ import {
 import { Textarea } from "@/components/ui/textarea"
 import { CreateTableDialog } from "@/components/custom/create-table-dialog"
 import {
-  createSchemaAction,
   deleteRowAction,
-  dropSchemaAction,
   fetchTableRowsAction,
   importSqlAction,
   listColumnsAction,
@@ -91,7 +88,6 @@ export function DatabaseDataBrowser({
   // Which database on the server we are browsing; the primary by default.
   const [schemas, setSchemas] = useState<SchemaInfo[] | null>(null)
   const [schema, setSchema] = useState(db.databaseName)
-  const [newSchema, setNewSchema] = useState("")
   const [tables, setTables] = useState<TableInfo[] | null>(null)
   const [selected, setSelected] = useState<TableInfo | null>(null)
   const [rows, setRows] = useState<TableRows | null>(null)
@@ -195,29 +191,6 @@ export function DatabaseDataBrowser({
     setTables(null) // the effect above reloads for the new database
   }
 
-  const addSchema = () =>
-    start(async () => {
-      const name = newSchema.trim()
-      if (!name) return
-      setError(null)
-      const r = await createSchemaAction(db.id, name)
-      if (!r.ok) return setError(r.error)
-      setNewSchema("")
-      setSchemas((s) => [...(s ?? []), r.data])
-      switchSchema(r.data.name)
-    })
-
-  const removeSchema = (name: string) =>
-    start(async () => {
-      if (!window.confirm(`Hapus database "${name}" beserta seluruh isinya?`))
-        return
-      setError(null)
-      const r = await dropSchemaAction(db.id, name)
-      if (!r.ok) return setError(r.error)
-      setSchemas((s) => (s ?? []).filter((x) => x.name !== name))
-      if (schema === name) switchSchema(db.databaseName)
-    })
-
   const openTable = (t: TableInfo) => {
     setSelected(t)
     setOffset(0)
@@ -268,27 +241,30 @@ export function DatabaseDataBrowser({
       (rows?.columns ?? []).map((c, i) => [c, values[i] ?? null])
     )
 
-  const removeRow = (values: (string | null)[]) =>
-    start(async () => {
-      if (!selected || !columns) return
-      if (!window.confirm("Hapus baris ini?")) return
-      setError(null)
-      const record = rowRecord(values)
-      // The API requires `where` to be exactly the primary key — sending
-      // every column would still work when there's nothing to disagree
-      // with, but is not what assertRowTarget checks against.
-      const where = Object.fromEntries(
-        columns
-          .filter((c) => c.isPrimaryKey)
-          .map((c) => [c.name, record[c.name]])
-      )
-      const r = await deleteRowAction(db.id, selected.name, where, {
-        db: dbParam,
-        schema: selected.schema,
-      })
-      if (!r.ok) return setError(r.error)
-      loadRows(selected, offset, order)
+  // Row waiting for the delete confirmation; the dialog does the actual delete.
+  const [rowToDelete, setRowToDelete] = useState<(string | null)[] | null>(null)
+  // SQL file waiting for the "run it?" confirmation.
+  const [fileToImport, setFileToImport] = useState<File | null>(null)
+
+  const removeRow = async (
+    values: (string | null)[]
+  ): Promise<{ ok: boolean; error?: string }> => {
+    if (!selected || !columns) return { ok: true }
+    const record = rowRecord(values)
+    // The API requires `where` to be exactly the primary key — sending
+    // every column would still work when there's nothing to disagree
+    // with, but is not what assertRowTarget checks against.
+    const where = Object.fromEntries(
+      columns.filter((c) => c.isPrimaryKey).map((c) => [c.name, record[c.name]])
+    )
+    const r = await deleteRowAction(db.id, selected.name, where, {
+      db: dbParam,
+      schema: selected.schema,
     })
+    if (!r.ok) return { ok: false, error: r.error }
+    loadRows(selected, offset, order)
+    return { ok: true }
+  }
 
   if (!running) {
     return (
@@ -300,39 +276,59 @@ export function DatabaseDataBrowser({
 
   const grid = result ?? rows
 
+  const pkSummary = (values: (string | null)[]) => {
+    const record = rowRecord(values)
+    return (columns ?? [])
+      .filter((c) => c.isPrimaryKey)
+      .map((c) => `${c.name} = ${record[c.name] ?? "NULL"}`)
+      .join(", ")
+  }
+
   return (
     <div className="grid gap-4 lg:grid-cols-[300px_1fr]">
+      <ConfirmDialog
+        open={rowToDelete !== null}
+        onOpenChange={(o) => !o && setRowToDelete(null)}
+        title="Hapus baris ini?"
+        description={
+          rowToDelete && selected ? (
+            <>
+              Baris <code>{pkSummary(rowToDelete)}</code> dihapus permanen dari{" "}
+              <code>{selected.name}</code>. Ini tidak bisa dibatalkan.
+            </>
+          ) : (
+            "Baris dihapus permanen. Ini tidak bisa dibatalkan."
+          )
+        }
+        confirmLabel="Hapus baris"
+        onConfirm={() =>
+          rowToDelete ? removeRow(rowToDelete) : Promise.resolve()
+        }
+      />
+      <ConfirmDialog
+        open={fileToImport !== null}
+        onOpenChange={(o) => !o && setFileToImport(null)}
+        title={`Jalankan ${fileToImport?.name ?? "berkas SQL"}?`}
+        description={
+          fileToImport ? (
+            <>
+              Berkas <code>{fileToImport.name}</code> (
+              {(fileToImport.size / 1024).toFixed(0)} KB) dijalankan di database{" "}
+              <code>{schema}</code>. Statement di dalamnya dieksekusi apa
+              adanya, termasuk yang mengubah atau menghapus data.
+            </>
+          ) : null
+        }
+        confirmLabel="Jalankan"
+        tone="neutral"
+        onConfirm={async () => {
+          if (fileToImport) importFile(fileToImport)
+        }}
+      />
       <Card className="self-start">
         <CardHeader>
           {!isRedis && (
             <div className="mb-2 space-y-2">
-              {canWrite && (
-                <form
-                  className="flex items-center gap-1 pl-[18px]"
-                  onSubmit={(e) => {
-                    e.preventDefault()
-                    addSchema()
-                  }}
-                >
-                  <Input
-                    value={newSchema}
-                    onChange={(e) => setNewSchema(e.target.value)}
-                    placeholder="database baru"
-                    className="min-w-0 flex-1 font-mono text-xs"
-                    aria-label="Nama database baru"
-                  />
-                  <Button
-                    type="submit"
-                    variant="outline"
-                    size="icon"
-                    aria-label="Buat database"
-                    className="shrink-0"
-                    disabled={pending || !newSchema.trim()}
-                  >
-                    <Plus />
-                  </Button>
-                </form>
-              )}
               <div className="flex items-center gap-1">
                 <Database className="size-3.5 shrink-0 text-muted-foreground" />
                 <Select value={schema} onValueChange={switchSchema}>
@@ -359,18 +355,6 @@ export function DatabaseDataBrowser({
                     ))}
                   </SelectContent>
                 </Select>
-                {canWrite && schema !== db.databaseName && (
-                  <Button
-                    variant="ghost"
-                    size="icon-sm"
-                    aria-label={`Hapus database ${schema}`}
-                    className="shrink-0"
-                    disabled={pending}
-                    onClick={() => removeSchema(schema)}
-                  >
-                    <Trash2 />
-                  </Button>
-                )}
               </div>
             </div>
           )}
@@ -490,13 +474,7 @@ export function DatabaseDataBrowser({
                       onChange={(e) => {
                         const f = e.target.files?.[0]
                         e.target.value = ""
-                        if (
-                          f &&
-                          window.confirm(
-                            `Jalankan ${f.name} (${(f.size / 1024).toFixed(0)} KB) di database "${schema}"? Statement di dalamnya dieksekusi apa adanya.`
-                          )
-                        )
-                          importFile(f)
+                        if (f) setFileToImport(f)
                       }}
                     />
                     <Button
@@ -778,7 +756,7 @@ export function DatabaseDataBrowser({
                                 variant="ghost"
                                 size="icon-sm"
                                 aria-label="Hapus baris"
-                                onClick={() => removeRow(r)}
+                                onClick={() => setRowToDelete(r)}
                               >
                                 <Trash2 />
                               </Button>

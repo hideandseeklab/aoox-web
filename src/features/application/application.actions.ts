@@ -366,7 +366,8 @@ export async function fetchContainerLogsAction(
 export async function addDomainAction(
   applicationId: string,
   host: string,
-  https: boolean
+  https: boolean,
+  certificateId?: string | null
 ): Promise<ActionResult<Domain>> {
   try {
     // The API returns `{ domain, proxyAutoProvisioned }`, not a bare Domain —
@@ -378,11 +379,38 @@ export async function addDomainAction(
       proxyAutoProvisioned: boolean
     }>(`/applications/${applicationId}/domains`, {
       method: "POST",
-      body: { host: host.trim().toLowerCase(), https },
+      body: {
+        host: host.trim().toLowerCase(),
+        https,
+        // Only meaningful for https; omitted = automatic Let's Encrypt.
+        ...(https && certificateId ? { certificateId } : {}),
+      },
       token: await requireToken(),
     })
     revalidatePath(`/applications/${applicationId}`)
     return { ok: true, data: { ...domain, proxyAutoProvisioned } }
+  } catch (err) {
+    return fail(err)
+  }
+}
+
+/** Picks the SSL certificate of an https domain; `null` goes back to automatic Let's Encrypt. */
+export async function setDomainCertificateAction(
+  applicationId: string,
+  domainId: string,
+  certificateId: string | null
+): Promise<ActionResult<Domain>> {
+  try {
+    const data = await api<Domain>(
+      `/applications/${applicationId}/domains/${domainId}`,
+      {
+        method: "PATCH",
+        body: { certificateId },
+        token: await requireToken(),
+      }
+    )
+    revalidatePath(`/applications/${applicationId}`)
+    return { ok: true, data }
   } catch (err) {
     return fail(err)
   }

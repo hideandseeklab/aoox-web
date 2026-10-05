@@ -11,6 +11,7 @@ import {
 import { useActionState, useState, useTransition } from "react"
 import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
+import { ConfirmDialog } from "@/components/custom/confirm-dialog"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -160,34 +161,42 @@ export function MembersCard({
                   >
                     <KeyRound />
                   </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon-sm"
-                    aria-label={`Nonaktifkan 2FA ${m.email}`}
-                    title="Nonaktifkan 2FA (kalau authenticator hilang)"
-                    disabled={pending}
-                    onClick={() => {
-                      if (!confirm(`Nonaktifkan 2FA untuk ${m.email}?`)) return
-                      run(() => disableUserTwoFactorAction(m.id))
-                    }}
-                  >
-                    <ShieldOff />
-                  </Button>
+                  <ConfirmDialog
+                    trigger={
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        aria-label={`Nonaktifkan 2FA ${m.email}`}
+                        title="Nonaktifkan 2FA (kalau authenticator hilang)"
+                        disabled={pending}
+                      >
+                        <ShieldOff />
+                      </Button>
+                    }
+                    title={`Nonaktifkan 2FA untuk ${m.email}?`}
+                    description="Akun ini hanya akan dilindungi password sehingga menjadi kurang aman, dan kode cadangannya tidak berlaku lagi. Pemiliknya bisa mengaktifkan 2FA lagi dari halaman Akun."
+                    confirmLabel="Nonaktifkan 2FA"
+                    onConfirm={() => disableUserTwoFactorAction(m.id)}
+                  />
                 </>
               )}
               {isOwner && m.id !== me.id && (
-                <Button
-                  variant="ghost"
-                  size="icon-sm"
-                  aria-label={`Hapus ${m.email}`}
-                  disabled={pending}
-                  onClick={() => {
-                    if (!confirm(`Hapus akun ${m.email}?`)) return
-                    run(() => deleteMemberAction(m.id))
-                  }}
-                >
-                  <Trash2 />
-                </Button>
+                <ConfirmDialog
+                  trigger={
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      aria-label={`Hapus ${m.email}`}
+                      disabled={pending}
+                    >
+                      <Trash2 />
+                    </Button>
+                  }
+                  title={`Hapus akun ${m.email}?`}
+                  description="Akun dihapus permanen: ia tidak bisa masuk lagi dan keanggotaannya di semua project hilang. Ini tidak bisa dibatalkan."
+                  confirmLabel="Hapus akun"
+                  onConfirm={() => deleteMemberAction(m.id)}
+                />
               )}
             </li>
           ))}

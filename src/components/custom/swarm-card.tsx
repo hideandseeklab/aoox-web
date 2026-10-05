@@ -4,6 +4,7 @@ import { Copy, Network, Trash2 } from "lucide-react"
 import { useState, useTransition } from "react"
 import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
+import { ConfirmDialog } from "@/components/custom/confirm-dialog"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -242,23 +243,26 @@ export function SwarmCard({
                 {status.serviceApps} aplikasi berjalan sebagai service.
               </span>
               {isOwner && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={pending || status.serviceApps > 0}
-                  title={
-                    status.serviceApps > 0
-                      ? "Kembalikan aplikasi ke mode container dulu"
-                      : undefined
+                <ConfirmDialog
+                  trigger={
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={pending || status.serviceApps > 0}
+                      title={
+                        status.serviceApps > 0
+                          ? "Kembalikan aplikasi ke mode container dulu"
+                          : undefined
+                      }
+                    >
+                      Keluar dari swarm
+                    </Button>
                   }
-                  onClick={() => {
-                    if (!confirm("Keluar dari swarm? Service akan hilang."))
-                      return
-                    run(leaveSwarmAction)
-                  }}
-                >
-                  Keluar dari swarm
-                </Button>
+                  title="Keluar dari swarm?"
+                  description="Node ini meninggalkan swarm: service yang berjalan di sana hilang, dan jaringan overlay swarm dihapus. Proxy akan dipasang ulang tanpa mode swarm."
+                  confirmLabel="Keluar dari swarm"
+                  onConfirm={leaveSwarmAction}
+                />
               )}
             </div>
           </>

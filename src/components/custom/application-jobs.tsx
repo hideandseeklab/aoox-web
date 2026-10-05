@@ -4,6 +4,7 @@ import { ChevronDown, ChevronRight, Play, Plus, Trash2 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useCallback, useEffect, useRef, useState, useTransition } from "react"
 import { Badge } from "@/components/ui/badge"
+import { ConfirmDialog } from "@/components/custom/confirm-dialog"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -361,18 +362,22 @@ function JobRow({ owner, job }: { owner: JobOwner; job: Job }) {
             <Play data-icon="inline-start" />
             Jalankan
           </Button>
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            aria-label="Hapus job"
-            disabled={pending}
-            onClick={() => {
-              if (!confirm(`Hapus job "${job.name}"?`)) return
-              act(() => deleteJobAction(owner, job.id))
-            }}
-          >
-            <Trash2 />
-          </Button>
+          <ConfirmDialog
+            trigger={
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                aria-label="Hapus job"
+                disabled={pending}
+              >
+                <Trash2 />
+              </Button>
+            }
+            title={`Hapus job "${job.name}"?`}
+            description="Job dihapus permanen beserta riwayat run-nya, dan jadwalnya berhenti. Ini tidak bisa dibatalkan."
+            confirmLabel="Hapus"
+            onConfirm={() => deleteJobAction(owner, job.id)}
+          />
         </div>
         {error && (
           <p className="text-xs text-destructive" role="alert">

@@ -54,10 +54,10 @@ export function ApplicationEnvironment({
   }
 
   return (
-    <Card className="max-w-2xl">
+    <Card>
       <CardHeader>
         <CardTitle>Environment</CardTitle>
-        <CardDescription>
+        <CardDescription className="max-w-3xl">
           Variabel env aplikasi ini. Berlaku pada deploy berikutnya (nilai
           dibaca saat container dibuat), di atas env bersama project: bila key
           sama, yang ini menang. Nilai bisa merujuk{" "}

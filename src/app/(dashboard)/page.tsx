@@ -1,6 +1,8 @@
 import Link from "next/link"
+import { Suspense } from "react"
 import { HostLiveChart } from "@/components/custom/host-live-chart"
 import { LiveClock } from "@/components/custom/live-clock"
+import { RecentActivitySection } from "@/components/custom/recent-activity-section"
 import { HostOverviewCard } from "@/components/custom/host-overview-card"
 import { Button } from "@/components/ui/button"
 import {
@@ -10,6 +12,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { Skeleton } from "@/components/ui/skeleton"
 import { canUseTerminal } from "@/features/auth/auth.entity"
 import { getVerifiedSession } from "@/features/auth/auth.session"
 import {
@@ -32,8 +35,9 @@ export default async function DashboardPage() {
   const total = summary?.total ?? projects.length
   const active = summary?.active ?? 0
   const user = session!.user
+  const isAdmin = canUseTerminal(user)
   // Owner/admin only; Docker being unreachable must not break the dashboard.
-  const [host, live] = canUseTerminal(user)
+  const [host, live] = isAdmin
     ? await Promise.all([
         getHostOverview().catch(() => null),
         getHostLive().catch(() => null),
@@ -98,6 +102,14 @@ export default async function DashboardPage() {
       </div>
 
       {live && <HostLiveChart initial={live} />}
+
+      {/* Owner/admin only (the audit log API refuses everyone else); streamed so the
+          rest of the dashboard does not wait for it. */}
+      {isAdmin && (
+        <Suspense fallback={<Skeleton className="h-72" />}>
+          <RecentActivitySection />
+        </Suspense>
+      )}
     </>
   )
 }

@@ -3,6 +3,7 @@
 import { Play, Rocket, Square, Trash2 } from "lucide-react"
 import { useEffect, useRef, useState, useTransition } from "react"
 import { Badge } from "@/components/ui/badge"
+import { ConfirmDialog } from "@/components/custom/confirm-dialog"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -130,18 +131,18 @@ export function ComposePanel({
           </Button>
         )}
         <span className="ms-auto" />
-        <Button
-          size="sm"
-          variant="destructive"
-          disabled={pending || busy}
-          onClick={() => {
-            if (!confirm("Hapus stack ini beserta volume-nya?")) return
-            run(() => deleteComposeAppAction(app.id, app.projectId))
-          }}
-        >
-          <Trash2 data-icon="inline-start" />
-          Hapus
-        </Button>
+        <ConfirmDialog
+          trigger={
+            <Button size="sm" variant="destructive" disabled={pending || busy}>
+              <Trash2 data-icon="inline-start" />
+              Hapus
+            </Button>
+          }
+          title={`Hapus stack ${app.name}?`}
+          description="Semua container stack dihentikan dan dihapus, beserta volume datanya dan salinan checkout-nya. Data di volume hilang permanen dan tidak bisa dibatalkan."
+          confirmLabel="Hapus stack"
+          onConfirm={() => deleteComposeAppAction(app.id, app.projectId)}
+        />
       </div>
       {error && (
         <p className="text-xs text-destructive" role="alert">

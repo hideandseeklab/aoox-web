@@ -5,6 +5,7 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import { ApplicationJobs } from "@/components/custom/application-jobs"
 import { ApplicationMounts } from "@/components/custom/application-mounts"
+import { DatabaseCompanionCard } from "@/components/custom/database-companion"
 import { DatabaseBackups } from "@/components/custom/database-backups"
 import { DatabaseDataBrowser } from "@/components/custom/database-data-browser"
 import { DatabasePanel } from "@/components/custom/database-panel"
@@ -18,6 +19,10 @@ import { canUseTerminal } from "@/features/auth/auth.entity"
 import { getVerifiedSession } from "@/features/auth/auth.session"
 import { listBackupDestinations } from "@/features/backup-destination/backup-destination.queries"
 import { listMounts } from "@/features/application/application.queries"
+import {
+  getCompanion,
+  listCompanionOptions,
+} from "@/features/database-companion/database-companion.queries"
 import { listJobs } from "@/features/job/job.queries"
 import { fetchMetricsAction } from "@/features/monitoring/monitoring.actions"
 import { ENGINE_LABEL } from "@/features/managed-database/managed-database.entity"
@@ -46,6 +51,8 @@ export default async function DatabasePage({
     schemas,
     mounts,
     jobs,
+    companion,
+    companionTools,
   ] = await Promise.all([
     getDatabaseCredentials(db.id),
     listBackups(db.id),
@@ -58,6 +65,8 @@ export default async function DatabasePage({
       : [],
     listMounts({ kind: "database", id: db.id }),
     listJobs({ kind: "database", id: db.id }),
+    getCompanion(db.id),
+    listCompanionOptions(db.id),
   ])
   // Same roles that may write through the data browser / add bind mounts (owner/admin).
   const canWrite = session ? canUseTerminal(session.user) : false
@@ -123,8 +132,24 @@ export default async function DatabasePage({
             initial={metrics}
             running={running}
           />
-          <DatabasePanel db={db} connection={connection} schemas={schemas} />
+          <DatabasePanel
+            db={db}
+            connection={connection}
+            schemas={schemas}
+            canManageDatabases={
+              canWrite &&
+              running &&
+              db.engine !== "redis" &&
+              db.engine !== "valkey"
+            }
+          />
           <DatabaseResources db={db} />
+          <DatabaseCompanionCard
+            db={db}
+            companion={companion}
+            tools={companionTools}
+            running={running}
+          />
         </TabsContent>
         <TabsContent value="data" className="pt-4">
           <DatabaseDataBrowser db={db} running={running} canWrite={canWrite} />

@@ -3,6 +3,7 @@
 import { Globe, RefreshCw } from "lucide-react"
 import { useState, useTransition } from "react"
 import { Badge } from "@/components/ui/badge"
+import { ConfirmDialog } from "@/components/custom/confirm-dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -120,29 +121,28 @@ export function ServerProxyPanel({ server }: { server: Server }) {
           {status?.installed ? "Aktifkan ulang" : "Aktifkan"}
         </Button>
         {status?.installed && (
-          <Button
-            type="button"
-            variant="outline"
-            disabled={pending}
-            onClick={() =>
-              start(async () => {
-                if (!confirm("Hapus proxy di server ini?")) return
-                setError(null)
-                const r = await removeServerProxyAction(server.id)
-                if (r.ok)
-                  setStatus({
-                    ...status,
-                    installed: false,
-                    running: false,
-                    state: null,
-                    containerId: null,
-                  })
-                else setError(r.error)
-              })
+          <ConfirmDialog
+            trigger={
+              <Button type="button" variant="outline" disabled={pending}>
+                Hapus
+              </Button>
             }
-          >
-            Hapus
-          </Button>
+            title="Hapus proxy di server ini?"
+            description="Container proxy di server ini dihentikan dan dihapus. Domain aplikasi di server ini berhenti dilayani sampai proxy diaktifkan lagi."
+            confirmLabel="Hapus proxy"
+            onConfirm={async () => {
+              const r = await removeServerProxyAction(server.id)
+              if (r.ok)
+                setStatus({
+                  ...status,
+                  installed: false,
+                  running: false,
+                  state: null,
+                  containerId: null,
+                })
+              return r
+            }}
+          />
         )}
       </form>
       {error && (
