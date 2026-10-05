@@ -18,7 +18,7 @@ export default async function TerminalPage() {
     <div className="flex h-[calc(100svh-6rem)] flex-col gap-4">
       <div>
         <h1 className="text-lg font-semibold">Terminal</h1>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-xs text-muted-foreground">
           Shell di host aoox atau server remote (Infrastruktur
           <PathArrow />
           Server remote). Hati-hati: perintah dijalankan langsung di mesin

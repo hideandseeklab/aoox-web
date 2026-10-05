@@ -169,11 +169,11 @@ export function AccountCard({ me }: { me: AuthUser }) {
         </div>
 
         {error && (
-          <p className="text-sm text-destructive" role="alert">
+          <p className="text-xs text-destructive" role="alert">
             {error}
           </p>
         )}
-        {notice && <p className="text-sm text-muted-foreground">{notice}</p>}
+        {notice && <p className="text-xs text-muted-foreground">{notice}</p>}
       </CardContent>
 
       {/* Setup: scan QR, confirm with a code */}
@@ -225,7 +225,7 @@ export function AccountCard({ me }: { me: AuthUser }) {
                 />
               </div>
               {error && (
-                <p className="text-sm text-destructive" role="alert">
+                <p className="text-xs text-destructive" role="alert">
                   {error}
                 </p>
               )}
@@ -264,7 +264,7 @@ export function AccountCard({ me }: { me: AuthUser }) {
               authenticator tidak ada. Tidak akan ditampilkan lagi.
             </DialogDescription>
           </DialogHeader>
-          <div className="grid grid-cols-2 gap-1 rounded bg-muted p-3 font-mono text-sm">
+          <div className="grid grid-cols-2 gap-1 rounded bg-muted p-3 font-mono text-xs">
             {backupCodes?.map((c) => (
               <span key={c}>{c}</span>
             ))}
@@ -322,7 +322,7 @@ export function AccountCard({ me }: { me: AuthUser }) {
               required
             />
             {error && (
-              <p className="text-sm text-destructive" role="alert">
+              <p className="text-xs text-destructive" role="alert">
                 {error}
               </p>
             )}

@@ -292,7 +292,7 @@ export function DatabaseDataBrowser({
 
   if (!running) {
     return (
-      <p className="text-sm text-muted-foreground">
+      <p className="text-xs text-muted-foreground">
         Database harus berjalan untuk menjelajahi data.
       </p>
     )
@@ -375,28 +375,30 @@ export function DatabaseDataBrowser({
             </div>
           )}
           <div className="flex items-center justify-between">
-            <CardTitle>{isRedis ? "Key" : isMongo ? "Koleksi" : "Tabel"}</CardTitle>
+            <CardTitle>
+              {isRedis ? "Key" : isMongo ? "Koleksi" : "Tabel"}
+            </CardTitle>
             <div className="flex items-center">
               {canWrite &&
                 db.engine !== "redis" &&
                 db.engine !== "valkey" &&
                 db.engine !== "mongodb" && (
-                <CreateTableDialog
-                  databaseId={db.id}
-                  engine={db.engine}
-                  db={dbParam}
-                  onCreated={(name) => {
-                    setTables(null) // reload the list…
-                    // …and open the new table right away.
-                    const t: TableInfo = {
-                      schema: db.engine === "postgres" ? "public" : null,
-                      name,
-                      estimatedRows: null,
-                    }
-                    openTable(t)
-                  }}
-                />
-              )}
+                  <CreateTableDialog
+                    databaseId={db.id}
+                    engine={db.engine}
+                    db={dbParam}
+                    onCreated={(name) => {
+                      setTables(null) // reload the list…
+                      // …and open the new table right away.
+                      const t: TableInfo = {
+                        schema: db.engine === "postgres" ? "public" : null,
+                        name,
+                        estimatedRows: null,
+                      }
+                      openTable(t)
+                    }}
+                  />
+                )}
               <Button
                 variant="ghost"
                 size="icon-sm"
@@ -411,9 +413,9 @@ export function DatabaseDataBrowser({
         </CardHeader>
         <CardContent className="p-0">
           {tables === null ? (
-            <p className="px-4 pb-4 text-sm text-muted-foreground">Memuat…</p>
+            <p className="px-4 pb-4 text-xs text-muted-foreground">Memuat…</p>
           ) : tables.length === 0 ? (
-            <p className="px-4 pb-4 text-sm text-muted-foreground">
+            <p className="px-4 pb-4 text-xs text-muted-foreground">
               {isRedis
                 ? "Belum ada key."
                 : isMongo
@@ -421,7 +423,7 @@ export function DatabaseDataBrowser({
                   : "Belum ada tabel."}
             </p>
           ) : (
-            <ul className="max-h-[480px] divide-y overflow-y-auto text-sm">
+            <ul className="max-h-[480px] divide-y overflow-y-auto text-xs">
               {tables.map((t) => {
                 const key = `${t.schema ?? ""}.${t.name}`
                 const active =
@@ -460,7 +462,11 @@ export function DatabaseDataBrowser({
           <CardHeader>
             <div className="flex items-center justify-between gap-2">
               <CardTitle>
-                {isRedis ? `Perintah ${kvLabel}` : isMongo ? "Query MongoDB" : "SQL"}
+                {isRedis
+                  ? `Perintah ${kvLabel}`
+                  : isMongo
+                    ? "Query MongoDB"
+                    : "SQL"}
               </CardTitle>
               <div className="flex items-center gap-1">
                 <QueryHistoryMenu databaseId={db.id} onPick={setSql} />
@@ -510,7 +516,7 @@ export function DatabaseDataBrowser({
               {isRedis
                 ? "Satu perintah, mis. HGETALL user:1 atau SCAN 0 MATCH sess:* COUNT 100."
                 : isMongo
-                  ? "Satu query, mis. users.find({\"age\":{\"$gt\":18}}) — hanya find(), read-only untuk saat ini."
+                  ? 'Satu query, mis. users.find({"age":{"$gt":18}}) — hanya find(), read-only untuk saat ini.'
                   : "Satu statement per eksekusi; SELECT tanpa LIMIT dibatasi 500 baris, timeout 15 detik."}{" "}
               {!isMongo &&
                 (canWrite
@@ -555,7 +561,7 @@ export function DatabaseDataBrowser({
         </Card>
 
         {notice && (
-          <p className="rounded-md border p-3 text-sm" role="status">
+          <p className="rounded-md border p-3 text-xs" role="status">
             {notice}
           </p>
         )}
@@ -654,7 +660,7 @@ export function DatabaseDataBrowser({
             <CardContent className="p-0">
               {view === "structure" && rows && !result && !isRedis ? (
                 columns === null ? (
-                  <p className="px-4 pb-4 text-sm text-muted-foreground">
+                  <p className="px-4 pb-4 text-xs text-muted-foreground">
                     Memuat…
                   </p>
                 ) : (
@@ -691,7 +697,7 @@ export function DatabaseDataBrowser({
                   </Table>
                 )
               ) : !grid || grid.columns.length === 0 ? (
-                <p className="px-4 pb-4 text-sm text-muted-foreground">
+                <p className="px-4 pb-4 text-xs text-muted-foreground">
                   Tidak ada hasil.
                 </p>
               ) : (

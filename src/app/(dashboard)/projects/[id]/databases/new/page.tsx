@@ -28,13 +28,16 @@ export default async function NewDatabasePage({
       />
       <div className="flex items-start gap-3">
         <Button asChild variant="ghost" size="icon" className="mt-0.5">
-          <Link href={`/projects/${project.id}`} aria-label="Kembali ke project">
+          <Link
+            href={`/projects/${project.id}`}
+            aria-label="Kembali ke project"
+          >
             <ArrowLeft />
           </Link>
         </Button>
         <div>
           <h1 className="text-lg font-semibold">Database baru</h1>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-xs text-muted-foreground">
             Dijalankan sebagai container dengan volume persisten di network
             aoox; aplikasi di project ini bisa mengaksesnya lewat nama host
             internal.

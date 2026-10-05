@@ -88,7 +88,7 @@ export function SwarmCard({
           )}
         </div>
       </CardHeader>
-      <CardContent className="space-y-3 text-sm">
+      <CardContent className="space-y-3 text-xs">
         {status.error && <p className="text-destructive">{status.error}</p>}
 
         {status.state !== "active" && isOwner && (
@@ -203,8 +203,8 @@ export function SwarmCard({
               <div className="space-y-1">
                 <p className="text-muted-foreground">
                   Tambah node: jalankan di server lain (Docker terpasang). Node
-                  tambahan belum bisa menjalankan app aoox (registry &
-                  volume masih lokal) — tahap berikutnya.
+                  tambahan belum bisa menjalankan app aoox (registry & volume
+                  masih lokal) — tahap berikutnya.
                 </p>
                 {(["worker", "manager"] as const).map((kind) => (
                   <div key={kind} className="flex items-center gap-2">

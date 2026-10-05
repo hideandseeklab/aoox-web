@@ -137,9 +137,9 @@ export function InstanceBackupCard({
         </div>
 
         {backups.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Belum ada backup.</p>
+          <p className="text-xs text-muted-foreground">Belum ada backup.</p>
         ) : (
-          <ul className="divide-y rounded-md border text-sm">
+          <ul className="divide-y rounded-md border text-xs">
             {backups.map((b) => (
               <li key={b.id} className="flex items-center gap-2 px-3 py-2">
                 <div className="min-w-0 flex-1">
@@ -287,7 +287,7 @@ export function InstanceBackupCard({
         </form>
 
         {error && (
-          <p className="text-sm text-destructive" role="alert">
+          <p className="text-xs text-destructive" role="alert">
             {error}
           </p>
         )}

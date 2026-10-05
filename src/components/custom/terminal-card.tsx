@@ -62,7 +62,7 @@ export function TerminalCard({ status }: { status: TerminalStatus }) {
         </div>
       </CardHeader>
       {status.mode === "ssh" && (
-        <CardContent className="space-y-3 text-sm">
+        <CardContent className="space-y-3 text-xs">
           {status.error && (
             <p className="text-destructive" role="alert">
               {status.error}

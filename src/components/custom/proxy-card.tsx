@@ -56,7 +56,7 @@ export function ProxyCard({
           )}
         </div>
       </CardHeader>
-      <CardContent className="space-y-2 text-sm">
+      <CardContent className="space-y-2 text-xs">
         <p className="text-muted-foreground">
           Sertifikat HTTPS otomatis (Let&apos;s Encrypt):{" "}
           {status.acmeEmail ? (

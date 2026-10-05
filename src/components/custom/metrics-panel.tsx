@@ -78,7 +78,7 @@ export function MetricsPanel({
     return (
       <div className="space-y-2">
         {picker}
-        <p className="text-sm text-muted-foreground">
+        <p className="text-xs text-muted-foreground">
           {range !== "1h"
             ? "Belum ada riwayat tersimpan untuk rentang ini."
             : running

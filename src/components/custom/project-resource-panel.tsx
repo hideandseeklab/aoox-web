@@ -43,7 +43,7 @@ export function ProjectResourcePanel({
   const cur = data.current
   if (!cur) {
     return (
-      <p className="text-sm text-muted-foreground">
+      <p className="text-xs text-muted-foreground">
         Tidak ada aplikasi/database/stack yang berjalan di project ini.
       </p>
     )
@@ -69,7 +69,9 @@ export function ProjectResourcePanel({
       <StatTile
         label="Jaringan"
         value={
-          cur.netRxBytesPerSec === null ? "–" : `↓ ${formatBytes(cur.netRxBytesPerSec)}/s`
+          cur.netRxBytesPerSec === null
+            ? "–"
+            : `↓ ${formatBytes(cur.netRxBytesPerSec)}/s`
         }
         hint={
           cur.netTxBytesPerSec === null
@@ -145,7 +147,9 @@ function Sparkline({
   const x = (i: number) => i * step
   const y = (v: number) => H - 2 - (v / max) * (H - 4)
   const d = series
-    .map((v, i) => `${i === 0 ? "M" : "L"}${x(i).toFixed(1)},${y(v).toFixed(1)}`)
+    .map(
+      (v, i) => `${i === 0 ? "M" : "L"}${x(i).toFixed(1)},${y(v).toFixed(1)}`
+    )
     .join(" ")
   const last = series.length - 1
   const i = hover ?? last

@@ -2,7 +2,8 @@
 
 import { usePathname, useSearchParams } from "next/navigation"
 import { useRouter } from "@/lib/use-router"
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Tabs, TabsTrigger } from "@/components/ui/tabs"
+import { ScrollableTabsList } from "@/components/custom/scrollable-tabs-list"
 import { SetBreadcrumb } from "./breadcrumb-store"
 
 export const SETTINGS_TABS = ["account", "team", "integrations"] as const
@@ -36,13 +37,13 @@ export function SettingsTabs({
       <SetBreadcrumb
         items={[{ label: "Settings", href: "/settings" }, { label }]}
       />
-      <TabsList>
+      <ScrollableTabsList>
         {tabs.map((t) => (
           <TabsTrigger key={t.value} value={t.value}>
             {t.label}
           </TabsTrigger>
         ))}
-      </TabsList>
+      </ScrollableTabsList>
       {children}
     </Tabs>
   )

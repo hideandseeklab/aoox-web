@@ -1,7 +1,8 @@
 import { ExternalRegistries } from "@/components/custom/external-registries"
 import { RegistryRepositories } from "@/components/custom/registry-repositories"
 import { SelfHostedRegistryCard } from "@/components/custom/self-hosted-registry-card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs"
+import { ScrollableTabsList } from "@/components/custom/scrollable-tabs-list"
 import { canUseTerminal } from "@/features/auth/auth.entity"
 import { getVerifiedSession } from "@/features/auth/auth.session"
 import { listBackupDestinations } from "@/features/backup-destination/backup-destination.queries"
@@ -33,19 +34,19 @@ export default async function RegistryPage() {
     <>
       <div>
         <h1 className="text-lg font-semibold">Registry</h1>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-xs text-muted-foreground">
           Tempat image hasil build disimpan — untuk rollback dan deploy ke
           banyak server.
         </p>
       </div>
 
       <Tabs defaultValue="local">
-        <TabsList>
+        <ScrollableTabsList>
           <TabsTrigger value="local">Registry lokal</TabsTrigger>
           <TabsTrigger value="external">
             Eksternal ({external.length})
           </TabsTrigger>
-        </TabsList>
+        </ScrollableTabsList>
         <TabsContent value="local" className="space-y-4 pt-4">
           <SelfHostedRegistryCard
             status={status}
@@ -56,7 +57,7 @@ export default async function RegistryPage() {
             <section className="space-y-2">
               <h2 className="text-sm font-medium">Image</h2>
               {repositories === null ? (
-                <p className="text-sm text-muted-foreground">
+                <p className="text-xs text-muted-foreground">
                   Registry tidak dapat dihubungi.
                 </p>
               ) : (

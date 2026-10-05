@@ -21,7 +21,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs"
+import { ScrollableTabsList } from "@/components/custom/scrollable-tabs-list"
 import { canUseTerminal } from "@/features/auth/auth.entity"
 import { getVerifiedSession } from "@/features/auth/auth.session"
 import { listMounts } from "@/features/application/application.queries"
@@ -114,7 +115,7 @@ export default async function ComposeAppPage({
             </Badge>
             <Badge variant="outline">compose</Badge>
           </div>
-          <p className="font-mono text-sm break-all text-muted-foreground">
+          <p className="font-mono text-xs break-all text-muted-foreground">
             {app.source === "template"
               ? `template · ${app.templateId}`
               : `${(app.gitUrl ?? "").replace(/^https?:\/\//, "")}#${app.gitBranch} · ${app.composePath}`}
@@ -123,13 +124,13 @@ export default async function ComposeAppPage({
       </div>
 
       <Tabs defaultValue="deploy">
-        <TabsList>
+        <ScrollableTabsList>
           <TabsTrigger value="deploy">Deploy</TabsTrigger>
           <TabsTrigger value="history">Riwayat ({runs.length})</TabsTrigger>
           <TabsTrigger value="mounts">Mount ({mounts.length})</TabsTrigger>
           <TabsTrigger value="jobs">Jobs ({jobs.length})</TabsTrigger>
           <TabsTrigger value="settings">Pengaturan</TabsTrigger>
-        </TabsList>
+        </ScrollableTabsList>
         <TabsContent value="deploy" className="space-y-4 pt-4">
           <ComposeAccessHint
             domains={app.serviceDomains}

@@ -21,7 +21,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs"
+import { ScrollableTabsList } from "@/components/custom/scrollable-tabs-list"
 import { updateApplicationAction } from "@/features/application/application.actions"
 import type {
   ApplicationDetail,
@@ -118,7 +119,7 @@ export function ApplicationTabs({
 
   return (
     <Tabs value={tab} onValueChange={(v) => setTab(v as ApplicationTab)}>
-      <TabsList>
+      <ScrollableTabsList>
         <TabsTrigger value="deploy">Deploy</TabsTrigger>
         <TabsTrigger value="domains">Domain ({domains.length})</TabsTrigger>
         <TabsTrigger value="mounts">Mount ({mounts.length})</TabsTrigger>
@@ -128,7 +129,7 @@ export function ApplicationTabs({
         <TabsTrigger value="webhook">Webhook</TabsTrigger>
         {canUseConsole && <TabsTrigger value="console">Console</TabsTrigger>}
         <TabsTrigger value="settings">Pengaturan</TabsTrigger>
-      </TabsList>
+      </ScrollableTabsList>
       <TabsContent value="deploy" className="space-y-4 pt-4">
         <MetricsPanel
           target="application"

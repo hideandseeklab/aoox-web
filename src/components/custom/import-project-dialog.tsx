@@ -46,7 +46,9 @@ export function ImportProjectDialog() {
     if (!file) return
     start(async () => {
       setError(null)
-      const toastId = toast.loading(`Mengimpor project ${name.trim() || file.name}…`)
+      const toastId = toast.loading(
+        `Mengimpor project ${name.trim() || file.name}…`
+      )
       let parsed: unknown
       try {
         parsed = JSON.parse(await file.text())
@@ -95,13 +97,13 @@ export function ImportProjectDialog() {
         <DialogHeader>
           <DialogTitle>Impor project</DialogTitle>
           <DialogDescription>
-            Buat project baru dari file ekspor (<code>*.aoox.json</code>).
-            Tidak ada yang di-deploy; database dibuat kosong, aplikasi menunggu
-            deploy pertama.
+            Buat project baru dari file ekspor (<code>*.aoox.json</code>). Tidak
+            ada yang di-deploy; database dibuat kosong, aplikasi menunggu deploy
+            pertama.
           </DialogDescription>
         </DialogHeader>
         {report ? (
-          <div className="space-y-3 text-sm">
+          <div className="space-y-3 text-xs">
             <p>
               Dibuat: {report.created.applications} aplikasi,{" "}
               {report.created.databases} database, {report.created.composeApps}{" "}
@@ -158,7 +160,7 @@ export function ImportProjectDialog() {
               />
             </div>
             {error && (
-              <p className="text-sm text-destructive" role="alert">
+              <p className="text-xs text-destructive" role="alert">
                 {error}
               </p>
             )}

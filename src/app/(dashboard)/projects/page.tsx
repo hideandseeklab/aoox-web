@@ -23,7 +23,7 @@ export default async function ProjectsPage() {
       <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="text-lg font-semibold">Projects</h1>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-xs text-muted-foreground">
             Kelompokkan aplikasi dan database per project.
           </p>
         </div>
@@ -37,7 +37,7 @@ export default async function ProjectsPage() {
         <div className="flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed p-12 text-center">
           <FolderKanban className="size-8 text-muted-foreground" />
           <p className="text-sm font-medium">Belum ada project</p>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-xs text-muted-foreground">
             Buat project pertama untuk mulai men-deploy.
           </p>
         </div>

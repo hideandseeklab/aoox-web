@@ -8,6 +8,12 @@ Versions below 1.0.0 may include breaking changes in a minor release.
 
 ## [Unreleased]
 
+### UI UX Improvement
+
+- **Sidebar logo is full-bleed.** The mark was a small dark `$` tile inside a ringed box (a white hairline in dark mode), so it looked off-centre and too small next to the "aoox" and version text. `BrandLogo` now crops the same artwork to the glyph's own margins (the `$` is centred on the 64 grid; the favicon keeps its wider margin for the circle crop), fills the whole 32 px square, has no ring or padding, and uses `rounded-lg` (follows `--radius`). The logo is only used in the sidebar header, in expanded and icon mode.
+
+- **Normal text is small everywhere, set once.** Card details, lists, rows, helper and error text had drifted to `text-sm`/16 px next to the 12 px fields and buttons (most visible in the Registry lokal card, the image list, Settings → Infrastruktur and the application/database/compose pages). The scale is now defined in the theme (`globals.css`, rem untouched): `text-base` and `text-xs` are 12 px, `text-sm` is 13 px and means section/card/dialog titles (with `font-medium`), page titles stay `text-lg`, stat numbers `text-2xl`. `<body>` uses `text-base`, so unstyled text no longer falls back to 16 px; about 160 stray `text-sm` on body text were set to `text-xs`; inputs and textareas are 12 px like the rest (no more 14 px below `md`). On touch screens (`pointer: coarse`) input, textarea and select stay at 16 px so iOS does not zoom the page when a field is focused; with a mouse they are 12 px. The image list rows are less tall. `npm run check:ui` also flags `text-sm`/`text-base` on non-title text so it does not creep back. The `src/components/ui` files are exactly what shadcn ships: the panel's adjustments (12 px fields and avatar text, the select-trigger margin fix, 16 px touch fields) live in `globals.css` keyed on shadcn's `data-slot` attributes, and the scrolling tab strip is a `ScrollableTabsList` wrapper in `components/custom` instead of an edit to the tabs component.
+
 ## [0.1.0-alpha.5] - 2026-10-02
 
 ### Added

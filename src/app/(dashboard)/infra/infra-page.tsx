@@ -17,7 +17,7 @@ export function InfraPage({
       />
       <div>
         <h1 className="text-lg font-semibold">{title}</h1>
-        <p className="text-sm text-muted-foreground">{description}</p>
+        <p className="text-xs text-muted-foreground">{description}</p>
       </div>
       {children}
     </>

@@ -83,9 +83,9 @@ export function QueryHistoryMenu({
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         {entries === null || pending ? (
-          <p className="px-2 py-1.5 text-sm text-muted-foreground">Memuat…</p>
+          <p className="px-2 py-1.5 text-xs text-muted-foreground">Memuat…</p>
         ) : entries.length === 0 ? (
-          <p className="px-2 py-1.5 text-sm text-muted-foreground">
+          <p className="px-2 py-1.5 text-xs text-muted-foreground">
             Belum ada riwayat.
           </p>
         ) : (

@@ -111,7 +111,7 @@ export function ApiTokensCard({
       </CardHeader>
       <CardContent className="space-y-4">
         {tokens.length > 0 && (
-          <ul className="divide-y rounded-md border text-sm">
+          <ul className="divide-y rounded-md border text-xs">
             {tokens.map((t) => {
               const expired =
                 t.expiresAt && new Date(t.expiresAt).getTime() < now
@@ -214,7 +214,7 @@ export function ApiTokensCard({
           <div className="space-y-1">
             <Label htmlFor="pat-readonly">Hak</Label>
             <label
-              className="flex h-9 items-center gap-2 text-sm"
+              className="flex h-9 items-center gap-2 text-xs"
               htmlFor="pat-readonly"
             >
               <Switch
@@ -266,7 +266,7 @@ export function ApiTokensCard({
           </Button>
         </form>
         {error && (
-          <p className="text-sm text-destructive" role="alert">
+          <p className="text-xs text-destructive" role="alert">
             {error}
           </p>
         )}

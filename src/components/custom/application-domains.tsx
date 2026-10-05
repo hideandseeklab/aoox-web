@@ -42,9 +42,9 @@ export function ApplicationDomains({
   const [error, setError] = useState<string | null>(null)
   const [pending, start] = useTransition()
   const [dns, setDns] = useState<Record<string, DnsCheck>>({})
-  const [justAutoProvisioned, setJustAutoProvisioned] = useState<
-    string | null
-  >(null)
+  const [justAutoProvisioned, setJustAutoProvisioned] = useState<string | null>(
+    null
+  )
 
   const checkDns = (id: string) =>
     start(async () => {
@@ -72,7 +72,7 @@ export function ApplicationDomains({
         </Alert>
       )}
       {!deployed && (
-        <p className="text-sm text-muted-foreground">
+        <p className="text-xs text-muted-foreground">
           Domain dipasang ke container saat aplikasi di-deploy.
         </p>
       )}
@@ -84,26 +84,25 @@ export function ApplicationDomains({
           <AlertDescription>
             <p>
               Proxy (Traefik) belum jalan sebelum ini, jadi sudah diaktifkan
-              otomatis untuk domain <code>{justAutoProvisioned}</code>. Cek
-              satu per satu kalau domain belum bisa diakses setelah beberapa
-              menit:
+              otomatis untuk domain <code>{justAutoProvisioned}</code>. Cek satu
+              per satu kalau domain belum bisa diakses setelah beberapa menit:
             </p>
             <ol className="ml-4 list-decimal space-y-1">
               <li>
-                DNS A record <code>{justAutoProvisioned}</code> sudah
-                mengarah ke IP server ini.
+                DNS A record <code>{justAutoProvisioned}</code> sudah mengarah
+                ke IP server ini.
               </li>
               <li>
-                Port <code>80</code> dan <code>443</code> terbuka untuk
-                publik — baik firewall OS (<code>ufw</code>) maupun
-                firewall/security group dari provider VPS/server kamu.
+                Port <code>80</code> dan <code>443</code> terbuka untuk publik —
+                baik firewall OS (<code>ufw</code>) maupun firewall/security
+                group dari provider VPS/server kamu.
               </li>
               <li>
                 Kalau meminta HTTPS: sertifikat (Let&apos;s Encrypt) baru
                 diterbitkan Traefik saat pertama kali domain diakses, butuh
                 beberapa detik sampai semenit — dan hanya terbit kalau email
-                ACME sudah diisi (host: Domain panel; server remote:
-                pengaturan server).
+                ACME sudah diisi (host: Domain panel; server remote: pengaturan
+                server).
               </li>
             </ol>
           </AlertDescription>
@@ -153,13 +152,13 @@ export function ApplicationDomains({
         </p>
       )}
       {error && (
-        <p className="text-sm text-destructive" role="alert">
+        <p className="text-xs text-destructive" role="alert">
           {error}
         </p>
       )}
 
       {domains.length === 0 ? (
-        <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
+        <div className="rounded-lg border border-dashed p-6 text-center text-xs text-muted-foreground">
           Belum ada domain. Aplikasi hanya bisa diakses lewat port host.
         </div>
       ) : (
@@ -168,7 +167,7 @@ export function ApplicationDomains({
             const url = `${d.https ? "https" : "http"}://${d.host}${portSuffix(d.https)}`
             const check = dns[d.id]
             return (
-              <li key={d.id} className="space-y-1 px-4 py-2 text-sm">
+              <li key={d.id} className="space-y-1 px-4 py-2 text-xs">
                 <div className="flex items-center gap-3">
                   <a
                     href={url}

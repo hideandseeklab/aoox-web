@@ -39,10 +39,7 @@ export function CreateApplicationPageForm({
     formData: FormData,
     toastId: string | number
   ): Promise<ActionResult> => {
-    const created = await createApplicationForAccessAction(
-      projectId,
-      formData
-    )
+    const created = await createApplicationForAccessAction(projectId, formData)
     if (!created.ok) {
       toast.error(created.error, { id: toastId })
       return created

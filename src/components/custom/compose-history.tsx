@@ -86,14 +86,14 @@ export function ComposeHistory({
 
   if (runs.length === 0) {
     return (
-      <p className="text-sm text-muted-foreground">
+      <p className="text-xs text-muted-foreground">
         Belum ada riwayat — deploy dulu.
       </p>
     )
   }
 
   return (
-    <ul className="divide-y rounded-md border text-sm">
+    <ul className="divide-y rounded-md border text-xs">
       {runs.map((r) => {
         const Icon = ICON[r.action]
         return (

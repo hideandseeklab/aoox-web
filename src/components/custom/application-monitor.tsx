@@ -190,7 +190,7 @@ export function ApplicationMonitor({
           </div>
         </div>
       </CardHeader>
-      <CardContent className="space-y-5 text-sm">
+      <CardContent className="space-y-5 text-xs">
         <div className="space-y-1">
           <p className="text-xs text-muted-foreground">
             Target (diturunkan dari aplikasi, tidak bisa diubah)

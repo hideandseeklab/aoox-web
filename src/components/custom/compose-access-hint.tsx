@@ -83,7 +83,7 @@ export function ComposeAccessHint({
   ]
 
   return (
-    <div className="flex flex-wrap items-center gap-2 text-sm">
+    <div className="flex flex-wrap items-center gap-2 text-xs">
       <span className="text-muted-foreground">Buka:</span>
       {links.map((l) => (
         <Button

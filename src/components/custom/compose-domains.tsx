@@ -15,7 +15,8 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Tabs, TabsTrigger } from "@/components/ui/tabs"
+import { ScrollableTabsList } from "@/components/custom/scrollable-tabs-list"
 import {
   updateServiceDomainsAction,
   updateServicePortsAction,
@@ -135,7 +136,7 @@ export function ComposeAccess({
       </CardHeader>
       <CardContent className="space-y-4">
         {(domains.length > 0 || ports.length > 0) && (
-          <ul className="divide-y rounded-md border text-sm">
+          <ul className="divide-y rounded-md border text-xs">
             {domains.map((d, i) => (
               <li
                 key={`d:${d.service}:${d.port}:${d.host}`}
@@ -209,10 +210,10 @@ export function ComposeAccess({
         )}
 
         <Tabs value={mode} onValueChange={(v) => setMode(v as Mode)}>
-          <TabsList>
+          <ScrollableTabsList>
             <TabsTrigger value="domain">Domain</TabsTrigger>
             <TabsTrigger value="port">IP &amp; port</TabsTrigger>
-          </TabsList>
+          </ScrollableTabsList>
         </Tabs>
 
         <form className="flex flex-wrap items-end gap-3" onSubmit={submit}>
@@ -259,7 +260,7 @@ export function ComposeAccess({
                   placeholder="app.example.com"
                 />
               </div>
-              <label className="mb-2 flex items-center gap-2 text-sm">
+              <label className="mb-2 flex items-center gap-2 text-xs">
                 <Switch
                   checked={https}
                   onCheckedChange={setHttps}
@@ -289,7 +290,7 @@ export function ComposeAccess({
           </Button>
         </form>
         {error && (
-          <p className="text-sm text-destructive" role="alert">
+          <p className="text-xs text-destructive" role="alert">
             {error}
           </p>
         )}

@@ -35,13 +35,16 @@ export default async function NewComposePage({
       />
       <div className="flex items-start gap-3">
         <Button asChild variant="ghost" size="icon" className="mt-0.5">
-          <Link href={`/projects/${project.id}`} aria-label="Kembali ke project">
+          <Link
+            href={`/projects/${project.id}`}
+            aria-label="Kembali ke project"
+          >
             <ArrowLeft />
           </Link>
         </Button>
         <div>
           <h1 className="text-lg font-semibold">Stack compose baru</h1>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-xs text-muted-foreground">
             Deploy <code>docker-compose.yml</code> dari repo git; layanan di
             dalamnya di-build dan dijalankan apa adanya.
           </p>

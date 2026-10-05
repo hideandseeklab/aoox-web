@@ -136,7 +136,7 @@ export function ServersCard({
           <AddServerDialog />
         </div>
       </CardHeader>
-      <CardContent className="space-y-4 text-sm">
+      <CardContent className="space-y-4 text-xs">
         <div className="space-y-1.5">
           <p className="text-muted-foreground">
             Jalankan sekali di setiap server, sebagai user yang akan dipakai:

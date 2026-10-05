@@ -73,7 +73,7 @@ export function GitCredentialsCard({
       </CardHeader>
       <CardContent>
         {credentials.length === 0 ? (
-          <p className="text-sm text-muted-foreground">
+          <p className="text-xs text-muted-foreground">
             Belum ada kredensial — semua repo di-clone secara anonim.
           </p>
         ) : (
@@ -81,7 +81,7 @@ export function GitCredentialsCard({
             {credentials.map((c) => (
               <li
                 key={c.id}
-                className="flex items-center gap-3 px-3 py-2 text-sm"
+                className="flex items-center gap-3 px-3 py-2 text-xs"
               >
                 <KeyRound className="size-4 text-muted-foreground" />
                 <span className="font-medium">{c.name}</span>
@@ -110,7 +110,7 @@ export function GitCredentialsCard({
           </ul>
         )}
         {error && (
-          <p className="mt-2 text-sm text-destructive" role="alert">
+          <p className="mt-2 text-xs text-destructive" role="alert">
             {error}
           </p>
         )}

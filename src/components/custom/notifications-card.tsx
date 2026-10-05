@@ -80,7 +80,9 @@ const DEFAULT_OFF_EVENTS = new Set<keyof Notification & `on${string}`>([
   "onAppError",
 ])
 const DEFAULT_CHECKED_EVENTS = new Set<keyof Notification & `on${string}`>(
-  EVENT_LABEL.map(([name]) => name).filter((name) => !DEFAULT_OFF_EVENTS.has(name))
+  EVENT_LABEL.map(([name]) => name).filter(
+    (name) => !DEFAULT_OFF_EVENTS.has(name)
+  )
 )
 
 /** Settings card: channels that receive deployment success/failure messages. */
@@ -123,7 +125,7 @@ export function NotificationsCard({
           <AddNotificationDialog />
         </div>
       </CardHeader>
-      <CardContent className="space-y-3 text-sm">
+      <CardContent className="space-y-3 text-xs">
         {notifications.length === 0 ? (
           <p className="text-muted-foreground">Belum ada channel.</p>
         ) : (
@@ -336,10 +338,9 @@ function AddNotificationDialog() {
                 />
                 <FieldDescription>
                   Bila diisi, tiap kiriman membawa{" "}
-                  <code>X-Aoox-Signature: sha256=HMAC(secret, body)</code>{" "}
-                  (plus <code>X-Aoox-Event</code> dan{" "}
-                  <code>X-Aoox-Delivery</code>) — verifikasi seperti
-                  webhook GitHub.
+                  <code>X-Aoox-Signature: sha256=HMAC(secret, body)</code> (plus{" "}
+                  <code>X-Aoox-Event</code> dan <code>X-Aoox-Delivery</code>) —
+                  verifikasi seperti webhook GitHub.
                 </FieldDescription>
               </Field>
             )}
@@ -373,7 +374,7 @@ function AddNotificationDialog() {
                     <FieldError errors={errs("smtpPort")} />
                   </Field>
                 </div>
-                <label className="flex items-center gap-2 text-sm">
+                <label className="flex items-center gap-2 text-xs">
                   <Switch name="smtpSecure" />
                   TLS implisit (port 465)
                 </label>
@@ -427,7 +428,7 @@ function AddNotificationDialog() {
               {EVENT_LABEL.map(([name, label]) => (
                 <label
                   key={name}
-                  className="flex items-center gap-2 text-sm capitalize"
+                  className="flex items-center gap-2 text-xs capitalize"
                 >
                   <Switch
                     name={name}

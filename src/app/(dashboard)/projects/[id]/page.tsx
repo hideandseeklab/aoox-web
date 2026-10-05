@@ -96,7 +96,7 @@ export default async function ProjectDetailPage({
             <h1 className="text-lg font-semibold break-words">
               {project.name}
             </h1>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
               Dibuat{" "}
               {new Date(project.createdAt).toLocaleString("id-ID", {
                 dateStyle: "medium",
@@ -142,7 +142,7 @@ export default async function ProjectDetailPage({
             {applications.length === 0 ? (
               <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed p-8 text-center">
                 <Boxes className="size-6 text-muted-foreground" />
-                <p className="text-sm text-muted-foreground">
+                <p className="text-xs text-muted-foreground">
                   Belum ada aplikasi di project ini.
                 </p>
               </div>
@@ -182,7 +182,7 @@ export default async function ProjectDetailPage({
             {composeApps.length === 0 ? (
               <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed p-8 text-center">
                 <Layers className="size-6 text-muted-foreground" />
-                <p className="text-sm text-muted-foreground">
+                <p className="text-xs text-muted-foreground">
                   Belum ada stack compose di project ini.
                 </p>
               </div>
@@ -210,7 +210,7 @@ export default async function ProjectDetailPage({
             {databases.length === 0 ? (
               <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed p-8 text-center">
                 <Database className="size-6 text-muted-foreground" />
-                <p className="text-sm text-muted-foreground">
+                <p className="text-xs text-muted-foreground">
                   Belum ada database di project ini.
                 </p>
               </div>

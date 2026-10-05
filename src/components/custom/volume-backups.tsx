@@ -158,14 +158,14 @@ export function VolumeBackups({
         </CardHeader>
         <CardContent className="space-y-3">
           {error && (
-            <p className="text-sm text-destructive" role="alert">
+            <p className="text-xs text-destructive" role="alert">
               {error}
             </p>
           )}
           {backups.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Belum ada backup.</p>
+            <p className="text-xs text-muted-foreground">Belum ada backup.</p>
           ) : (
-            <ul className="divide-y rounded-md border text-sm">
+            <ul className="divide-y rounded-md border text-xs">
               {backups.map((b) => (
                 <li key={b.id} className="flex items-center gap-3 px-3 py-2">
                   <span className="min-w-0 flex-1">

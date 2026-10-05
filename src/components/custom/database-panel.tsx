@@ -126,20 +126,20 @@ export function DatabasePanel({
           {reveal ? "Sembunyikan password" : "Tampilkan password"}
         </Button>
         {error && (
-          <span className="text-sm text-destructive" role="alert">
+          <span className="text-xs text-destructive" role="alert">
             {error}
           </span>
         )}
       </div>
 
       {db.status === "error" && (
-        <p className="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
+        <p className="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-xs text-destructive">
           Pembuatan database gagal: {db.errorMessage}
         </p>
       )}
 
       {schemas.length > 1 && (
-        <div className="flex items-center gap-2 text-sm">
+        <div className="flex items-center gap-2 text-xs">
           <Database className="size-4 text-muted-foreground" />
           <span className="text-muted-foreground">Koneksi untuk database</span>
           <Select value={selected ?? ""} onValueChange={setSelected}>
@@ -165,11 +165,11 @@ export function DatabasePanel({
           <CardHeader>
             <CardTitle>Koneksi internal</CardTitle>
             <CardDescription>
-              Dari aplikasi di project ini (network <code>aoox</code>).
-              Tempel ke env aplikasi, mis. <code>DATABASE_URL</code>.
+              Dari aplikasi di project ini (network <code>aoox</code>). Tempel
+              ke env aplikasi, mis. <code>DATABASE_URL</code>.
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-2 text-sm">
+          <CardContent className="space-y-2 text-xs">
             <Row label="Host" value={connection.internalHost} />
             <Row label="Port" value={String(connection.internalPort)} />
             {connection.database && (
@@ -197,7 +197,7 @@ export function DatabasePanel({
                 : "Tidak dipublikasikan — hanya bisa diakses dari network aoox."}
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-2 text-sm">
+          <CardContent className="space-y-2 text-xs">
             {connection.externalUrl ? (
               <>
                 <Row label="Host" value={connection.externalHost ?? ""} />

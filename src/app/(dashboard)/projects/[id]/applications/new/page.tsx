@@ -39,13 +39,16 @@ export default async function NewApplicationPage({
       />
       <div className="flex items-start gap-3">
         <Button asChild variant="ghost" size="icon" className="mt-0.5">
-          <Link href={`/projects/${project.id}`} aria-label="Kembali ke project">
+          <Link
+            href={`/projects/${project.id}`}
+            aria-label="Kembali ke project"
+          >
             <ArrowLeft />
           </Link>
         </Button>
         <div>
           <h1 className="text-lg font-semibold">Aplikasi baru</h1>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-xs text-muted-foreground">
             Di-build dari repo git (Dockerfile, Nixpacks, atau situs statis)
             atau di-pull dari image siap pakai, lalu dijalankan sebagai
             container.

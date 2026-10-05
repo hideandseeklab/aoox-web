@@ -30,7 +30,7 @@ export default async function AuditLogPage({
         </Button>
         <div>
           <h1 className="text-lg font-semibold">Audit log</h1>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-xs text-muted-foreground">
             Semua permintaan yang mengubah sesuatu (dan percobaan masuk), siapa
             pelakunya dan lewat apa. Disimpan 90 hari.
           </p>

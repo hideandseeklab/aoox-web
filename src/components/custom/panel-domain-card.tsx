@@ -47,9 +47,8 @@ export function PanelDomainCard({ status }: { status: PanelDomainStatus }) {
             <AlertTitle>INSTALL_DIR belum diisi</AlertTitle>
             <AlertDescription>
               Set <code>INSTALL_DIR</code> di <code>.env.dist</code> ke path
-              absolut folder yang berisi <code>docker-compose.dist.yml</code>{" "}
-              di server ini, lalu restart stack sebelum menyimpan domain di
-              sini.
+              absolut folder yang berisi <code>docker-compose.dist.yml</code> di
+              server ini, lalu restart stack sebelum menyimpan domain di sini.
             </AlertDescription>
           </Alert>
         )}
@@ -85,7 +84,7 @@ export function PanelDomainCard({ status }: { status: PanelDomainStatus }) {
           </div>
         </div>
 
-        <p className="text-sm text-muted-foreground">
+        <p className="text-xs text-muted-foreground">
           Saat ini terpasang:{" "}
           <code>{status.applied.webOrigin ?? "http://localhost:3000"}</code> ·{" "}
           <code>{status.applied.publicApiUrl ?? "http://localhost:3001"}</code>
@@ -117,7 +116,7 @@ export function PanelDomainCard({ status }: { status: PanelDomainStatus }) {
         </Button>
 
         {error && (
-          <p className="text-sm text-destructive" role="alert">
+          <p className="text-xs text-destructive" role="alert">
             {error}
           </p>
         )}
@@ -125,16 +124,17 @@ export function PanelDomainCard({ status }: { status: PanelDomainStatus }) {
           <Alert>
             <AlertTitle>Diterapkan</AlertTitle>
             <AlertDescription>
-              Panel akan restart beberapa detik lagi untuk memasang domain
-              baru — koneksi ke dashboard ini akan sempat terputus, itu wajar.
-              Muat ulang halaman di <code>https://{webHost}</code> setelah
-              itu.
+              Panel akan restart beberapa detik lagi untuk memasang domain baru
+              — koneksi ke dashboard ini akan sempat terputus, itu wajar. Muat
+              ulang halaman di <code>https://{webHost}</code> setelah itu.
             </AlertDescription>
           </Alert>
         )}
         {applied && proxyAutoProvisioned && (
           <Alert variant="destructive">
-            <AlertTitle>Reverse proxy belum aktif — sudah dinyalakan otomatis</AlertTitle>
+            <AlertTitle>
+              Reverse proxy belum aktif — sudah dinyalakan otomatis
+            </AlertTitle>
             <AlertDescription>
               <p>
                 Proxy (Traefik) belum jalan sebelum ini, jadi sudah diaktifkan
@@ -145,14 +145,14 @@ export function PanelDomainCard({ status }: { status: PanelDomainStatus }) {
               </p>
               <ol className="ml-4 list-decimal space-y-1">
                 <li>
-                  DNS A record <code>{webHost}</code> dan{" "}
-                  <code>{apiHost}</code> sudah mengarah ke IP server ini
-                  (cek: <code>nslookup {webHost || "domain-kamu"}</code>).
+                  DNS A record <code>{webHost}</code> dan <code>{apiHost}</code>{" "}
+                  sudah mengarah ke IP server ini (cek:{" "}
+                  <code>nslookup {webHost || "domain-kamu"}</code>).
                 </li>
                 <li>
-                  Port <code>80</code> dan <code>443</code> terbuka untuk
-                  publik — baik firewall OS (<code>ufw</code>) maupun
-                  firewall/security group dari provider VPS kamu.
+                  Port <code>80</code> dan <code>443</code> terbuka untuk publik
+                  — baik firewall OS (<code>ufw</code>) maupun firewall/security
+                  group dari provider VPS kamu.
                 </li>
                 <li>
                   Tunggu beberapa saat: sertifikat HTTPS (Let&apos;s Encrypt)

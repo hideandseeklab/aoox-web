@@ -144,7 +144,7 @@ export function ComposePanel({
         </Button>
       </div>
       {error && (
-        <p className="text-sm text-destructive" role="alert">
+        <p className="text-xs text-destructive" role="alert">
           {error}
         </p>
       )}
@@ -173,11 +173,11 @@ export function ComposePanel({
           </CardHeader>
           <CardContent>
             {app.containers.length === 0 ? (
-              <p className="text-sm text-muted-foreground">
+              <p className="text-xs text-muted-foreground">
                 Belum ada container — deploy dulu.
               </p>
             ) : (
-              <ul className="divide-y rounded-md border text-sm">
+              <ul className="divide-y rounded-md border text-xs">
                 {app.containers.map((c) => (
                   <li
                     key={c.id}

@@ -186,7 +186,7 @@ export function ApplicationMounts({
                 />
               </div>
               {type !== "file" && (
-                <label className="mb-2 flex items-center gap-2 text-sm">
+                <label className="mb-2 flex items-center gap-2 text-xs">
                   <Switch checked={readOnly} onCheckedChange={setReadOnly} />
                   Read-only
                 </label>
@@ -206,7 +206,7 @@ export function ApplicationMounts({
               </div>
             )}
             {error && (
-              <p className="text-sm text-destructive" role="alert">
+              <p className="text-xs text-destructive" role="alert">
                 {error}
               </p>
             )}
@@ -289,7 +289,7 @@ function MountRow({ owner, mount }: { owner: MountOwner; mount: Mount }) {
           />
           <div className="flex items-center justify-end gap-3">
             {error && (
-              <p className="text-sm text-destructive" role="alert">
+              <p className="text-xs text-destructive" role="alert">
                 {error}
               </p>
             )}
@@ -309,7 +309,7 @@ function MountRow({ owner, mount }: { owner: MountOwner; mount: Mount }) {
       )}
       {mount.type !== "file" && error && (
         <CardContent>
-          <p className="text-sm text-destructive" role="alert">
+          <p className="text-xs text-destructive" role="alert">
             {error}
           </p>
         </CardContent>

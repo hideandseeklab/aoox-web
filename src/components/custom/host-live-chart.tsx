@@ -50,7 +50,7 @@ export function HostLiveChart({ initial }: { initial: HostLiveMetrics }) {
   const cur = data.current
   if (!cur) {
     return (
-      <p className="text-sm text-muted-foreground">
+      <p className="text-xs text-muted-foreground">
         Sampel host pertama diambil dalam beberapa detik…
       </p>
     )

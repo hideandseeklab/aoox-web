@@ -65,8 +65,8 @@ export function SelfHostedRegistryCard({
   const { container, registry, dockerAvailable, publicUrl } = status
   const installed = container.installed && registry !== null
   const storageName = registry?.storageDestinationId
-    ? (destinations.find((d) => d.id === registry.storageDestinationId)
-        ?.name ?? "S3")
+    ? (destinations.find((d) => d.id === registry.storageDestinationId)?.name ??
+      "S3")
     : "Lokal (disk)"
 
   const run = (fn: () => Promise<{ ok: boolean; error?: string }>) =>
@@ -83,8 +83,7 @@ export function SelfHostedRegistryCard({
           <div>
             <CardTitle>Registry lokal</CardTitle>
             <CardDescription>
-              Container <code>registry:3</code> yang dikelola aoox. Alamat
-              push:{" "}
+              Container <code>registry:3</code> yang dikelola aoox. Alamat push:{" "}
               <code className="text-foreground">
                 {registry?.url ?? publicUrl}
               </code>
@@ -105,7 +104,7 @@ export function SelfHostedRegistryCard({
           </Alert>
         )}
         {installed && registry && (
-          <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm">
+          <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-xs">
             <dt className="text-muted-foreground">Username</dt>
             <dd className="font-mono">{registry.username}</dd>
             <dt className="text-muted-foreground">Container</dt>
@@ -159,7 +158,9 @@ export function SelfHostedRegistryCard({
                 type="button"
                 variant="outline"
                 disabled={pending}
-                onClick={() => run(() => setRegistryDomainAction(registry.id, null))}
+                onClick={() =>
+                  run(() => setRegistryDomainAction(registry.id, null))
+                }
               >
                 Hapus domain
               </Button>
@@ -172,7 +173,7 @@ export function SelfHostedRegistryCard({
           </form>
         )}
         {error && (
-          <p className="text-sm text-destructive" role="alert">
+          <p className="text-xs text-destructive" role="alert">
             {error}
           </p>
         )}
@@ -304,7 +305,7 @@ export function SelfHostedRegistryCard({
             </DialogDescription>
           </DialogHeader>
           {creds && (
-            <div className="space-y-2 text-sm">
+            <div className="space-y-2 text-xs">
               <CredRow label="Alamat" value={creds.registry.url} />
               <CredRow label="Username" value={creds.username} />
               <CredRow label="Password" value={creds.password} />

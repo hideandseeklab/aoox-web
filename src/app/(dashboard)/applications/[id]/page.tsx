@@ -137,7 +137,7 @@ export default async function ApplicationPage({
                 </Badge>
               )}
             </div>
-            <p className="font-mono text-sm break-all text-muted-foreground">
+            <p className="font-mono text-xs break-all text-muted-foreground">
               {app.appName} ·{" "}
               {app.sourceType === "image"
                 ? app.imageRef

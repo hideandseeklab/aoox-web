@@ -36,7 +36,8 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Tabs, TabsTrigger } from "@/components/ui/tabs"
+import { ScrollableTabsList } from "@/components/custom/scrollable-tabs-list"
 import { Textarea } from "@/components/ui/textarea"
 import { EnvEditor } from "@/components/custom/env-editor"
 import { ImagePickerDialog } from "@/components/custom/image-picker-dialog"
@@ -425,7 +426,7 @@ export function ApplicationForm({
                     data-invalid={invalid("autoUpdateIntervalMinutes")}
                   >
                     <FieldLabel>Update otomatis</FieldLabel>
-                    <div className="flex flex-wrap items-center gap-3 text-sm">
+                    <div className="flex flex-wrap items-center gap-3 text-xs">
                       <label className="flex items-center gap-2">
                         <Switch
                           name="autoUpdate"
@@ -532,7 +533,7 @@ export function ApplicationForm({
                     ikut build.
                   </FieldDescription>
                   <FieldError errors={errs("rootDirectory")} />
-                  <label className="mt-2 flex items-center gap-2 text-sm">
+                  <label className="mt-2 flex items-center gap-2 text-xs">
                     <Switch
                       name="watchRootOnly"
                       defaultChecked={v.watchRootOnly === "on"}
@@ -594,7 +595,7 @@ export function ApplicationForm({
                         <FieldLabel htmlFor="app-static-spa">
                           Mode SPA
                         </FieldLabel>
-                        <label className="flex items-center gap-2 text-sm">
+                        <label className="flex items-center gap-2 text-xs">
                           <Switch
                             id="app-static-spa"
                             name="staticSpa"
@@ -717,7 +718,7 @@ export function ApplicationForm({
                     </FieldDescription>
                     <FieldError errors={errs("hostPort")} />
                     {portConflict && (
-                      <p className="text-sm text-destructive" role="alert">
+                      <p className="text-xs text-destructive" role="alert">
                         {state.error}
                       </p>
                     )}
@@ -743,11 +744,11 @@ export function ApplicationForm({
                     value={akses}
                     onValueChange={(next) => setAkses(next as Akses)}
                   >
-                    <TabsList>
+                    <ScrollableTabsList>
                       <TabsTrigger value="port">IP &amp; port</TabsTrigger>
                       <TabsTrigger value="domain">Domain</TabsTrigger>
                       <TabsTrigger value="later">Nanti saja</TabsTrigger>
-                    </TabsList>
+                    </ScrollableTabsList>
                   </Tabs>
                   {akses === "port" && (
                     <div className="space-y-1">
@@ -770,7 +771,7 @@ export function ApplicationForm({
                       </FieldDescription>
                       <FieldError errors={errs("hostPort")} />
                       {portConflict && (
-                        <p className="text-sm text-destructive" role="alert">
+                        <p className="text-xs text-destructive" role="alert">
                           {state.error}
                         </p>
                       )}
@@ -790,7 +791,7 @@ export function ApplicationForm({
                             placeholder="app.example.com"
                           />
                         </div>
-                        <label className="flex items-center gap-2 pb-1.5 text-sm">
+                        <label className="flex items-center gap-2 pb-1.5 text-xs">
                           <Switch
                             checked={domainHttps}
                             onCheckedChange={setDomainHttps}
@@ -810,7 +811,7 @@ export function ApplicationForm({
                           " HTTPS memerlukan PROXY_ACME_EMAIL di API."}
                       </FieldDescription>
                       {domainError && (
-                        <p className="text-sm text-destructive" role="alert">
+                        <p className="text-xs text-destructive" role="alert">
                           {domainError}
                         </p>
                       )}
@@ -998,7 +999,7 @@ export function ApplicationForm({
                         <FieldLabel htmlFor="app-upd-par">
                           Rolling update
                         </FieldLabel>
-                        <div className="flex flex-wrap items-center gap-2 text-sm">
+                        <div className="flex flex-wrap items-center gap-2 text-xs">
                           <Input
                             id="app-upd-par"
                             name="updateParallelism"
@@ -1135,7 +1136,7 @@ export function ApplicationForm({
 
               {mode === "edit" && (
                 <Field>
-                  <label className="flex items-center gap-2 text-sm">
+                  <label className="flex items-center gap-2 text-xs">
                     <Switch
                       name="ignoreErrorLogs"
                       defaultChecked={v.ignoreErrorLogs === "on"}
@@ -1152,7 +1153,7 @@ export function ApplicationForm({
 
               <Field data-invalid={invalid("previewDomain")}>
                 <FieldLabel>Preview pull request</FieldLabel>
-                <label className="flex items-center gap-2 text-sm">
+                <label className="flex items-center gap-2 text-xs">
                   <Switch
                     name="previewsEnabled"
                     defaultChecked={v.previewsEnabled === "on"}

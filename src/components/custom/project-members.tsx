@@ -71,7 +71,7 @@ export function ProjectMembers({
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-3">
-        <ul className="divide-y rounded-md border text-sm">
+        <ul className="divide-y rounded-md border text-xs">
           {data.members.map((m) => (
             <li key={m.userId} className="flex items-center gap-2 px-3 py-2">
               <div className="min-w-0 flex-1">
@@ -178,7 +178,7 @@ export function ProjectMembers({
           </form>
         )}
         {error && (
-          <p className="text-sm text-destructive" role="alert">
+          <p className="text-xs text-destructive" role="alert">
             {error}
           </p>
         )}

@@ -58,7 +58,11 @@ function triggerLabel(d: {
 }): string {
   const sha = d.commitSha ? d.commitSha.slice(0, 7) : null
   if (d.trigger === "webhook") {
-    const parts = [sha, d.commitMessage, d.triggeredBy && `oleh ${d.triggeredBy}`]
+    const parts = [
+      sha,
+      d.commitMessage,
+      d.triggeredBy && `oleh ${d.triggeredBy}`,
+    ]
       .filter(Boolean)
       .join(" · ")
     return `Webhook${parts ? ` — ${parts}` : ""}`
@@ -91,8 +95,7 @@ export function ApplicationDeployPanel({
   const router = useRouter()
   const browserOrigin = useBrowserOrigin()
   // `null` until hydration — don't flash the warning before we know.
-  const originMismatch =
-    browserOrigin !== null && browserOrigin !== webOrigin
+  const originMismatch = browserOrigin !== null && browserOrigin !== webOrigin
   const [pending, start] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const [proxyWarningDismissed, setProxyWarningDismissed] = useState(false)
@@ -236,14 +239,14 @@ export function ApplicationDeployPanel({
           <AlertDescription className="space-y-2">
             <p>
               Proxy (Traefik) belum jalan sebelum domain ini disimpan, jadi
-              sudah diaktifkan otomatis. Domain baru bisa diakses kalau tiga
-              hal ini juga sudah benar:
+              sudah diaktifkan otomatis. Domain baru bisa diakses kalau tiga hal
+              ini juga sudah benar:
             </p>
             <ol className="ms-4 list-decimal space-y-1">
               <li>DNS domain sudah mengarah ke IP server ini.</li>
               <li>
-                Port <code>80</code> dan <code>443</code> terbuka untuk
-                publik (firewall OS maupun provider VPS).
+                Port <code>80</code> dan <code>443</code> terbuka untuk publik
+                (firewall OS maupun provider VPS).
               </li>
               <li>
                 Sertifikat HTTPS (Let&apos;s Encrypt) baru diterbitkan saat
@@ -267,8 +270,8 @@ export function ApplicationDeployPanel({
           <AlertTitle>Aplikasi belum punya alamat akses</AlertTitle>
           <AlertDescription className="space-y-2">
             <p>
-              Tanpa port host atau domain, aplikasi ini hanya bisa dijangkau
-              di dalam network Docker.
+              Tanpa port host atau domain, aplikasi ini hanya bisa dijangkau di
+              dalam network Docker.
             </p>
             <div className="flex gap-2">
               <Button
@@ -418,11 +421,11 @@ export function ApplicationDeployPanel({
           {following ? "Berhenti mengikuti log" : "Log container (live)"}
         </Button>
         {imageNote && !shownError && (
-          <span className="text-sm text-muted-foreground">{imageNote}</span>
+          <span className="text-xs text-muted-foreground">{imageNote}</span>
         )}
         {shownError && (
           <span
-            className="flex items-center gap-2 text-sm text-destructive"
+            className="flex items-center gap-2 text-xs text-destructive"
             role="alert"
           >
             {shownError}
@@ -447,9 +450,7 @@ export function ApplicationDeployPanel({
             <Button size="sm" asChild>
               <a
                 href={
-                  webOrigin +
-                  window.location.pathname +
-                  window.location.search
+                  webOrigin + window.location.pathname + window.location.search
                 }
               >
                 <ExternalLink data-icon="inline-start" />
@@ -473,7 +474,7 @@ export function ApplicationDeployPanel({
         <div className="space-y-1">
           <h3 className="text-sm font-medium">Deployment</h3>
           {deployments.length === 0 && (
-            <p className="text-sm text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
               Belum pernah deploy.
             </p>
           )}

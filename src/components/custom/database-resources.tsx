@@ -84,7 +84,7 @@ export function DatabaseResources({ db }: { db: ManagedDatabase }) {
             {pending ? "Menyimpan…" : "Simpan"}
           </Button>
           {error && (
-            <p className="basis-full text-sm text-destructive" role="alert">
+            <p className="basis-full text-xs text-destructive" role="alert">
               {error}
             </p>
           )}

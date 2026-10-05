@@ -101,7 +101,7 @@ export function MembersCard({
           <InviteDialog isOwner={isOwner} />
         </div>
       </CardHeader>
-      <CardContent className="space-y-4 text-sm">
+      <CardContent className="space-y-4 text-xs">
         <ul className="divide-y rounded-md border">
           {members.map((m) => (
             <li key={m.id} className="flex items-center gap-3 px-3 py-2">
@@ -259,7 +259,7 @@ function InviteDialog({ isOwner }: { isOwner: boolean }) {
           </DialogDescription>
         </DialogHeader>
         {link ? (
-          <div className="space-y-3 text-sm">
+          <div className="space-y-3 text-xs">
             <p>
               Undangan untuk <strong>{state.created?.email}</strong> sebagai{" "}
               {ROLE_LABEL[state.created!.role]}:

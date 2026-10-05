@@ -45,14 +45,14 @@ export function ExternalRegistries({
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">
+        <p className="text-xs text-muted-foreground">
           Docker Hub, GHCR, GitLab, atau registry lain. Kredensial disimpan
           terenkripsi.
         </p>
         {canManage && <AddExternalRegistryDialog />}
       </div>
       {registries.length === 0 ? (
-        <div className="rounded-lg border border-dashed p-8 text-center text-sm text-muted-foreground">
+        <div className="rounded-lg border border-dashed p-8 text-center text-xs text-muted-foreground">
           Belum ada registry eksternal.
         </div>
       ) : (

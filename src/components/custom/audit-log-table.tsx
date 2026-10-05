@@ -61,9 +61,9 @@ export function AuditLogTable({
       </form>
 
       {rows.length === 0 ? (
-        <p className="text-sm text-muted-foreground">Tidak ada entri.</p>
+        <p className="text-xs text-muted-foreground">Tidak ada entri.</p>
       ) : (
-        <ul className="divide-y rounded-md border text-sm">
+        <ul className="divide-y rounded-md border text-xs">
           {rows.map((r) => {
             const expanded = open === r.id
             return (

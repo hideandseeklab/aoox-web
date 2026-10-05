@@ -139,7 +139,9 @@ export function DatabaseForm({
               name="variant"
               value={variant}
               onValueChange={(v) =>
-                setVariant(v as Exclude<PostgresVariant, null> | typeof NO_VARIANT)
+                setVariant(
+                  v as Exclude<PostgresVariant, null> | typeof NO_VARIANT
+                )
               }
             >
               <SelectTrigger id="db-variant">

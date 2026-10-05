@@ -115,7 +115,7 @@ export function ImagePickerDialog({
 
         <div className="space-y-3">
           <div className="space-y-1.5">
-            <label className="text-sm font-medium">Registry</label>
+            <label className="text-xs font-medium">Registry</label>
             <Select value={registryId} onValueChange={pickRegistry}>
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Pilih registry" />
@@ -132,7 +132,7 @@ export function ImagePickerDialog({
 
           {registryId && (
             <div className="space-y-1.5">
-              <label className="text-sm font-medium">Repository</label>
+              <label className="text-xs font-medium">Repository</label>
               <Select
                 value={repository}
                 onValueChange={pickRepository}
@@ -165,7 +165,7 @@ export function ImagePickerDialog({
 
           {repository && (
             <div className="space-y-1.5">
-              <label className="text-sm font-medium">Tag</label>
+              <label className="text-xs font-medium">Tag</label>
               <Select
                 value={tag}
                 onValueChange={setTag}
@@ -197,14 +197,18 @@ export function ImagePickerDialog({
           )}
 
           {error && (
-            <p className="text-sm text-destructive" role="alert">
+            <p className="text-xs text-destructive" role="alert">
               {error}
             </p>
           )}
         </div>
 
         <DialogFooter>
-          <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setOpen(false)}
+          >
             Batal
           </Button>
           <Button

@@ -18,7 +18,7 @@ export default function DashboardError({
   return (
     <div className="flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed p-12 text-center">
       <p className="text-sm font-medium">Terjadi kesalahan</p>
-      <p className="max-w-md text-sm text-muted-foreground">
+      <p className="max-w-md text-xs text-muted-foreground">
         {error.message || "Tidak dapat memuat halaman ini."}
         {error.digest && (
           <span className="mt-1 block font-mono text-xs">

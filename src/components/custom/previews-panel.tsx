@@ -71,7 +71,7 @@ export function PreviewsPanel({
             : "Nonaktif — aktifkan di tab Pengaturan. Webhook provider harus mengirim event pull request."}
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-2 text-sm">
+      <CardContent className="space-y-2 text-xs">
         {previews.length === 0 ? (
           <p className="text-muted-foreground">Belum ada preview.</p>
         ) : (

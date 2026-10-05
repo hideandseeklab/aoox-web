@@ -186,7 +186,7 @@ export function DeployTemplateDialog({
                         placeholder={`${template.id}.example.com`}
                       />
                     </div>
-                    <label className="mb-2 flex items-center gap-2 text-sm">
+                    <label className="mb-2 flex items-center gap-2 text-xs">
                       <Switch
                         checked={!!https[key(s)]}
                         disabled={!proxy.acmeEmail}
@@ -253,7 +253,7 @@ export function DeployTemplateDialog({
               )}
 
               {error && (
-                <p className="text-sm text-destructive" role="alert">
+                <p className="text-xs text-destructive" role="alert">
                   {error}
                 </p>
               )}

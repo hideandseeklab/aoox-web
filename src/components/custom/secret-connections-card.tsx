@@ -78,7 +78,7 @@ export function SecretConnectionsCard({
       </CardHeader>
       <CardContent>
         {connections.length === 0 ? (
-          <p className="text-sm text-muted-foreground">
+          <p className="text-xs text-muted-foreground">
             Belum ada koneksi — aplikasi memakai env biasa.
           </p>
         ) : (
@@ -86,7 +86,7 @@ export function SecretConnectionsCard({
             {connections.map((c) => {
               const result = tests[c.id]
               return (
-                <li key={c.id} className="space-y-1 px-3 py-2 text-sm">
+                <li key={c.id} className="space-y-1 px-3 py-2 text-xs">
                   <div className="flex items-center gap-3">
                     <Vault className="size-4 shrink-0 text-muted-foreground" />
                     <span className="font-medium">{c.name}</span>
@@ -136,7 +136,7 @@ export function SecretConnectionsCard({
           </ul>
         )}
         {error && (
-          <p className="mt-2 text-sm text-destructive" role="alert">
+          <p className="mt-2 text-xs text-destructive" role="alert">
             {error}
           </p>
         )}

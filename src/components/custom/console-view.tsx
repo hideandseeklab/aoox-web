@@ -60,8 +60,7 @@ export function ConsoleView({
   const [task, setTask] = useState(tasks?.[0]?.containerId)
   const browserOrigin = useBrowserOrigin()
   // `null` until hydration — don't flash the warning before we know.
-  const originMismatch =
-    browserOrigin !== null && browserOrigin !== webOrigin
+  const originMismatch = browserOrigin !== null && browserOrigin !== webOrigin
 
   const reconnect = useCallback(() => setAttempt((n) => n + 1), [])
 
@@ -192,8 +191,7 @@ export function ConsoleView({
   }, [attempt, applicationId, publicApiUrl, task])
 
   if (originMismatch) {
-    const target =
-      webOrigin + window.location.pathname + window.location.search
+    const target = webOrigin + window.location.pathname + window.location.search
     return (
       <Alert variant="destructive">
         <AlertTitle>Console tidak bisa diakses lewat alamat ini</AlertTitle>

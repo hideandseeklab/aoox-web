@@ -79,7 +79,7 @@ export function BackupDestinationsCard({
           <AddDestinationDialog />
         </div>
       </CardHeader>
-      <CardContent className="space-y-3 text-sm">
+      <CardContent className="space-y-3 text-xs">
         {destinations.length === 0 ? (
           <p className="text-muted-foreground">
             Belum ada tujuan — backup hanya tersimpan di volume server ini.
@@ -257,7 +257,7 @@ function AddDestinationDialog() {
               <FieldError errors={errs("secretAccessKey")} />
             </Field>
             <Field>
-              <label className="flex items-center gap-2 text-sm">
+              <label className="flex items-center gap-2 text-xs">
                 <Switch name="forcePathStyle" defaultChecked />
                 Path-style (<code>host/bucket</code>) — wajib untuk MinIO, aman
                 untuk yang lain

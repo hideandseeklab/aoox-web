@@ -76,7 +76,7 @@ export function DiskCard({
             </div>
           ))}
         </dl>
-        <p className="text-sm">
+        <p className="text-xs">
           Bisa dibebaskan sekarang:{" "}
           <span className="font-mono">{gb(usage.reclaimableBytes)}</span>
           {usage.prunableDeployments > 0 &&
@@ -86,8 +86,8 @@ export function DiskCard({
           <div className="rounded-md border border-dashed p-2 text-xs">
             <p className="text-muted-foreground">
               {usage.orphanVolumes.length} volume yatim (nama seperti milik
-              aoox, tapi tidak ada lagi project/aplikasi yang punya) —
-              hanya dihapus kalau &quot;Sekalian hapus volume yatim&quot; dicentang:
+              aoox, tapi tidak ada lagi project/aplikasi yang punya) — hanya
+              dihapus kalau &quot;Sekalian hapus volume yatim&quot; dicentang:
             </p>
             <ul className="mt-1 space-y-0.5 font-mono">
               {usage.orphanVolumes.map((v) => (
@@ -130,7 +130,7 @@ export function DiskCard({
           </div>
         )}
         {error && (
-          <p className="text-sm text-destructive" role="alert">
+          <p className="text-xs text-destructive" role="alert">
             {error}
           </p>
         )}

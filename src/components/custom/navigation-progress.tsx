@@ -52,7 +52,11 @@ export function NavigationProgress() {
     show?: ReturnType<typeof setTimeout>
     trickle?: ReturnType<typeof setInterval>
   }>({})
-  const controls = useRef<{ arm: (immediate?: boolean) => void; finish: () => void; start: (alreadyLanded?: boolean) => void }>({
+  const controls = useRef<{
+    arm: (immediate?: boolean) => void
+    finish: () => void
+    start: (alreadyLanded?: boolean) => void
+  }>({
     arm: () => {},
     finish: () => {},
     start: () => {},
@@ -68,9 +72,9 @@ export function NavigationProgress() {
           if (!landed.current && keyRef.current === startKey.current) return
           // React keeps a resolved Suspense fallback in the DOM as `display: none`,
           // so "present" isn't enough — only a *visible* skeleton means still loading.
-          const loading = [...document.querySelectorAll("[data-route-loading]")].some(
-            (el) => el.getClientRects().length > 0,
-          )
+          const loading = [
+            ...document.querySelectorAll("[data-route-loading]"),
+          ].some((el) => el.getClientRects().length > 0)
           if (!loading) controls.current.finish()
         }
         timers.current.settle = setInterval(check, SETTLE_POLL_MS)
@@ -85,7 +89,9 @@ export function NavigationProgress() {
         if (alreadyLanded) controls.current.arm(false)
         timers.current.show = setTimeout(() => {
           phase.current = "running"
-          const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches
+          const reduced = window.matchMedia(
+            "(prefers-reduced-motion: reduce)"
+          ).matches
           setBar({ visible: true, width: reduced ? 100 : 12 })
           if (!reduced) {
             timers.current.trickle = setInterval(() => {
@@ -121,8 +127,15 @@ export function NavigationProgress() {
       // calls preventDefault(). Plain, modified, or new-tab clicks fall through.
       if (!e.defaultPrevented || e.button !== 0) return
       if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
-      const anchor = (e.target as Element | null)?.closest?.("a[href]") as HTMLAnchorElement | null
-      if (!anchor || (anchor.target && anchor.target !== "_self") || anchor.hasAttribute("download")) return
+      const anchor = (e.target as Element | null)?.closest?.(
+        "a[href]"
+      ) as HTMLAnchorElement | null
+      if (
+        !anchor ||
+        (anchor.target && anchor.target !== "_self") ||
+        anchor.hasAttribute("download")
+      )
+        return
       if (isNavigationTarget(anchor.href)) start()
     }
     document.addEventListener("click", onClick)
@@ -140,7 +153,9 @@ export function NavigationProgress() {
       controls.current.arm()
     } else if (
       phase.current === "idle" &&
-      [...document.querySelectorAll("[data-route-loading]")].some((el) => el.getClientRects().length > 0)
+      [...document.querySelectorAll("[data-route-loading]")].some(
+        (el) => el.getClientRects().length > 0
+      )
     ) {
       // A navigation we didn't see start — browser back/forward: Next commits the restored
       // route (and its skeleton) before any handler of ours can run — and the content
@@ -158,11 +173,14 @@ export function NavigationProgress() {
       clearInterval(t.trickle)
       clearInterval(t.settle)
     },
-    [],
+    []
   )
 
   return (
-    <div aria-hidden="true" className="pointer-events-none fixed inset-x-0 top-0 z-[100] h-[3px]">
+    <div
+      aria-hidden="true"
+      className="pointer-events-none fixed inset-x-0 top-0 z-[100] h-[3px]"
+    >
       <div
         className="h-full bg-primary shadow-[0_0_8px_var(--primary)] transition-[width,opacity] duration-200 ease-out motion-reduce:transition-none"
         style={{ opacity: bar.visible ? 1 : 0, width: `${bar.width}%` }}

@@ -51,7 +51,7 @@ export function TemplatesCatalog({
         aria-label="Cari template"
       />
       {projects.length === 0 && (
-        <p className="text-sm text-muted-foreground">
+        <p className="text-xs text-muted-foreground">
           Buat project dulu — template di-deploy ke dalam sebuah project.
         </p>
       )}
@@ -81,7 +81,7 @@ export function TemplatesCatalog({
               </div>
             </CardHeader>
             <CardContent className="flex-1 space-y-2">
-              <p className="text-sm text-muted-foreground">{t.description}</p>
+              <p className="text-xs text-muted-foreground">{t.description}</p>
               <div className="flex flex-wrap gap-1">
                 {t.tags.map((tag) => (
                   <Badge key={tag} variant="outline">
@@ -123,7 +123,7 @@ export function TemplatesCatalog({
           </Card>
         ))}
         {shown.length === 0 && (
-          <p className="text-sm text-muted-foreground">Tidak ada yang cocok.</p>
+          <p className="text-xs text-muted-foreground">Tidak ada yang cocok.</p>
         )}
       </div>
       <DeployTemplateDialog

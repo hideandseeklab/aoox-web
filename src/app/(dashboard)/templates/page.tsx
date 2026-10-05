@@ -21,7 +21,7 @@ export default async function TemplatesPage({
     <>
       <div>
         <h1 className="text-lg font-semibold">Templates</h1>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-xs text-muted-foreground">
           Aplikasi siap pakai (stack compose) — pilih project, isi domain, dan
           deploy dalam satu klik. Setelah dibuat, stack bisa diubah seperti
           compose app biasa.

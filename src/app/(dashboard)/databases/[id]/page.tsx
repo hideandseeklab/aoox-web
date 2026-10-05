@@ -12,7 +12,8 @@ import { DatabaseResources } from "@/components/custom/database-resources"
 import { MetricsPanel } from "@/components/custom/metrics-panel"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs"
+import { ScrollableTabsList } from "@/components/custom/scrollable-tabs-list"
 import { canUseTerminal } from "@/features/auth/auth.entity"
 import { getVerifiedSession } from "@/features/auth/auth.session"
 import { listBackupDestinations } from "@/features/backup-destination/backup-destination.queries"
@@ -102,19 +103,19 @@ export default async function DatabasePage({
                 : (db.container?.state ?? db.status)}
             </Badge>
           </div>
-          <p className="font-mono text-sm break-all text-muted-foreground">
+          <p className="font-mono text-xs break-all text-muted-foreground">
             {ENGINE_LABEL[db.engine]} {db.imageTag} · {db.slug}
           </p>
         </div>
       </div>
       <Tabs defaultValue="overview">
-        <TabsList>
+        <ScrollableTabsList>
           <TabsTrigger value="overview">Ringkasan</TabsTrigger>
           <TabsTrigger value="data">Data</TabsTrigger>
           <TabsTrigger value="backups">Backup ({backups.length})</TabsTrigger>
           <TabsTrigger value="mounts">Mount ({mounts.length})</TabsTrigger>
           <TabsTrigger value="jobs">Jobs ({jobs.length})</TabsTrigger>
-        </TabsList>
+        </ScrollableTabsList>
         <TabsContent value="overview" className="space-y-4 pt-4">
           <MetricsPanel
             target="database"

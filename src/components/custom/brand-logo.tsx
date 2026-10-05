@@ -1,26 +1,26 @@
 import { cn } from "@/lib/utils"
 
 /**
- * The aoox mark, identical to `app/icon.svg` (the favicon; the landing site
- * ships the same file): a dark tile with a lime `$` glyph. Inlined so it needs
- * no asset request. Keep the geometry in sync with `icon.svg` — do not redraw.
+ * The aoox mark, same artwork as `app/icon.svg` (the favicon; the landing site
+ * ships the same file): a lime `$` on a dark tile. Inlined so it needs no
+ * asset request. Keep the glyph path in sync with `icon.svg` — do not redraw.
  *
- * The tile is nearly the same shade as the dark-theme sidebar, so a hairline
- * ring keeps its edge visible there (and is barely noticeable on light).
+ * Full-bleed: the viewBox is cropped to the glyph's own margins (the favicon
+ * keeps a wider margin for the circle crop search engines apply), so the `$`
+ * fills the square and sits dead centre (the glyph spans x 21.4–42.5 and
+ * y 10–54 on the 64 grid, centre 32/32). No ring, border or padding: the
+ * square itself is `rounded-lg` (follows `--radius`).
  */
 export function BrandLogo({ className }: { className?: string }) {
   // A wrapper, not the <svg> itself: `SidebarMenuButton` forces `size-4` on
   // its direct <svg> children, which would shrink the mark in icon mode.
   return (
     <div
-      className={cn(
-        "size-8 shrink-0 overflow-hidden rounded-[12.5%] ring-1 ring-black/10 dark:ring-white/20",
-        className
-      )}
+      className={cn("size-8 shrink-0 overflow-hidden rounded-lg", className)}
       aria-hidden
     >
-      <svg viewBox="0 0 64 64" className="size-full">
-        <rect width="64" height="64" rx="8" fill="#0c1013" />
+      <svg viewBox="8 8 48 48" className="block size-full">
+        <rect x="0" y="0" width="64" height="64" fill="#0c1013" />
         <path
           fill="#84cc16"
           transform="translate(18.931 47.901) scale(0.04356 -0.04356)"

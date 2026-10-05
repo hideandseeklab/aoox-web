@@ -57,7 +57,7 @@ export function RegistryRepositories({
 
   if (repos.length === 0) {
     return (
-      <div className="rounded-lg border border-dashed p-8 text-center text-sm text-muted-foreground">
+      <div className="rounded-lg border border-dashed p-8 text-center text-xs text-muted-foreground">
         Belum ada image. Push pertama:{" "}
         <code>docker push &lt;registry&gt;/&lt;nama&gt;:&lt;tag&gt;</code>
       </div>
@@ -140,11 +140,11 @@ function RepositoryRow({
 
   return (
     <div>
-      <div className="flex items-center gap-2 px-4 py-3 hover:bg-muted/50">
+      <div className="flex items-center gap-2 px-4 py-2 hover:bg-muted/50">
         <button
           type="button"
           onClick={toggle}
-          className="flex flex-1 items-center gap-2 text-left text-sm"
+          className="flex flex-1 items-center gap-2 text-left text-xs"
         >
           {open ? (
             <ChevronDown className="size-4 text-muted-foreground" />
@@ -170,14 +170,14 @@ function RepositoryRow({
       {open && (
         <div className="border-t bg-muted/20 px-4 py-2">
           {error && (
-            <p className="py-2 text-sm text-destructive" role="alert">
+            <p className="py-2 text-xs text-destructive" role="alert">
               {error}
             </p>
           )}
           {tags === null && !error ? (
-            <p className="py-2 text-sm text-muted-foreground">Memuat…</p>
+            <p className="py-2 text-xs text-muted-foreground">Memuat…</p>
           ) : tags && tags.length === 0 ? (
-            <p className="py-2 text-sm text-muted-foreground">
+            <p className="py-2 text-xs text-muted-foreground">
               {canManage
                 ? 'Tidak ada tag (manifest sudah dihapus). Pakai tombol "Hapus image" untuk membuang repo ini sepenuhnya dari katalog.'
                 : "Tidak ada tag (manifest sudah dihapus)."}
@@ -291,19 +291,19 @@ function RepositoryRow({
           <DialogHeader>
             <DialogTitle>Hapus image {repo.name}?</DialogTitle>
             <DialogDescription>
-              Menghapus repo ini sepenuhnya dari katalog: semua{" "}
-              {repo.tagCount} tag dan manifest-nya, foldernya di storage, lalu
-              garbage collect otomatis. Registry di-restart singkat agar cache
-              blob-nya ikut bersih — push ulang dengan nama yang sama tetap
-              bisa dilakukan setelahnya. Tidak bisa dibatalkan.
+              Menghapus repo ini sepenuhnya dari katalog: semua {repo.tagCount}{" "}
+              tag dan manifest-nya, foldernya di storage, lalu garbage collect
+              otomatis. Registry di-restart singkat agar cache blob-nya ikut
+              bersih — push ulang dengan nama yang sama tetap bisa dilakukan
+              setelahnya. Tidak bisa dibatalkan.
             </DialogDescription>
           </DialogHeader>
           {usage === null ? (
-            <p className="text-sm text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
               Memeriksa pemakaian…
             </p>
           ) : usage.length > 0 ? (
-            <p className="text-sm text-destructive">
+            <p className="text-xs text-destructive">
               Dipakai oleh {usage.length} aplikasi:{" "}
               <span className="font-medium">
                 {usage.map((u) => u.applicationName).join(", ")}

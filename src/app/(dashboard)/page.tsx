@@ -47,7 +47,7 @@ export default async function DashboardPage() {
           <h1 className="text-lg font-semibold">
             Halo, {user.name ?? user.email}
           </h1>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-xs text-muted-foreground">
             Ringkasan platform kamu.
           </p>
         </div>

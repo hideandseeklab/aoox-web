@@ -210,7 +210,7 @@ export function InstanceUpdateCard({
 
         <VersionSummary version={current.version} />
 
-        <ul className="divide-y rounded-md border text-sm">
+        <ul className="divide-y rounded-md border text-xs">
           <ImageRow label="api" image={current.api} />
           <ImageRow label="web" image={current.web} />
         </ul>
@@ -245,7 +245,7 @@ export function InstanceUpdateCard({
         )}
 
         {error && !applying && (
-          <p className="text-sm text-destructive" role="alert">
+          <p className="text-xs text-destructive" role="alert">
             {error}
           </p>
         )}
@@ -348,7 +348,7 @@ function VersionSummary({
   }
 
   return (
-    <div className="rounded-md border px-3 py-2 text-sm">
+    <div className="rounded-md border px-3 py-2 text-xs">
       <p>{message}</p>
       {checked && (
         <p className="mt-1 text-xs text-muted-foreground">
@@ -361,7 +361,7 @@ function VersionSummary({
 
 function ApplyingProgress() {
   return (
-    <ol className="space-y-2 rounded-md border p-3 text-sm">
+    <ol className="space-y-2 rounded-md border p-3 text-xs">
       <ProgressStep label="Mengirim perintah update" done />
       <ProgressStep
         label="Mengunduh image & me-restart panel, lalu menunggu panel kembali"

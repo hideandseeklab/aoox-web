@@ -10,6 +10,13 @@
 // is uniform, so it is not reported. When a flagged line is deliberate, put
 // `ui-check-ignore: <reason>` in a comment on the line above (or the same line).
 //
+// It also flags body text set larger than the dashboard scale (`text-sm`/`text-base` on text that is
+// not a heading): normal text is 12px (`--text-base`/`text-xs`, set on <body>, Card and Dialog; `--text-sm` is 13px and
+// reserved for titles); only titles — page
+// `text-lg`, section/card/dialog titles `text-sm font-medium` — are larger. A line that sets
+// `font-medium`/`font-semibold` or is a CardTitle counts as a title; app-sidebar, user-menu and
+// live-clock (chrome, not content) are exempt.
+//
 //   npm run check:ui          (manual: a heuristic, so it is not part of build/CI)
 //
 // Reads the TSX with the `typescript` package that is already installed; no extra dependency.
@@ -26,6 +33,7 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
 const SRC = path.join(ROOT, "src")
 const SKIP_DIRS = new Set([path.join(SRC, "components", "ui")])
 
+const TEXT_EXEMPT = new Set(["app-sidebar.tsx", "user-menu.tsx", "live-clock.tsx"])
 const FIELD_TAGS = new Set(["Input", "SelectTrigger"])
 const CONTROL_TAGS = new Set([...FIELD_TAGS, "Button"])
 const HEIGHT_CLASS = /(^|[\s"'`:])h-(\d+(?:\.\d+)?|\[[^\]]+\]|px)(?=[\s"'`]|$)/
@@ -89,6 +97,13 @@ for (const file of walk(SRC)) {
   const rel = path.relative(ROOT, file).replace(/\\/g, "/")
   const line = (n) => sf.getLineAndCharacterOfPosition(n.getStart(sf)).line + 1
   const ignored = (n) => /ui-check-ignore/.test(lines[line(n) - 2] ?? "") || /ui-check-ignore/.test(lines[line(n) - 1] ?? "")
+
+  if (!TEXT_EXEMPT.has(path.basename(file)))
+    lines.forEach((l, i) => {
+      if (!/\btext-(sm|base)\b/.test(l) || /font-medium|font-semibold|CardTitle/.test(l)) return
+      if (/ui-check-ignore/.test(l) || /ui-check-ignore/.test(lines[i - 1] ?? "")) return
+      findings.push({ rel, line: i + 1, msg: "body text larger than the scale: use text-xs (text-sm/text-base only for titles with font-medium)" })
+    })
 
   const visit = (n) => {
     if (isJsx(n)) {

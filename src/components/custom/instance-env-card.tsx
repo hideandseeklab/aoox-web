@@ -47,7 +47,9 @@ export function InstanceEnvCard({ status }: { status: InstanceEnvStatus }) {
       const r = await updateInstanceEnvAction(input)
       if (r.ok) {
         setSavedSection(section)
-        toast.success("Disimpan — API akan restart sebentar untuk menerapkannya")
+        toast.success(
+          "Disimpan — API akan restart sebentar untuk menerapkannya"
+        )
       } else {
         toast.error(r.error)
       }
@@ -69,8 +71,8 @@ export function InstanceEnvCard({ status }: { status: InstanceEnvStatus }) {
             <AlertTitle>INSTALL_DIR belum diisi</AlertTitle>
             <AlertDescription>
               Set <code>INSTALL_DIR</code> di <code>.env.dist</code> ke path
-              absolut folder <code>docker-compose.dist.yml</code> di server
-              ini, lalu restart stack sebelum menyimpan dari sini.
+              absolut folder <code>docker-compose.dist.yml</code> di server ini,
+              lalu restart stack sebelum menyimpan dari sini.
             </AlertDescription>
           </Alert>
         )}

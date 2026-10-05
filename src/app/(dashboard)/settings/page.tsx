@@ -49,7 +49,7 @@ export default async function SettingsPage() {
     <>
       <div>
         <h1 className="text-lg font-semibold">Settings</h1>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-xs text-muted-foreground">
           Akun, tim, dan integrasi. Komponen host (proxy, server, swarm, disk)
           ada di grup Infrastruktur.
         </p>

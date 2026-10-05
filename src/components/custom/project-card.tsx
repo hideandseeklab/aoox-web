@@ -42,14 +42,21 @@ function ResourceUsageLine({ usage }: { usage: ProjectResourceUsageSummary }) {
   return (
     <p className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-0.5 font-mono text-[11px] text-muted-foreground">
       <span>
-        CPU {usage.cpuPercent === null ? "–" : `${usage.cpuPercent.toFixed(1)}%`}
+        CPU{" "}
+        {usage.cpuPercent === null ? "–" : `${usage.cpuPercent.toFixed(1)}%`}
       </span>
       <span aria-hidden>·</span>
       <span>RAM {formatBytes(usage.memoryBytes)}</span>
       <span aria-hidden>·</span>
       <span>
-        ↓{usage.netRxBytesPerSec === null ? "–" : `${formatBytes(usage.netRxBytesPerSec)}/s`}{" "}
-        ↑{usage.netTxBytesPerSec === null ? "–" : `${formatBytes(usage.netTxBytesPerSec)}/s`}
+        ↓
+        {usage.netRxBytesPerSec === null
+          ? "–"
+          : `${formatBytes(usage.netRxBytesPerSec)}/s`}{" "}
+        ↑
+        {usage.netTxBytesPerSec === null
+          ? "–"
+          : `${formatBytes(usage.netTxBytesPerSec)}/s`}
       </span>
     </p>
   )
@@ -59,7 +66,7 @@ function InstanceRow({ instance }: { instance: ProjectInstance }) {
   const Icon = KIND_ICON[instance.kind]
   const active = instance.status === "running"
   return (
-    <li className="flex items-center gap-2 text-sm">
+    <li className="flex items-center gap-2 text-xs">
       <Icon className="size-3.5 shrink-0 text-muted-foreground" />
       <span className="min-w-0 flex-1 truncate">{instance.name}</span>
       {instance.deploying && (
@@ -76,10 +83,14 @@ function InstanceRow({ instance }: { instance: ProjectInstance }) {
       <span
         className={cn(
           "size-2 shrink-0 rounded-full",
-          instance.deploying ? "bg-amber-500 animate-pulse" : statusDot(instance.status)
+          instance.deploying
+            ? "animate-pulse bg-amber-500"
+            : statusDot(instance.status)
         )}
         title={instance.deploying ? "deploying" : instance.status}
-        aria-label={instance.deploying ? "deploying" : active ? "aktif" : instance.status}
+        aria-label={
+          instance.deploying ? "deploying" : active ? "aktif" : instance.status
+        }
       />
     </li>
   )
@@ -121,7 +132,7 @@ export function ProjectCard({ project }: { project: ProjectListItem }) {
         </CardHeader>
         <CardContent>
           {total === 0 ? (
-            <p className="text-sm text-muted-foreground">Belum ada instance</p>
+            <p className="text-xs text-muted-foreground">Belum ada instance</p>
           ) : (
             <>
               <ul className="space-y-1.5">

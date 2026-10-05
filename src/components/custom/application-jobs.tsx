@@ -252,7 +252,7 @@ export function ApplicationJobs({
               </Button>
             </div>
             {error && (
-              <p className="text-sm text-destructive" role="alert">
+              <p className="text-xs text-destructive" role="alert">
                 {error}
               </p>
             )}
@@ -375,7 +375,7 @@ function JobRow({ owner, job }: { owner: JobOwner; job: Job }) {
           </Button>
         </div>
         {error && (
-          <p className="text-sm text-destructive" role="alert">
+          <p className="text-xs text-destructive" role="alert">
             {error}
           </p>
         )}
@@ -383,13 +383,13 @@ function JobRow({ owner, job }: { owner: JobOwner; job: Job }) {
       {open && (
         <CardContent>
           {runs === null ? (
-            <p className="text-sm text-muted-foreground">Memuat…</p>
+            <p className="text-xs text-muted-foreground">Memuat…</p>
           ) : runs.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
               Belum pernah dijalankan.
             </p>
           ) : (
-            <ul className="divide-y rounded-md border text-sm">
+            <ul className="divide-y rounded-md border text-xs">
               {runs.map((r) => (
                 <RunRow key={r.id} run={r} />
               ))}

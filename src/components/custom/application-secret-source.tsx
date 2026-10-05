@@ -142,7 +142,7 @@ export function ApplicationSecretSource({
       </CardHeader>
       <CardContent className="space-y-4">
         {connections.length === 0 ? (
-          <p className="text-sm text-muted-foreground">
+          <p className="text-xs text-muted-foreground">
             Belum ada koneksi secret manager.{" "}
             {canManageConnections ? (
               <>
