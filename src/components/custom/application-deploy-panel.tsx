@@ -4,11 +4,8 @@ import {
   ExternalLink,
   Globe,
   History,
-  Play,
   Radio,
   RefreshCw,
-  Rocket,
-  Square,
   Webhook,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
@@ -19,10 +16,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
   checkImageUpdateAction,
-  deployApplicationAction,
   rollbackApplicationAction,
-  startApplicationAction,
-  stopApplicationAction,
 } from "@/features/application/application.actions"
 import {
   ACTIVE_DEPLOYMENT_STATUSES,
@@ -31,6 +25,7 @@ import {
   type DeploymentSummary,
 } from "@/features/application/application.entity"
 import { useLogsSocket } from "@/features/application/use-logs-socket"
+import { DEPLOYMENT_QUEUED_EVENT } from "./application-actions"
 import { useBrowserOrigin } from "./use-browser-host"
 
 const STATUS_VARIANT: Record<
@@ -116,7 +111,6 @@ export function ApplicationDeployPanel({
     reconnect,
   } = useLogsSocket(app.id, publicApiUrl, !originMismatch)
 
-  const running = app.container?.state === "running"
   const active = deployments.some((d) => isActive(d.status))
   // Read inside socket handlers without re-subscribing when it changes.
   const activeRef = useRef(active)
@@ -217,6 +211,20 @@ export function ApplicationDeployPanel({
     setLiveStatus(null)
     setSelectedId(id)
   }
+
+  // A deploy queued from the page's status strip: show its log like one started here.
+  useEffect(() => {
+    const onQueued = (e: Event) => {
+      const id = (e as CustomEvent<{ id: string }>).detail?.id
+      if (!id) return
+      setFollowing(false)
+      setLogText("")
+      setLiveStatus(null)
+      setSelectedId(id)
+    }
+    window.addEventListener(DEPLOYMENT_QUEUED_EVENT, onQueued)
+    return () => window.removeEventListener(DEPLOYMENT_QUEUED_EVENT, onQueued)
+  }, [])
 
   const run = (fn: () => Promise<{ ok: boolean; error?: string }>) =>
     start(async () => {
@@ -346,19 +354,6 @@ export function ApplicationDeployPanel({
         </div>
       )}
       <div className="flex flex-wrap items-center gap-2">
-        <Button
-          disabled={pending || active}
-          onClick={() =>
-            run(async () => {
-              const r = await deployApplicationAction(app.id)
-              if (r.ok) selectDeployment(r.data.id)
-              return r
-            })
-          }
-        >
-          <Rocket data-icon="inline-start" />
-          {active ? "Sedang deploy…" : "Deploy"}
-        </Button>
         {app.sourceType === "image" && (
           <Button
             variant="outline"
@@ -388,26 +383,6 @@ export function ApplicationDeployPanel({
             Cek update image
           </Button>
         )}
-        {app.container &&
-          (running ? (
-            <Button
-              variant="outline"
-              disabled={pending}
-              onClick={() => run(() => stopApplicationAction(app.id))}
-            >
-              <Square data-icon="inline-start" />
-              Stop
-            </Button>
-          ) : (
-            <Button
-              variant="outline"
-              disabled={pending}
-              onClick={() => run(() => startApplicationAction(app.id))}
-            >
-              <Play data-icon="inline-start" />
-              Start
-            </Button>
-          ))}
         <Button
           variant={following ? "secondary" : "ghost"}
           size="sm"

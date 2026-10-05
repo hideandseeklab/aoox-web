@@ -1,5 +1,6 @@
 "use client"
 
+import { ActivityList } from "@/components/custom/activity-list"
 import { LinkArrow } from "@/components/custom/arrows"
 import Link from "next/link"
 import { useEffect, useState, useSyncExternalStore } from "react"
@@ -107,25 +108,16 @@ export function RecentActivityCard({ initial }: { initial: RecentActivity }) {
         ) : rows.length === 0 ? (
           <p className="text-xs text-muted-foreground">Belum ada aktivitas.</p>
         ) : (
-          <ul className="divide-y rounded-md border text-xs">
-            {rows.map((r) => {
+          <ActivityList
+            items={rows.map((r) => {
               const st = statusBadge(r.status)
-              return (
-                <li key={r.id} className="flex items-center gap-3 px-3 py-2">
-                  <span
-                    className="w-24 shrink-0 text-muted-foreground"
-                    suppressHydrationWarning
-                  >
-                    {formatTime(r.createdAt)}
-                  </span>
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate" title={r.action}>
-                      {describeAction(r.action)}
-                    </span>
-                    <span className="block truncate text-muted-foreground">
-                      {r.actorEmail ?? "—"} · {VIA_LABEL[r.via] ?? r.via}
-                    </span>
-                  </span>
+              return {
+                id: r.id,
+                time: formatTime(r.createdAt),
+                title: describeAction(r.action),
+                titleHint: r.action,
+                detail: `${r.actorEmail ?? "—"} · ${VIA_LABEL[r.via] ?? r.via}`,
+                trailing: (
                   <Badge
                     variant="outline"
                     className={st.className}
@@ -133,10 +125,10 @@ export function RecentActivityCard({ initial }: { initial: RecentActivity }) {
                   >
                     {st.label}
                   </Badge>
-                </li>
-              )
+                ),
+              }
             })}
-          </ul>
+          />
         )}
       </CardContent>
     </Card>

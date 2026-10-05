@@ -36,7 +36,8 @@ import {
   SidebarMenuItem,
   SidebarRail,
 } from "@/components/ui/sidebar"
-import { BrandLogo } from "./brand-logo"
+import type { AuthUser } from "@/features/auth/auth.entity"
+import { UserMenu } from "./user-menu"
 
 const NAV = [
   { title: "Dashboard", href: "/", icon: LayoutDashboard, exact: true },
@@ -101,7 +102,10 @@ export function AppSidebar({
   isOwner,
   version,
   update,
+  user,
 }: {
+  /** Signed-in user, for the menu at the foot of the sidebar. */
+  user: AuthUser
   showTerminal: boolean
   isOwner: boolean
   /** Running API version from `/auth/me`; absent when unavailable. */
@@ -125,12 +129,14 @@ export function AppSidebar({
 
   return (
     <Sidebar collapsible="icon">
-      <SidebarHeader>
+      {/* Text only for now (the logo tile is not rendered; `BrandLogo` is kept in
+          brand-logo.tsx). With no mark there is nothing that fits the 32px icon
+          rail, so the header is hidden in icon mode; the toggle lives in the top bar. */}
+      <SidebarHeader className="group-data-[collapsible=icon]:hidden">
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
               <Link href="/">
-                <BrandLogo />
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-semibold">aoox</span>
                   <span
@@ -236,8 +242,8 @@ export function AppSidebar({
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      {update && (
-        <SidebarFooter>
+      <SidebarFooter>
+        {update && (
           <SidebarMenu>
             <SidebarMenuItem>
               <SidebarMenuButton
@@ -278,8 +284,9 @@ export function AppSidebar({
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
-        </SidebarFooter>
-      )}
+        )}
+        <UserMenu user={user} />
+      </SidebarFooter>
       <SidebarRail />
     </Sidebar>
   )

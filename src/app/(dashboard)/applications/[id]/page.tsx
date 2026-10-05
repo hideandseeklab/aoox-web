@@ -3,7 +3,9 @@ import { getProject } from "@/features/project/project.queries"
 import { SetBreadcrumb } from "@/components/custom/breadcrumb-store"
 import Link from "next/link"
 import { notFound } from "next/navigation"
+import { ApplicationStatusActions } from "@/components/custom/application-actions"
 import { ApplicationTabs } from "@/components/custom/application-tabs"
+import { StatusStrip } from "@/components/custom/status-strip"
 import { DeleteApplicationButton } from "@/components/custom/delete-application-button"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -107,71 +109,18 @@ export default async function ApplicationPage({
           { label: app.name },
         ]}
       />
-      <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-3">
-        <div className="flex min-w-0 items-start gap-3">
-          <Button asChild variant="ghost" size="icon" className="mt-0.5">
-            <Link
-              href={`/projects/${app.projectId}`}
-              aria-label="Kembali ke project"
-            >
-              <ArrowLeft />
-            </Link>
-          </Button>
-          <div className="min-w-0">
-            <div className="flex flex-wrap items-center gap-2">
-              <h1 className="text-lg font-semibold">{app.name}</h1>
-              <Badge variant={running ? "default" : "secondary"}>
-                {app.container ? app.container.state : "belum deploy"}
-              </Badge>
-              {server && <Badge variant="outline">{server.name}</Badge>}
-              {app.service && (
-                <Badge
-                  variant="outline"
-                  title={app.service.tasks
-                    .filter((t) => t.desiredState === "running")
-                    .map(
-                      (t) => `#${t.slot ?? "?"} ${t.node ?? "?"}: ${t.state}`
-                    )
-                    .join("\n")}
-                >
-                  service {app.service.running}/{app.service.desired}
-                  {app.service.updateState &&
-                    app.service.updateState !== "completed" &&
-                    ` · ${app.service.updateState}`}
-                </Badge>
-              )}
-            </div>
-            <p className="font-mono text-xs break-all text-muted-foreground">
-              {app.appName} ·{" "}
-              {app.sourceType === "image"
-                ? app.imageRef
-                : `${app.gitUrl}#${app.gitBranch}${app.rootDirectory ? `:${app.rootDirectory}` : ""}`}
-              {app.hostPort && (
-                <>
-                  {" "}
-                  ·{" "}
-                  <a
-                    className="underline"
-                    href={`http://localhost:${app.hostPort}`}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    :{app.hostPort}
-                  </a>
-                </>
-              )}
-            </p>
-          </div>
-        </div>
-        {app.projectRole === "viewer" ? (
-          <Badge variant="outline">Baca saja</Badge>
-        ) : (
-          <DeleteApplicationButton
-            id={app.id}
-            projectId={app.projectId}
-            name={app.name}
-          />
-        )}
+      <div className="flex min-w-0 items-start gap-3">
+        <Button asChild variant="ghost" size="icon" className="mt-0.5">
+          <Link
+            href={`/projects/${app.projectId}`}
+            aria-label="Kembali ke project"
+          >
+            <ArrowLeft />
+          </Link>
+        </Button>
+        <h1 className="min-w-0 text-lg font-semibold break-words">
+          {app.name}
+        </h1>
       </div>
 
       <ApplicationTabs
@@ -199,6 +148,71 @@ export default async function ApplicationPage({
         publicApiUrl={publicApiUrl()}
         webOrigin={webOrigin()}
         domainProxyAutoProvisioned={domainProxyAutoProvisioned === "1"}
+        statusStrip={
+          <StatusStrip
+            className="pt-4"
+            status={
+              <>
+                <Badge variant={running ? "default" : "secondary"}>
+                  {app.container ? app.container.state : "belum deploy"}
+                </Badge>
+                {server && <Badge variant="outline">{server.name}</Badge>}
+                {app.service && (
+                  <Badge
+                    variant="outline"
+                    title={app.service.tasks
+                      .filter((t) => t.desiredState === "running")
+                      .map(
+                        (t) => `#${t.slot ?? "?"} ${t.node ?? "?"}: ${t.state}`
+                      )
+                      .join("\n")}
+                  >
+                    service {app.service.running}/{app.service.desired}
+                    {app.service.updateState &&
+                      app.service.updateState !== "completed" &&
+                      ` · ${app.service.updateState}`}
+                  </Badge>
+                )}
+              </>
+            }
+            info={
+              <span className="font-mono break-all">
+                {app.appName} ·{" "}
+                {app.sourceType === "image"
+                  ? app.imageRef
+                  : `${app.gitUrl}#${app.gitBranch}${app.rootDirectory ? `:${app.rootDirectory}` : ""}`}
+                {app.hostPort && (
+                  <>
+                    {" "}
+                    ·{" "}
+                    <a
+                      className="underline"
+                      href={`http://localhost:${app.hostPort}`}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      :{app.hostPort}
+                    </a>
+                  </>
+                )}
+              </span>
+            }
+            actions={
+              <>
+                <ApplicationStatusActions app={app} deployments={deployments} />
+                {app.projectRole === "viewer" ? (
+                  <Badge variant="outline">Baca saja</Badge>
+                ) : (
+                  <DeleteApplicationButton
+                    id={app.id}
+                    projectId={app.projectId}
+                    name={app.name}
+                  />
+                )}
+              </>
+            }
+          />
+        }
       />
     </>
   )

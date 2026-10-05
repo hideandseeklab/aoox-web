@@ -86,6 +86,7 @@ export function ApplicationTabs({
   publicApiUrl,
   webOrigin,
   domainProxyAutoProvisioned,
+  statusStrip,
 }: {
   app: ApplicationDetail
   deployments: DeploymentSummary[]
@@ -114,6 +115,8 @@ export function ApplicationTabs({
   webOrigin: string
   /** Came from the create dialog's "Domain" option; see applications/[id]/page.tsx. */
   domainProxyAutoProvisioned: boolean
+  /** Status line shown under the tab list on every tab (rendered by the page). */
+  statusStrip?: React.ReactNode
 }) {
   const [tab, setTab] = useState<ApplicationTab>("deploy")
   const running = app.container?.state === "running"
@@ -134,6 +137,7 @@ export function ApplicationTabs({
         {canUseConsole && <TabsTrigger value="console">Console</TabsTrigger>}
         <TabsTrigger value="settings">Pengaturan</TabsTrigger>
       </ScrollableTabsList>
+      {statusStrip}
       <TabsContent value="deploy" className="space-y-4 pt-4">
         <MetricsPanel
           target="application"

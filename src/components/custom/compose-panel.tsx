@@ -1,10 +1,8 @@
 "use client"
 
-import { Play, Rocket, Square, Trash2 } from "lucide-react"
-import { useEffect, useRef, useState, useTransition } from "react"
+import { useEffect, useRef, useState } from "react"
 import { Badge } from "@/components/ui/badge"
-import { ConfirmDialog } from "@/components/custom/confirm-dialog"
-import { Button } from "@/components/ui/button"
+import { useComposeLive } from "@/components/custom/compose-live"
 import {
   Card,
   CardContent,
@@ -12,57 +10,27 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import {
-  deleteComposeAppAction,
-  deployComposeAppAction,
-  fetchComposeAppAction,
-  fetchComposeMetricsAction,
-  startComposeAppAction,
-  stopComposeAppAction,
-} from "@/features/compose/compose.actions"
-import type {
-  ComposeAppDetail,
-  ComposeMetrics,
-} from "@/features/compose/compose.entity"
+import { fetchComposeMetricsAction } from "@/features/compose/compose.actions"
+import type { ComposeMetrics } from "@/features/compose/compose.entity"
 import { formatBytes } from "@/features/monitoring/monitoring.entity"
 import type { MetricsResponse } from "@/features/monitoring/monitoring.entity"
 import { MetricsPanel } from "@/components/custom/metrics-panel"
 
-const POLL_MS = 3_000
 /** The sampler itself runs every 15s; this only refreshes what it has. */
 const METRICS_POLL_MS = 10_000
 
 /**
- * Status, actions, containers and the last run's log. Polls the detail
- * while an action runs (status `deploying`); actions are 202 + poll on the
- * API side, so there is no streaming socket for compose yet.
+ * Metrics, containers and the last run's log. The stack's live state (and the status/actions in the
+ * strip under the tabs) come from `ComposeLiveProvider`, which polls the detail while an action runs.
  */
 export function ComposePanel({
-  initial,
   metrics: initialMetrics,
 }: {
-  initial: ComposeAppDetail
   /** Stack-combined figures, same contract application/database pages use. */
   metrics: MetricsResponse
 }) {
-  const [app, setApp] = useState(initial)
-  const [pending, start] = useTransition()
-  const [error, setError] = useState<string | null>(null)
+  const { app, busy } = useComposeLive()
   const logRef = useRef<HTMLPreElement>(null)
-  const busy = app.status === "deploying"
-
-  useEffect(() => {
-    if (!busy) return
-    let cancelled = false
-    const timer = setInterval(async () => {
-      const next = await fetchComposeAppAction(app.id)
-      if (!cancelled && next) setApp(next)
-    }, POLL_MS)
-    return () => {
-      cancelled = true
-      clearInterval(timer)
-    }
-  }, [busy, app.id])
 
   // Live CPU/RAM per service, from the background sampler (which also
   // samples stack containers). No stored history for stacks yet.
@@ -86,70 +54,8 @@ export function ComposePanel({
     if (el) el.scrollTop = el.scrollHeight
   }, [app.logs])
 
-  const run = (fn: () => Promise<{ ok: boolean; error?: string }>) =>
-    start(async () => {
-      setError(null)
-      const r = await fn()
-      if (!r.ok) setError(r.error ?? "Gagal")
-      else {
-        const next = await fetchComposeAppAction(app.id)
-        if (next) setApp(next)
-      }
-    })
-
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center gap-2">
-        <Button
-          size="sm"
-          disabled={pending || busy}
-          onClick={() => run(() => deployComposeAppAction(app.id))}
-        >
-          <Rocket data-icon="inline-start" />
-          {app.status === "idle" ? "Deploy" : "Deploy ulang"}
-        </Button>
-        {app.status === "running" && (
-          <Button
-            size="sm"
-            variant="outline"
-            disabled={pending || busy}
-            onClick={() => run(() => stopComposeAppAction(app.id))}
-          >
-            <Square data-icon="inline-start" />
-            Stop
-          </Button>
-        )}
-        {app.status === "stopped" && (
-          <Button
-            size="sm"
-            variant="outline"
-            disabled={pending || busy}
-            onClick={() => run(() => startComposeAppAction(app.id))}
-          >
-            <Play data-icon="inline-start" />
-            Start
-          </Button>
-        )}
-        <span className="ms-auto" />
-        <ConfirmDialog
-          trigger={
-            <Button size="sm" variant="destructive" disabled={pending || busy}>
-              <Trash2 data-icon="inline-start" />
-              Hapus
-            </Button>
-          }
-          title={`Hapus stack ${app.name}?`}
-          description="Semua container stack dihentikan dan dihapus, beserta volume datanya dan salinan checkout-nya. Data di volume hilang permanen dan tidak bisa dibatalkan."
-          confirmLabel="Hapus stack"
-          onConfirm={() => deleteComposeAppAction(app.id, app.projectId)}
-        />
-      </div>
-      {error && (
-        <p className="text-xs text-destructive" role="alert">
-          {error}
-        </p>
-      )}
-
       <MetricsPanel
         target="compose"
         id={app.id}

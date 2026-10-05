@@ -74,13 +74,15 @@ export default async function SettingsPage() {
         ]}
       >
         <TabsContent value="account" className="pt-4">
-          <div className="grid gap-4 lg:grid-cols-2">
-            {session && <AccountCard me={session.user} />}
-            <ApiTokensCard
-              tokens={apiTokens}
-              publicApiUrl={publicApiUrl()}
-              projects={projects.map((p) => ({ id: p.id, name: p.name }))}
-            />
+          <div className="@container">
+            <div className="grid gap-4 @3xl:grid-cols-2 @3xl:[&>*:last-child:nth-child(odd)]:col-span-2">
+              {session && <AccountCard me={session.user} />}
+              <ApiTokensCard
+                tokens={apiTokens}
+                publicApiUrl={publicApiUrl()}
+                projects={projects.map((p) => ({ id: p.id, name: p.name }))}
+              />
+            </div>
           </div>
         </TabsContent>
 
@@ -103,21 +105,23 @@ export default async function SettingsPage() {
         )}
 
         <TabsContent value="integrations" className="pt-4">
-          <div className="grid gap-4 lg:grid-cols-2">
-            <GitCredentialsCard
-              credentials={credentials}
-              canManage={canManage}
-            />
-            {notifications && (
-              <NotificationsCard notifications={notifications} />
-            )}
-            {destinations && (
-              <BackupDestinationsCard destinations={destinations} />
-            )}
-            {secretConnections && (
-              <SecretConnectionsCard connections={secretConnections} />
-            )}
-            {certificates && <CertificatesCard certificates={certificates} />}
+          <div className="@container">
+            <div className="grid gap-4 @3xl:grid-cols-2 @3xl:[&>*:last-child:nth-child(odd)]:col-span-2">
+              <GitCredentialsCard
+                credentials={credentials}
+                canManage={canManage}
+              />
+              {notifications && (
+                <NotificationsCard notifications={notifications} />
+              )}
+              {destinations && (
+                <BackupDestinationsCard destinations={destinations} />
+              )}
+              {secretConnections && (
+                <SecretConnectionsCard connections={secretConnections} />
+              )}
+              {certificates && <CertificatesCard certificates={certificates} />}
+            </div>
           </div>
         </TabsContent>
       </SettingsTabs>

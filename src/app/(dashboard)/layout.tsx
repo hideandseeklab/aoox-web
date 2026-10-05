@@ -25,13 +25,14 @@ export default async function DashboardLayout({
         isOwner={session.user.role === "owner"}
         version={session.user.version}
         update={session.user.updateAvailable}
+        user={session.user}
       />
       {/* min-w-0: a flex item never shrinks below its content, so a page with
           fixed-pixel content (the xterm terminal/console) would keep <main>
           wider than the space beside the sidebar and force a horizontal
           scrollbar as soon as any other scrollbar appears. */}
       <SidebarInset className="min-w-0">
-        <AppNavbar user={session.user} />
+        <AppNavbar />
         <div className="flex flex-1 flex-col gap-6 p-6">{children}</div>
       </SidebarInset>
     </SidebarProvider>

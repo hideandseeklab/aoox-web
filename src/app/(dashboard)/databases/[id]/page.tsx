@@ -8,9 +8,13 @@ import { ApplicationMounts } from "@/components/custom/application-mounts"
 import { DatabaseCompanionCard } from "@/components/custom/database-companion"
 import { DatabaseBackups } from "@/components/custom/database-backups"
 import { DatabaseDataBrowser } from "@/components/custom/database-data-browser"
-import { DatabasePanel } from "@/components/custom/database-panel"
+import {
+  DatabasePanel,
+  DatabaseStartStop,
+} from "@/components/custom/database-panel"
 import { DatabaseResources } from "@/components/custom/database-resources"
 import { MetricsPanel } from "@/components/custom/metrics-panel"
+import { StatusStrip } from "@/components/custom/status-strip"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs"
@@ -93,9 +97,19 @@ export default async function DatabasePage({
             <ArrowLeft />
           </Link>
         </Button>
-        <div className="min-w-0">
-          <div className="flex flex-wrap items-center gap-2">
-            <h1 className="text-lg font-semibold">{db.name}</h1>
+        <h1 className="min-w-0 text-lg font-semibold break-words">{db.name}</h1>
+      </div>
+      <Tabs defaultValue="overview">
+        <ScrollableTabsList>
+          <TabsTrigger value="overview">Ringkasan</TabsTrigger>
+          <TabsTrigger value="data">Data</TabsTrigger>
+          <TabsTrigger value="backups">Backup ({backups.length})</TabsTrigger>
+          <TabsTrigger value="mounts">Mount ({mounts.length})</TabsTrigger>
+          <TabsTrigger value="jobs">Jobs ({jobs.length})</TabsTrigger>
+        </ScrollableTabsList>
+        <StatusStrip
+          className="pt-4"
+          status={
             <Badge
               variant={
                 db.status === "creating"
@@ -111,20 +125,14 @@ export default async function DatabasePage({
                 ? "creating…"
                 : (db.container?.state ?? db.status)}
             </Badge>
-          </div>
-          <p className="font-mono text-xs break-all text-muted-foreground">
-            {ENGINE_LABEL[db.engine]} {db.imageTag} · {db.slug}
-          </p>
-        </div>
-      </div>
-      <Tabs defaultValue="overview">
-        <ScrollableTabsList>
-          <TabsTrigger value="overview">Ringkasan</TabsTrigger>
-          <TabsTrigger value="data">Data</TabsTrigger>
-          <TabsTrigger value="backups">Backup ({backups.length})</TabsTrigger>
-          <TabsTrigger value="mounts">Mount ({mounts.length})</TabsTrigger>
-          <TabsTrigger value="jobs">Jobs ({jobs.length})</TabsTrigger>
-        </ScrollableTabsList>
+          }
+          info={
+            <span className="font-mono break-all">
+              {ENGINE_LABEL[db.engine]} {db.imageTag} · {db.slug}
+            </span>
+          }
+          actions={<DatabaseStartStop db={db} />}
+        />
         <TabsContent value="overview" className="space-y-4 pt-4">
           <MetricsPanel
             target="database"

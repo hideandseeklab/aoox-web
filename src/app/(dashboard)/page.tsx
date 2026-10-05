@@ -1,17 +1,12 @@
+import { Activity, FolderKanban, PowerOff } from "lucide-react"
 import Link from "next/link"
 import { Suspense } from "react"
 import { HostLiveChart } from "@/components/custom/host-live-chart"
 import { LiveClock } from "@/components/custom/live-clock"
 import { RecentActivitySection } from "@/components/custom/recent-activity-section"
 import { HostOverviewCard } from "@/components/custom/host-overview-card"
+import { StatCard } from "@/components/custom/stat-card"
 import { Button } from "@/components/ui/button"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { canUseTerminal } from "@/features/auth/auth.entity"
 import { getVerifiedSession } from "@/features/auth/auth.session"
@@ -59,45 +54,32 @@ export default async function DashboardPage() {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <Card>
-          <CardHeader>
-            <CardDescription>Total project</CardDescription>
-            <CardTitle className="text-3xl tracking-tighter">{total}</CardTitle>
-          </CardHeader>
-          <CardContent>
+        <StatCard
+          icon={FolderKanban}
+          label="Total project"
+          value={total}
+          action={
             <Button asChild variant="outline" size="sm">
               <Link href="/projects">Lihat semua</Link>
             </Button>
-          </CardContent>
-        </Card>
+          }
+        />
         {/* Status tints: green = running, red = nothing running; the label
             carries the meaning too, colour is reinforcement only. */}
-        <Card className="border-emerald-500/40 bg-emerald-500/5 dark:bg-emerald-500/10">
-          <CardHeader>
-            <CardDescription className="text-emerald-700 dark:text-emerald-400">
-              Project aktif
-            </CardDescription>
-            <CardTitle className="text-3xl tracking-tighter text-emerald-700 dark:text-emerald-400">
-              {active}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="text-xs text-muted-foreground">
-            Ada aplikasi, database, atau stack compose yang berjalan.
-          </CardContent>
-        </Card>
-        <Card className="border-red-500/40 bg-red-500/5 dark:bg-red-500/10">
-          <CardHeader>
-            <CardDescription className="text-red-700 dark:text-red-400">
-              Project tidak aktif
-            </CardDescription>
-            <CardTitle className="text-3xl tracking-tighter text-red-700 dark:text-red-400">
-              {total - active}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="text-xs text-muted-foreground">
-            Semua berhenti/error, atau belum ada yang di-deploy.
-          </CardContent>
-        </Card>
+        <StatCard
+          tone="success"
+          icon={Activity}
+          label="Project aktif"
+          value={active}
+          hint="Ada aplikasi, database, atau stack compose yang berjalan."
+        />
+        <StatCard
+          tone="danger"
+          icon={PowerOff}
+          label="Project tidak aktif"
+          value={total - active}
+          hint="Semua berhenti/error, atau belum ada yang di-deploy."
+        />
         {host && <HostOverviewCard host={host} />}
       </div>
 

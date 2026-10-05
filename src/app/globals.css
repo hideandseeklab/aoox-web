@@ -172,6 +172,20 @@
 [data-slot="avatar-fallback"] {
   font-size: var(--text-xs);
 }
+/* Active sidebar item: a 2px marker on the start edge in the existing sidebar accent token. A
+   pseudo-element instead of an inset box-shadow, which would replace the focus ring. */
+[data-slot="sidebar-menu-button"][data-active="true"] {
+  position: relative;
+}
+[data-slot="sidebar-menu-button"][data-active="true"]::before {
+  content: "";
+  position: absolute;
+  inset-block: 6px;
+  inset-inline-start: 0;
+  width: 2px;
+  border-radius: 2px;
+  background: var(--sidebar-primary);
+}
 [data-slot="select-trigger"] {
   /* Radix adds a hidden native <select> as the last child inside a form, so the trigger stops
      being :last-child and a `space-y-*` wrapper gave it a 4px bottom margin (a button beside it

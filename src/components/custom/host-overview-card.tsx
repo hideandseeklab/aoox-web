@@ -1,3 +1,5 @@
+import { Boxes, Cpu, MemoryStick } from "lucide-react"
+import { StatCard } from "@/components/custom/stat-card"
 import {
   Card,
   CardContent,
@@ -44,17 +46,23 @@ export function HostOverviewCard({ host }: { host: HostOverview }) {
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="grid gap-3 sm:grid-cols-3">
-          <Stat
+          <StatCard
+            variant="inset"
+            icon={Boxes}
             label="Container aoox"
             value={String(host.managed.containers)}
             hint={`${host.containers.running} berjalan dari ${host.containers.total} di host`}
           />
-          <Stat
+          <StatCard
+            variant="inset"
+            icon={MemoryStick}
             label="Memori dipakai container aoox"
             value={formatBytes(host.managed.memoryBytes)}
             hint={`${managedMemPct.toFixed(1)}% dari RAM host`}
           />
-          <Stat
+          <StatCard
+            variant="inset"
+            icon={Cpu}
             label="CPU container aoox"
             value={`${host.managed.cpuPercent.toFixed(1)}%`}
             hint={`dari ${host.cpus * 100}% (${host.cpus} core)`}
@@ -98,23 +106,5 @@ export function HostOverviewCard({ host }: { host: HostOverview }) {
         </div>
       </CardContent>
     </Card>
-  )
-}
-
-function Stat({
-  label,
-  value,
-  hint,
-}: {
-  label: string
-  value: string
-  hint?: string
-}) {
-  return (
-    <div className="rounded-md border px-3 py-2">
-      <p className="text-xs text-muted-foreground">{label}</p>
-      <p className="text-2xl font-semibold">{value}</p>
-      {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
-    </div>
   )
 }

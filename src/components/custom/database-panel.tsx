@@ -1,27 +1,12 @@
 "use client"
 
-import {
-  Copy,
-  Database,
-  Eye,
-  EyeOff,
-  Play,
-  Plus,
-  Square,
-  Trash2,
-} from "lucide-react"
+import { Database, Eye, EyeOff, Play, Plus, Square, Trash2 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useEffect, useState, useTransition } from "react"
-import { toast } from "sonner"
 import { ConfirmDialog } from "@/components/custom/confirm-dialog"
+import { DetailList } from "@/components/custom/detail-list"
 import { Button } from "@/components/ui/button"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import {
   Dialog,
   DialogContent,
@@ -53,7 +38,6 @@ import type {
   DatabaseConnection,
   ManagedDatabaseDetail,
 } from "@/features/managed-database/managed-database.entity"
-import { copyToClipboard } from "@/lib/clipboard"
 
 /** Swaps the database name at the end of a connection URL (`…:5432/app` → `…:5432/reports`). */
 function withDatabase(url: string, name: string): string {
@@ -89,7 +73,6 @@ export function DatabasePanel({
         }
       : primary
   const [pending, start] = useTransition()
-  const [error, setError] = useState<string | null>(null)
   const [reveal, setReveal] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
 
@@ -100,41 +83,12 @@ export function DatabasePanel({
     return () => clearInterval(t)
   }, [db.status, router])
 
-  const running = db.container?.state === "running"
-  const run = (fn: () => Promise<{ ok: boolean; error?: string }>) =>
-    start(async () => {
-      setError(null)
-      const r = await fn()
-      if (!r.ok) setError(r.error ?? "Gagal")
-      else router.refresh()
-    })
-
   const mask = (s: string) =>
     reveal ? s : s.replace(/:[^:@/]+@/, ":••••••••@")
 
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-2">
-        {db.container &&
-          (running ? (
-            <Button
-              variant="outline"
-              disabled={pending}
-              onClick={() => run(() => stopDatabaseAction(db.id))}
-            >
-              <Square data-icon="inline-start" />
-              Stop
-            </Button>
-          ) : (
-            <Button
-              variant="outline"
-              disabled={pending}
-              onClick={() => run(() => startDatabaseAction(db.id))}
-            >
-              <Play data-icon="inline-start" />
-              Start
-            </Button>
-          ))}
         <Button variant="ghost" size="sm" onClick={() => setReveal((r) => !r)}>
           {reveal ? (
             <EyeOff data-icon="inline-start" />
@@ -143,11 +97,6 @@ export function DatabasePanel({
           )}
           {reveal ? "Sembunyikan password" : "Tampilkan password"}
         </Button>
-        {error && (
-          <span className="text-xs text-destructive" role="alert">
-            {error}
-          </span>
-        )}
       </div>
 
       {db.status === "error" && (
@@ -197,62 +146,87 @@ export function DatabasePanel({
         </div>
       )}
 
-      <div className="grid gap-4 lg:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Koneksi internal</CardTitle>
-            <CardDescription>
-              Dari aplikasi di project ini (network <code>aoox</code>). Tempel
-              ke env aplikasi, mis. <code>DATABASE_URL</code>.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-2 text-xs">
-            <Row label="Host" value={connection.internalHost} />
-            <Row label="Port" value={String(connection.internalPort)} />
-            {connection.database && (
-              <Row label="Database" value={connection.database} />
-            )}
-            <Row label="User" value={connection.username} />
-            <Row
-              label="Password"
-              value={reveal ? connection.password : "••••••••"}
-              copy={connection.password}
+      <Card>
+        <CardContent className="grid gap-x-8 gap-y-6 lg:grid-cols-2">
+          <section className="min-w-0 space-y-3">
+            <div className="space-y-1">
+              <h3 className="text-sm font-medium">Koneksi internal</h3>
+              <p className="text-xs/relaxed text-muted-foreground">
+                Dari aplikasi di project ini (network <code>aoox</code>). Tempel
+                ke env aplikasi, mis. <code>DATABASE_URL</code>.
+              </p>
+            </div>
+            <DetailList
+              items={[
+                { label: "Host", value: connection.internalHost, mono: true },
+                {
+                  label: "Port",
+                  value: String(connection.internalPort),
+                  mono: true,
+                },
+                ...(connection.database
+                  ? [
+                      {
+                        label: "Database",
+                        value: connection.database,
+                        mono: true,
+                      },
+                    ]
+                  : []),
+                { label: "User", value: connection.username, mono: true },
+                {
+                  label: "Password",
+                  value: reveal ? connection.password : "••••••••",
+                  mono: true,
+                  copy: connection.password,
+                },
+                {
+                  label: "URL",
+                  value: mask(connection.internalUrl),
+                  mono: true,
+                  copy: connection.internalUrl,
+                },
+              ]}
             />
-            <Row
-              label="URL"
-              value={mask(connection.internalUrl)}
-              copy={connection.internalUrl}
-            />
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Koneksi eksternal</CardTitle>
-            <CardDescription>
-              {connection.externalUrl
-                ? `Dipublikasikan di port host ${connection.externalPort}.`
-                : "Tidak dipublikasikan — hanya bisa diakses dari network aoox."}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-2 text-xs">
+          </section>
+          <section className="min-w-0 space-y-3">
+            <div className="space-y-1">
+              <h3 className="text-sm font-medium">Koneksi eksternal</h3>
+              <p className="text-xs/relaxed text-muted-foreground">
+                {connection.externalUrl
+                  ? `Dipublikasikan di port host ${connection.externalPort}.`
+                  : "Tidak dipublikasikan — hanya bisa diakses dari network aoox."}
+              </p>
+            </div>
             {connection.externalUrl ? (
-              <>
-                <Row label="Host" value={connection.externalHost ?? ""} />
-                <Row label="Port" value={String(connection.externalPort)} />
-                <Row
-                  label="URL"
-                  value={mask(connection.externalUrl)}
-                  copy={connection.externalUrl}
-                />
-              </>
+              <DetailList
+                items={[
+                  {
+                    label: "Host",
+                    value: connection.externalHost ?? "",
+                    mono: true,
+                  },
+                  {
+                    label: "Port",
+                    value: String(connection.externalPort),
+                    mono: true,
+                  },
+                  {
+                    label: "URL",
+                    value: mask(connection.externalUrl),
+                    mono: true,
+                    copy: connection.externalUrl,
+                  },
+                ]}
+              />
             ) : (
-              <p className="text-muted-foreground">
+              <p className="text-xs text-muted-foreground">
                 Buat ulang database dengan port host bila perlu akses dari luar.
               </p>
             )}
-          </CardContent>
-        </Card>
-      </div>
+          </section>
+        </CardContent>
+      </Card>
 
       <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <DialogTrigger asChild>
@@ -294,39 +268,6 @@ export function DatabasePanel({
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
-  )
-}
-
-function Row({
-  label,
-  value,
-  copy,
-}: {
-  label: string
-  value: string
-  copy?: string
-}) {
-  return (
-    <div className="flex items-center gap-2">
-      <span className="w-20 shrink-0 text-muted-foreground">{label}</span>
-      <code className="min-w-0 flex-1 truncate rounded bg-muted px-1.5 py-0.5 text-xs">
-        {value}
-      </code>
-      <Button
-        variant="ghost"
-        size="icon-sm"
-        aria-label={`Salin ${label}`}
-        onClick={() =>
-          void copyToClipboard(copy ?? value).then((ok) =>
-            ok
-              ? toast.success(`${label} disalin`)
-              : toast.error(`Gagal menyalin ${label.toLowerCase()}`)
-          )
-        }
-      >
-        <Copy />
-      </Button>
     </div>
   )
 }
@@ -448,5 +389,53 @@ function DropDatabaseDialog({
         return r
       }}
     />
+  )
+}
+
+/**
+ * Start/Stop for the database's status strip. Shown whenever the container exists, exactly as the
+ * button used to be on the Ringkasan toolbar; a failure message sits beside it.
+ */
+export function DatabaseStartStop({ db }: { db: ManagedDatabaseDetail }) {
+  const router = useRouter()
+  const [pending, start] = useTransition()
+  const [error, setError] = useState<string | null>(null)
+  if (!db.container) return null
+  const running = db.container.state === "running"
+  const run = (fn: () => Promise<{ ok: boolean; error?: string }>) =>
+    start(async () => {
+      setError(null)
+      const r = await fn()
+      if (!r.ok) setError(r.error ?? "Gagal")
+      else router.refresh()
+    })
+
+  return (
+    <>
+      {running ? (
+        <Button
+          variant="outline"
+          disabled={pending}
+          onClick={() => run(() => stopDatabaseAction(db.id))}
+        >
+          <Square data-icon="inline-start" />
+          Stop
+        </Button>
+      ) : (
+        <Button
+          variant="outline"
+          disabled={pending}
+          onClick={() => run(() => startDatabaseAction(db.id))}
+        >
+          <Play data-icon="inline-start" />
+          Start
+        </Button>
+      )}
+      {error && (
+        <span className="self-center text-xs text-destructive" role="alert">
+          {error}
+        </span>
+      )}
+    </>
   )
 }

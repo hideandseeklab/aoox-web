@@ -9,10 +9,11 @@ import { ComposeAccess } from "@/components/custom/compose-domains"
 import { ComposeForm } from "@/components/custom/compose-form"
 import { ComposeHistory } from "@/components/custom/compose-history"
 import { ComposeMounts } from "@/components/custom/compose-mounts"
+import { ComposeLiveProvider } from "@/components/custom/compose-live"
 import { ComposePanel } from "@/components/custom/compose-panel"
+import { ComposeStatusStrip } from "@/components/custom/compose-status-strip"
 import { ComposeResources } from "@/components/custom/compose-resources"
 import { ComposeWebhook } from "@/components/custom/compose-webhook"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -99,100 +100,92 @@ export default async function ComposeAppPage({
             <ArrowLeft />
           </Link>
         </Button>
-        <div className="min-w-0">
-          <div className="flex flex-wrap items-center gap-2">
-            <h1 className="text-lg font-semibold">{app.name}</h1>
-            <Badge
-              variant={
-                app.status === "running"
-                  ? "default"
-                  : app.status === "error"
-                    ? "destructive"
-                    : "secondary"
-              }
-            >
-              {app.status === "deploying" ? "berjalan…" : app.status}
-            </Badge>
-            <Badge variant="outline">compose</Badge>
-          </div>
-          <p className="font-mono text-xs break-all text-muted-foreground">
-            {app.source === "template"
-              ? `template · ${app.templateId}`
-              : `${(app.gitUrl ?? "").replace(/^https?:\/\//, "")}#${app.gitBranch} · ${app.composePath}`}
-          </p>
-        </div>
+        <h1 className="min-w-0 text-lg font-semibold break-words">
+          {app.name}
+        </h1>
       </div>
 
-      <Tabs defaultValue="deploy">
-        <ScrollableTabsList>
-          <TabsTrigger value="deploy">Deploy</TabsTrigger>
-          <TabsTrigger value="history">Riwayat ({runs.length})</TabsTrigger>
-          <TabsTrigger value="mounts">Mount ({mounts.length})</TabsTrigger>
-          <TabsTrigger value="jobs">Jobs ({jobs.length})</TabsTrigger>
-          <TabsTrigger value="settings">Pengaturan</TabsTrigger>
-        </ScrollableTabsList>
-        <TabsContent value="deploy" className="space-y-4 pt-4">
-          <ComposeAccessHint
-            domains={app.serviceDomains}
-            ports={app.servicePorts}
-            proxy={proxy}
-            running={app.status === "running"}
+      <ComposeLiveProvider initial={app}>
+        <Tabs defaultValue="deploy">
+          <ScrollableTabsList>
+            <TabsTrigger value="deploy">Deploy</TabsTrigger>
+            <TabsTrigger value="history">Riwayat ({runs.length})</TabsTrigger>
+            <TabsTrigger value="mounts">Mount ({mounts.length})</TabsTrigger>
+            <TabsTrigger value="jobs">Jobs ({jobs.length})</TabsTrigger>
+            <TabsTrigger value="settings">Pengaturan</TabsTrigger>
+          </ScrollableTabsList>
+          <ComposeStatusStrip
+            info={
+              <span className="font-mono break-all">
+                {app.source === "template"
+                  ? `template · ${app.templateId}`
+                  : `${(app.gitUrl ?? "").replace(/^https?:\/\//, "")}#${app.gitBranch} · ${app.composePath}`}
+              </span>
+            }
           />
-          <ComposePanel initial={app} metrics={metrics} />
-        </TabsContent>
-        <TabsContent value="history" className="pt-4">
-          <ComposeHistory appId={app.id} initial={runs} />
-        </TabsContent>
-        <TabsContent value="mounts" className="pt-4">
-          <ComposeMounts appId={app.id} mounts={mounts} canBind={canBind} />
-        </TabsContent>
-        <TabsContent value="jobs" className="pt-4">
-          <ApplicationJobs
-            owner={{ kind: "compose", id: app.id }}
-            jobs={jobs}
-            services={services}
-          />
-        </TabsContent>
-        <TabsContent value="settings" className="space-y-4 pt-4">
-          {webhook && (
-            <ComposeWebhook composeAppId={app.id} webhook={webhook} />
-          )}
-          <ComposeAccess
-            appId={app.id}
-            domains={app.serviceDomains}
-            ports={app.servicePorts}
-            proxy={proxy}
-            suggestions={template?.services ?? []}
-          />
-          <ComposeResources appId={app.id} resources={app.serviceResources} />
-          <Card>
-            <CardHeader>
-              <CardTitle>Pengaturan</CardTitle>
-              <CardDescription>
-                Perubahan berlaku pada deploy berikutnya.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ComposeForm
-                action={updateComposeAppAction.bind(null, app.id)}
-                defaultValues={{
-                  name: app.name,
-                  gitUrl: app.gitUrl ?? "",
-                  gitBranch: app.gitBranch,
-                  composePath: app.composePath,
-                  gitCredentialId: app.gitCredentialId ?? "",
-                  env: app.env,
-                  composeContent: app.composeContent ?? "",
-                }}
-                source={app.source}
-                submitLabel="Simpan"
-                credentials={credentials}
-                databaseSlugs={databases.map((d) => d.slug)}
-              />
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+          <TabsContent value="deploy" className="space-y-4 pt-4">
+            <ComposeAccessHint
+              domains={app.serviceDomains}
+              ports={app.servicePorts}
+              proxy={proxy}
+              running={app.status === "running"}
+            />
+            <ComposePanel metrics={metrics} />
+          </TabsContent>
+          <TabsContent value="history" className="pt-4">
+            <ComposeHistory appId={app.id} initial={runs} />
+          </TabsContent>
+          <TabsContent value="mounts" className="pt-4">
+            <ComposeMounts appId={app.id} mounts={mounts} canBind={canBind} />
+          </TabsContent>
+          <TabsContent value="jobs" className="pt-4">
+            <ApplicationJobs
+              owner={{ kind: "compose", id: app.id }}
+              jobs={jobs}
+              services={services}
+            />
+          </TabsContent>
+          <TabsContent value="settings" className="space-y-4 pt-4">
+            {webhook && (
+              <ComposeWebhook composeAppId={app.id} webhook={webhook} />
+            )}
+            <ComposeAccess
+              appId={app.id}
+              domains={app.serviceDomains}
+              ports={app.servicePorts}
+              proxy={proxy}
+              suggestions={template?.services ?? []}
+            />
+            <ComposeResources appId={app.id} resources={app.serviceResources} />
+            <Card>
+              <CardHeader>
+                <CardTitle>Pengaturan</CardTitle>
+                <CardDescription>
+                  Perubahan berlaku pada deploy berikutnya.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ComposeForm
+                  action={updateComposeAppAction.bind(null, app.id)}
+                  defaultValues={{
+                    name: app.name,
+                    gitUrl: app.gitUrl ?? "",
+                    gitBranch: app.gitBranch,
+                    composePath: app.composePath,
+                    gitCredentialId: app.gitCredentialId ?? "",
+                    env: app.env,
+                    composeContent: app.composeContent ?? "",
+                  }}
+                  source={app.source}
+                  submitLabel="Simpan"
+                  credentials={credentials}
+                  databaseSlugs={databases.map((d) => d.slug)}
+                />
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </ComposeLiveProvider>
     </>
   )
 }
