@@ -18,6 +18,8 @@ Versions below 1.0.0 may include breaking changes in a minor release.
 
 - **Admin UI card on the database page** (Ringkasan tab): install a web admin tool for the database (the list comes from the API and depends on the engine) as its own container. The install dialog picks the tool (each shows whether it signs in with the database login or a generated password) and the access, either a domain (hostname, HTTPS switch) or an IP and host port, validated before sending. The installed card shows the tool, a status badge (creating refreshes every 3 s until it settles, errors show the message), the URL opening in a new tab, "Tampilkan kredensial" which fetches the generated login on demand (tools using the database login point to the Kredensial card instead), and "Hapus Admin UI" with a confirmation. Developers and up manage it; viewers only see status and URL. Install is disabled while the database is not running. New `database-companion.tsx` and `src/features/database-companion/`.
 
+- **New one-click template: Excalidraw** (the 15th). The Templates page lists it automatically from the API catalog, with its logo and a "Whiteboard" service you can give a domain. It is a static client with no database or variables, so the deploy dialog only asks for the project, name and domain; live collaboration is not included.
+
 ### Fixed
 
 - **Audit log texts for certificates.** The dashboard's Recent activity and the Audit log show "Unggah sertifikat SSL", "Perbarui sertifikat SSL", "Hapus sertifikat SSL" and "Ubah sertifikat domain" instead of the raw routes; every route the API records now has a readable text (checked against all POST/PUT/PATCH/DELETE routes).
