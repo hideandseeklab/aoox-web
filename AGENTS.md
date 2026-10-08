@@ -354,6 +354,29 @@ Baca `AGENTS.md` — versi Next.js ini punya breaking changes; cek `node_modules
   (`checkImageUpdateAction(id, deploy=true)` → `POST /applications/:id/check-image`) dengan pesan hasil (baseline/terbaru/berubah → pilih deployment baru); riwayat menandai
   `kind === "auto-update"` dengan ⟳.
 
+## Halaman Docker (grup Platform di sidebar; rute `/infra/docker`)
+
+- `app/(dashboard)/infra/docker/page.tsx` (server component, owner/admin — selain itu 404) membaca `?server=<uuid>&tab=containers|images|volumes|networks` dari URL: server yang tidak ada di
+  `GET /servers` jatuh ke host, tab tak dikenal ke `containers`. Hanya data **tab yang terbuka** yang diambil (`features/docker/docker.queries.ts` → `/docker/*` di API, lihat AGENTS aoox-api
+  "Docker manager"); galat server (server remote mati) tampil sebagai `Alert` di halaman, bukan 500. `docker-toolbar.tsx` (client) = **satu baris**: pemilih "Server" (opsi pertama "Host (mesin aoox)") + tab strip (h-7) yang hanya mengganti URL + kotak cari rata kanan (`ms-auto`, `sm:max-w-sm sm:flex-1`, di bawah `sm` turun satu baris penuh; di 375 px: baris server, baris tab, baris cari). Toolbar membungkus kontennya (`children`) dan membagikan teks cari lewat `DockerQueryContext` (`useDockerQuery()` di tiap tabel); teks dikosongkan tiap pindah tab.
+- **Sidebar & judul**: item "Docker" ada di `NAV` (grup Platform, setelah Registry, sebelum Terminal) dengan flag `terminal: true` = gerbang owner/admin yang sama dengan item Terminal (member/viewer tidak
+  melihatnya dan membuka URL-nya = 404); halaman memasang `SetBreadcrumb` "Docker" dan judulnya sendiri (bukan `InfraPage`, supaya tidak muncul crumb "Infrastruktur"). "Disk Docker"/"Docker Swarm" tetap di Infrastruktur.
+  **Tabel container**: kolom pertama titik bulat (`StateDot`: `bg-primary` bila `running`, `bg-muted-foreground/40` selain itu; `title` dan teks `sr-only` berisi state asli), lalu Container, Status (hanya teks status Docker),
+  **Managed by aoox** (judul persis itu, final dari user; `MANAGED_LABEL` = Panel aoox/Proxy/Registry/Aplikasi/Database/Admin database/Stack/Build/Job/Backup, tooltip `managedHint`, "-" bila tidak dikelola), Port, Umur, Aksi.
+  Tab Image memakai kolom yang sama untuk lencana "Image aoox" dan "dilindungi".
+- Satu komponen client per tab (`docker-containers/-images/-volumes/-networks.tsx`) yang memfilter dengan teks dari toolbar (`docker-ui.tsx`: `useDockerQuery`, `DockerSearch`, `matches`, `ago`, `DockerEmpty`); kolom titik state selebar `w-10 min-w-10 px-0` dengan titik di tengah dan kolom Container `ps-0`, sehingga jarak titik ke tepi kiri tabel = jarak titik ke teks nama (16 px, diukur di 1280 dan 375 px; tanpa `min-w` kolom itu menyusut jadi 8 px di tabel yang menggulir); tabel dibungkus
+  `overflow-x-auto` bawaan `Table` (375 px tanpa scroll horizontal halaman, diuji). Container milik aoox (`managed` dari API) mendapat lencana `aoox · <jenis>` dan tautan "Buka halamannya"
+  bila label menyebut resource (`/applications|databases|compose/<id>`), **tanpa** tombol stop/restart/hapus — API menolaknya juga (403); UI hanya menyembunyikan aksinya. Aksi untuk container lain:
+  Log (`docker-logs-dialog.tsx`, satu kali ambil 100/200/500 baris, dialog di-`key` per container supaya state bersih), Start/Stop, Restart, Hapus (`ConfirmDialog`; untuk container berjalan ada
+  switch "Paksa" — tanpa itu API membalas 409 yang tampil di dialog). Aksi tulis hanya terlihat untuk owner (`isOwner`); admin hanya membaca. Image: hapus untuk yang tidak dipakai, bukan
+  milik aoox, dan tanpa `protectedReason` (image yang dipakai rollback/aplikasi/preview atau milik registry aoox mendapat lencana "dilindungi" dengan alasannya di tooltip, tanpa tombol hapus);
+  tombol "Bersihkan dangling" (jumlah di label) membuka `ConfirmDialog` yang menyebut itu berlaku untuk **semua** image dangling di server itu (bukan hanya aoox) dengan perkiraan jumlah/ukuran
+  dari daftar yang sudah dimuat (tanpa panggilan baru). Dialog hapus image (`RemoveImageButton`) menyebut bahwa hapus berlaku **per ID image** (API memakai `force`, jadi semua tag ikut hilang) dan menampilkan
+  semua `DockerImage.tags` (mono, satu per baris, kotak `max-h-40` ≈ 8 baris yang menggulir); image tanpa tag menampilkan ID pendek + "tanpa tag". Volume/network baca saja (lencana `aoox`, `yatim`, `bawaan`, `internal`).
+- Teks aksi di audit log: 6 kunci `POST/DELETE /docker/...` di `audit-log.format.ts`. Server action (`docker.actions.ts`) mem-`revalidatePath('/infra/docker')`, jadi daftar menyegar sendiri;
+  stop container yang mengabaikan SIGTERM butuh ±10 detik (tombol terkunci "Rendering…" selama itu — normal).
+- **Belum**: aksi untuk server remote belum diuji nyata (kodenya sama dengan host); volume/network tanpa hapus; tanpa exec/shell.
+
 ## Docker Swarm
 
 - `swarm-card.tsx` (Settings → Infrastruktur, owner/admin; aksi hanya owner): status, init (advertise addr opsional), daftar node (drain/aktifkan, hapus), perintah join (salin),

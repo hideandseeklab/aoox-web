@@ -17,7 +17,12 @@ export default async function TerminalSettingsPage() {
       title="Terminal"
       description="Ke mana web shell terhubung (lokal atau SSH ke host) dan key platform yang dipakainya."
     >
-      <TerminalCard status={status} />
+      <TerminalCard
+        status={status}
+        canAutoAuthorize={
+          status.canAutoAuthorize && session.user.role === "owner"
+        }
+      />
     </InfraPage>
   )
 }

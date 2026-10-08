@@ -148,6 +148,12 @@ export interface DnsCheck {
   message: string
 }
 
+/** A middleware a domain can use: `name@file` and the config file that declares it. */
+export interface DomainMiddlewareOption {
+  ref: string
+  file: string
+}
+
 export interface Domain {
   id: string
   applicationId: string
@@ -156,6 +162,8 @@ export interface Domain {
   /** Custom SSL certificate in use; null = automatic Let's Encrypt. */
   certificateId?: string | null
   certificateName?: string | null
+  /** Traefik middlewares (`name@file`) in front of this host, in the order they run. */
+  middlewares?: string[]
   createdAt: string
   /**
    * True when the proxy wasn't running and the API started it automatically

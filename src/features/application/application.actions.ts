@@ -416,6 +416,28 @@ export async function setDomainCertificateAction(
   }
 }
 
+/** Sets the Traefik middlewares (`name@file`, in order) in front of a domain; `[]` removes them all. */
+export async function setDomainMiddlewaresAction(
+  applicationId: string,
+  domainId: string,
+  middlewares: string[]
+): Promise<ActionResult<Domain>> {
+  try {
+    const data = await api<Domain>(
+      `/applications/${applicationId}/domains/${domainId}`,
+      {
+        method: "PATCH",
+        body: { middlewares },
+        token: await requireToken(),
+      }
+    )
+    revalidatePath(`/applications/${applicationId}`)
+    return { ok: true, data }
+  } catch (err) {
+    return fail(err)
+  }
+}
+
 /** On-demand DNS check: does the host resolve to where the proxy listens? */
 export async function checkDomainDnsAction(
   applicationId: string,

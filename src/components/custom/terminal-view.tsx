@@ -27,6 +27,7 @@ import {
   type TerminalHandshakeAuth,
   type TerminalServerEvents,
 } from "@/features/terminal/terminal.protocol"
+import { TerminalAuthorizeButton } from "./terminal-authorize-button"
 import { useBrowserOrigin } from "./use-browser-host"
 
 type TerminalSocket = Socket<TerminalServerEvents, TerminalClientEvents>
@@ -77,12 +78,15 @@ export function TerminalView({
   webOrigin,
   servers,
   isOwner,
+  autoAuthorizeUser = null,
 }: {
   publicApiUrl: string
   /** The panel's configured `WEB_ORIGIN` — the only origin its Socket.IO gateways accept. */
   webOrigin: string
   servers: Server[]
   isOwner: boolean
+  /** Host user for the "Otorisasi otomatis" button; null hides it (not owner, or the API says no). */
+  autoAuthorizeUser?: string | null
 }) {
   const hostRef = useRef<HTMLDivElement>(null)
   const [status, setStatus] = useState<Status>("connecting")
@@ -319,6 +323,24 @@ export function TerminalView({
                 </Link>
                 , lalu klik Sambung ulang.
               </>
+            )}
+            {errorHint === "environment" && (
+              <p className="mt-2">
+                Kalau galatnya &quot;SSH authentication failed&quot;: perintah
+                otorisasi harus dijalankan di host sebagai user yang sama dengan
+                kolom <strong>User</strong> di Environment. Login root sering
+                ditolak sshd di VPS cloud, jadi di Ubuntu isi User dengan user
+                login kamu (biasanya <code>ubuntu</code>), simpan, lalu jalankan
+                perintah otorisasi sebagai user itu.
+              </p>
+            )}
+            {errorHint === "environment" && autoAuthorizeUser && (
+              <div className="mt-2">
+                <TerminalAuthorizeButton
+                  user={autoAuthorizeUser}
+                  onAuthorized={reconnect}
+                />
+              </div>
             )}
           </AlertDescription>
         </Alert>

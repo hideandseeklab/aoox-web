@@ -15,6 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
+import { DomainMiddlewaresDialog } from "@/components/custom/domain-middlewares-dialog"
 import {
   addDomainAction,
   checkDomainDnsAction,
@@ -24,6 +25,7 @@ import {
 import type {
   DnsCheck,
   Domain,
+  DomainMiddlewareOption,
 } from "@/features/application/application.entity"
 import type { Certificate } from "@/features/certificate/certificate.entity"
 import {
@@ -48,6 +50,7 @@ export function ApplicationDomains({
   applicationId,
   domains,
   certificates,
+  middlewareOptions,
   canEdit,
   proxy,
   deployed,
@@ -55,6 +58,7 @@ export function ApplicationDomains({
   applicationId: string
   domains: Domain[]
   certificates: Certificate[]
+  middlewareOptions: DomainMiddlewareOption[]
   /** False for viewers: the certificate choice is then read-only. */
   canEdit: boolean
   proxy: ProxyStatus
@@ -290,6 +294,27 @@ export function ApplicationDomains({
                     pending={pending}
                     onChange={(value) => setCertificate(d.id, value)}
                   />
+                )}
+                {(canEdit || (d.middlewares ?? []).length > 0) && (
+                  <div className="flex flex-wrap items-center gap-2 text-muted-foreground">
+                    <span>Middleware</span>
+                    {(d.middlewares ?? []).length === 0 ? (
+                      <span>tidak ada</span>
+                    ) : (
+                      (d.middlewares ?? []).map((m) => (
+                        <Badge key={m} variant="outline" className="font-mono">
+                          {m}
+                        </Badge>
+                      ))
+                    )}
+                    {canEdit && (
+                      <DomainMiddlewaresDialog
+                        applicationId={applicationId}
+                        domain={d}
+                        options={middlewareOptions}
+                      />
+                    )}
+                  </div>
                 )}
                 {check && (
                   <p className="text-xs text-muted-foreground">

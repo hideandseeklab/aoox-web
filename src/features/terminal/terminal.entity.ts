@@ -17,4 +17,17 @@ export interface TerminalStatus {
   authorizeCommand: string | null
   /** Why the credential could not be prepared (e.g. key dir not writable). */
   error: string | null
+  /** The owner may let the panel add the key to the host's authorized_keys itself (shows the button). */
+  canAutoAuthorize: boolean
+}
+
+/** Answer of `POST /terminal/authorize` (owner only). */
+export interface TerminalAuthorizeResult {
+  ok: true
+  /** Host user whose authorized_keys received the key. */
+  user: string
+  alreadyAuthorized: boolean
+  /** An SSH login with the platform key succeeded right after writing. */
+  verified: boolean
+  message: string
 }

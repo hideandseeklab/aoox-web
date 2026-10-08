@@ -121,6 +121,10 @@ export function InstanceEnvCard({ status }: { status: InstanceEnvStatus }) {
                   <code>{status.terminalSshUserDefault}</code> (default).
                 </p>
               )}
+              <p className="text-xs text-muted-foreground">
+                Di VPS Ubuntu biasanya <code>ubuntu</code>: login root sering
+                ditolak sshd, jadi isi dengan user login SSH-mu.
+              </p>
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="env-ssh-password">

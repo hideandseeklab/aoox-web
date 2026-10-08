@@ -70,6 +70,12 @@ export async function api<T>(
     throw new ApiError(res.status, message, details)
   }
 
-  if (res.status === 204) return undefined as T
-  return (await res.json()) as T
+  // Some 2xx answers carry no body: 204/205 by definition, and the API's `202 Accepted` handlers
+  // that return `void` (instance env, instance update). Parsing "" as JSON would throw a
+  // SyntaxError that callers report as "cannot reach the server" even though the call worked.
+  // A non-empty body that is not valid JSON still throws.
+  if (res.status === 204 || res.status === 205) return undefined as T
+  const text = await res.text()
+  if (text === "") return undefined as T
+  return JSON.parse(text) as T
 }

@@ -8,6 +8,7 @@ import type {
   Deployment,
   DeploymentSummary,
   Domain,
+  DomainMiddlewareOption,
   Mount,
   MountOwner,
   WebhookInfo,
@@ -55,6 +56,16 @@ export async function listDomains(applicationId: string): Promise<Domain[]> {
   return api<Domain[]>(`/applications/${applicationId}/domains`, {
     token: await requireToken(),
   })
+}
+
+/** Middlewares from the enabled dynamic config files of the proxy that serves the app. */
+export async function listDomainMiddlewares(
+  applicationId: string
+): Promise<DomainMiddlewareOption[]> {
+  return api<DomainMiddlewareOption[]>(
+    `/applications/${applicationId}/domain-middlewares`,
+    { token: await requireToken() }
+  )
 }
 
 export async function listMounts(owner: MountOwner): Promise<Mount[]> {

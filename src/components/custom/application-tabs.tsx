@@ -28,6 +28,7 @@ import type {
   ApplicationDetail,
   DeploymentSummary,
   Domain,
+  DomainMiddlewareOption,
   Mount,
   WebhookInfo,
 } from "@/features/application/application.entity"
@@ -66,6 +67,7 @@ export function ApplicationTabs({
   deployments,
   domains,
   certificates,
+  middlewareOptions,
   mounts,
   jobs,
   volumeBackups,
@@ -93,6 +95,8 @@ export function ApplicationTabs({
   domains: Domain[]
   /** Custom SSL certificates a https domain can pick (no key material). */
   certificates: Certificate[]
+  /** Middlewares a domain can pick (names only). */
+  middlewareOptions: DomainMiddlewareOption[]
   mounts: Mount[]
   jobs: Job[]
   volumeBackups: VolumeBackup[]
@@ -160,6 +164,7 @@ export function ApplicationTabs({
           applicationId={app.id}
           domains={domains}
           certificates={certificates}
+          middlewareOptions={middlewareOptions}
           canEdit={app.projectRole !== "viewer"}
           proxy={proxy}
           deployed={!!app.currentImage}

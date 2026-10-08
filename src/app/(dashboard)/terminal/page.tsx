@@ -4,6 +4,7 @@ import { TerminalView } from "@/components/custom/terminal-view"
 import { canUseTerminal } from "@/features/auth/auth.entity"
 import { getVerifiedSession } from "@/features/auth/auth.session"
 import { listServers } from "@/features/server/server.queries"
+import { getTerminalStatus } from "@/features/terminal/terminal.queries"
 import { publicApiUrl, webOrigin } from "@/lib/api"
 
 export const metadata = { title: "Terminal · aoox" }
@@ -13,6 +14,15 @@ export default async function TerminalPage() {
   // Members never see the sidebar link; a direct visit goes home.
   if (!session || !canUseTerminal(session.user)) redirect("/")
   const servers = await listServers()
+  const isOwner = session.user.role === "owner"
+  // Only the owner sees "Otorisasi otomatis"; a failed status read just hides it.
+  const terminalStatus = isOwner
+    ? await getTerminalStatus().catch(() => null)
+    : null
+  const autoAuthorizeUser =
+    terminalStatus?.canAutoAuthorize && terminalStatus.username
+      ? terminalStatus.username
+      : null
 
   return (
     <div className="flex h-[calc(100svh-6rem)] flex-col gap-4">
@@ -29,7 +39,8 @@ export default async function TerminalPage() {
         publicApiUrl={publicApiUrl()}
         webOrigin={webOrigin()}
         servers={servers}
-        isOwner={session.user.role === "owner"}
+        isOwner={isOwner}
+        autoAuthorizeUser={autoAuthorizeUser}
       />
     </div>
   )

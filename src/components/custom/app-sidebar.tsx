@@ -1,6 +1,7 @@
 "use client"
 
 import {
+  Boxes,
   CircleArrowUp,
   Container,
   DatabaseBackup,
@@ -44,6 +45,8 @@ const NAV = [
   { title: "Projects", href: "/projects", icon: FolderKanban },
   { title: "Templates", href: "/templates", icon: LayoutTemplate },
   { title: "Registry", href: "/registry", icon: Container },
+  // `terminal` = the owner/admin gate (same one that shows the terminal).
+  { title: "Docker", href: "/infra/docker", icon: Boxes, terminal: true },
   {
     title: "Terminal",
     href: "/terminal",

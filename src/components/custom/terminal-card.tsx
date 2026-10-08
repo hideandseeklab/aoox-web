@@ -3,6 +3,7 @@
 import { Copy } from "lucide-react"
 import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
+import { TerminalAuthorizeButton } from "@/components/custom/terminal-authorize-button"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -22,7 +23,14 @@ const KEY_SOURCE_LABEL = {
 
 /** Settings card: how the web terminal reaches the host and, for the
  *  auto-generated key, the one-time command that authorizes it. */
-export function TerminalCard({ status }: { status: TerminalStatus }) {
+export function TerminalCard({
+  status,
+  canAutoAuthorize = false,
+}: {
+  status: TerminalStatus
+  /** Owner and the API allows it: show the button above the manual command. */
+  canAutoAuthorize?: boolean
+}) {
   const target =
     status.mode === "ssh"
       ? `${status.username ?? "?"}@${status.host}:${status.port}`
@@ -67,6 +75,11 @@ export function TerminalCard({ status }: { status: TerminalStatus }) {
             <p className="text-destructive" role="alert">
               {status.error}
             </p>
+          )}
+          {status.authorizeCommand && canAutoAuthorize && status.username && (
+            <div>
+              <TerminalAuthorizeButton user={status.username} />
+            </div>
           )}
           {status.authorizeCommand && (
             <div className="space-y-1.5">

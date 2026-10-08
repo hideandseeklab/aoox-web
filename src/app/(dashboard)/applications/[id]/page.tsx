@@ -17,6 +17,7 @@ import {
   listDeployments,
   listDomains,
   listMounts,
+  listDomainMiddlewares,
   listPreviews,
 } from "@/features/application/application.queries"
 import { listBackupDestinations } from "@/features/backup-destination/backup-destination.queries"
@@ -50,6 +51,7 @@ export default async function ApplicationPage({
     deployments,
     domains,
     certificates,
+    middlewareOptions,
     mounts,
     jobs,
     volumeBackups,
@@ -71,6 +73,8 @@ export default async function ApplicationPage({
     listDomains(app.id),
     // Names and coverage only, for the domain's certificate picker; [] on an older API.
     listCertificates().catch(() => []),
+    // Names only, for the domain's middleware picker; [] on an older API.
+    listDomainMiddlewares(app.id).catch(() => []),
     listMounts({ kind: "application", id: app.id }),
     listJobs({ kind: "application", id: app.id }),
     listVolumeBackups(app.id),
@@ -128,6 +132,7 @@ export default async function ApplicationPage({
         deployments={deployments}
         domains={domains}
         certificates={certificates}
+        middlewareOptions={middlewareOptions}
         mounts={mounts}
         jobs={jobs}
         volumeBackups={volumeBackups}

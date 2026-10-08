@@ -8,7 +8,31 @@ Versions below 1.0.0 may include breaking changes in a minor release.
 
 ## [Unreleased]
 
+### Added
+
+- **Docker page (Docker, in the Platform group of the sidebar).** Pick the host or a remote server, then browse containers, images, volumes and networks (search box on each,
+  the choice lives in the URL). Containers aoox owns (panel, proxy, registry, applications, databases, stacks) carry a badge and a link to their own page and
+  get no stop/restart/remove here; other containers can show their log tail and be started, stopped, restarted or removed (owner, with a confirmation and
+  an optional "force" for running ones). Images no container uses can be removed (the owner) unless they are still needed for rollback, by an application or preview, or belong to aoox's local registry (badged "dilindungi"); dangling ones are cleaned up in one click after a confirmation that says it covers every dangling image on that server, with an estimated count and size; volumes and networks are
+  read-only with size, users and an "orphan" marker. Audit log entries read in Indonesian.
+- **"Otorisasi otomatis" for the terminal's SSH key.** The owner can let the panel add its SSH key to the host user's `~/.ssh/authorized_keys` instead of running the manual command: a button in Infrastruktur, Terminal (above the command, which stays as the fallback) and in the connection error notice on the Terminal page, behind a confirmation dialog that names the user. On success with a verified login the toast says "Terminal siap" and the terminal reconnects; otherwise the API's message is shown and the manual command stays visible. The audit log reads "Otorisasi key SSH terminal" for it. Needs the matching API (`POST /terminal/authorize`, `canAutoAuthorize` in the terminal status).
+
+- **Proxy dynamic configuration (Infrastruktur > Reverse proxy).** A "Konfigurasi dinamis" card lists the Traefik config files of the host or a
+  remote server (`?server=`): enable/disable, a YAML editor that shows Traefik's rejection verbatim (the previous version is restored), delete with
+  a confirmation, "Dari preset" (basic auth, security headers, rate limit, IP allowlist, www redirect) and "Terapkan ulang". The owner writes, admins
+  read. A proxy from an older aoox asks for confirmation before it is recreated once. Audit log entries read in Indonesian.
+- **Domain tab: middlewares.** Each domain shows its Traefik middlewares and, for developers and up, an "Atur" dialog to pick them (the order they are
+  switched on is the order they run).
+
+### Fixed
+
+- **"Tidak dapat terhubung ke server" after a save that worked.** Saving "SSH Terminal" (and the other sections) in Infrastruktur, Environment showed that toast although the change was applied: the API answers `202 Accepted` with an empty body, and the web's API helper tried to parse the empty body as JSON. The helper now treats an empty successful response as "no data" (a non-empty body that is not valid JSON still fails, and error responses are unchanged). The same applied to "Terapkan update", which only worked because the page treats a network error as "the panel is restarting".
+
 ### UI UX Improvement
+
+- **Removing an image says what goes with it.** The confirmation in the Docker page's Image tab now explains that removal is per image ID, so every tag of that image disappears from the server, and lists all of its tags (monospace, one per line, scrolling after about eight); an image without a tag shows its short ID and says so. The data was already in the image list, so the API is unchanged; protection, actions and the other dialogs are untouched.
+- **Docker page layout.** "Docker" moved from the Infrastruktur group to the Platform group of the sidebar (between Registry and Terminal, shown to owners and admins only like the Terminal item; the address is still `/infra/docker`, the breadcrumb now reads Dashboard, Docker, and "Disk Docker" and "Docker Swarm" stay under Infrastruktur). The picker is labelled "Server" with "Host (mesin aoox)" as its first choice. In the container table the state became a small round marker in its own first column (lime while running, muted otherwise, with the real state as its tooltip and for screen readers), "Status" holds only Docker's status text, and a new "Managed by aoox" column names what aoox container it is (Panel aoox, Proxy, Registry, Aplikasi, Database, Admin database, Stack, Build, Job, Backup) with a tooltip saying it is managed from its own page; the images table got the same column for its "Image aoox" and "dilindungi" markers. The state dot sits exactly in the middle of its own column (16 px to the table edge and 16 px to the container name, also at phone width). The toolbar is one row: Server picker, the tabs, and the search box at the right edge (it drops onto its own full-width row on a narrow screen); the search text starts empty on each tab. Contents, actions and the guards behind them are unchanged.
+- **Terminal SSH help text.** When the terminal cannot reach the host, the error notice now adds a short explanation of "SSH authentication failed": the authorization command has to run on the host as the same user as the User field in Environment, and root login is often refused by sshd on cloud VPS, so on Ubuntu set User to your login user (usually `ubuntu`). The User field in Infrastruktur, Environment has a one-line note saying the same. Text only; no protocol or behaviour change.
 
 - **Settings cards follow the content width.** In Settings, the Akun and Integrasi tabs lay their cards out in two columns only when the content area is wide enough (it used to depend on the screen width, which squeezed both cards to about 350 px between 1024 and 1280 px), and a card left alone on the last row, such as Sertifikat SSL, or the only card a member sees under Integrasi, now spans the full width instead of leaving half the row empty. Contents, roles and the tab and sidebar navigation are unchanged.
 
