@@ -1,6 +1,7 @@
 import { ArrowLeft } from "lucide-react"
 import { getProject } from "@/features/project/project.queries"
 import { SetBreadcrumb } from "@/components/custom/breadcrumb-store"
+import { EngineIcon } from "@/components/custom/brand-icon"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { ApplicationJobs } from "@/components/custom/application-jobs"
@@ -97,7 +98,13 @@ export default async function DatabasePage({
             <ArrowLeft />
           </Link>
         </Button>
-        <h1 className="min-w-0 text-lg font-semibold break-words">{db.name}</h1>
+        <h1 className="flex min-w-0 items-center gap-2 text-lg font-semibold">
+          <EngineIcon
+            engine={db.engine}
+            className="size-4 text-muted-foreground"
+          />
+          <span className="min-w-0 break-words">{db.name}</span>
+        </h1>
       </div>
       <Tabs defaultValue="overview">
         <ScrollableTabsList>

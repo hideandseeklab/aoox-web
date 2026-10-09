@@ -1,5 +1,6 @@
 "use client"
 
+import { HardDrive } from "lucide-react"
 import {
   DockerEmpty,
   useDockerQuery,
@@ -27,7 +28,7 @@ export function DockerVolumes({ volumes }: { volumes: DockerVolume[] }) {
   return (
     <div className="space-y-3">
       {rows.length === 0 ? (
-        <DockerEmpty>
+        <DockerEmpty icon={HardDrive}>
           {volumes.length === 0
             ? "Belum ada volume di server ini."
             : "Tidak ada volume yang cocok."}
@@ -57,10 +58,10 @@ export function DockerVolumes({ volumes }: { volumes: DockerVolume[] }) {
                     </div>
                   </TableCell>
                   <TableCell>{v.driver}</TableCell>
-                  <TableCell className="whitespace-nowrap">
+                  <TableCell className="whitespace-nowrap tabular-nums">
                     {v.size === null ? "-" : formatBytes(v.size)}
                   </TableCell>
-                  <TableCell className="whitespace-nowrap">
+                  <TableCell className="whitespace-nowrap tabular-nums">
                     {ago(v.createdAt)}
                   </TableCell>
                   <TableCell className="max-w-64 whitespace-normal">

@@ -2,6 +2,7 @@
 
 import { CloudUpload, Plus, RadioTower, Trash2 } from "lucide-react"
 import { useActionState, useState, useTransition } from "react"
+import { EmptyState } from "@/components/custom/empty-state"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -81,9 +82,9 @@ export function BackupDestinationsCard({
       </CardHeader>
       <CardContent className="space-y-3 text-xs">
         {destinations.length === 0 ? (
-          <p className="text-muted-foreground">
+          <EmptyState icon={CloudUpload} compact>
             Belum ada tujuan — backup hanya tersimpan di volume server ini.
-          </p>
+          </EmptyState>
         ) : (
           <ul className="divide-y rounded-md border">
             {destinations.map((d) => {

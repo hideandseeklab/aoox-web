@@ -3,6 +3,7 @@
 import { PathArrow } from "@/components/custom/arrows"
 import { KeyRound, Plus, Trash2 } from "lucide-react"
 import { useActionState, useState, useTransition } from "react"
+import { EmptyState } from "@/components/custom/empty-state"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -73,9 +74,9 @@ export function GitCredentialsCard({
       </CardHeader>
       <CardContent>
         {credentials.length === 0 ? (
-          <p className="text-xs text-muted-foreground">
+          <EmptyState icon={KeyRound} compact>
             Belum ada kredensial — semua repo di-clone secara anonim.
-          </p>
+          </EmptyState>
         ) : (
           <ul className="divide-y rounded-md border">
             {credentials.map((c) => (

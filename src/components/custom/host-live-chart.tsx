@@ -1,6 +1,7 @@
 "use client"
 
-import { useEffect, useId, useState, useSyncExternalStore } from "react"
+import { useEffect, useState, useSyncExternalStore } from "react"
+import { AreaChart } from "@/components/custom/area-chart"
 import { Card, CardContent } from "@/components/ui/card"
 import { fetchHostLiveAction } from "@/features/monitoring/monitoring.actions"
 import {
@@ -126,134 +127,19 @@ function LiveTile({
         <p className="text-2xl font-semibold tabular-nums">{value}</p>
         <p className="text-xs text-muted-foreground">{hint}</p>
         {series.length > 1 && (
-          <AreaChart series={series} history={history} format={format} />
+          <AreaChart
+            points={series.map((value, i) => ({
+              value,
+              at: history[i]?.at ?? "",
+            }))}
+            format={format}
+            domain={[0, 100]}
+            slots={POINTS}
+            height={112}
+            ariaLabel={`Riwayat 5 menit, terakhir ${format(series[series.length - 1])}`}
+          />
         )}
       </CardContent>
     </Card>
-  )
-}
-
-// Wide, short canvas: the tile spans the page, so give the line room.
-const W = 1200
-const H = 120
-
-/**
- * Fixed 0–100 scale (a percentage that jumps to full scale on its own would
- * be misleading), 25 % gridlines, 2px line + soft fill, hover crosshair.
- */
-function AreaChart({
-  series,
-  history,
-  format,
-}: {
-  series: number[]
-  history: HostSample[]
-  format: (v: number) => string
-}) {
-  const [hover, setHover] = useState<number | null>(null)
-  const mounted = useSyncExternalStore(
-    () => () => undefined,
-    () => true,
-    () => false
-  )
-  const gradId = useId()
-  // Right-align: a short history starts at the left and grows rightwards
-  // until it fills the width, then scrolls.
-  const step = W / (POINTS - 1)
-  const offset = W - (series.length - 1) * step
-  const x = (i: number) => offset + i * step
-  const y = (v: number) =>
-    H - 1 - (Math.min(100, Math.max(0, v)) / 100) * (H - 2)
-  const line = series
-    .map(
-      (v, i) => `${i === 0 ? "M" : "L"}${x(i).toFixed(1)},${y(v).toFixed(1)}`
-    )
-    .join(" ")
-  const area = `${line} L${x(series.length - 1).toFixed(1)},${H} L${x(0).toFixed(1)},${H} Z`
-  const last = series.length - 1
-  const i = hover ?? last
-  const at = history[i]?.at
-  const label = `${format(series[i])}${
-    at && mounted ? ` · ${new Date(at).toLocaleTimeString()}` : ""
-  }`
-
-  return (
-    <div className="space-y-0.5">
-      <svg
-        viewBox={`0 0 ${W} ${H}`}
-        // Stretch to the card's width instead of letterboxing (default
-        // xMidYMid would centre a fixed-ratio drawing); strokes below use
-        // non-scaling widths so they stay crisp.
-        preserveAspectRatio="none"
-        className="h-28 w-full"
-        role="img"
-        aria-label={`Riwayat 5 menit, terakhir ${format(series[last])}`}
-        onMouseMove={(e) => {
-          const rect = e.currentTarget.getBoundingClientRect()
-          const px = ((e.clientX - rect.left) / rect.width) * W
-          setHover(
-            Math.min(last, Math.max(0, Math.round((px - offset) / step)))
-          )
-        }}
-        onMouseLeave={() => setHover(null)}
-      >
-        <defs>
-          <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stopColor="currentColor" stopOpacity={0.25} />
-            <stop offset="1" stopColor="currentColor" stopOpacity={0.02} />
-          </linearGradient>
-        </defs>
-        {[25, 50, 75].map((g) => (
-          <line
-            key={g}
-            x1={0}
-            x2={W}
-            y1={y(g)}
-            y2={y(g)}
-            stroke="currentColor"
-            strokeWidth={1}
-            className="text-border"
-            strokeDasharray="2 4"
-            vectorEffect="non-scaling-stroke"
-          />
-        ))}
-        <path d={area} fill={`url(#${gradId})`} className="text-primary" />
-        <path
-          d={line}
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={2}
-          strokeLinejoin="round"
-          strokeLinecap="round"
-          className="text-primary"
-          vectorEffect="non-scaling-stroke"
-        />
-        {hover !== null && (
-          <line
-            x1={x(hover)}
-            x2={x(hover)}
-            y1={0}
-            y2={H}
-            stroke="currentColor"
-            strokeWidth={1}
-            className="text-muted-foreground"
-            vectorEffect="non-scaling-stroke"
-          />
-        )}
-        {/* "Now" marker: a short vertical tick (a circle would be squashed by the stretch). */}
-        <line
-          x1={x(i)}
-          x2={x(i)}
-          y1={y(series[i]) - 5}
-          y2={y(series[i]) + 5}
-          stroke="currentColor"
-          strokeWidth={3}
-          strokeLinecap="round"
-          className="text-primary"
-          vectorEffect="non-scaling-stroke"
-        />
-      </svg>
-      <p className="text-[11px] text-muted-foreground tabular-nums">{label}</p>
-    </div>
   )
 }

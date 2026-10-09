@@ -81,8 +81,10 @@ export function StatCard({
           {icon && <IconChip icon={icon} />}
           {label}
         </p>
-        <p className="text-2xl font-semibold">{value}</p>
-        {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
+        <p className="text-2xl font-semibold tabular-nums">{value}</p>
+        {hint && (
+          <p className="text-xs text-muted-foreground tabular-nums">{hint}</p>
+        )}
       </div>
     )
   }
@@ -95,8 +97,10 @@ export function StatCard({
             {icon && <IconChip icon={icon} />}
             {label}
           </p>
-          <p className="text-2xl font-semibold">{value}</p>
-          {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
+          <p className="text-2xl font-semibold tabular-nums">{value}</p>
+          {hint && (
+          <p className="text-xs text-muted-foreground tabular-nums">{hint}</p>
+        )}
           {trend && trend.series.length > 1 && (
             <StatSparkline
               series={trend.series}
@@ -122,7 +126,9 @@ export function StatCard({
           {icon && <IconChip icon={icon} />}
           {label}
         </CardDescription>
-        <CardTitle className={`text-3xl tracking-tighter ${t.text}`.trim()}>
+        <CardTitle
+          className={`text-3xl tracking-tighter tabular-nums ${t.text}`.trim()}
+        >
           {value}
         </CardTitle>
       </CardHeader>

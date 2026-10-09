@@ -1,6 +1,6 @@
 "use client"
 
-import { FileText, Play, RotateCw, Square, Trash2 } from "lucide-react"
+import { Container, FileText, Play, RotateCw, Square, Trash2 } from "lucide-react"
 import Link from "next/link"
 import { useState, useTransition } from "react"
 import { toast } from "sonner"
@@ -13,6 +13,7 @@ import {
   matches,
 } from "@/components/custom/docker-ui"
 import { DockerLogsDialog } from "@/components/custom/docker-logs-dialog"
+import { StatusDot } from "@/components/custom/status-dot"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
@@ -33,20 +34,6 @@ import {
   managedHint,
   type DockerContainer,
 } from "@/features/docker/docker.entity"
-
-/** Small round marker: lime while running, muted otherwise; the real state stays in the title and for screen readers. */
-function StateDot({ state }: { state: string }) {
-  return (
-    <span
-      title={state}
-      className={`inline-block size-2 rounded-full ${
-        state === "running" ? "bg-primary" : "bg-muted-foreground/40"
-      }`}
-    >
-      <span className="sr-only">{state}</span>
-    </span>
-  )
-}
 
 function resourceHref(c: DockerContainer): string | null {
   const l = c.managed?.link
@@ -97,7 +84,7 @@ export function DockerContainers({
   return (
     <div className="space-y-3">
       {rows.length === 0 ? (
-        <DockerEmpty>
+        <DockerEmpty icon={Container}>
           {containers.length === 0
             ? "Belum ada container di server ini."
             : "Tidak ada container yang cocok."}
@@ -127,7 +114,7 @@ export function DockerContainers({
                   <TableRow key={c.id}>
                     <TableCell className="w-10 min-w-10 px-0">
                       <div className="flex items-center justify-center">
-                        <StateDot state={c.state} />
+                        <StatusDot status={c.state} />
                       </div>
                     </TableCell>
                     <TableCell className="max-w-64 ps-0">
@@ -159,7 +146,7 @@ export function DockerContainers({
                     <TableCell className="max-w-40 font-mono whitespace-normal">
                       {ports(c)}
                     </TableCell>
-                    <TableCell className="whitespace-nowrap">
+                    <TableCell className="whitespace-nowrap tabular-nums">
                       {ago(c.createdAt)}
                     </TableCell>
                     <TableCell>

@@ -6,11 +6,14 @@ import {
   History,
   Radio,
   RefreshCw,
+  Rocket,
   Webhook,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useEffect, useRef, useState, useTransition } from "react"
 import { toast } from "sonner"
+import { LogViewer } from "@/components/custom/log-viewer"
+import { EmptyState } from "@/components/custom/empty-state"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -22,10 +25,16 @@ import {
   ACTIVE_DEPLOYMENT_STATUSES,
   type ApplicationDetail,
   type DeploymentStatus,
+  type DeploymentStepTimes,
   type DeploymentSummary,
 } from "@/features/application/application.entity"
+import {
+  formatDuration,
+  totalDuration,
+} from "@/features/application/deployment-steps"
 import { useLogsSocket } from "@/features/application/use-logs-socket"
 import { DEPLOYMENT_QUEUED_EVENT } from "./application-actions"
+import { DeployStepper } from "./deploy-stepper"
 import { useBrowserOrigin } from "./use-browser-host"
 
 const STATUS_VARIANT: Record<
@@ -100,10 +109,13 @@ export function ApplicationDeployPanel({
   )
   const [logText, setLogText] = useState("")
   const [liveStatus, setLiveStatus] = useState<string | null>(null)
+  // Step start times announced by the socket, per deployment (first one wins);
+  // `finished` is the terminal status' time. Merged over the row's own times.
+  const [liveTimes, setLiveTimes] = useState<
+    Record<string, DeploymentStepTimes & { finished?: string }>
+  >({})
   const [containerLogs, setContainerLogs] = useState<string | null>(null)
   const [following, setFollowing] = useState(false)
-  const logRef = useRef<HTMLPreElement>(null)
-  const containerLogRef = useRef<HTMLPreElement>(null)
 
   const {
     socket,
@@ -138,12 +150,32 @@ export function ApplicationDeployPanel({
     const onStatus = ({
       deploymentId,
       status,
+      at,
     }: {
       deploymentId: string
       status: string
+      at?: string
     }) => {
       if (deploymentId !== selectedId) return
       setLiveStatus(status)
+      if (at) {
+        const key =
+          status === "success" || status === "failed"
+            ? "finished"
+            : status === "building" ||
+                status === "pushing" ||
+                status === "starting"
+              ? status
+              : null
+        if (key) {
+          setLiveTimes((all) => {
+            const mine = all[deploymentId] ?? {}
+            return mine[key]
+              ? all
+              : { ...all, [deploymentId]: { ...mine, [key]: at } }
+          })
+        }
+      }
       if (!isActive(status) && activeRef.current) router.refresh()
     }
     socket.on("deployment:log", onLog)
@@ -195,15 +227,6 @@ export function ApplicationDeployPanel({
       socket.emit("unsubscribe")
     }
   }, [socket, following])
-
-  useEffect(() => {
-    logRef.current?.scrollTo({ top: logRef.current.scrollHeight })
-  }, [logText])
-  useEffect(() => {
-    containerLogRef.current?.scrollTo({
-      top: containerLogRef.current.scrollHeight,
-    })
-  }, [containerLogs])
 
   const selectDeployment = (id: string) => {
     setFollowing(false)
@@ -437,21 +460,20 @@ export function ApplicationDeployPanel({
       )}
 
       {following && (
-        <pre
-          ref={containerLogRef}
-          className="max-h-64 overflow-auto rounded-md border bg-muted p-3 font-mono text-xs whitespace-pre-wrap"
-        >
-          {containerLogs || "Menunggu output…"}
-        </pre>
+        <LogViewer
+          text={containerLogs ?? ""}
+          label="Log container"
+          className="h-64"
+        />
       )}
 
       <div className="grid gap-4 lg:grid-cols-[16rem_1fr]">
         <div className="space-y-1">
           <h3 className="text-sm font-medium">Deployment</h3>
           {deployments.length === 0 && (
-            <p className="text-xs text-muted-foreground">
+            <EmptyState icon={Rocket} compact>
               Belum pernah deploy.
-            </p>
+            </EmptyState>
           )}
           <ul className="divide-y rounded-md border">
             {deployments.map((d) => {
@@ -506,6 +528,8 @@ export function ApplicationDeployPanel({
                           timeStyle: "short",
                         })}
                         {d.commitSha && ` · ${d.commitSha.slice(0, 7)}`}
+                        {totalDuration(d) !== null &&
+                          ` · ${formatDuration(totalDuration(d)!)}`}
                       </span>
                     </span>
                     <Badge variant={STATUS_VARIANT[status as DeploymentStatus]}>
@@ -563,12 +587,21 @@ export function ApplicationDeployPanel({
                 </Button>
               )}
           </div>
-          <pre
-            ref={logRef}
-            className="h-80 overflow-auto rounded-md border bg-[#0a0a0a] p-3 font-mono text-xs whitespace-pre-wrap text-neutral-200"
-          >
-            {logText || (selectedId ? "Memuat…" : "Pilih deployment.")}
-          </pre>
+          {selected && (
+            <DeployStepper
+              deployment={selected}
+              sourceType={app.sourceType}
+              remote={!!app.serverId}
+              liveStatus={liveStatus}
+              liveTimes={liveTimes[selected.id]}
+            />
+          )}
+          <LogViewer
+            key={selectedId ?? "none"}
+            text={logText}
+            label="Log deployment"
+            empty={selectedId ? "Memuat…" : "Pilih deployment."}
+          />
         </div>
       </div>
     </div>

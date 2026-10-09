@@ -2,6 +2,7 @@
 
 import { Layers } from "lucide-react"
 import { useState, useTransition } from "react"
+import { EmptyState } from "@/components/custom/empty-state"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -88,10 +89,10 @@ export function DomainMiddlewaresDialog({
           </DialogDescription>
         </DialogHeader>
         {options.length === 0 && orphans.length === 0 ? (
-          <p className="text-xs text-muted-foreground">
+          <EmptyState icon={Layers} compact>
             Belum ada middleware. Owner membuatnya di Infrastruktur → Reverse
             proxy → Konfigurasi dinamis.
-          </p>
+          </EmptyState>
         ) : (
           <ul className="divide-y rounded-md border text-xs">
             {options.map((o) => {

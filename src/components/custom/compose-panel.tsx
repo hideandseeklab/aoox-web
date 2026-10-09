@@ -1,6 +1,9 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useState } from "react"
+import { Container } from "lucide-react"
+import { LogViewer } from "@/components/custom/log-viewer"
+import { EmptyState } from "@/components/custom/empty-state"
 import { Badge } from "@/components/ui/badge"
 import { useComposeLive } from "@/components/custom/compose-live"
 import {
@@ -30,7 +33,6 @@ export function ComposePanel({
   metrics: MetricsResponse
 }) {
   const { app, busy } = useComposeLive()
-  const logRef = useRef<HTMLPreElement>(null)
 
   // Live CPU/RAM per service, from the background sampler (which also
   // samples stack containers). No stored history for stacks yet.
@@ -49,11 +51,6 @@ export function ComposePanel({
     }
   }, [app.id, app.status])
 
-  useEffect(() => {
-    const el = logRef.current
-    if (el) el.scrollTop = el.scrollHeight
-  }, [app.logs])
-
   return (
     <div className="space-y-4">
       <MetricsPanel
@@ -67,7 +64,7 @@ export function ComposePanel({
         <Card>
           <CardHeader>
             <CardTitle>Container</CardTitle>
-            <CardDescription>
+            <CardDescription className="tabular-nums">
               Project compose <code>aoox-{app.slug}</code>
               {metrics && metrics.total.containers > 0 && (
                 <>
@@ -80,9 +77,9 @@ export function ComposePanel({
           </CardHeader>
           <CardContent>
             {app.containers.length === 0 ? (
-              <p className="text-xs text-muted-foreground">
+              <EmptyState icon={Container} compact>
                 Belum ada container — deploy dulu.
-              </p>
+              </EmptyState>
             ) : (
               <ul className="divide-y rounded-md border text-xs">
                 {app.containers.map((c) => (
@@ -100,7 +97,7 @@ export function ComposePanel({
                           (s) => s.containerId === c.id
                         )?.current
                         return m ? (
-                          <p className="text-xs text-muted-foreground">
+                          <p className="text-xs text-muted-foreground tabular-nums">
                             {(m.cpuPercent ?? 0).toFixed(1)}% CPU ·{" "}
                             {formatBytes(m.memoryBytes)}
                           </p>
@@ -127,12 +124,12 @@ export function ComposePanel({
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <pre
-              ref={logRef}
-              className="max-h-96 overflow-auto rounded-md bg-[#0a0a0a] p-3 font-mono text-xs whitespace-pre-wrap text-neutral-200"
-            >
-              {app.logs || "Belum ada log."}
-            </pre>
+            <LogViewer
+              text={app.logs ?? ""}
+              label="Log aksi terakhir"
+              empty="Belum ada log."
+              className="h-96"
+            />
           </CardContent>
         </Card>
       </div>

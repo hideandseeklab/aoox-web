@@ -1,6 +1,7 @@
 import { ArrowLeft } from "lucide-react"
 import { getProject } from "@/features/project/project.queries"
 import { SetBreadcrumb } from "@/components/custom/breadcrumb-store"
+import { SourceIcon } from "@/components/custom/brand-icon"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { ApplicationStatusActions } from "@/components/custom/application-actions"
@@ -122,8 +123,15 @@ export default async function ApplicationPage({
             <ArrowLeft />
           </Link>
         </Button>
-        <h1 className="min-w-0 text-lg font-semibold break-words">
-          {app.name}
+        <h1 className="flex min-w-0 items-center gap-2 text-lg font-semibold">
+          <SourceIcon
+            sourceType={app.sourceType}
+            gitUrl={app.gitUrl}
+            imageRef={app.imageRef}
+            buildType={app.buildType}
+            className="size-4 text-muted-foreground"
+          />
+          <span className="min-w-0 break-words">{app.name}</span>
         </h1>
       </div>
 

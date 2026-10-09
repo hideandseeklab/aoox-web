@@ -72,7 +72,7 @@ export function HostOverviewCard({ host }: { host: HostOverview }) {
         <div className="space-y-1.5">
           <div className="flex items-baseline justify-between text-xs">
             <span className="text-muted-foreground">Disk Docker</span>
-            <span className="font-medium">{formatBytes(diskTotal)}</span>
+            <span className="font-medium tabular-nums">{formatBytes(diskTotal)}</span>
           </div>
           {/* Stacked meter: one hue, lighter steps per segment, 2px gaps. */}
           <div
@@ -98,7 +98,7 @@ export function HostOverviewCard({ host }: { host: HostOverview }) {
               <li key={label} className="flex items-center gap-1.5">
                 <span className={`inline-block size-2 rounded-sm ${cls}`} />
                 {label}{" "}
-                <span className="text-foreground">{formatBytes(bytes)}</span>
+                <span className="text-foreground tabular-nums">{formatBytes(bytes)}</span>
               </li>
             ))}
             <li>{host.images} image</li>

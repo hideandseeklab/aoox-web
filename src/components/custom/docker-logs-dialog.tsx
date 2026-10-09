@@ -2,6 +2,7 @@
 
 import { RefreshCw } from "lucide-react"
 import { useCallback, useEffect, useState, useTransition } from "react"
+import { LogViewer } from "@/components/custom/log-viewer"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -104,11 +105,12 @@ function LogsDialog({
             {error}
           </p>
         ) : (
-          <pre className="max-h-[60vh] overflow-auto rounded-md border bg-muted/40 p-2 font-mono text-xs break-all whitespace-pre-wrap">
-            {pending && !data
-              ? "Memuat…"
-              : data?.logs || "(tidak ada keluaran log)"}
-          </pre>
+          <LogViewer
+            text={data?.logs ?? ""}
+            label="Log container"
+            empty={pending && !data ? "Memuat…" : "(tidak ada keluaran log)"}
+            className="h-[50vh]"
+          />
         )}
       </DialogContent>
     </Dialog>

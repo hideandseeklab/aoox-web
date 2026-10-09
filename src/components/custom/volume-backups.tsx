@@ -1,8 +1,9 @@
 "use client"
 
-import { Download, HardDriveDownload, RotateCcw, Trash2 } from "lucide-react"
+import { Archive, Download, HardDriveDownload, RotateCcw, Trash2 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useState, useTransition } from "react"
+import { EmptyState } from "@/components/custom/empty-state"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -163,7 +164,9 @@ export function VolumeBackups({
             </p>
           )}
           {backups.length === 0 ? (
-            <p className="text-xs text-muted-foreground">Belum ada backup.</p>
+            <EmptyState icon={Archive} compact>
+              Belum ada backup.
+            </EmptyState>
           ) : (
             <ul className="divide-y rounded-md border text-xs">
               {backups.map((b) => (
@@ -172,7 +175,7 @@ export function VolumeBackups({
                     <span className="block truncate font-mono text-xs">
                       {mountName(b.mountId)} · {b.filename.split("/").pop()}
                     </span>
-                    <span className="text-xs text-muted-foreground">
+                    <span className="text-xs text-muted-foreground tabular-nums">
                       {new Date(b.createdAt).toLocaleString("id-ID", {
                         dateStyle: "medium",
                         timeStyle: "short",

@@ -108,6 +108,11 @@ export interface ApplicationDetail extends Application {
   } | null
 }
 
+/** ISO start of each timed step (`building` also covers pulling an image). */
+export type DeploymentStepTimes = Partial<
+  Record<"building" | "pushing" | "starting", string>
+>
+
 export type DeploymentKind = "build" | "rollback" | "auto-update" | "config"
 
 /** Who/what queued the deployment — separate from `kind` (the build/rollback/config code path). */
@@ -129,6 +134,8 @@ export interface DeploymentSummary {
   triggeredBy: string | null
   createdAt: string
   finishedAt: string | null
+  /** When each step started; null on deployments from before this was recorded. */
+  stepTimes: DeploymentStepTimes | null
 }
 
 export interface Deployment extends DeploymentSummary {

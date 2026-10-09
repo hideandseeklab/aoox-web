@@ -2,6 +2,8 @@
 
 import { ExternalLink, GitPullRequest, Trash2 } from "lucide-react"
 import { useEffect, useState, useTransition } from "react"
+import { LogViewer } from "@/components/custom/log-viewer"
+import { EmptyState } from "@/components/custom/empty-state"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -73,7 +75,9 @@ export function PreviewsPanel({
       </CardHeader>
       <CardContent className="space-y-2 text-xs">
         {previews.length === 0 ? (
-          <p className="text-muted-foreground">Belum ada preview.</p>
+          <EmptyState icon={GitPullRequest} compact>
+            Belum ada preview.
+          </EmptyState>
         ) : (
           <ul className="divide-y rounded-md border">
             {previews.map((p) => {
@@ -149,9 +153,12 @@ export function PreviewsPanel({
                     <p className="text-xs text-destructive">{p.errorMessage}</p>
                   )}
                   {open === p.id && (
-                    <pre className="max-h-64 overflow-auto rounded-md bg-[#0a0a0a] p-3 font-mono text-xs whitespace-pre-wrap text-neutral-200">
-                      {p.logs || "Belum ada log."}
-                    </pre>
+                    <LogViewer
+                      text={p.logs ?? ""}
+                      label="Log preview"
+                      empty="Belum ada log."
+                      className="max-h-64"
+                    />
                   )}
                 </li>
               )

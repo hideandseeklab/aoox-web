@@ -1,8 +1,10 @@
 "use client"
 
-import { ChevronDown, ChevronRight, Play, Plus, Trash2 } from "lucide-react"
+import { ChevronDown, ChevronRight, History, Play, Plus, Trash2 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useCallback, useEffect, useRef, useState, useTransition } from "react"
+import { LogViewer } from "@/components/custom/log-viewer"
+import { EmptyState } from "@/components/custom/empty-state"
 import { Badge } from "@/components/ui/badge"
 import { ConfirmDialog } from "@/components/custom/confirm-dialog"
 import { Button } from "@/components/ui/button"
@@ -95,6 +97,11 @@ export function ApplicationJobs({
 
   return (
     <div className="space-y-4">
+      {jobs.length === 0 && (
+        <EmptyState icon={History} compact>
+          Belum ada job.
+        </EmptyState>
+      )}
       {jobs.map((j) => (
         <JobRow key={j.id} owner={owner} job={j} />
       ))}
@@ -390,9 +397,9 @@ function JobRow({ owner, job }: { owner: JobOwner; job: Job }) {
           {runs === null ? (
             <p className="text-xs text-muted-foreground">Memuat…</p>
           ) : runs.length === 0 ? (
-            <p className="text-xs text-muted-foreground">
+            <EmptyState icon={History} compact>
               Belum pernah dijalankan.
-            </p>
+            </EmptyState>
           ) : (
             <ul className="divide-y rounded-md border text-xs">
               {runs.map((r) => (
@@ -422,9 +429,15 @@ function RunRow({ run }: { run: JobRun }) {
         </Button>
       </div>
       {show && (
-        <pre className="mt-2 max-h-72 overflow-auto rounded bg-muted p-2 font-mono text-xs whitespace-pre-wrap">
-          {run.output || "(tidak ada output)"}
-        </pre>
+        <div className="mt-2">
+          <LogViewer
+            text={run.output ?? ""}
+            label="Output job"
+            empty="(tidak ada output)"
+            className="max-h-72"
+            initialFollow={false}
+          />
+        </div>
       )}
     </li>
   )

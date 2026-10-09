@@ -3,6 +3,7 @@
 import {
   CircleCheck,
   CircleX,
+  History,
   Loader2,
   Play,
   Rocket,
@@ -11,6 +12,8 @@ import {
   Webhook,
 } from "lucide-react"
 import { useEffect, useState, useTransition } from "react"
+import { LogViewer } from "@/components/custom/log-viewer"
+import { EmptyState } from "@/components/custom/empty-state"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -86,9 +89,9 @@ export function ComposeHistory({
 
   if (runs.length === 0) {
     return (
-      <p className="text-xs text-muted-foreground">
+      <EmptyState icon={History} compact>
         Belum ada riwayat — deploy dulu.
-      </p>
+      </EmptyState>
     )
   }
 
@@ -131,9 +134,15 @@ export function ComposeHistory({
               </Button>
             </div>
             {openId === r.id && (
-              <pre className="mt-2 max-h-80 overflow-auto rounded-md bg-[#0a0a0a] p-3 font-mono text-xs whitespace-pre-wrap text-neutral-200">
-                {logs || "Memuat…"}
-              </pre>
+              <div className="mt-2">
+                <LogViewer
+                  text={logs}
+                  label="Log aksi"
+                  empty="Memuat…"
+                  className="max-h-80"
+                  initialFollow={false}
+                />
+              </div>
             )}
           </li>
         )

@@ -4,6 +4,7 @@ import { ImportProjectDialog } from "@/components/custom/import-project-dialog"
 import { ProjectCard } from "@/components/custom/project-card"
 import { ProjectsAutoRefresh } from "@/components/custom/projects-auto-refresh"
 import { listProjects } from "@/features/project/project.queries"
+import { EmptyState } from "@/components/custom/empty-state"
 
 export const metadata = { title: "Projects · aoox" }
 
@@ -34,13 +35,13 @@ export default async function ProjectsPage() {
       </div>
 
       {projects.length === 0 ? (
-        <div className="flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed p-12 text-center">
-          <FolderKanban className="size-8 text-muted-foreground" />
-          <p className="text-sm font-medium">Belum ada project</p>
-          <p className="text-xs text-muted-foreground">
-            Buat project pertama untuk mulai men-deploy.
-          </p>
-        </div>
+        <EmptyState
+          icon={FolderKanban}
+          className="p-12"
+          action={<CreateProjectDialog />}
+        >
+          Belum ada project. Buat project pertama untuk mulai men-deploy.
+        </EmptyState>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {projects.map((project) => (

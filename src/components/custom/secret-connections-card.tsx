@@ -2,6 +2,7 @@
 
 import { Plug, Plus, Trash2, Vault } from "lucide-react"
 import { useActionState, useState, useTransition } from "react"
+import { EmptyState } from "@/components/custom/empty-state"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -78,9 +79,9 @@ export function SecretConnectionsCard({
       </CardHeader>
       <CardContent>
         {connections.length === 0 ? (
-          <p className="text-xs text-muted-foreground">
+          <EmptyState icon={Plug} compact>
             Belum ada koneksi — aplikasi memakai env biasa.
-          </p>
+          </EmptyState>
         ) : (
           <ul className="divide-y rounded-md border">
             {connections.map((c) => {

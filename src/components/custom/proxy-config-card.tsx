@@ -10,6 +10,7 @@ import {
   type EditorTarget,
 } from "@/components/custom/proxy-config-editor"
 import { ProxyConfigPresetDialog } from "@/components/custom/proxy-config-preset-dialog"
+import { EmptyState } from "@/components/custom/empty-state"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -185,10 +186,10 @@ export function ProxyConfigCard({
           yang tidak valid), jadi cek hasilnya setelah menyimpan.
         </p>
         {files.length === 0 ? (
-          <p className="text-muted-foreground">
+          <EmptyState icon={FileCode2} compact>
             Belum ada berkas konfigurasi
             {isOwner ? " — buat dari preset atau tulis sendiri." : "."}
-          </p>
+          </EmptyState>
         ) : (
           <ul className="divide-y rounded-md border">
             {files.map((f) => (

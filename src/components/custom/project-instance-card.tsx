@@ -3,7 +3,12 @@
 import { Copy, ExternalLink } from "lucide-react"
 import Link from "next/link"
 import { toast } from "sonner"
-import { Badge } from "@/components/ui/badge"
+import {
+  ComposeSourceIcon,
+  EngineIcon,
+  SourceIcon,
+} from "@/components/custom/brand-icon"
+import { StatusDot } from "@/components/custom/status-dot"
 import {
   Card,
   CardContent,
@@ -31,23 +36,6 @@ type ApplicationWithDomains = Application & {
   domains?: { host: string; https: boolean }[]
 }
 
-function StatusBadge({ status, label }: { status: string; label?: string }) {
-  return (
-    <Badge
-      variant={
-        status === "running"
-          ? "default"
-          : status === "error"
-            ? "destructive"
-            : "secondary"
-      }
-      className="shrink-0"
-    >
-      {label ?? status}
-    </Badge>
-  )
-}
-
 /**
  * The card is not one big `<a>`: links nested in a link are invalid HTML, and
  * a card now holds links of its own. The name is the link to the detail page
@@ -58,25 +46,28 @@ function StatusBadge({ status, label }: { status: string; label?: string }) {
 function InstanceCardShell({
   href,
   name,
+  icon,
   badge,
   subtitle,
   children,
 }: {
   href: string
   name: string
+  icon: React.ReactNode
   badge: React.ReactNode
   subtitle: React.ReactNode
   children: React.ReactNode
 }) {
   return (
-    <Card className="relative h-full gap-3 transition-colors [--card-spacing:--spacing(5)] hover:bg-muted/50">
+    <Card className="relative h-full gap-3 motion-safe:transition-colors [--card-spacing:--spacing(5)] hover:bg-muted/50">
       <CardHeader className="gap-2">
         {/* min-w-0: a grid item otherwise grows to its longest name and pushes the badge out of the card. */}
         <div className="flex min-w-0 items-start justify-between gap-2">
-          <CardTitle className="min-w-0 truncate">
+          <CardTitle className="flex min-w-0 items-center gap-2">
+            <span className="text-muted-foreground">{icon}</span>
             <Link
               href={href}
-              className="outline-none after:absolute after:inset-0 after:rounded-lg focus-visible:after:ring-2 focus-visible:after:ring-ring"
+              className="min-w-0 truncate outline-none after:absolute after:inset-0 after:rounded-lg focus-visible:after:ring-2 focus-visible:after:ring-ring"
             >
               {name}
             </Link>
@@ -195,7 +186,15 @@ export function ApplicationInstanceCard({
     <InstanceCardShell
       href={`/applications/${app.id}`}
       name={app.name}
-      badge={<StatusBadge status={app.status} />}
+      icon={
+        <SourceIcon
+          sourceType={app.sourceType}
+          gitUrl={app.gitUrl}
+          imageRef={app.imageRef}
+          buildType={app.buildType}
+        />
+      }
+      badge={<StatusDot status={app.status} showLabel />}
       subtitle={
         app.sourceType === "image"
           ? `image · ${app.imageRef ?? ""}`
@@ -227,10 +226,12 @@ export function ComposeInstanceCard({
     <InstanceCardShell
       href={`/compose/${stack.id}`}
       name={stack.name}
+      icon={<ComposeSourceIcon source={stack.source} gitUrl={stack.gitUrl} />}
       badge={
-        <StatusBadge
+        <StatusDot
           status={stack.status}
           label={stack.status === "deploying" ? "berjalan…" : undefined}
+          showLabel
         />
       }
       subtitle={
@@ -261,7 +262,8 @@ export function DatabaseInstanceCard({ db }: { db: ManagedDatabase }) {
     <InstanceCardShell
       href={`/databases/${db.id}`}
       name={db.name}
-      badge={<StatusBadge status={db.status} />}
+      icon={<EngineIcon engine={db.engine} />}
+      badge={<StatusDot status={db.status} showLabel />}
       subtitle={`${ENGINE_LABEL[db.engine]} ${db.imageTag}`}
     >
       {address ? (

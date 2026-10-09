@@ -1,6 +1,7 @@
 "use client"
 
 import {
+  Archive,
   CloudUpload,
   Download,
   HardDriveDownload,
@@ -9,6 +10,7 @@ import {
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useState, useTransition } from "react"
+import { EmptyState } from "@/components/custom/empty-state"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -138,7 +140,9 @@ export function DatabaseBackups({
             </p>
           )}
           {backups.length === 0 ? (
-            <p className="text-xs text-muted-foreground">Belum ada backup.</p>
+            <EmptyState icon={Archive} compact>
+              Belum ada backup.
+            </EmptyState>
           ) : (
             <ul className="divide-y rounded-md border text-xs">
               {backups.map((b) => (
@@ -147,7 +151,7 @@ export function DatabaseBackups({
                     <span className="block truncate font-mono text-xs">
                       {b.filename.split("/").pop()}
                     </span>
-                    <span className="text-xs text-muted-foreground">
+                    <span className="text-xs text-muted-foreground tabular-nums">
                       {new Date(b.createdAt).toLocaleString("id-ID", {
                         dateStyle: "medium",
                         timeStyle: "short",

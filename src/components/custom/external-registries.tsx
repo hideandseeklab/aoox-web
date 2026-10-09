@@ -1,7 +1,8 @@
 "use client"
 
-import { Plus, Trash2 } from "lucide-react"
+import { Package, Plus, Trash2 } from "lucide-react"
 import { useActionState, useState, useTransition } from "react"
+import { EmptyState } from "@/components/custom/empty-state"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -52,9 +53,7 @@ export function ExternalRegistries({
         {canManage && <AddExternalRegistryDialog />}
       </div>
       {registries.length === 0 ? (
-        <div className="rounded-lg border border-dashed p-8 text-center text-xs text-muted-foreground">
-          Belum ada registry eksternal.
-        </div>
+        <EmptyState icon={Package}>Belum ada registry eksternal.</EmptyState>
       ) : (
         <div className="rounded-lg border">
           <Table>

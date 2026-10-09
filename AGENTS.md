@@ -119,6 +119,21 @@ Baca `AGENTS.md` — versi Next.js ini punya breaking changes; cek `node_modules
   ketik perintah nyata (`echo`/`hostname`), lihat output asli via `get_page_text` (browser real, bukan mock) — prompt shell (`root@<container-id>:/#`) dan hasil
   perintah tampil benar.
 
+## Komponen bersama UI (status, logo, kosong, log, grafik)
+
+- `status-dot.tsx` `StatusDot` + `statusTone()`: satu arti warna status di semua daftar/kartu (lime `bg-primary` = running/aktif, amber berdenyut = transisi, `bg-destructive` = error/failed, muted = lainnya);
+  `showLabel` menampilkan teks kecil, tanpa itu hanya titik + `sr-only`. Halaman detail (`StatusStrip`) tetap memakai `Badge`. Jangan buat titik/warna status baru per komponen.
+- `brand-icon.tsx` (+ `brand-paths.ts`, path simple-icons CC0 inline, `currentColor`, tanpa CDN/dependensi): `EngineIcon`, `SourceIcon`, `GitProviderIcon`, `ImageRegistryIcon`, `ComposeSourceIcon`.
+  Valkey tidak ada di simple-icons → ikon lucide. Tambah merek baru = tambah entri di `brand-paths.ts`.
+- `empty-state.tsx` `EmptyState` (ikon lucide + satu kalimat + aksi opsional; `compact` di dalam kartu/tab). Aksi hanya dirender bila tombol setaranya memang ada untuk peran itu.
+- `log-viewer.tsx` `LogViewer` + `lib/ansi.ts` `parseAnsi` (murni): semua log (deployment, container live, compose, job, preview, dialog log Docker). Teks → React text node, tidak pernah HTML; hanya
+  2000 baris terakhir digambar (tombol untuk yang lebih lama); "Ikuti" berhenti saat user menggulir ke atas. Permukaan selalu gelap (`#0a0a0a`) di kedua tema.
+- `area-chart.tsx` `AreaChart` (SVG sendiri, lebar piksel nyata via `ResizeObserver`, kurva monotone cubic, gradasi `primary`, tooltip nilai+waktu): dipakai `StatSparkline`, grafik host, dan latensi monitor HTTP. Tanpa library chart.
+- `nav-items.ts`: satu-satunya definisi navigasi (`NAV`/`INFRA_NAV`/`SETTINGS_NAV`/`AUDIT_LOG_NAV` + `visibleNav({showTerminal,isOwner})` dengan flag `terminal`/`manage`/`owner`); sidebar dan command palette memakainya — item nav baru cukup ditambah di sini.
+- `command-palette.tsx` `CommandPalette` (di `AppNavbar`, Ctrl/Cmd+K, dibangun di atas `ui/dialog` tanpa `cmdk`): halaman + project/instance dari satu `fetchProjectsAction` (`GET /projects`, dibaca saat pertama dibuka) + ganti tema; murni navigasi, tanpa aksi tulis.
+  Shortcut tidak aktif di `textarea`/contenteditable/`.xterm`/`[data-no-palette]` (beri atribut itu pada editor baru). Pola combobox + listbox/option + `aria-activedescendant`; fokus dikembalikan lewat `onCloseAutoFocus` (dialog tak punya Radix trigger).
+- Transisi (tab, baris `ul.divide-y > li`) ada di `globals.css` di balik `prefers-reduced-motion: no-preference`; dialog/menu memakai animasi bawaan stok.
+
 ## Prinsip
 
 - Selalu ikuti dokumentasi resmi (Next.js di `node_modules/next/dist/docs/`, shadcn, dll.) untuk pemilihan paket dan pola kode.
@@ -408,6 +423,14 @@ Baca `AGENTS.md` — versi Next.js ini punya breaking changes; cek `node_modules
 
 - Form aplikasi: opsi **Railpack (deteksi otomatis, cache build)** di select "Cara build" + penjelasan (cache antar deploy, butuh BuildKit di host, tidak untuk server remote).
   Kartu Disk menampilkan hasil prune cache BuildKit (`CleanupReport.buildkitCache`).
+
+## Stepper deploy, bel notifikasi, checklist onboarding
+
+- `features/application/deployment-steps.ts` `buildSteps()` (pure) + `components/custom/deploy-stepper.tsx`: langkah per jenis (git: Antre→Build→Push→Start→Selesai; sumber image: Antre→Pull→Start;
+  rollback/config: Antre→Start; server remote tanpa Push). Waktu dari `stepTimes` API; panel deploy mengisi `liveTimes` dari `deployment:status.at` (pertama menang). Baris lama tanpa waktu tampil
+  tanpa durasi; deployment gagal tanpa waktu menandai langkah akhir "Gagal". Spinner hanya `motion-safe`.
+- `components/custom/inbox-bell.tsx` di `app-navbar.tsx`: `GET /inbox` via server action, polling 30 dtk hanya saat tab terlihat + saat navigasi (tanpa Socket.IO); "Tandai semua dibaca".
+- `components/custom/onboarding-checklist.tsx` di dashboard: hanya dirender bila `getOnboarding()` (owner) `visible`; "Sembunyikan" = `dismissOnboardingAction`. Audit-log: `POST /inbox/read`, `POST /onboarding/dismiss` ada di `audit-log.format.ts`.
 
 <!-- BEGIN:nextjs-agent-rules -->
 

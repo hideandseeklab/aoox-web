@@ -72,7 +72,7 @@ export function DiskCard({
             <div key={p.label} className="flex items-center gap-2">
               <span className={`size-2 rounded-sm ${p.cls}`} />
               <dt className="text-muted-foreground">{p.label}</dt>
-              <dd className="ms-auto font-mono">{gb(p.bytes)}</dd>
+              <dd className="ms-auto font-mono tabular-nums">{gb(p.bytes)}</dd>
             </div>
           ))}
         </dl>

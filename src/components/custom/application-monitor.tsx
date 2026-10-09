@@ -4,6 +4,8 @@ import { Activity, Loader2 } from "lucide-react"
 import { PathArrow } from "@/components/custom/arrows"
 import { useId, useRef, useState, useSyncExternalStore } from "react"
 import { toast } from "sonner"
+import { AreaChart } from "@/components/custom/area-chart"
+import { EmptyState } from "@/components/custom/empty-state"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -407,7 +409,7 @@ export function ApplicationMonitor({
                     {i.endedAt ? "selesai" : "berlangsung"}
                   </Badge>
                   <span className="tabular-nums">{when(i.startedAt)}</span>
-                  <span className="text-muted-foreground">
+                  <span className="text-muted-foreground tabular-nums">
                     {i.endedAt ? (
                       <>
                         <PathArrow />
@@ -459,99 +461,34 @@ function Stat({
   )
 }
 
-const W = 600
-const H = 56
-
 /**
  * Latency over the last 24 h (≤ 120 buckets). The line is the average of the
  * healthy checks of each bucket; a bucket with failures gets a red tick at
  * the bottom, so outages show even where there is no latency to draw.
  */
 function LatencySeries({ series }: { series: HttpMonitorView["series"] }) {
-  const [hover, setHover] = useState<number | null>(null)
-  const mounted = useMounted()
   if (series.length === 0) {
     return (
-      <p className="text-xs text-muted-foreground">
+      <EmptyState icon={Activity} compact>
         Belum ada data — pemeriksaan pertama berjalan dalam semenit.
-      </p>
+      </EmptyState>
     )
   }
-  const values = series.map((s) => s.latencyMs)
-  const max = Math.max(...values.map((v) => v ?? 0), 1)
-  const step = W / Math.max(series.length - 1, 1)
-  const x = (i: number) => i * step
-  const y = (v: number) => H - 6 - (v / max) * (H - 12)
-  let d = ""
-  values.forEach((v, i) => {
-    if (v === null) return
-    d += `${d && values[i - 1] !== null ? "L" : "M"}${x(i).toFixed(1)},${y(v).toFixed(1)} `
-  })
-  const i = hover ?? series.length - 1
-  const s = series[i]
-  const label =
-    `${s.latencyMs === null ? "tanpa respons sehat" : `${s.latencyMs} ms`}` +
-    (s.failures > 0 ? ` · ${s.failures}/${s.checks} gagal` : "") +
-    (mounted ? ` · ${new Date(s.at).toLocaleTimeString()}` : "")
+  const last = series[series.length - 1]
   return (
-    <div className="space-y-0.5">
-      <svg
-        viewBox={`0 0 ${W} ${H}`}
-        preserveAspectRatio="none"
-        className="h-14 w-full"
-        role="img"
-        aria-label={`Latensi 24 jam terakhir, terakhir ${s.latencyMs ?? "tanpa respons"} ms`}
-        onMouseMove={(e) => {
-          const rect = e.currentTarget.getBoundingClientRect()
-          const px = ((e.clientX - rect.left) / rect.width) * W
-          setHover(
-            Math.min(series.length - 1, Math.max(0, Math.round(px / step)))
-          )
-        }}
-        onMouseLeave={() => setHover(null)}
-      >
-        {d && (
-          <path
-            d={d}
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={2}
-            strokeLinejoin="round"
-            strokeLinecap="round"
-            className="text-muted-foreground"
-            vectorEffect="non-scaling-stroke"
-          />
-        )}
-        {series.map(
-          (p, idx) =>
-            p.failures > 0 && (
-              <line
-                key={p.at}
-                x1={x(idx)}
-                x2={x(idx)}
-                y1={H - 8}
-                y2={H}
-                stroke="currentColor"
-                strokeWidth={3}
-                className="text-destructive"
-                vectorEffect="non-scaling-stroke"
-              />
-            )
-        )}
-        {hover !== null && (
-          <line
-            x1={x(hover)}
-            x2={x(hover)}
-            y1={0}
-            y2={H}
-            stroke="currentColor"
-            strokeWidth={1}
-            className="text-border"
-            vectorEffect="non-scaling-stroke"
-          />
-        )}
-      </svg>
-      <p className="text-[11px] text-muted-foreground tabular-nums">{label}</p>
-    </div>
+    <AreaChart
+      points={series.map((s) => ({ value: s.latencyMs, at: s.at }))}
+      format={(v) => `${Math.round(v)} ms`}
+      describe={(i) => {
+        const s = series[i]
+        return (
+          (s.latencyMs === null ? "tanpa respons sehat" : `${s.latencyMs} ms`) +
+          (s.failures > 0 ? ` · ${s.failures}/${s.checks} gagal` : "")
+        )
+      }}
+      marks={series.flatMap((s, i) => (s.failures > 0 ? [i] : []))}
+      height={64}
+      ariaLabel={`Latensi 24 jam terakhir, terakhir ${last.latencyMs ?? "tanpa respons"} ms`}
+    />
   )
 }

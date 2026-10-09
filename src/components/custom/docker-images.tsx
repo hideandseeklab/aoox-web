@@ -1,6 +1,6 @@
 "use client"
 
-import { Broom, Trash2 } from "lucide-react"
+import { Broom, Layers, Trash2 } from "lucide-react"
 import { toast } from "sonner"
 import { ConfirmDialog } from "@/components/custom/confirm-dialog"
 import {
@@ -83,7 +83,7 @@ export function DockerImages({
         )}
       </div>
       {rows.length === 0 ? (
-        <DockerEmpty>
+        <DockerEmpty icon={Layers}>
           {images.length === 0
             ? "Belum ada image di server ini."
             : "Tidak ada image yang cocok."}
@@ -120,10 +120,10 @@ export function DockerImages({
                       {shortId(i.id)}
                     </div>
                   </TableCell>
-                  <TableCell className="whitespace-nowrap">
+                  <TableCell className="whitespace-nowrap tabular-nums">
                     {formatBytes(i.size)}
                   </TableCell>
-                  <TableCell className="whitespace-nowrap">
+                  <TableCell className="whitespace-nowrap tabular-nums">
                     {ago(i.createdAt)}
                   </TableCell>
                   <TableCell className="max-w-48 whitespace-normal">

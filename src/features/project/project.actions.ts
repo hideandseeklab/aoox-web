@@ -3,9 +3,13 @@
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import { api, ApiError } from "@/lib/api"
-import type { Project, ProjectResourceUsageResponse } from "./project.entity"
+import type {
+  Project,
+  ProjectListItem,
+  ProjectResourceUsageResponse,
+} from "./project.entity"
 import { requireToken } from "@/features/auth/auth.session"
-import { getProjectResourceUsage } from "./project.queries"
+import { getProjectResourceUsage, listProjects } from "./project.queries"
 import { projectSchema } from "./project.schema"
 
 export interface ProjectFormState {
@@ -91,6 +95,15 @@ export async function fetchProjectResourceUsageAction(
     return await getProjectResourceUsage(id)
   } catch {
     return { current: null, history: [], containers: 0 }
+  }
+}
+
+/** For the command palette: `GET /projects` (with `instances[]`), read when it is first opened; a failure yields an empty list. */
+export async function fetchProjectsAction(): Promise<ProjectListItem[]> {
+  try {
+    return await listProjects()
+  } catch {
+    return []
   }
 }
 

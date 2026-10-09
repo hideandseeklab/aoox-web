@@ -1,10 +1,11 @@
 "use client"
 
 import { LinkArrow } from "@/components/custom/arrows"
-import { ChevronDown, ChevronRight, Search } from "lucide-react"
+import { ChevronDown, ChevronRight, ScrollText, Search } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "@/lib/use-router"
 import { useState } from "react"
+import { EmptyState } from "@/components/custom/empty-state"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -49,7 +50,9 @@ export function AuditLogTable({
       </form>
 
       {rows.length === 0 ? (
-        <p className="text-xs text-muted-foreground">Tidak ada entri.</p>
+        <EmptyState icon={ScrollText} compact>
+          Tidak ada entri.
+        </EmptyState>
       ) : (
         <ul className="divide-y rounded-md border text-xs">
           {rows.map((r) => {

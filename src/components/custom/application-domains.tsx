@@ -1,7 +1,8 @@
 "use client"
 
-import { ExternalLink, Plus, Radar, Trash2 } from "lucide-react"
+import { ExternalLink, Globe, Plus, Radar, Trash2 } from "lucide-react"
 import { useState, useTransition } from "react"
+import { EmptyState } from "@/components/custom/empty-state"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -227,9 +228,9 @@ export function ApplicationDomains({
       )}
 
       {domains.length === 0 ? (
-        <div className="rounded-lg border border-dashed p-6 text-center text-xs text-muted-foreground">
+        <EmptyState icon={Globe} compact>
           Belum ada domain. Aplikasi hanya bisa diakses lewat port host.
-        </div>
+        </EmptyState>
       ) : (
         <ul className="divide-y rounded-lg border">
           {domains.map((d) => {

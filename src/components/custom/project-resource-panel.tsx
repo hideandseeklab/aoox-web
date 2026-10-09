@@ -1,11 +1,12 @@
 "use client"
 
-import { Cpu, MemoryStick, Network } from "lucide-react"
+import { Activity, Cpu, MemoryStick, Network } from "lucide-react"
 import { useEffect, useState } from "react"
 import { StatCard } from "@/components/custom/stat-card"
 import { fetchProjectResourceUsageAction } from "@/features/project/project.actions"
 import type { ProjectResourceUsageResponse } from "@/features/project/project.entity"
 import { formatBytes } from "@/features/monitoring/monitoring.entity"
+import { EmptyState } from "@/components/custom/empty-state"
 
 /** Matches the API sampler (SAMPLE_INTERVAL_MS); polling faster gains nothing. */
 const POLL_MS = 15_000
@@ -41,9 +42,9 @@ export function ProjectResourcePanel({
   const cur = data.current
   if (!cur) {
     return (
-      <p className="text-xs text-muted-foreground">
+      <EmptyState icon={Activity} compact>
         Tidak ada aplikasi/database/stack yang berjalan di project ini.
-      </p>
+      </EmptyState>
     )
   }
 

@@ -32,7 +32,10 @@ export default async function DashboardLayout({
           wider than the space beside the sidebar and force a horizontal
           scrollbar as soon as any other scrollbar appears. */}
       <SidebarInset className="min-w-0">
-        <AppNavbar />
+        <AppNavbar
+          showTerminal={canUseTerminal(session.user)}
+          isOwner={session.user.role === "owner"}
+        />
         <div className="flex flex-1 flex-col gap-6 p-6">{children}</div>
       </SidebarInset>
     </SidebarProvider>

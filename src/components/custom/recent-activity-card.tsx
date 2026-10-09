@@ -4,6 +4,8 @@ import { ActivityList } from "@/components/custom/activity-list"
 import { LinkArrow } from "@/components/custom/arrows"
 import Link from "next/link"
 import { useEffect, useState, useSyncExternalStore } from "react"
+import { Activity } from "lucide-react"
+import { EmptyState } from "@/components/custom/empty-state"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -106,7 +108,9 @@ export function RecentActivityCard({ initial }: { initial: RecentActivity }) {
             {data.error}
           </p>
         ) : rows.length === 0 ? (
-          <p className="text-xs text-muted-foreground">Belum ada aktivitas.</p>
+          <EmptyState icon={Activity} compact>
+            Belum ada aktivitas.
+          </EmptyState>
         ) : (
           <ActivityList
             items={rows.map((r) => {

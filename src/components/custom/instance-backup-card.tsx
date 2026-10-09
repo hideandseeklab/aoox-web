@@ -1,8 +1,9 @@
 "use client"
 
-import { Cloud, Download, RotateCcw, Trash2, Upload } from "lucide-react"
+import { Archive, Cloud, Download, RotateCcw, Trash2, Upload } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useState, useTransition } from "react"
+import { EmptyState } from "@/components/custom/empty-state"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -137,7 +138,9 @@ export function InstanceBackupCard({
         </div>
 
         {backups.length === 0 ? (
-          <p className="text-xs text-muted-foreground">Belum ada backup.</p>
+          <EmptyState icon={Archive} compact>
+            Belum ada backup.
+          </EmptyState>
         ) : (
           <ul className="divide-y rounded-md border text-xs">
             {backups.map((b) => (
@@ -170,7 +173,7 @@ export function InstanceBackupCard({
                       <Badge variant="outline">hanya di S3</Badge>
                     )}
                   </div>
-                  <p className="truncate text-xs text-muted-foreground">
+                  <p className="truncate text-xs text-muted-foreground tabular-nums">
                     {formatBytes(b.sizeBytes)} · {b.rowCount} baris ·{" "}
                     {b.schemaVersion ?? "?"}
                     {b.errorMessage && ` · ${b.errorMessage}`}

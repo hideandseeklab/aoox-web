@@ -3,6 +3,7 @@
 import { BookOpen, Check, Copy, KeySquare, Plus, Trash2 } from "lucide-react"
 import { useState, useTransition } from "react"
 import { toast } from "sonner"
+import { EmptyState } from "@/components/custom/empty-state"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -110,6 +111,11 @@ export function ApiTokensCard({
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
+        {tokens.length === 0 && (
+          <EmptyState icon={KeySquare} compact>
+            Belum ada token API.
+          </EmptyState>
+        )}
         {tokens.length > 0 && (
           <ul className="divide-y rounded-md border text-xs">
             {tokens.map((t) => {

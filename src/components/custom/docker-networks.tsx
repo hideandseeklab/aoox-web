@@ -1,5 +1,6 @@
 "use client"
 
+import { Network } from "lucide-react"
 import {
   DockerEmpty,
   useDockerQuery,
@@ -25,7 +26,7 @@ export function DockerNetworks({ networks }: { networks: DockerNetwork[] }) {
   return (
     <div className="space-y-3">
       {rows.length === 0 ? (
-        <DockerEmpty>
+        <DockerEmpty icon={Network}>
           {networks.length === 0
             ? "Belum ada network di server ini."
             : "Tidak ada network yang cocok."}

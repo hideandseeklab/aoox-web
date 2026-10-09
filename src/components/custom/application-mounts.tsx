@@ -9,6 +9,7 @@ import {
   Trash2,
 } from "lucide-react"
 import { useState, useTransition } from "react"
+import { EmptyState } from "@/components/custom/empty-state"
 import { Badge } from "@/components/ui/badge"
 import { ConfirmDialog } from "@/components/custom/confirm-dialog"
 import { Button } from "@/components/ui/button"
@@ -87,6 +88,11 @@ export function ApplicationMounts({
 
   return (
     <div className="space-y-4">
+      {mounts.length === 0 && (
+        <EmptyState icon={HardDrive} compact>
+          Belum ada mount.
+        </EmptyState>
+      )}
       {mounts.length > 0 && (
         <div className="space-y-3">
           {mounts.map((m) => (

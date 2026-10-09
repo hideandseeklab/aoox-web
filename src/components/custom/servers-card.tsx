@@ -4,6 +4,7 @@ import { Copy, Plug, Plus, ServerIcon, Trash2 } from "lucide-react"
 import { useActionState, useState, useTransition } from "react"
 import { toast } from "sonner"
 import { ServerProxyPanel } from "@/components/custom/server-proxy-panel"
+import { EmptyState } from "@/components/custom/empty-state"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -151,7 +152,9 @@ export function ServersCard({
         </div>
 
         {servers.length === 0 ? (
-          <p className="text-muted-foreground">Belum ada server remote.</p>
+          <EmptyState icon={ServerIcon} compact>
+            Belum ada server remote.
+          </EmptyState>
         ) : (
           <ul className="divide-y rounded-md border">
             {servers.map((s) => {

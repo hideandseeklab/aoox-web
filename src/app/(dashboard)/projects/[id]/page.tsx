@@ -19,6 +19,7 @@ import {
   DatabaseInstanceCard,
 } from "@/components/custom/project-instance-card"
 import { ProjectResourcePanel } from "@/components/custom/project-resource-panel"
+import { EmptyState } from "@/components/custom/empty-state"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -140,12 +141,21 @@ export default async function ProjectDetailPage({
               )}
             </div>
             {applications.length === 0 ? (
-              <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed p-8 text-center">
-                <Boxes className="size-6 text-muted-foreground" />
-                <p className="text-xs text-muted-foreground">
-                  Belum ada aplikasi di project ini.
-                </p>
-              </div>
+              <EmptyState
+                icon={Boxes}
+                action={
+                  canWrite && (
+                    <Button asChild size="sm">
+                      <Link href={`/projects/${project.id}/applications/new`}>
+                        <Plus data-icon="inline-start" />
+                        New application
+                      </Link>
+                    </Button>
+                  )
+                }
+              >
+                Belum ada aplikasi di project ini.
+              </EmptyState>
             ) : (
               <div className="grid gap-4 sm:grid-cols-2 2xl:grid-cols-3">
                 {applications.map((app) => (
@@ -180,12 +190,21 @@ export default async function ProjectDetailPage({
               )}
             </div>
             {composeApps.length === 0 ? (
-              <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed p-8 text-center">
-                <Layers className="size-6 text-muted-foreground" />
-                <p className="text-xs text-muted-foreground">
-                  Belum ada stack compose di project ini.
-                </p>
-              </div>
+              <EmptyState
+                icon={Layers}
+                action={
+                  canWrite && (
+                    <Button asChild size="sm">
+                      <Link href={`/projects/${project.id}/compose/new`}>
+                        <Plus data-icon="inline-start" />
+                        Stack compose
+                      </Link>
+                    </Button>
+                  )
+                }
+              >
+                Belum ada stack compose di project ini.
+              </EmptyState>
             ) : (
               <div className="grid gap-4 sm:grid-cols-2 2xl:grid-cols-3">
                 {composeApps.map((c) => (
@@ -208,12 +227,21 @@ export default async function ProjectDetailPage({
               )}
             </div>
             {databases.length === 0 ? (
-              <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed p-8 text-center">
-                <Database className="size-6 text-muted-foreground" />
-                <p className="text-xs text-muted-foreground">
-                  Belum ada database di project ini.
-                </p>
-              </div>
+              <EmptyState
+                icon={Database}
+                action={
+                  canWrite && (
+                    <Button asChild size="sm" variant="outline">
+                      <Link href={`/projects/${project.id}/databases/new`}>
+                        <Plus data-icon="inline-start" />
+                        New database
+                      </Link>
+                    </Button>
+                  )
+                }
+              >
+                Belum ada database di project ini.
+              </EmptyState>
             ) : (
               <div className="grid gap-4 sm:grid-cols-2 2xl:grid-cols-3">
                 {databases.map((db) => (

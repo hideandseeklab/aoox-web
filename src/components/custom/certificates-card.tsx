@@ -3,6 +3,7 @@
 import { FileUp, Plus, RefreshCw, ShieldCheck, Trash2 } from "lucide-react"
 import { useRef, useState, useTransition } from "react"
 import { ConfirmDialog } from "@/components/custom/confirm-dialog"
+import { EmptyState } from "@/components/custom/empty-state"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -91,10 +92,10 @@ export function CertificatesCard({
       </CardHeader>
       <CardContent>
         {certificates.length === 0 ? (
-          <p className="text-xs text-muted-foreground">
+          <EmptyState icon={ShieldCheck} compact>
             Belum ada sertifikat — domain HTTPS memakai Let&apos;s Encrypt
             otomatis.
-          </p>
+          </EmptyState>
         ) : (
           <ul className="divide-y rounded-md border">
             {certificates.map((c) => {

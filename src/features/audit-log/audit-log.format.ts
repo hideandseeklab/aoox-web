@@ -162,6 +162,8 @@ const ACTION_LABEL: Record<string, string> = {
   "DELETE /swarm/nodes/:id": "Hapus node swarm",
   "POST /terminal/tickets": "Buka terminal",
   "POST /terminal/authorize": "Otorisasi key SSH terminal",
+  "POST /inbox/read": "Tandai notifikasi dibaca",
+  "POST /onboarding/dismiss": "Sembunyikan checklist awal",
 
   "POST /maintenance/cleanup": "Bersihkan disk",
   "POST /docker/containers/:id/start": "Docker: jalankan container",

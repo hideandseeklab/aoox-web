@@ -2,8 +2,9 @@
 
 import type { ReactNode } from "react"
 import { PathArrow } from "@/components/custom/arrows"
-import { BellRing, Plus, Send, Trash2 } from "lucide-react"
+import { Bell, BellRing, Plus, Send, Trash2 } from "lucide-react"
 import { useActionState, useState, useTransition } from "react"
+import { EmptyState } from "@/components/custom/empty-state"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -127,7 +128,9 @@ export function NotificationsCard({
       </CardHeader>
       <CardContent className="space-y-3 text-xs">
         {notifications.length === 0 ? (
-          <p className="text-muted-foreground">Belum ada channel.</p>
+          <EmptyState icon={Bell} compact>
+            Belum ada channel.
+          </EmptyState>
         ) : (
           <ul className="divide-y rounded-md border">
             {notifications.map((n) => {

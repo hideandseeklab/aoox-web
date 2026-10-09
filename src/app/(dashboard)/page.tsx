@@ -3,6 +3,7 @@ import Link from "next/link"
 import { Suspense } from "react"
 import { HostLiveChart } from "@/components/custom/host-live-chart"
 import { LiveClock } from "@/components/custom/live-clock"
+import { OnboardingChecklist } from "@/components/custom/onboarding-checklist"
 import { RecentActivitySection } from "@/components/custom/recent-activity-section"
 import { HostOverviewCard } from "@/components/custom/host-overview-card"
 import { StatCard } from "@/components/custom/stat-card"
@@ -14,6 +15,7 @@ import {
   getHostLive,
   getHostOverview,
 } from "@/features/monitoring/monitoring.queries"
+import { getOnboarding } from "@/features/onboarding/onboarding.queries"
 import {
   getProjectSummary,
   listProjects,
@@ -38,6 +40,9 @@ export default async function DashboardPage() {
         getHostLive().catch(() => null),
       ])
     : [null, null]
+  // Owner only; the API answers visible:false for everyone else anyway.
+  const onboarding =
+    user.role === "owner" ? await getOnboarding().catch(() => null) : null
 
   return (
     <>
@@ -52,6 +57,8 @@ export default async function DashboardPage() {
         </div>
         <LiveClock />
       </div>
+
+      {onboarding?.visible && <OnboardingChecklist onboarding={onboarding} />}
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <StatCard

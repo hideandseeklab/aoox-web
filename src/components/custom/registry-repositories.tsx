@@ -1,8 +1,9 @@
 "use client"
 
-import { ChevronDown, ChevronRight, ImageOff, Trash2 } from "lucide-react"
+import { ChevronDown, ChevronRight, ImageOff, Package, Trash2 } from "lucide-react"
 import { useState, useTransition } from "react"
 import { toast } from "sonner"
+import { EmptyState } from "@/components/custom/empty-state"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -57,10 +58,10 @@ export function RegistryRepositories({
 
   if (repos.length === 0) {
     return (
-      <div className="rounded-lg border border-dashed p-8 text-center text-xs text-muted-foreground">
+      <EmptyState icon={Package}>
         Belum ada image. Push pertama:{" "}
         <code>docker push &lt;registry&gt;/&lt;nama&gt;:&lt;tag&gt;</code>
-      </div>
+      </EmptyState>
     )
   }
   return (
@@ -200,7 +201,7 @@ function RepositoryRow({
                       <TableCell className="font-mono text-xs text-muted-foreground">
                         {tag.digest.replace("sha256:", "").slice(0, 12)}
                       </TableCell>
-                      <TableCell className="text-end">
+                      <TableCell className="text-end tabular-nums">
                         {formatBytes(tag.size)}
                       </TableCell>
                       {canManage && (

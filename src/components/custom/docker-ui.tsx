@@ -1,7 +1,8 @@
 "use client"
 
-import { Search } from "lucide-react"
+import { Search, type LucideIcon } from "lucide-react"
 import { createContext, useContext } from "react"
+import { EmptyState } from "@/components/custom/empty-state"
 import { Input } from "@/components/ui/input"
 
 /** Short relative age in Indonesian ("3 jam", "2 hari"); null input = "-". */
@@ -56,10 +57,12 @@ export function DockerSearch({
   )
 }
 
-export function DockerEmpty({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="rounded-lg border border-dashed p-8 text-center text-xs text-muted-foreground">
-      {children}
-    </div>
-  )
+export function DockerEmpty({
+  icon,
+  children,
+}: {
+  icon: LucideIcon
+  children: React.ReactNode
+}) {
+  return <EmptyState icon={icon}>{children}</EmptyState>
 }
