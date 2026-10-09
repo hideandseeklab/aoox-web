@@ -1,0 +1,9 @@
+{
+  "title": "Notifikasi",
+  "labelUnread": "Notifikasi, {count} belum dibaca",
+  "markAllRead": "Tandai semua dibaca",
+  "loading": "Memuat…",
+  "empty": "Belum ada notifikasi. Deploy, backup, dan peringatan akan muncul di sini.",
+  "unread": "Belum dibaca",
+  "unreachable": "Tidak dapat terhubung ke server"
+}

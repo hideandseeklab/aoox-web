@@ -43,10 +43,12 @@ import type {
   ServerTestResult,
 } from "@/features/server/server.entity"
 import { copyToClipboard } from "@/lib/clipboard"
+import { formatDateTime } from "@/i18n/format"
+import { useLocale, useTranslations } from "next-intl"
 
-const when = (iso: string | null) =>
+const when = (iso: string | null, locale: string) =>
   iso
-    ? new Date(iso).toLocaleString("id-ID", {
+    ? formatDateTime(iso, locale, {
         dateStyle: "medium",
         timeStyle: "short",
       })
@@ -58,13 +60,15 @@ const when = (iso: string | null) =>
  * failed checks in a row, so a single blip never shows here.
  */
 function ServerHealthLine({ server }: { server: Server }) {
+  const locale = useLocale()
+  const t = useTranslations("infra.servers")
   const { status, checkedAt, since, error, monitoredContainers } = server.health
   const label =
     status === "up"
-      ? "terjangkau"
+      ? t("health.up")
       : status === "down"
-        ? "tidak terjangkau"
-        : "belum dicek"
+        ? t("health.down")
+        : t("health.unchecked")
   return (
     <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
       <Badge
@@ -78,10 +82,14 @@ function ServerHealthLine({ server }: { server: Server }) {
       >
         {label}
       </Badge>
-      {checkedAt && <span>dicek {when(checkedAt)}</span>}
-      {status === "down" && since && <span>sejak {when(since)}</span>}
+      {checkedAt && (
+        <span>{t("health.checked", { time: when(checkedAt, locale) ?? "" })}</span>
+      )}
+      {status === "down" && since && (
+        <span>{t("health.since", { time: when(since, locale) ?? "" })}</span>
+      )}
       {monitoredContainers !== null && status !== "down" && (
-        <span>{monitoredContainers} container dipantau</span>
+        <span>{t("health.monitored", { count: monitoredContainers })}</span>
       )}
       {status === "down" && error && (
         <span className="truncate text-destructive" title={error}>
@@ -104,6 +112,7 @@ export function ServersCard({
   servers: Server[]
   platformKey: PlatformSshKey
 }) {
+  const t = useTranslations("infra.servers")
   const [pending, start] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const [tests, setTests] = useState<Record<string, ServerTestResult>>({})
@@ -128,11 +137,8 @@ export function ServersCard({
       <CardHeader>
         <div className="flex items-start justify-between gap-4">
           <div>
-            <CardTitle>Server remote</CardTitle>
-            <CardDescription>
-              VPS lain yang bisa dibuka dari halaman Terminal lewat SSH. Secara
-              default memakai key milik aoox di bawah.
-            </CardDescription>
+            <CardTitle>{t("title")}</CardTitle>
+            <CardDescription>{t("description")}</CardDescription>
           </div>
           <AddServerDialog />
         </div>
@@ -140,20 +146,23 @@ export function ServersCard({
       <CardContent className="space-y-4 text-xs">
         <div className="space-y-1.5">
           <p className="text-muted-foreground">
-            Jalankan sekali di setiap server, sebagai user yang akan dipakai:
+            {t("runOnce")}
           </p>
           {platformKey.authorizeCommand ? (
-            <CommandBox label="perintah" value={platformKey.authorizeCommand} />
+            <CommandBox
+              label={t("commandLabel")}
+              value={platformKey.authorizeCommand}
+            />
           ) : (
             <p className="text-destructive" role="alert">
-              {platformKey.error ?? "Key platform belum tersedia."}
+              {platformKey.error ?? t("keyUnavailable")}
             </p>
           )}
         </div>
 
         {servers.length === 0 ? (
           <EmptyState icon={ServerIcon} compact>
-            Belum ada server remote.
+            {t("empty")}
           </EmptyState>
         ) : (
           <ul className="divide-y rounded-md border">
@@ -166,13 +175,13 @@ export function ServersCard({
                     <span className="font-medium">{s.name}</span>
                     <span className="truncate text-xs text-muted-foreground">
                       {s.username}@{s.host}:{s.port}
-                      {s.hasOwnKey ? " · key sendiri" : ""}
+                      {s.hasOwnKey ? ` · ${t("ownKey")}` : ""}
                     </span>
                     <span className="ms-auto" />
                     <Button
                       variant="ghost"
                       size="icon-sm"
-                      aria-label={`Tes koneksi ${s.name}`}
+                      aria-label={t("testConnection", { name: s.name })}
                       disabled={pending}
                       onClick={() => test(s.id)}
                     >
@@ -181,7 +190,7 @@ export function ServersCard({
                     <Button
                       variant="ghost"
                       size="icon-sm"
-                      aria-label={`Hapus ${s.name}`}
+                      aria-label={t("delete", { name: s.name })}
                       disabled={pending}
                       onClick={() => remove(s.id)}
                     >
@@ -201,7 +210,7 @@ export function ServersCard({
                       </p>
                       {result.authorizeCommand && (
                         <CommandBox
-                          label="perintah"
+                          label={t("commandLabel")}
                           value={result.authorizeCommand}
                         />
                       )}
@@ -223,6 +232,7 @@ export function ServersCard({
 }
 
 function CommandBox({ label, value }: { label: string; value: string }) {
+  const t = useTranslations("infra.servers")
   return (
     <div className="flex items-start gap-2">
       <pre className="min-w-0 flex-1 overflow-x-auto rounded bg-muted px-2 py-1.5 font-mono text-xs break-all whitespace-pre-wrap">
@@ -231,12 +241,12 @@ function CommandBox({ label, value }: { label: string; value: string }) {
       <Button
         variant="ghost"
         size="icon-sm"
-        aria-label={`Salin ${label}`}
+        aria-label={t("copy", { label })}
         onClick={() =>
           void copyToClipboard(value).then((ok) =>
             ok
-              ? toast.success(`${label} disalin`)
-              : toast.error(`Gagal menyalin ${label}`)
+              ? toast.success(t("copied", { label }))
+              : toast.error(t("copyFailed", { label }))
           )
         }
       >
@@ -249,6 +259,7 @@ function CommandBox({ label, value }: { label: string; value: string }) {
 const initialState: ServerFormState = {}
 
 function AddServerDialog() {
+  const t = useTranslations("infra.servers")
   const [open, setOpen] = useState(false)
   const [state, action, pending] = useActionState(
     async (prev: ServerFormState, formData: FormData) => {
@@ -266,20 +277,20 @@ function AddServerDialog() {
       <DialogTrigger asChild>
         <Button size="sm">
           <Plus data-icon="inline-start" />
-          Tambah
+          {t("add.trigger")}
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Server remote baru</DialogTitle>
+          <DialogTitle>{t("add.title")}</DialogTitle>
           <DialogDescription>
-            Server harus bisa dijangkau lewat SSH dari mesin aoox.
+            {t("add.description")}
           </DialogDescription>
         </DialogHeader>
         <form action={action} noValidate>
           <FieldGroup>
             <Field data-invalid={!!state.fieldErrors?.name || undefined}>
-              <FieldLabel htmlFor="srv-name">Nama</FieldLabel>
+              <FieldLabel htmlFor="srv-name">{t("add.name")}</FieldLabel>
               <Input
                 id="srv-name"
                 name="name"
@@ -290,7 +301,7 @@ function AddServerDialog() {
             </Field>
             <div className="grid grid-cols-[1fr_6rem] gap-3">
               <Field data-invalid={!!state.fieldErrors?.host || undefined}>
-                <FieldLabel htmlFor="srv-host">Host</FieldLabel>
+                <FieldLabel htmlFor="srv-host">{t("add.host")}</FieldLabel>
                 <Input
                   id="srv-host"
                   name="host"
@@ -301,7 +312,7 @@ function AddServerDialog() {
                 <FieldError errors={errs("host")} />
               </Field>
               <Field data-invalid={!!state.fieldErrors?.port || undefined}>
-                <FieldLabel htmlFor="srv-port">Port</FieldLabel>
+                <FieldLabel htmlFor="srv-port">{t("add.port")}</FieldLabel>
                 <Input
                   id="srv-port"
                   name="port"
@@ -313,7 +324,7 @@ function AddServerDialog() {
               </Field>
             </div>
             <Field data-invalid={!!state.fieldErrors?.username || undefined}>
-              <FieldLabel htmlFor="srv-user">Username</FieldLabel>
+              <FieldLabel htmlFor="srv-user">{t("add.username")}</FieldLabel>
               <Input
                 id="srv-user"
                 name="username"
@@ -324,7 +335,7 @@ function AddServerDialog() {
               <FieldError errors={errs("username")} />
             </Field>
             <Field data-invalid={!!state.fieldErrors?.privateKey || undefined}>
-              <FieldLabel htmlFor="srv-key">Private key (opsional)</FieldLabel>
+              <FieldLabel htmlFor="srv-key">{t("add.privateKey")}</FieldLabel>
               <Textarea
                 id="srv-key"
                 name="privateKey"
@@ -334,8 +345,7 @@ function AddServerDialog() {
                 autoComplete="off"
               />
               <FieldDescription>
-                Kosongkan untuk memakai key aoox (tinggal jalankan perintah di
-                kartu ini pada server). Key tanpa passphrase.
+                {t("add.privateKeyHint")}
               </FieldDescription>
               <FieldError errors={errs("privateKey")} />
             </Field>
@@ -346,7 +356,7 @@ function AddServerDialog() {
             )}
             <div className="flex justify-end">
               <Button type="submit" disabled={pending}>
-                {pending ? "Menyimpan…" : "Simpan"}
+                {pending ? t("add.saving") : t("add.save")}
               </Button>
             </div>
           </FieldGroup>

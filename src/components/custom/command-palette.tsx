@@ -10,6 +10,7 @@ import {
   Sun,
   type LucideIcon,
 } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { useTheme } from "next-themes"
 import {
   useCallback,
@@ -35,8 +36,8 @@ import type { ProjectListItem } from "@/features/project/project.entity"
 import { useRouter } from "@/lib/use-router"
 import { cn } from "@/lib/utils"
 
-type Group = "Halaman" | "Project & resource" | "Tampilan"
-const GROUPS: Group[] = ["Halaman", "Project & resource", "Tampilan"]
+type Group = "pages" | "resources" | "appearance"
+const GROUPS: Group[] = ["pages", "resources", "appearance"]
 
 interface Item {
   id: string
@@ -95,24 +96,27 @@ function instanceHref(kind: string, id: string) {
   return `/applications/${id}`
 }
 
-function resourceItems(projects: ProjectListItem[]): Item[] {
+function resourceItems(
+  projects: ProjectListItem[],
+  t: (key: string) => string
+): Item[] {
   const out: Item[] = []
   for (const p of projects) {
     out.push({
       id: `p:${p.id}`,
-      group: "Project & resource",
+      group: "resources",
       label: p.name,
-      hint: "project",
+      hint: t("hints.project"),
       icon: <FolderKanban className={ICON} />,
       href: `/projects/${p.id}`,
     })
     for (const i of p.instances) {
       out.push({
         id: `${i.kind}:${i.id}`,
-        group: "Project & resource",
+        group: "resources",
         label: i.name,
         hint: p.name,
-        keywords: `${i.kind === "compose" ? "stack compose" : i.kind} ${i.engine ?? ""}`,
+        keywords: `${t(`kinds.${i.kind}`)} ${i.engine ?? ""}`,
         icon:
           i.kind === "database" && i.engine ? (
             <EngineIcon engine={i.engine} className="text-muted-foreground" />
@@ -143,6 +147,8 @@ export function CommandPalette({
   showTerminal: boolean
   isOwner: boolean
 }) {
+  const t = useTranslations("commandPalette")
+  const tNav = useTranslations("nav")
   const router = useRouter()
   const { setTheme } = useTheme()
   const [open, setOpen] = useState(false)
@@ -196,25 +202,25 @@ export function CommandPalette({
     const pages: Item[] = [
       ...nav.platform.map((n) => ({
         id: `nav:${n.href}`,
-        group: "Halaman" as const,
-        label: n.title,
-        hint: n.href.startsWith("/infra/") ? "infrastruktur" : undefined,
+        group: "pages" as const,
+        label: tNav(n.key),
+        hint: n.href.startsWith("/infra/") ? t("hints.infrastructure") : undefined,
         icon: <n.icon className={ICON} />,
         href: n.href,
       })),
       ...nav.infra.map((n) => ({
         id: `nav:${n.href}`,
-        group: "Halaman" as const,
-        label: n.title,
-        hint: "infrastruktur",
+        group: "pages" as const,
+        label: tNav(n.key),
+        hint: t("hints.infrastructure"),
         icon: <n.icon className={ICON} />,
         href: n.href,
       })),
       ...nav.settings.map((n) => ({
         id: `settings:${n.tab}`,
-        group: "Halaman" as const,
-        label: n.title,
-        hint: "settings",
+        group: "pages" as const,
+        label: tNav(n.key),
+        hint: t("hints.settings"),
         icon: <n.icon className={ICON} />,
         href: `/settings?tab=${n.tab}`,
       })),
@@ -222,9 +228,9 @@ export function CommandPalette({
         ? [
             {
               id: `nav:${AUDIT_LOG_NAV.href}`,
-              group: "Halaman" as const,
-              label: AUDIT_LOG_NAV.title,
-              hint: "settings",
+              group: "pages" as const,
+              label: tNav(AUDIT_LOG_NAV.key),
+              hint: t("hints.settings"),
               icon: <AUDIT_LOG_NAV.icon className={ICON} />,
               href: AUDIT_LOG_NAV.href,
             },
@@ -233,19 +239,19 @@ export function CommandPalette({
     ]
     const theme = (id: string, label: string, Icon: LucideIcon, value: string) => ({
       id: `theme:${id}`,
-      group: "Tampilan" as const,
+      group: "appearance" as const,
       label,
-      keywords: "tema theme warna mode",
+      keywords: t("themeKeywords"),
       icon: <Icon className={ICON} />,
       run: () => setTheme(value),
     })
     const actions: Item[] = [
-      theme("light", "Tema terang", Sun, "light"),
-      theme("dark", "Tema gelap", Moon, "dark"),
-      theme("system", "Tema sistem", Monitor, "system"),
+      theme("light", t("theme.light"), Sun, "light"),
+      theme("dark", t("theme.dark"), Moon, "dark"),
+      theme("system", t("theme.system"), Monitor, "system"),
     ]
-    return { pages, actions, resources: resourceItems(projects ?? []) }
-  }, [showTerminal, isOwner, projects, setTheme])
+    return { pages, actions, resources: resourceItems(projects ?? [], t) }
+  }, [showTerminal, isOwner, projects, setTheme, t, tNav])
 
   const results = useMemo(() => {
     const q = query.trim()
@@ -312,12 +318,12 @@ export function CommandPalette({
         type="button"
         variant="outline"
         className="text-muted-foreground"
-        aria-label="Cari (Ctrl K)"
+        aria-label={t("triggerLabel")}
         aria-keyshortcuts="Control+K Meta+K"
         onClick={() => onOpenChange(true)}
       >
         <Search data-icon="inline-start" />
-        <span className="hidden sm:inline">Cari…</span>
+        <span className="hidden sm:inline">{t("trigger")}</span>
         <kbd className="hidden rounded border px-1 font-mono text-[10px] leading-4 sm:inline">
           {shortcut}
         </kbd>
@@ -331,9 +337,9 @@ export function CommandPalette({
           }}
           className="top-[15%] translate-y-0 gap-0 p-0 sm:max-w-lg"
         >
-          <DialogTitle className="sr-only">Cari</DialogTitle>
+          <DialogTitle className="sr-only">{t("title")}</DialogTitle>
           <DialogDescription className="sr-only">
-            Lompat ke halaman, project atau resource, atau ganti tema.
+            {t("description")}
           </DialogDescription>
           <div className="flex items-center gap-2 border-b px-3 py-2">
             <Search
@@ -355,8 +361,8 @@ export function CommandPalette({
                 current >= 0 ? `cmdk-opt-${current}` : undefined
               }
               aria-autocomplete="list"
-              aria-label="Cari halaman, project atau resource"
-              placeholder="Cari halaman, project, aplikasi…"
+              aria-label={t("inputLabel")}
+              placeholder={t("placeholder")}
               className="h-7 min-w-0 flex-1 bg-transparent text-xs outline-none placeholder:text-muted-foreground"
             />
           </div>
@@ -364,12 +370,12 @@ export function CommandPalette({
             ref={listRef}
             id="cmdk-list"
             role="listbox"
-            aria-label="Hasil"
+            aria-label={t("results")}
             className="max-h-[50vh] overflow-y-auto p-1"
           >
             {results.length === 0 ? (
               <EmptyState icon={Search} compact className="border-0">
-                {projects === null && query ? "Memuat…" : "Tidak ada hasil."}
+                {projects === null && query ? t("loading") : t("noResults")}
               </EmptyState>
             ) : (
               GROUPS.map((group) => {
@@ -385,7 +391,7 @@ export function CommandPalette({
                       id={`cmdk-g-${group}`}
                       className="px-2 py-1 text-[11px] font-medium text-muted-foreground"
                     >
-                      {group}
+                      {t(`groups.${group}`)}
                     </div>
                     {rows.map((item) => {
                       const i = results.indexOf(item)
@@ -423,14 +429,14 @@ export function CommandPalette({
             )}
             {projects === null && results.length > 0 && (
               <p className="px-2 py-1 text-[11px] text-muted-foreground">
-                Memuat project…
+                {t("loadingProjects")}
               </p>
             )}
           </div>
           <div className="hidden items-center gap-3 border-t px-3 py-1.5 text-[11px] text-muted-foreground sm:flex">
-            <span>↑↓ pilih</span>
-            <span>Enter buka</span>
-            <span>Esc tutup</span>
+            <span>{t("hintSelect")}</span>
+            <span>{t("hintOpen")}</span>
+            <span>{t("hintClose")}</span>
           </div>
         </DialogContent>
       </Dialog>

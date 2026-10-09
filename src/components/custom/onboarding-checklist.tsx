@@ -1,6 +1,7 @@
 "use client"
 
 import { Check, Circle, EyeOff } from "lucide-react"
+import { useTranslations } from "next-intl"
 import Link from "next/link"
 import { useState, useTransition } from "react"
 import { LinkArrow } from "@/components/custom/arrows"
@@ -22,6 +23,7 @@ import { dismissOnboardingAction } from "@/features/onboarding/onboarding.action
  * required step is done, or for good when the owner hides it.
  */
 export function OnboardingChecklist({ onboarding }: { onboarding: Onboarding }) {
+  const t = useTranslations("dashboard.onboarding")
   const [pending, start] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const required = onboarding.steps.filter((s) => !s.optional)
@@ -30,10 +32,9 @@ export function OnboardingChecklist({ onboarding }: { onboarding: Onboarding }) 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Mulai dengan aoox</CardTitle>
+        <CardTitle>{t("title")}</CardTitle>
         <CardDescription>
-          {done} dari {required.length} langkah wajib selesai. Daftar ini hilang
-          sendiri kalau semuanya beres.
+          {t("progress", { done, total: required.length })}
         </CardDescription>
         <CardAction>
           <Button
@@ -50,7 +51,7 @@ export function OnboardingChecklist({ onboarding }: { onboarding: Onboarding }) 
             }
           >
             <EyeOff data-icon="inline-start" />
-            Sembunyikan
+            {t("hide")}
           </Button>
         </CardAction>
       </CardHeader>
@@ -58,7 +59,7 @@ export function OnboardingChecklist({ onboarding }: { onboarding: Onboarding }) 
         <div
           className="h-1.5 overflow-hidden rounded-full bg-muted"
           role="progressbar"
-          aria-label="Langkah wajib selesai"
+          aria-label={t("progressAria")}
           aria-valuemin={0}
           aria-valuemax={required.length}
           aria-valuenow={done}
@@ -89,19 +90,20 @@ export function OnboardingChecklist({ onboarding }: { onboarding: Onboarding }) 
               </span>
               <span className="min-w-0 flex-1">
                 <span className={s.done ? "text-muted-foreground" : "font-medium"}>
-                  {s.title}
+                  {t.has(`steps.${s.id}.title`) ? t(`steps.${s.id}.title`) : s.title}
                   <span className="sr-only">
-                    {s.done ? " (selesai)" : " (belum)"}
+                    {" "}
+                    {s.done ? t("stepDone") : t("stepPending")}
                   </span>
                 </span>
                 {!s.done && (
-                  <span className="block text-muted-foreground">{s.hint}</span>
+                  <span className="block text-muted-foreground">{t.has(`steps.${s.id}.hint`) ? t(`steps.${s.id}.hint`) : s.hint}</span>
                 )}
               </span>
               {!s.done && (
                 <Button asChild variant="outline" size="sm">
                   <Link href={s.href}>
-                    Buka
+                    {t("open")}
                     <LinkArrow />
                   </Link>
                 </Button>

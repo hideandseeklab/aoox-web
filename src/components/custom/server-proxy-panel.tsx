@@ -1,6 +1,7 @@
 "use client"
 
 import { Globe, RefreshCw } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { useState, useTransition } from "react"
 import { Badge } from "@/components/ui/badge"
 import { ConfirmDialog } from "@/components/custom/confirm-dialog"
@@ -22,6 +23,7 @@ import type { Server } from "@/features/server/server.entity"
  * are routed by it, so their Domain tab works like on the host.
  */
 export function ServerProxyPanel({ server }: { server: Server }) {
+  const t = useTranslations("infra.serverProxy")
   const [status, setStatus] = useState<ProxyStatus | null>(null)
   const [httpPort, setHttpPort] = useState(String(server.proxyHttpPort))
   const [httpsPort, setHttpsPort] = useState(String(server.proxyHttpsPort))
@@ -42,20 +44,20 @@ export function ServerProxyPanel({ server }: { server: Server }) {
     <div className="space-y-2 rounded-md border p-3 text-xs">
       <div className="flex items-center gap-2">
         <Globe className="size-3.5 text-muted-foreground" />
-        <span className="font-medium">Proxy (Traefik) di server ini</span>
+        <span className="font-medium">{t("title")}</span>
         {status &&
           (status.running ? (
-            <Badge>running</Badge>
+            <Badge>{t("running")}</Badge>
           ) : status.installed ? (
             <Badge variant="secondary">{status.state}</Badge>
           ) : (
-            <Badge variant="outline">belum ada</Badge>
+            <Badge variant="outline">{t("notInstalled")}</Badge>
           ))}
         <span className="ms-auto" />
         <Button
           variant="ghost"
           size="icon-sm"
-          aria-label="Cek status proxy"
+          aria-label={t("checkStatus")}
           disabled={pending}
           onClick={refresh}
         >
@@ -104,7 +106,7 @@ export function ServerProxyPanel({ server }: { server: Server }) {
           />
         </div>
         <div className="min-w-40 flex-1 space-y-1">
-          <Label htmlFor={`sp-acme-${server.id}`}>Email ACME (opsional)</Label>
+          <Label htmlFor={`sp-acme-${server.id}`}>{t("acmeEmail")}</Label>
           <Input
             id={`sp-acme-${server.id}`}
             type="email"
@@ -115,21 +117,21 @@ export function ServerProxyPanel({ server }: { server: Server }) {
         </div>
         <label className="mb-1.5 flex items-center gap-1.5">
           <Switch checked={acmeStaging} onCheckedChange={setAcmeStaging} />
-          staging
+          {t("staging")}
         </label>
         <Button type="submit" disabled={pending}>
-          {status?.installed ? "Aktifkan ulang" : "Aktifkan"}
+          {status?.installed ? t("reenable") : t("enable")}
         </Button>
         {status?.installed && (
           <ConfirmDialog
             trigger={
               <Button type="button" variant="outline" disabled={pending}>
-                Hapus
+                {t("delete")}
               </Button>
             }
-            title="Hapus proxy di server ini?"
-            description="Container proxy di server ini dihentikan dan dihapus. Domain aplikasi di server ini berhenti dilayani sampai proxy diaktifkan lagi."
-            confirmLabel="Hapus proxy"
+            title={t("deleteTitle")}
+            description={t("deleteDescription")}
+            confirmLabel={t("deleteConfirm")}
             onConfirm={async () => {
               const r = await removeServerProxyAction(server.id)
               if (r.ok)

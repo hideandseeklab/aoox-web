@@ -24,6 +24,8 @@ import type {
   ComposeDeployment,
   ComposeDeploymentAction,
 } from "@/features/compose/compose.entity"
+import { formatDateTime } from "@/i18n/format"
+import { useLocale, useTranslations } from "next-intl"
 
 const POLL_MS = 3_000
 
@@ -34,8 +36,8 @@ const ICON: Record<ComposeDeploymentAction, typeof Rocket> = {
   down: Trash2,
 }
 
-function fmt(d: string) {
-  return new Date(d).toLocaleString("id-ID", {
+function fmt(d: string, locale: string) {
+  return formatDateTime(d, locale, {
     dateStyle: "medium",
     timeStyle: "short",
   })
@@ -59,6 +61,9 @@ export function ComposeHistory({
   appId: string
   initial: ComposeDeployment[]
 }) {
+  const locale = useLocale()
+  const t = useTranslations("compose")
+  const tc = useTranslations("common")
   const [runs, setRuns] = useState(initial)
   const [openId, setOpenId] = useState<string | null>(null)
   const [logs, setLogs] = useState<string>("")
@@ -84,13 +89,13 @@ export function ComposeHistory({
       setOpenId(id)
       setLogs("")
       const run = await fetchComposeDeploymentAction(id)
-      setLogs(run?.logs || "Tidak ada output.")
+      setLogs(run?.logs || t("history.noOutput"))
     })
 
   if (runs.length === 0) {
     return (
       <EmptyState icon={History} compact>
-        Belum ada riwayat — deploy dulu.
+        {t("history.empty")}
       </EmptyState>
     )
   }
@@ -105,10 +110,10 @@ export function ComposeHistory({
               <Icon className="size-4 shrink-0 text-muted-foreground" />
               <span className="min-w-0 flex-1">
                 <span className="flex items-center gap-2">
-                  <span className="font-medium">{r.action}</span>
+                  <span className="font-medium">{t(`history.action.${r.action}`)}</span>
                   {r.trigger === "webhook" && (
-                    <Badge variant="outline" title="Dipicu push ke repository">
-                      <Webhook className="size-3" /> webhook
+                    <Badge variant="outline" title={t("history.webhookTitle")}>
+                      <Webhook className="size-3" /> {t("history.webhook")}
                     </Badge>
                   )}
                   {r.commitSha && (
@@ -118,7 +123,7 @@ export function ComposeHistory({
                   )}
                 </span>
                 <span className="block truncate text-xs text-muted-foreground">
-                  {fmt(r.startedAt)} · {took(r)}
+                  {fmt(r.startedAt, locale)} · {took(r)}
                   {r.errorMessage ? ` · ${r.errorMessage}` : ""}
                 </span>
               </span>
@@ -130,15 +135,15 @@ export function ComposeHistory({
                 <CircleX className="size-4 text-destructive" />
               )}
               <Button variant="ghost" size="sm" onClick={() => open(r.id)}>
-                {openId === r.id ? "Tutup" : "Log"}
+                {openId === r.id ? tc("actions.close") : t("history.log")}
               </Button>
             </div>
             {openId === r.id && (
               <div className="mt-2">
                 <LogViewer
                   text={logs}
-                  label="Log aksi"
-                  empty="Memuat…"
+                  label={t("history.actionLog")}
+                  empty={tc("states.loading")}
                   className="max-h-80"
                   initialFollow={false}
                 />

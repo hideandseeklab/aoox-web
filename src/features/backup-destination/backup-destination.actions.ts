@@ -1,5 +1,6 @@
 "use server"
 
+import { getTranslations } from "next-intl/server"
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
 import { requireToken } from "@/features/auth/auth.session"
@@ -12,23 +13,45 @@ import type {
 export type ActionResult<T = undefined> =
   { ok: true; data: T } | { ok: false; error: string }
 
-const schema = z.object({
-  name: z.string().trim().min(1, "Nama wajib diisi").max(100),
-  endpoint: z
-    .string()
-    .trim()
-    .max(255)
-    .refine((v) => !v || /^https?:\/\/\S+$/.test(v), "Harus URL http(s)://"),
-  region: z.string().trim().max(64),
-  bucket: z
-    .string()
-    .trim()
-    .regex(/^[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]$/, "Nama bucket tidak valid"),
-  prefix: z.string().trim().max(255).regex(/^\S*$/, "Tanpa spasi"),
-  accessKeyId: z.string().trim().min(1, "Access key wajib diisi").max(255),
-  secretAccessKey: z.string().min(1, "Secret key wajib diisi").max(1024),
-  forcePathStyle: z.boolean(),
-})
+async function fail(err: unknown): Promise<{ ok: false; error: string }> {
+  const t = await getTranslations("settings")
+  return {
+    ok: false,
+    error: err instanceof ApiError ? err.message : t("errors.unreachable"),
+  }
+}
+
+const schema = (t: (key: string) => string) =>
+  z.object({
+    name: z.string().trim().min(1, t("validation.nameRequired")).max(100),
+    endpoint: z
+      .string()
+      .trim()
+      .max(255)
+      .refine(
+        (v) => !v || /^https?:\/\/\S+$/.test(v),
+        t("validation.endpointUrl")
+      ),
+    region: z.string().trim().max(64),
+    bucket: z
+      .string()
+      .trim()
+      .regex(
+        /^[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]$/,
+        t("validation.bucketInvalid")
+      ),
+    prefix: z.string().trim().max(255).regex(/^\S*$/, t("validation.noSpaces")),
+    accessKeyId: z
+      .string()
+      .trim()
+      .min(1, t("validation.accessKeyRequired"))
+      .max(255),
+    secretAccessKey: z
+      .string()
+      .min(1, t("validation.secretKeyRequired"))
+      .max(1024),
+    forcePathStyle: z.boolean(),
+  })
 
 type Field =
   | "name"
@@ -59,7 +82,8 @@ export async function createBackupDestinationAction(
     prefix: str("prefix"),
     accessKeyId: str("accessKeyId"),
   }
-  const parsed = schema.safeParse({
+  const t = await getTranslations("settings")
+  const parsed = schema(t).safeParse({
     ...values,
     secretAccessKey: str("secretAccessKey"),
     forcePathStyle: formData.get("forcePathStyle") === "on",
@@ -82,13 +106,7 @@ export async function createBackupDestinationAction(
       token: await requireToken(),
     })
   } catch (err) {
-    return {
-      error:
-        err instanceof ApiError
-          ? err.message
-          : "Tidak dapat terhubung ke server",
-      values,
-    }
+    return { error: (await fail(err)).error, values }
   }
   revalidatePath("/settings")
   return { created: true }
@@ -105,13 +123,7 @@ export async function deleteBackupDestinationAction(
     revalidatePath("/settings")
     return { ok: true, data: undefined }
   } catch (err) {
-    return {
-      ok: false,
-      error:
-        err instanceof ApiError
-          ? err.message
-          : "Tidak dapat terhubung ke server",
-    }
+    return fail(err)
   }
 }
 
@@ -125,12 +137,6 @@ export async function testBackupDestinationAction(
     )
     return { ok: true, data }
   } catch (err) {
-    return {
-      ok: false,
-      error:
-        err instanceof ApiError
-          ? err.message
-          : "Tidak dapat terhubung ke server",
-    }
+    return fail(err)
   }
 }

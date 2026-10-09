@@ -1,5 +1,6 @@
 "use client"
 
+import { useLocale, useTranslations } from "next-intl"
 import { useEffect, useState } from "react"
 import { Container } from "lucide-react"
 import { LogViewer } from "@/components/custom/log-viewer"
@@ -17,6 +18,7 @@ import { fetchComposeMetricsAction } from "@/features/compose/compose.actions"
 import type { ComposeMetrics } from "@/features/compose/compose.entity"
 import { formatBytes } from "@/features/monitoring/monitoring.entity"
 import type { MetricsResponse } from "@/features/monitoring/monitoring.entity"
+import { formatNumber } from "@/i18n/format"
 import { MetricsPanel } from "@/components/custom/metrics-panel"
 
 /** The sampler itself runs every 15s; this only refreshes what it has. */
@@ -32,6 +34,13 @@ export function ComposePanel({
   /** Stack-combined figures, same contract application/database pages use. */
   metrics: MetricsResponse
 }) {
+  const t = useTranslations("compose")
+  const locale = useLocale()
+  const pct = (n: number) =>
+    formatNumber(n, locale, {
+      minimumFractionDigits: 1,
+      maximumFractionDigits: 1,
+    })
   const { app, busy } = useComposeLive()
 
   // Live CPU/RAM per service, from the background sampler (which also
@@ -63,13 +72,16 @@ export function ComposePanel({
       <div className="grid gap-4 lg:grid-cols-[1fr_2fr]">
         <Card>
           <CardHeader>
-            <CardTitle>Container</CardTitle>
+            <CardTitle>{t("panel.containers")}</CardTitle>
             <CardDescription className="tabular-nums">
-              Project compose <code>aoox-{app.slug}</code>
+              {t.rich("panel.composeProject", {
+                slug: app.slug,
+                code: (chunks) => <code>{chunks}</code>,
+              })}
               {metrics && metrics.total.containers > 0 && (
                 <>
                   {" · "}
-                  {metrics.total.cpuPercent.toFixed(1)}% CPU ·{" "}
+                  {pct(metrics.total.cpuPercent)}% CPU ·{" "}
                   {formatBytes(metrics.total.memoryBytes)}
                 </>
               )}
@@ -78,7 +90,7 @@ export function ComposePanel({
           <CardContent>
             {app.containers.length === 0 ? (
               <EmptyState icon={Container} compact>
-                Belum ada container — deploy dulu.
+                {t("panel.noContainers")}
               </EmptyState>
             ) : (
               <ul className="divide-y rounded-md border text-xs">
@@ -98,7 +110,7 @@ export function ComposePanel({
                         )?.current
                         return m ? (
                           <p className="text-xs text-muted-foreground tabular-nums">
-                            {(m.cpuPercent ?? 0).toFixed(1)}% CPU ·{" "}
+                            {pct(m.cpuPercent ?? 0)}% CPU ·{" "}
                             {formatBytes(m.memoryBytes)}
                           </p>
                         ) : null
@@ -118,16 +130,18 @@ export function ComposePanel({
 
         <Card>
           <CardHeader>
-            <CardTitle>Log aksi terakhir</CardTitle>
+            <CardTitle>{t("panel.lastLog")}</CardTitle>
             <CardDescription>
-              {busy ? "Sedang berjalan…" : (app.errorMessage ?? "Selesai")}
+              {busy
+                ? t("panel.running")
+                : (app.errorMessage ?? t("panel.done"))}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <LogViewer
               text={app.logs ?? ""}
-              label="Log aksi terakhir"
-              empty="Belum ada log."
+              label={t("panel.lastLog")}
+              empty={t("panel.noLogs")}
               className="h-96"
             />
           </CardContent>

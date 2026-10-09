@@ -1,6 +1,7 @@
 "use client"
 
 import { Plus, Trash2 } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { useState, useTransition } from "react"
 import { Button } from "@/components/ui/button"
 import {
@@ -28,6 +29,8 @@ export function ComposeResources({
   appId: string
   resources: ComposeServiceResources[]
 }) {
+  const t = useTranslations("compose")
+  const tc = useTranslations("common")
   const [service, setService] = useState("")
   const [cpu, setCpu] = useState("")
   const [memory, setMemory] = useState("")
@@ -67,10 +70,9 @@ export function ComposeResources({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Batas sumber daya</CardTitle>
+        <CardTitle>{t("resources.title")}</CardTitle>
         <CardDescription>
-          Per service dalam stack — kosong berarti tanpa batas. Berlaku pada
-          deploy berikutnya.
+          {t("resources.description")}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-3">
@@ -83,15 +85,17 @@ export function ComposeResources({
                 </span>
                 <span className="text-xs text-muted-foreground">
                   {r.cpuMillicores
-                    ? `${r.cpuMillicores}m CPU`
-                    : "CPU tanpa batas"}
+                    ? t("resources.cpuLimit", { value: String(r.cpuMillicores) })
+                    : t("resources.cpuUnlimited")}
                   {" · "}
-                  {r.memoryMb ? `${r.memoryMb} MiB` : "RAM tanpa batas"}
+                  {r.memoryMb
+                    ? t("resources.memoryLimit", { value: String(r.memoryMb) })
+                    : t("resources.ramUnlimited")}
                 </span>
                 <Button
                   variant="ghost"
                   size="icon-sm"
-                  aria-label={`Hapus batas ${r.service}`}
+                  aria-label={t("resources.removeAria", { service: r.service })}
                   disabled={pending}
                   onClick={() => remove(r.service)}
                 >
@@ -103,7 +107,7 @@ export function ComposeResources({
         )}
         <form className="flex flex-wrap items-end gap-3" onSubmit={add}>
           <div className="min-w-32 flex-1 space-y-1">
-            <Label htmlFor="res-service">Service</Label>
+            <Label htmlFor="res-service">{t("access.service")}</Label>
             <Input
               id="res-service"
               value={service}
@@ -113,28 +117,28 @@ export function ComposeResources({
             />
           </div>
           <div className="space-y-1">
-            <Label htmlFor="res-cpu">CPU (millicore)</Label>
+            <Label htmlFor="res-cpu">{t("resources.cpuLabel")}</Label>
             <Input
               id="res-cpu"
               type="number"
               min={100}
               max={64_000}
               step={100}
-              placeholder="1000 = 1 core"
+              placeholder={t("resources.cpuPlaceholder")}
               value={cpu}
               onChange={(e) => setCpu(e.target.value)}
               className="w-40"
             />
           </div>
           <div className="space-y-1">
-            <Label htmlFor="res-mem">Memori (MiB)</Label>
+            <Label htmlFor="res-mem">{t("resources.memoryLabel")}</Label>
             <Input
               id="res-mem"
               type="number"
               min={64}
               max={1_000_000}
               step={64}
-              placeholder="mis. 512"
+              placeholder={t("resources.memoryPlaceholder")}
               value={memory}
               onChange={(e) => setMemory(e.target.value)}
               className="w-40"
@@ -142,7 +146,7 @@ export function ComposeResources({
           </div>
           <Button type="submit" variant="outline" disabled={pending}>
             <Plus data-icon="inline-start" />
-            {pending ? "Menyimpan…" : "Tambah / ubah"}
+            {pending ? tc("states.saving") : t("resources.submit")}
           </Button>
         </form>
         {error && (

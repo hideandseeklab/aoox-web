@@ -1,5 +1,6 @@
 "use server"
 
+import { getTranslations } from "next-intl/server"
 import { revalidatePath } from "next/cache"
 import { requireToken } from "@/features/auth/auth.session"
 import { api, ApiError } from "@/lib/api"
@@ -15,11 +16,13 @@ import {
 export type ActionResult<T = undefined> =
   { ok: true; data: T } | { ok: false; error: string }
 
-function fail(err: unknown): { ok: false; error: string } {
+async function fail(err: unknown): Promise<{ ok: false; error: string }> {
   return {
     ok: false,
     error:
-      err instanceof ApiError ? err.message : "Tidak dapat terhubung ke server",
+      err instanceof ApiError
+        ? err.message
+        : (await getTranslations("common"))("messages.serverUnreachable"),
   }
 }
 
@@ -47,7 +50,7 @@ export async function createJobAction(
     revalidatePath(ownerPage(owner))
     return { ok: true, data }
   } catch (err) {
-    return fail(err)
+    return await fail(err)
   }
 }
 
@@ -65,7 +68,7 @@ export async function updateJobAction(
     revalidatePath(ownerPage(owner))
     return { ok: true, data }
   } catch (err) {
-    return fail(err)
+    return await fail(err)
   }
 }
 
@@ -81,7 +84,7 @@ export async function deleteJobAction(
     revalidatePath(ownerPage(owner))
     return { ok: true, data: undefined }
   } catch (err) {
-    return fail(err)
+    return await fail(err)
   }
 }
 
@@ -96,7 +99,7 @@ export async function runJobAction(
     })
     return { ok: true, data }
   } catch (err) {
-    return fail(err)
+    return await fail(err)
   }
 }
 

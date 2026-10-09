@@ -1,6 +1,7 @@
 "use client"
 
 import { Loader2 } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { useState, useTransition, type ReactNode } from "react"
 import { Button } from "@/components/ui/button"
 import {
@@ -55,6 +56,7 @@ export function ConfirmDialog({
   onConfirm: () => Promise<ConfirmResult>
   alternative?: ConfirmChoice
 }) {
+  const tc = useTranslations("common")
   const [innerOpen, setInnerOpen] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [pending, start] = useTransition()
@@ -77,7 +79,7 @@ export function ConfirmDialog({
       setRunning(which)
       const r = await fn()
       setRunning(null)
-      if (r && !r.ok) return setError(r.error ?? "Gagal")
+      if (r && !r.ok) return setError(r.error ?? tc("states.failed"))
       if (controlledOpen === undefined) setInnerOpen(false)
       onOpenChange?.(false)
     })
@@ -107,7 +109,7 @@ export function ConfirmDialog({
             disabled={pending}
             onClick={() => setOpen(false)}
           >
-            Batal
+            {tc("actions.cancel")}
           </Button>
           {alternative && (
             <Button

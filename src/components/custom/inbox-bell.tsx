@@ -1,6 +1,7 @@
 "use client"
 
 import { Bell, CircleAlert, CircleCheck, Info } from "lucide-react"
+import { useLocale, useTranslations } from "next-intl"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useEffect, useState, useTransition } from "react"
@@ -16,7 +17,8 @@ import {
   markInboxReadAction,
 } from "@/features/inbox/inbox.actions"
 import type { InboxItem, InboxPage } from "@/features/inbox/inbox.entity"
-import { badgeText, relativeTime } from "@/features/inbox/inbox.format"
+import { badgeText } from "@/features/inbox/inbox.format"
+import { formatRelative } from "@/i18n/format"
 
 const POLL_MS = 30_000
 
@@ -32,6 +34,7 @@ const LEVEL_ICON = {
  * What a user sees depends on their project access — the API decides that.
  */
 export function InboxBell() {
+  const t = useTranslations("inbox")
   const pathname = usePathname()
   const [page, setPage] = useState<InboxPage | null>(null)
   const [open, setOpen] = useState(false)
@@ -76,7 +79,7 @@ export function InboxBell() {
           size="icon"
           className="relative"
           aria-label={
-            unread > 0 ? `Notifikasi, ${unread} belum dibaca` : "Notifikasi"
+            unread > 0 ? t("labelUnread", { count: unread }) : t("title")
           }
         >
           <Bell />
@@ -95,7 +98,7 @@ export function InboxBell() {
         className="w-96 max-w-[calc(100vw-1.5rem)] p-0"
       >
         <div className="flex items-center justify-between gap-2 border-b px-3 py-2">
-          <h2 className="text-sm font-medium">Notifikasi</h2>
+          <h2 className="text-sm font-medium">{t("title")}</h2>
           <Button
             type="button"
             variant="ghost"
@@ -103,18 +106,17 @@ export function InboxBell() {
             disabled={pending || unread === 0}
             onClick={markRead}
           >
-            Tandai semua dibaca
+            {t("markAllRead")}
           </Button>
         </div>
         {page === null ? (
           <p className="p-4 text-center text-xs text-muted-foreground">
-            Memuat…
+            {t("loading")}
           </p>
         ) : page.items.length === 0 ? (
           <div className="p-3">
             <EmptyState icon={Bell} compact>
-              Belum ada notifikasi. Deploy, backup, dan peringatan akan muncul
-              di sini.
+              {t("empty")}
             </EmptyState>
           </div>
         ) : (
@@ -143,6 +145,8 @@ function InboxRow({
   unread: boolean
   onNavigate: () => void
 }) {
+  const t = useTranslations("inbox")
+  const locale = useLocale()
   const { Icon, cls } = LEVEL_ICON[item.level]
   const body = (
     <>
@@ -153,7 +157,7 @@ function InboxRow({
           {unread && (
             <span
               className="mt-1 size-1.5 shrink-0 rounded-full bg-primary"
-              title="Belum dibaca"
+              title={t("unread")}
             />
           )}
         </span>
@@ -163,7 +167,7 @@ function InboxRow({
           </span>
         )}
         <span className="mt-0.5 block text-muted-foreground tabular-nums">
-          {relativeTime(item.createdAt)}
+          {formatRelative(item.createdAt, locale)}
         </span>
       </span>
     </>

@@ -1,0 +1,123 @@
+{
+  "selfHosted": {
+    "storageLocal": "Lokal (disk)",
+    "failed": "Gagal",
+    "title": "Registry lokal",
+    "description": "Container <code>registry:3</code> yang dikelola aoox. Alamat push: <addr>{url}</addr>",
+    "dockerUnavailable": {
+      "title": "Docker tidak terjangkau",
+      "description": "API tidak bisa mengakses Docker engine (cek <code>DOCKER_SOCKET</code> dan mount socket di container)."
+    },
+    "username": "Username",
+    "container": "Container",
+    "login": "Login",
+    "storage": "Storage",
+    "domain": "Domain",
+    "customDomain": "Domain kustom",
+    "apply": "Terapkan",
+    "removeDomain": "Hapus domain",
+    "domainNote": "Butuh reverse proxy sudah diaktifkan dengan email ACME diisi — tanpa itu sertifikat tidak terbit dan <code>docker push</code> akan menolak domainnya.",
+    "noOutput": "(tidak ada output)",
+    "enable": "Aktifkan registry",
+    "gcDryRun": "GC (dry-run)",
+    "gc": "Garbage collect",
+    "remove": "Hapus registry",
+    "cancel": "Batal",
+    "provision": {
+      "title": "Aktifkan registry lokal",
+      "description": "Pilih tempat penyimpanan image. Tidak bisa diganti tanpa hapus lalu aktifkan ulang.",
+      "localDisk": "Lokal (disk VPS)",
+      "s3Option": "{name} (S3)",
+      "noDestinations": "Belum ada tujuan S3 — tambah dulu di Backup instance kalau mau pakai object storage.",
+      "preparing": "Menyiapkan…",
+      "confirm": "Aktifkan"
+    },
+    "ready": {
+      "title": "Registry siap",
+      "description": "Simpan password ini sekarang — hanya ditampilkan sekali. Setelah itu disimpan terenkripsi di server.",
+      "address": "Alamat",
+      "password": "Password",
+      "localhostNote": "Alamat <code>localhost</code> ini hanya berfungsi kalau perintah dijalankan langsung di server ini (mis. lewat terminal SSH) — bukan dari komputermu sendiri. Untuk bisa push/pull dari mana saja lewat HTTPS, set <b>Domain kustom</b> di kartu ini setelah menutup dialog.",
+      "saved": "Sudah saya simpan",
+      "copyLabel": "Salin {label}",
+      "copied": "{label} disalin",
+      "copyFailed": "Gagal menyalin {label}"
+    },
+    "removeDialog": {
+      "title": "Hapus registry lokal?",
+      "description": "Container dihentikan dan dihapus. Pilih apakah data image ikut dihapus.",
+      "keepData": "Hapus, simpan data",
+      "withData": "Hapus beserta data"
+    },
+    "status": {
+      "dockerOff": "Docker off",
+      "none": "Belum ada",
+      "running": "Running"
+    }
+  },
+  "external": {
+    "description": "Docker Hub, GHCR, GitLab, atau registry lain. Kredensial disimpan terenkripsi.",
+    "empty": "Belum ada registry eksternal.",
+    "name": "Nama",
+    "url": "URL",
+    "username": "Username",
+    "prefix": "Prefix",
+    "test": "Test",
+    "deleteLabel": "Hapus {name}",
+    "add": "Tambah registry",
+    "dialog": {
+      "title": "Registry eksternal",
+      "description": "Untuk Docker Hub isi URL <code>docker.io</code>; GHCR <code>ghcr.io</code>; GitLab <code>registry.gitlab.com</code>.",
+      "passwordToken": "Password / token",
+      "imagePrefix": "Image prefix",
+      "prefixHint": "Opsional; image akan di-push sebagai <code>&lt;url&gt;/&lt;prefix&gt;/&lt;app&gt;</code>.",
+      "saving": "Menyimpan…",
+      "save": "Simpan"
+    }
+  },
+  "repositories": {
+    "empty": "Belum ada image. Push pertama: <code>docker push &lt;registry&gt;/&lt;nama&gt;:&lt;tag&gt;</code>",
+    "deletingImage": "Menghapus image {name}…",
+    "imageDeleted": "Image {name} dihapus",
+    "tagCount": "{count} tag",
+    "deleteImageLabel": "Hapus image {name}",
+    "loading": "Memuat…",
+    "noTagsManage": "Tidak ada tag (manifest sudah dihapus). Pakai tombol \"Hapus image\" untuk membuang repo ini sepenuhnya dari katalog.",
+    "noTags": "Tidak ada tag (manifest sudah dihapus).",
+    "tag": "Tag",
+    "digest": "Digest",
+    "size": "Ukuran",
+    "deleteTagLabel": "Hapus tag {name}",
+    "deleteTag": {
+      "title": "Hapus tag {name}?",
+      "description": "Registry menghapus <em>manifest</em>-nya, bukan hanya nama tag.",
+      "shared": "Tag berikut menunjuk manifest yang sama dan <b>ikut terhapus</b>: <code>{names}</code>.",
+      "diskNote": "Ruang disk baru kembali setelah garbage collect."
+    },
+    "cancel": "Batal",
+    "deleting": "Menghapus…",
+    "delete": "Hapus",
+    "deleteImage": {
+      "title": "Hapus image {name}?",
+      "description": "Menghapus repo ini sepenuhnya dari katalog: semua {count} tag dan manifest-nya, foldernya di storage, lalu garbage collect otomatis. Registry di-restart singkat agar cache blob-nya ikut bersih — push ulang dengan nama yang sama tetap bisa dilakukan setelahnya. Tidak bisa dibatalkan.",
+      "checking": "Memeriksa pemakaian…",
+      "usedBy": "Dipakai oleh {count} aplikasi: <b>{names}</b>. Rollback atau redeploy tanpa build ke image itu akan gagal setelah dihapus.",
+      "confirm": "Hapus image"
+    }
+  },
+  "page": {
+    "description": "Tempat image hasil build disimpan — untuk rollback dan deploy ke banyak server.",
+    "local": "Registry lokal",
+    "external": "Eksternal ({count})",
+    "images": "Image",
+    "unreachable": "Registry tidak dapat dihubungi."
+  },
+  "validation": {
+    "nameRequired": "Nama wajib diisi",
+    "urlRequired": "URL wajib diisi",
+    "urlExample": "Contoh: ghcr.io atau registry.example.com:5000"
+  },
+  "errors": {
+    "serverUnreachable": "Tidak dapat terhubung ke server"
+  }
+}

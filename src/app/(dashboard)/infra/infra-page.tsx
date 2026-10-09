@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl"
 import { SetBreadcrumb } from "@/components/custom/breadcrumb-store"
 
 /** Heading + breadcrumb shared by the Infrastruktur pages (one component each). */
@@ -10,10 +11,11 @@ export function InfraPage({
   description: string
   children: React.ReactNode
 }) {
+  const t = useTranslations("infra.page")
   return (
     <>
       <SetBreadcrumb
-        items={[{ label: "Infrastruktur", href: "/infra" }, { label: title }]}
+        items={[{ label: t("breadcrumb"), href: "/infra" }, { label: title }]}
       />
       <div>
         <h1 className="text-lg font-semibold">{title}</h1>

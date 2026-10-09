@@ -1,5 +1,6 @@
 "use client"
 
+import { useTranslations } from "next-intl"
 import { useActionState } from "react"
 import { Button } from "@/components/ui/button"
 import {
@@ -24,6 +25,7 @@ export function AcceptInviteForm({
   token: string
   email: string
 }) {
+  const t = useTranslations("auth.invite")
   const [state, action, pending] = useActionState(
     acceptInvitationAction.bind(null, token),
     initialState
@@ -35,11 +37,11 @@ export function AcceptInviteForm({
     <form action={action} noValidate>
       <FieldGroup>
         <Field>
-          <FieldLabel htmlFor="inv-email">Email</FieldLabel>
+          <FieldLabel htmlFor="inv-email">{t("email")}</FieldLabel>
           <Input id="inv-email" value={email} readOnly disabled />
         </Field>
         <Field data-invalid={!!state.fieldErrors?.name || undefined}>
-          <FieldLabel htmlFor="inv-name">Nama</FieldLabel>
+          <FieldLabel htmlFor="inv-name">{t("name")}</FieldLabel>
           <Input
             id="inv-name"
             name="name"
@@ -49,7 +51,7 @@ export function AcceptInviteForm({
           <FieldError errors={errs("name")} />
         </Field>
         <Field data-invalid={!!state.fieldErrors?.password || undefined}>
-          <FieldLabel htmlFor="inv-password">Password</FieldLabel>
+          <FieldLabel htmlFor="inv-password">{t("password")}</FieldLabel>
           <Input
             id="inv-password"
             name="password"
@@ -57,7 +59,7 @@ export function AcceptInviteForm({
             autoComplete="new-password"
             required
           />
-          <FieldDescription>Minimal 8 karakter.</FieldDescription>
+          <FieldDescription>{t("passwordHint")}</FieldDescription>
           <FieldError errors={errs("password")} />
         </Field>
         {state.error && (
@@ -66,7 +68,7 @@ export function AcceptInviteForm({
           </FieldDescription>
         )}
         <Button type="submit" disabled={pending} className="w-full">
-          {pending ? "Membuat akun…" : "Buat akun & masuk"}
+          {pending ? t("submitting") : t("submit")}
         </Button>
       </FieldGroup>
     </form>

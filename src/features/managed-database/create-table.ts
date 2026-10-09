@@ -1,6 +1,6 @@
 import type { DatabaseEngine } from "./managed-database.entity"
 
-/** Column definition from the "Buat tabel" dialog. */
+/** Column definition from the "Create table" dialog. */
 export interface ColumnDraft {
   name: string
   type: string
@@ -72,6 +72,8 @@ export const COLUMN_TYPES: Record<
   ],
 }
 
+type Translator = (key: string, values?: Record<string, string | number>) => string
+
 const IDENT = /^[A-Za-z_][A-Za-z0-9_]{0,62}$/
 
 export function emptyColumn(
@@ -89,19 +91,20 @@ export function emptyColumn(
 
 /**
  * Builds `CREATE TABLE` for the dialog, or throws a message the form can
- * show. Identifiers are restricted to plain names (no quoting needed) —
+ * show (translated through `t`, relative to the `database` namespace). Identifiers are restricted to plain names (no quoting needed) —
  * anything fancier belongs in the SQL box.
  */
 export function buildCreateTable(
   engine: Exclude<DatabaseEngine, "redis" | "valkey" | "mongodb">,
   table: string,
-  columns: ColumnDraft[]
+  columns: ColumnDraft[],
+  t: Translator
 ): string {
-  const t = table.trim()
-  if (!IDENT.test(t)) throw new Error("Nama tabel tidak valid (huruf/angka/_)")
+  const tbl = table.trim()
+  if (!IDENT.test(tbl)) throw new Error(t("createTable.errors.invalidTable"))
   // Blank rows (the spare one the dialog starts with) are simply skipped.
   const cols = columns.filter((c) => c.name.trim())
-  if (cols.length === 0) throw new Error("Tambahkan minimal satu kolom")
+  if (cols.length === 0) throw new Error(t("createTable.errors.noColumns"))
   const q = (n: string) => (engine === "postgres" ? `"${n}"` : `\`${n}\``)
   const types = COLUMN_TYPES[engine]
   const seen = new Set<string>()
@@ -109,17 +112,17 @@ export function buildCreateTable(
   const pks: string[] = []
   for (const c of cols) {
     const name = c.name.trim()
-    if (!IDENT.test(name)) throw new Error(`Nama kolom tidak valid: "${name}"`)
+    if (!IDENT.test(name)) throw new Error(t("createTable.errors.invalidColumn", { name }))
     if (seen.has(name.toLowerCase()))
-      throw new Error(`Kolom "${name}" ditulis dua kali`)
+      throw new Error(t("createTable.errors.duplicateColumn", { name }))
     seen.add(name.toLowerCase())
     const opt = types.find((o) => o.value === c.type)
-    if (!opt) throw new Error(`Tipe tidak dikenal untuk kolom "${name}"`)
+    if (!opt) throw new Error(t("createTable.errors.unknownType", { name }))
     let type = opt.value
     if (opt.hasLength) {
       const len = Number(c.length)
       if (!Number.isInteger(len) || len < 1 || len > 65535)
-        throw new Error(`Panjang varchar tidak valid untuk "${name}"`)
+        throw new Error(t("createTable.errors.invalidLength", { name }))
       type = `${opt.value}(${len})`
     }
     const parts = [q(name), type]
@@ -130,5 +133,5 @@ export function buildCreateTable(
     if (c.primaryKey) pks.push(q(name))
   }
   if (pks.length) defs.push(`PRIMARY KEY (${pks.join(", ")})`)
-  return `CREATE TABLE ${q(t)} (\n  ${defs.join(",\n  ")}\n)`
+  return `CREATE TABLE ${q(tbl)} (\n  ${defs.join(",\n  ")}\n)`
 }

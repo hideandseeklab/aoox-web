@@ -1,6 +1,7 @@
 "use client"
 
 import { KeyRound } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { toast } from "sonner"
 import { ConfirmDialog } from "@/components/custom/confirm-dialog"
 import { Button } from "@/components/ui/button"
@@ -19,29 +20,29 @@ export function TerminalAuthorizeButton({
   user: string
   onAuthorized?: () => void
 }) {
+  const t = useTranslations("terminal.authorize")
   return (
     <ConfirmDialog
       tone="neutral"
       trigger={
         <Button type="button" variant="outline" size="sm">
           <KeyRound data-icon="inline-start" />
-          Otorisasi otomatis
+          {t("button")}
         </Button>
       }
-      title="Otorisasi key SSH terminal?"
+      title={t("title")}
       description={
-        <>
-          aoox akan menambahkan public key platform ke{" "}
-          <code>~/.ssh/authorized_keys</code> milik user <code>{user}</code> di
-          host ini. Tidak ada password atau private key yang ditulis.
-        </>
+        t.rich("description", {
+          user,
+          code: (c) => <code>{c}</code>,
+        })
       }
-      confirmLabel="Otorisasi"
+      confirmLabel={t("confirm")}
       onConfirm={async () => {
         const r = await authorizeTerminalAction()
         if (!r.ok) return { ok: false, error: r.error }
         if (r.data.verified) {
-          toast.success("Terminal siap")
+          toast.success(t("ready"))
           onAuthorized?.()
         } else {
           toast.warning(r.data.message)

@@ -23,6 +23,8 @@ import { Input } from "@/components/ui/input"
 import { parseAnsi, type AnsiSpan } from "@/lib/ansi"
 import { copyToClipboard } from "@/lib/clipboard"
 import { cn } from "@/lib/utils"
+import { formatNumber } from "@/i18n/format"
+import { useLocale, useTranslations } from "next-intl"
 
 /** Lines drawn at once; older ones stay behind a button, so a log of tens of thousands of lines stays light. */
 const WINDOW = 2000
@@ -149,11 +151,11 @@ const ghost =
  */
 export function LogViewer({
   text,
-  empty = "Menunggu output…",
+  empty,
   className = "h-80",
   initialFollow = true,
   lineNumbers = true,
-  label = "Log",
+  label,
 }: {
   text: string
   /** Shown while there is no text. */
@@ -164,6 +166,10 @@ export function LogViewer({
   lineNumbers?: boolean
   label?: string
 }) {
+  const locale = useLocale()
+  const t = useTranslations("logViewer")
+  empty ??= t("defaultEmpty")
+  label ??= t("defaultLabel")
   const scrollRef = useRef<HTMLDivElement>(null)
   const [follow, setFollow] = useState(initialFollow)
   const [wrap, setWrap] = useState(true)
@@ -228,8 +234,8 @@ export function LogViewer({
 
   async function copyAll() {
     const ok = await copyToClipboard(lines.map((l) => l.plain).join("\n"))
-    if (ok) toast.success("Log disalin")
-    else toast.error("Gagal menyalin log")
+    if (ok) toast.success(t("copied"))
+    else toast.error(t("copyFailed"))
   }
 
   const rangesByLine = useMemo(() => {
@@ -295,15 +301,15 @@ export function LogViewer({
                 step(e.shiftKey ? -1 : 1)
               }
             }}
-            placeholder="Cari di log…"
-            aria-label={`Cari di ${label.toLowerCase()}`}
+            placeholder={t("searchPlaceholder")}
+            aria-label={t("searchAria", { label: label.toLowerCase() })}
             className="border-white/15 bg-white/5 ps-7 text-neutral-100 placeholder:text-neutral-500 dark:bg-white/5"
           />
         </div>
         {query && (
           <span className="px-1 text-[11px] text-neutral-400 tabular-nums">
             {matches.length === 0
-              ? "0 hasil"
+              ? t("noResults")
               : `${(current % matches.length) + 1}/${matches.length}`}
           </span>
         )}
@@ -312,7 +318,7 @@ export function LogViewer({
           variant="ghost"
           size="icon"
           className={ghost}
-          aria-label="Hasil sebelumnya"
+          aria-label={t("previous")}
           disabled={matches.length === 0}
           onClick={() => step(-1)}
         >
@@ -323,7 +329,7 @@ export function LogViewer({
           variant="ghost"
           size="icon"
           className={ghost}
-          aria-label="Hasil berikutnya"
+          aria-label={t("next")}
           disabled={matches.length === 0}
           onClick={() => step(1)}
         >
@@ -335,11 +341,11 @@ export function LogViewer({
             variant="ghost"
             className={ghost}
             aria-pressed={follow}
-            title="Gulir otomatis ke baris terbaru"
+            title={t("followTitle")}
             onClick={() => setFollow((f) => !f)}
           >
             <ArrowDownToLine data-icon="inline-start" />
-            Ikuti
+            {t("follow")}
           </Button>
           <Button
             type="button"
@@ -347,8 +353,8 @@ export function LogViewer({
             size="icon"
             className={ghost}
             aria-pressed={wrap}
-            aria-label="Bungkus baris panjang"
-            title="Bungkus baris panjang"
+            aria-label={t("wrap")}
+            title={t("wrap")}
             onClick={() => setWrap((w) => !w)}
           >
             <WrapText />
@@ -358,8 +364,8 @@ export function LogViewer({
             variant="ghost"
             size="icon"
             className={ghost}
-            aria-label={`Salin semua ${label.toLowerCase()}`}
-            title="Salin semua"
+            aria-label={t("copyAllAria", { label: label.toLowerCase() })}
+            title={t("copyAllTitle")}
             disabled={!hasText}
             onClick={() => void copyAll()}
           >
@@ -394,8 +400,7 @@ export function LogViewer({
                   setLimit((l) => l + WINDOW)
                 }}
               >
-                {start.toLocaleString("id-ID")} baris sebelumnya disembunyikan —
-                tampilkan lebih banyak
+                {t("olderHidden", { count: formatNumber(start, locale) })}
               </Button>
             )}
             {rows}

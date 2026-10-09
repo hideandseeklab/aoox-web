@@ -1,0 +1,368 @@
+{
+  "disk": {
+    "parts": {
+      "image": "Image",
+      "volume": "Volume",
+      "buildCache": "Build cache",
+      "container": "Container"
+    },
+    "title": "Disk Docker",
+    "description": "{size} dipakai Docker di host ini. Pembersihan malam (04:30) menghapus deployment lama melebihi riwayat tiap aplikasi, image tak terpakai, build cache, dan blob registry yang yatim.",
+    "reclaimable": "Bisa dibebaskan sekarang:",
+    "prunable": "{count} deployment lama akan dipangkas",
+    "orphans": "{count} volume yatim (nama seperti milik aoox, tapi tidak ada lagi project/aplikasi yang punya) — hanya dihapus kalau \"Sekalian hapus volume yatim\" dicentang:",
+    "cleaning": "Membersihkan…",
+    "cleanNow": "Bersihkan sekarang",
+    "registryGc": "Sekalian GC registry lokal",
+    "pruneVolumes": "Sekalian hapus volume yatim",
+    "last": "Terakhir {date}: {deployments} deployment, {images} image, {dangling} dangling, {reclaimed} dibebaskan, registry GC {registryGc}, cache BuildKit {buildkit}",
+    "lastVolumes": "{count} volume yatim dihapus",
+    "errors": "{count} error"
+  },
+  "env": {
+    "saved": "Disimpan — API akan restart sebentar untuk menerapkannya",
+    "title": "Environment",
+    "description": "Sebagian env var instance yang bisa diubah dari sini, tanpa SSH ke <code>.env.dist</code>. Menyimpan me-restart container API sebentar untuk menerapkan nilai baru.",
+    "installDirTitle": "INSTALL_DIR belum diisi",
+    "installDirBody": "Set <code>INSTALL_DIR</code> di <code>.env.dist</code> ke path absolut folder <code>docker-compose.dist.yml</code> di server ini, lalu restart stack sebelum menyimpan dari sini.",
+    "applied": "Diterapkan",
+    "appliedBody": "Container API akan restart beberapa detik lagi — koneksi ke dashboard ini bisa sempat terputus, itu wajar.",
+    "terminal": {
+      "title": "SSH Terminal (ke host)",
+      "description": "Fitur Terminal web selalu masuk lewat SSH (container tidak bisa membuka shell host langsung). Isi ini supaya bisa dipakai.",
+      "host": "Host",
+      "port": "Port",
+      "user": "User",
+      "userPlaceholder": "{user} (default)",
+      "userEmpty": "Belum diisi — terminal masuk sebagai <code>{user}</code> (default).",
+      "userHint": "Di VPS Ubuntu biasanya <code>ubuntu</code>: login root sering ditolak sshd, jadi isi dengan user login SSH-mu.",
+      "password": "Password",
+      "passwordSet": "(sudah diisi)",
+      "passwordKeep": "•••••••• (kosongkan agar tidak berubah)",
+      "passwordOptional": "opsional — bisa juga pakai SSH key platform",
+      "save": "Simpan SSH Terminal"
+    },
+    "network": {
+      "title": "Jaringan",
+      "description": "Dipakai untuk cek DNS domain aplikasi dan alamat registry lokal.",
+      "publicIp": "Public IP",
+      "publicIpPlaceholder": "kosong = deteksi otomatis",
+      "registryHost": "Registry public host",
+      "save": "Simpan Jaringan"
+    }
+  },
+  "errors": {
+    "serverUnreachable": "Tidak dapat terhubung ke server",
+    "pickBackupFile": "Pilih file backup dulu",
+    "backupNotFound": "Backup tidak ditemukan"
+  },
+  "instanceBackup": {
+    "failed": "Gagal",
+    "title": "Backup instance",
+    "description": "Snapshot database panel ini (project, aplikasi, user, server, notifikasi — rahasia tetap terenkripsi). Untuk pindah server: pasang aoox versi sama dengan <code>ENCRYPTION_KEY</code> dan <code>JWT_SECRET</code> yang sama, lalu unggah file ini.",
+    "backupNow": "Backup sekarang",
+    "restoreFromFile": "Restore dari file",
+    "empty": "Belum ada backup.",
+    "scheduled": "terjadwal",
+    "copiedToS3": "Tersalin ke S3",
+    "onlyOnS3": "hanya di S3",
+    "rows": "{count} baris",
+    "download": "Unduh",
+    "restore": "Restore",
+    "delete": "Hapus",
+    "restoring": "Me-restore…",
+    "cancel": "Batal",
+    "presets": {
+      "off": "Nonaktif",
+      "daily": "Setiap hari 01:00",
+      "every6h": "Setiap 6 jam",
+      "weekly": "Setiap minggu (Minggu 01:00)",
+      "custom": "Kustom"
+    },
+    "schedule": "Jadwal",
+    "cron": "Cron (5 kolom)",
+    "keep": "Simpan",
+    "destination": "Tujuan S3",
+    "localOnly": "Hanya lokal",
+    "saveSchedule": "Simpan jadwal",
+    "restoreDone": "Restore selesai: {rows} baris di {tables} tabel",
+    "confirm": {
+      "title": "Restore instance?",
+      "description": "Semua data panel (project, aplikasi, user, pengaturan) diganti dengan isi backup {date}. Container yang berjalan tidak disentuh. Perubahan setelah backup itu hilang."
+    },
+    "upload": {
+      "title": "Restore dari file",
+      "description": "Unggah file <code>*.json.gz</code> hasil unduhan backup instance. Versi aoox (migrasi) harus sama. Semua data panel diganti.",
+      "file": "File backup"
+    }
+  },
+  "page": {
+    "breadcrumb": "Infrastruktur"
+  },
+  "pages": {
+    "proxy": {
+      "metadata": "Reverse proxy · aoox",
+      "title": "Reverse proxy",
+      "description": "Traefik di host ini: merutekan domain ke container aplikasi dan menerbitkan sertifikat HTTPS."
+    },
+    "servers": {
+      "metadata": "Server remote · aoox",
+      "title": "Server remote",
+      "description": "VPS lain yang dijangkau lewat SSH: tempat deploy aplikasi dan target Terminal."
+    },
+    "environment": {
+      "metadata": "Environment · aoox",
+      "title": "Environment",
+      "description": "Ubah sebagian env var instance ini dari dashboard, tanpa SSH."
+    },
+    "backup": {
+      "metadata": "Backup instance · aoox",
+      "title": "Backup instance",
+      "description": "Snapshot database panel ini untuk pindah server atau pemulihan."
+    },
+    "disk": {
+      "metadata": "Disk Docker · aoox",
+      "title": "Disk Docker",
+      "description": "Pemakaian disk oleh image, volume, container, dan build cache; pembersihan manual atau malam hari."
+    },
+    "domain": {
+      "metadata": "Domain panel · aoox",
+      "title": "Domain panel",
+      "description": "Akses dashboard dan API ini lewat domain sendiri."
+    },
+    "swarm": {
+      "metadata": "Docker Swarm · aoox",
+      "title": "Docker Swarm",
+      "description": "Mode service untuk aplikasi (replika, rolling update) dan node yang tergabung."
+    },
+    "update": {
+      "metadata": "Update aoox · aoox",
+      "title": "Update aoox",
+      "description": "Cek dan terapkan update untuk panel ini sendiri."
+    }
+  },
+  "panelDomain": {
+    "title": "Domain panel",
+    "description": "Akses dashboard dan API ini lewat domain sendiri, bukan <code>IP:port</code>. Butuh dua DNS A record (dashboard dan API) mengarah ke server ini, dan <code>INSTALL_DIR</code> sudah diisi di <code>.env.dist</code>.",
+    "installDirTitle": "INSTALL_DIR belum diisi",
+    "installDirBody": "Set <code>INSTALL_DIR</code> di <code>.env.dist</code> ke path absolut folder yang berisi <code>docker-compose.dist.yml</code> di server ini, lalu restart stack sebelum menyimpan domain di sini.",
+    "webDomain": "Domain dashboard",
+    "apiDomain": "Domain API",
+    "acmeEmail": "Email ACME (Let's Encrypt)",
+    "current": "Saat ini terpasang: <code>{web}</code> · <code>{api}</code>",
+    "saving": "Menyimpan…",
+    "saveApply": "Simpan & terapkan",
+    "applied": "Diterapkan",
+    "appliedBody": "Panel akan restart beberapa detik lagi untuk memasang domain baru — koneksi ke dashboard ini akan sempat terputus, itu wajar. Muat ulang halaman di <code>https://{host}</code> setelah itu.",
+    "proxy": {
+      "title": "Reverse proxy belum aktif — sudah dinyalakan otomatis",
+      "intro": "Proxy (Traefik) belum jalan sebelum ini, jadi sudah diaktifkan otomatis untuk kamu. Tapi domain baru bisa diakses kalau tiga hal ini juga sudah benar — cek satu per satu kalau <code>https://{host}</code> belum bisa dibuka setelah beberapa menit:",
+      "dns": "DNS A record <code>{web}</code> dan <code>{api}</code> sudah mengarah ke IP server ini (cek: <code>nslookup {lookup}</code>).",
+      "domainFallback": "domain-kamu",
+      "ports": "Port <code>80</code> dan <code>443</code> terbuka untuk publik — baik firewall OS (<code>ufw</code>) maupun firewall/security group dari provider VPS kamu.",
+      "cert": "Tunggu beberapa saat: sertifikat HTTPS (Let's Encrypt) baru diterbitkan Traefik saat pertama kali domain diakses, butuh beberapa detik sampai semenit."
+    }
+  },
+  "proxyCard": {
+    "title": "Reverse proxy (Traefik)",
+    "description": "Mengarahkan domain ke container aplikasi lewat label Docker. Port <code>{httpPort}</code> (HTTP) dan <code>{httpsPort}</code> (HTTPS).",
+    "notInstalled": "Belum ada",
+    "running": "Running",
+    "acmeLabel": "Sertifikat HTTPS otomatis (Let's Encrypt):",
+    "acmeOn": "aktif untuk <code>{email}</code>",
+    "acmeOff": "nonaktif — set <code>PROXY_ACME_EMAIL</code> di API lalu aktifkan ulang.",
+    "provision": "Aktifkan proxy",
+    "provisioning": "Menyiapkan…",
+    "remove": "Hapus proxy",
+    "failed": "Gagal"
+  },
+  "proxyConfigCard": {
+    "title": "Konfigurasi dinamis",
+    "description": "Middleware, router, dan service Traefik buatan sendiri (basic auth, header keamanan, rate limit, allowlist IP, redirect www). Middleware dipasang per domain di tab Domain aplikasi. Hanya konfigurasi dinamis; konfigurasi statis dan sertifikat tidak diubah di sini.",
+    "newFile": "Berkas baru",
+    "proxyOn": "Proxy di",
+    "selectProxy": "Pilih proxy",
+    "hostOption": "Host aoox",
+    "resyncHint": "Tulis ulang semua berkas aktif ke proxy (mis. setelah restore atau proxy dibuat ulang)",
+    "resync": "Terapkan ulang",
+    "resynced": "{count} berkas ditulis ulang ke proxy",
+    "remoteNote": "Server remote: fitur ini ditulis untuk server remote tetapi belum diuji di sana. Pastikan proxy-nya terpasang di Infrastruktur → Server remote.",
+    "warning": "Berkas yang salah ditolak Traefik dan dikembalikan otomatis, tetapi konfigurasi yang valid dapat mengubah perutean semua domain di proxy ini. Nama middleware, router, dan service harus unik per proxy. Traefik tidak melaporkan semua nilai yang keliru (mis. URL service yang tidak valid), jadi cek hasilnya setelah menyimpan.",
+    "empty": "Belum ada berkas konfigurasi.",
+    "emptyOwner": "Belum ada berkas konfigurasi — buat dari preset atau tulis sendiri.",
+    "usedBy": "dipakai {count} domain",
+    "enableFile": "Aktifkan {name}",
+    "editFile": "Ubah {name}",
+    "viewFile": "Lihat {name}",
+    "deleteFile": "Hapus {name}",
+    "deleteTitle": "Hapus {fileName}?",
+    "deleteInUse": "Middleware dari berkas ini masih dipakai {count} domain, jadi tidak bisa dihapus. Lepas dari domain-nya dulu.",
+    "deleteDescription": "Berkas dihapus dari aoox dan dari proxy. Ini tidak bisa dibatalkan.",
+    "delete": "Hapus",
+    "summaryMiddleware": "middleware: {list}",
+    "summaryRouter": "router: {list}",
+    "summaryService": "service: {list}",
+    "disabled": "nonaktif",
+    "recreateTitle": "Proxy akan dibuat ulang sekali?",
+    "recreateDescription": "Proxy di server ini dibuat oleh aoox versi lama, jadi harus dibuat ulang satu kali agar bisa memuat konfigurasi dinamis: beberapa detik tanpa layanan untuk semua domain di proxy ini. Sertifikat dan rute lain tetap. Peringatan ini hanya muncul sekali.",
+    "recreateConfirm": "Buat ulang proxy dan simpan"
+  },
+  "proxyConfigEditor": {
+    "template": "# Konfigurasi dinamis Traefik (hanya bagian \"http\").\n# Contoh: middleware header respons, lalu pasang ke domain di tab Domain aplikasi.\nhttp:\n  middlewares:\n    contoh-header:\n      headers:\n        customResponseHeaders:\n          X-Powered-By: aoox\n",
+    "recreated": "Proxy dibuat ulang satu kali agar bisa memuat konfigurasi dinamis.",
+    "savedLoaded": "Tersimpan dan dimuat Traefik",
+    "saved": "Tersimpan",
+    "nameProblem": "Nama: huruf kecil, angka, \"-\" (maks. 40 karakter).",
+    "editTitle": "Ubah {fileName}",
+    "newTitle": "Berkas konfigurasi baru",
+    "description": "YAML konfigurasi dinamis Traefik. Hanya bagian <code>http</code> (middlewares, routers, services, serversTransports) yang diterima; sertifikat dikelola di Pengaturan. Berkas dimuat ulang Traefik tanpa restart.",
+    "fileName": "Nama berkas",
+    "namePlaceholder": "header-keamanan",
+    "nameFallback": "nama",
+    "writtenAs": "Ditulis sebagai <code>user-{name}.yml</code>.",
+    "content": "Isi (YAML)",
+    "loading": "Memuat…",
+    "enabled": "Aktif (ditulis ke proxy)",
+    "cancel": "Batal",
+    "close": "Tutup",
+    "saving": "Menyimpan…",
+    "save": "Simpan"
+  },
+  "proxyPresetDialog": {
+    "trigger": "Dari preset",
+    "title": "Buat dari preset",
+    "description": "Membuat YAML middleware yang siap disimpan. Hasilnya bisa diubah di editor sebelum disimpan.",
+    "preset": "Preset",
+    "cancel": "Batal",
+    "creating": "Membuat…",
+    "create": "Buat YAML"
+  },
+  "serverProxy": {
+    "title": "Proxy (Traefik) di server ini",
+    "running": "running",
+    "notInstalled": "belum ada",
+    "checkStatus": "Cek status proxy",
+    "acmeEmail": "Email ACME (opsional)",
+    "staging": "staging",
+    "reenable": "Aktifkan ulang",
+    "enable": "Aktifkan",
+    "delete": "Hapus",
+    "deleteTitle": "Hapus proxy di server ini?",
+    "deleteDescription": "Container proxy di server ini dihentikan dan dihapus. Domain aplikasi di server ini berhenti dilayani sampai proxy diaktifkan lagi.",
+    "deleteConfirm": "Hapus proxy"
+  },
+  "servers": {
+    "title": "Server remote",
+    "description": "VPS lain yang bisa dibuka dari halaman Terminal lewat SSH. Secara default memakai key milik aoox di bawah.",
+    "runOnce": "Jalankan sekali di setiap server, sebagai user yang akan dipakai:",
+    "commandLabel": "perintah",
+    "keyUnavailable": "Key platform belum tersedia.",
+    "empty": "Belum ada server remote.",
+    "ownKey": "key sendiri",
+    "testConnection": "Tes koneksi {name}",
+    "delete": "Hapus {name}",
+    "copy": "Salin {label}",
+    "copied": "{label} disalin",
+    "copyFailed": "Gagal menyalin {label}",
+    "health": {
+      "up": "terjangkau",
+      "down": "tidak terjangkau",
+      "unchecked": "belum dicek",
+      "checked": "dicek {time}",
+      "since": "sejak {time}",
+      "monitored": "{count} container dipantau"
+    },
+    "add": {
+      "trigger": "Tambah",
+      "title": "Server remote baru",
+      "description": "Server harus bisa dijangkau lewat SSH dari mesin aoox.",
+      "name": "Nama",
+      "host": "Host",
+      "port": "Port",
+      "username": "Username",
+      "privateKey": "Private key (opsional)",
+      "privateKeyHint": "Kosongkan untuk memakai key aoox (tinggal jalankan perintah di kartu ini pada server). Key tanpa passphrase.",
+      "saving": "Menyimpan…",
+      "save": "Simpan"
+    }
+  },
+  "swarm": {
+    "failed": "Gagal",
+    "copied": "{label} disalin",
+    "copyFailed": "Gagal menyalin {label}",
+    "description": "Menjalankan aplikasi sebagai <em>service</em> (replika, rolling update oleh daemon) — dipilih per aplikasi lewat <em>Mode deploy</em>. Database, stack compose, dan preview tetap container biasa.",
+    "manager": "Manager",
+    "worker": "Worker",
+    "inactive": "Nonaktif",
+    "advertise": "Advertise address (opsional)",
+    "advertisePlaceholder": "IP publik/privat host, untuk node lain",
+    "reinit": "Init ulang swarm",
+    "init": "Init swarm",
+    "leader": "leader",
+    "engine": "engine {version}",
+    "drain": "Drain",
+    "activate": "Aktifkan",
+    "removeNode": "Hapus node",
+    "addNode": "Tambah node: jalankan di server lain (Docker terpasang). Node tambahan belum bisa menjalankan app aoox (registry & volume masih lokal) — tahap berikutnya.",
+    "copiedShort": "Tersalin",
+    "registryWarning": "Registry lokal beralamat <code>{url}</code> — node lain tidak bisa menarik image hasil build. Set <code>REGISTRY_PUBLIC_HOST</code> ke alamat host yang dijangkau semua node (dan <code>insecure-registries</code> atau TLS di tiap daemon), lalu aktifkan ulang registry. Image publik (Docker Hub, GHCR) tidak terpengaruh.",
+    "serviceApps": "{count} aplikasi berjalan sebagai service.",
+    "leaveBlocked": "Kembalikan aplikasi ke mode container dulu",
+    "leave": "Keluar dari swarm",
+    "leaveTitle": "Keluar dari swarm?",
+    "leaveDescription": "Node ini meninggalkan swarm: service yang berjalan di sana hilang, dan jaringan overlay swarm dihapus. Proxy akan dipasang ulang tanpa mode swarm.",
+    "labelsPlaceholder": "label: zone=eu tier=db",
+    "labelsAria": "Label node {hostname}",
+    "save": "Simpan"
+  },
+  "update": {
+    "timeoutToast": "Update belum selesai setelah 5 menit — panel mungkin butuh perhatian manual.",
+    "doneToast": "Update selesai — versi {version}.",
+    "sendingToast": "Mengirim perintah update…",
+    "restartingToast": "Mengunduh image & me-restart panel…",
+    "title": "Update aoox",
+    "description": "Cek dan terapkan update untuk panel ini sendiri — versi berjalan <code>{version}</code>.",
+    "installDirTitle": "INSTALL_DIR belum diisi",
+    "installDirBody": "Set <code>INSTALL_DIR</code> di <code>.env.dist</code> ke path absolut folder <code>docker-compose.dist.yml</code> di server ini, lalu restart stack sebelum menerapkan update dari sini.",
+    "checking": "Mengecek…",
+    "check": "Cek update",
+    "apply": "Terapkan update",
+    "cancel": "Batal",
+    "timedOut": {
+      "title": "Belum kembali setelah 5 menit",
+      "intro": "Panel mungkin masih memproses, atau butuh perhatian manual. Cek lewat SSH ke server:",
+      "manual": "Kalau container tidak kembali, jalankan perintah compose manual dari <code>INSTALL_DIR</code>:",
+      "docs": "Lihat dokumentasi Instalasi untuk detail lengkap."
+    },
+    "confirm": {
+      "title": "Terapkan update?",
+      "description": "Panel akan restart (biasanya 1–3 menit) — koneksi ke dashboard ini akan sempat terputus, itu wajar. Halaman ini akan memuat ulang sendiri begitu panel kembali dengan versi baru."
+    },
+    "version": {
+      "unknown": "Versi terbaru belum bisa dicek (server ini mungkin tidak punya akses ke registry). Dicoba lagi otomatis tiap beberapa jam.",
+      "pinned": "Image dipasang dengan tag <code>{tag}</code> (bukan <code>:latest</code>), jadi update tidak dipantau otomatis. Versi terbaru yang dipublikasikan: <code>v{latest}</code>.",
+      "untracked": "Tag image yang terpasang tidak bisa dipastikan, jadi tombol di sidebar tidak ditampilkan. Versi terbaru yang dipublikasikan: <code>v{latest}</code>.",
+      "available": "<badge>Update tersedia</badge> <code>v{latest}</code> sudah dipublikasikan.",
+      "upToDate": "Sudah versi terbaru yang dipublikasikan (<code>v{latest}</code>).",
+      "lastChecked": "Terakhir dicek {time}"
+    },
+    "progress": {
+      "sending": "Mengirim perintah update",
+      "restarting": "Mengunduh image & me-restart panel, lalu menunggu panel kembali"
+    },
+    "image": {
+      "newBaseline": "baseline baru",
+      "available": "Update tersedia",
+      "latest": "Terbaru"
+    }
+  },
+  "validation": {
+    "server": {
+      "nameRequired": "Nama wajib diisi",
+      "hostRequired": "Host wajib diisi",
+      "hostInvalid": "Host harus berupa hostname atau IP",
+      "usernameRequired": "Username wajib diisi",
+      "usernameInvalid": "Username tidak valid"
+    }
+  }
+}

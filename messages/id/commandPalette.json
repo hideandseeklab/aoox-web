@@ -1,0 +1,36 @@
+{
+  "trigger": "Cari…",
+  "triggerLabel": "Cari (Ctrl K)",
+  "title": "Cari",
+  "description": "Lompat ke halaman, project atau resource, atau ganti tema.",
+  "inputLabel": "Cari halaman, project atau resource",
+  "placeholder": "Cari halaman, project, aplikasi…",
+  "results": "Hasil",
+  "loading": "Memuat…",
+  "loadingProjects": "Memuat project…",
+  "noResults": "Tidak ada hasil.",
+  "hintSelect": "↑↓ pilih",
+  "hintOpen": "Enter buka",
+  "hintClose": "Esc tutup",
+  "groups": {
+    "pages": "Halaman",
+    "resources": "Project & resource",
+    "appearance": "Tampilan"
+  },
+  "hints": {
+    "project": "project",
+    "infrastructure": "infrastruktur",
+    "settings": "settings"
+  },
+  "kinds": {
+    "application": "aplikasi",
+    "database": "database",
+    "compose": "stack compose"
+  },
+  "theme": {
+    "light": "Tema terang",
+    "dark": "Tema gelap",
+    "system": "Tema sistem"
+  },
+  "themeKeywords": "tema theme warna mode"
+}

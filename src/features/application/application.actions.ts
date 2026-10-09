@@ -1,5 +1,6 @@
 "use server"
 
+import { getTranslations } from "next-intl/server"
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import { requireToken } from "@/features/auth/auth.session"
@@ -17,19 +18,17 @@ import type {
 } from "./application.entity"
 import { mountOwnerBase, mountOwnerPagePath } from "./application.entity"
 import { listPreviews } from "./application.queries"
-import { applicationSchema } from "./application.schema"
+import { createApplicationSchema } from "./application.schema"
 import type { PreviewDeployment } from "./preview.entity"
 import type { LogTicket } from "./logs.protocol"
 
 export type ActionResult<T = undefined> =
   { ok: true; data: T } | { ok: false; error: string }
 
-function fail(err: unknown): { ok: false; error: string } {
-  return {
-    ok: false,
-    error:
-      err instanceof ApiError ? err.message : "Tidak dapat terhubung ke server",
-  }
+async function fail(err: unknown): Promise<{ ok: false; error: string }> {
+  if (err instanceof ApiError) return { ok: false, error: err.message }
+  const t = await getTranslations("applications")
+  return { ok: false, error: t("actions.serverUnreachable") }
 }
 
 type Field =
@@ -137,8 +136,9 @@ function omitIgnoreErrorLogs<T extends { ignoreErrorLogs: boolean }>(
   return rest as Omit<T, "ignoreErrorLogs">
 }
 
-function parse(values: Record<Field, string>) {
-  const parsed = applicationSchema.safeParse({
+async function parse(values: Record<Field, string>) {
+  const t = await getTranslations("applications")
+  const parsed = createApplicationSchema(t).safeParse({
     ...values,
     previewsEnabled: values.previewsEnabled === "on",
     staticSpa: values.staticSpa === "on",
@@ -161,7 +161,7 @@ export async function createApplicationAction(
   formData: FormData
 ): Promise<ApplicationFormState> {
   const values = readForm(formData)
-  const { data, fieldErrors } = parse(values)
+  const { data, fieldErrors } = await parse(values)
   if (!data) return { fieldErrors, values }
 
   let app: Application
@@ -172,7 +172,7 @@ export async function createApplicationAction(
       token: await requireToken(),
     })
   } catch (err) {
-    return { ...fail(err), values }
+    return { ...(await fail(err)), values }
   }
   revalidatePath(`/projects/${projectId}`)
   return { values, createdId: app.id }
@@ -189,12 +189,13 @@ export async function createApplicationForAccessAction(
   formData: FormData
 ): Promise<ActionResult<Application>> {
   const values = readForm(formData)
-  const { data, fieldErrors } = parse(values)
+  const { data, fieldErrors } = await parse(values)
   if (!data) {
+    const t = await getTranslations("applications")
     const message =
       Object.values(fieldErrors ?? {})
         .flat()
-        .join("; ") || "Data tidak valid"
+        .join("; ") || t("actions.invalidData")
     return { ok: false, error: message }
   }
   try {
@@ -206,7 +207,7 @@ export async function createApplicationForAccessAction(
     revalidatePath(`/projects/${projectId}`)
     return { ok: true, data: app }
   } catch (err) {
-    return fail(err)
+    return await fail(err)
   }
 }
 
@@ -216,7 +217,7 @@ export async function updateApplicationAction(
   formData: FormData
 ): Promise<ApplicationFormState> {
   const values = readForm(formData)
-  const { data, fieldErrors } = parse(values)
+  const { data, fieldErrors } = await parse(values)
   if (!data) return { fieldErrors, values }
   // The Settings form has no env field any more (it lives in the Environment
   // tab); its absent FormData entry reads as "" and would wipe the stored env.
@@ -229,7 +230,7 @@ export async function updateApplicationAction(
       token: await requireToken(),
     })
   } catch (err) {
-    return { ...fail(err), values }
+    return { ...(await fail(err)), values }
   }
   revalidatePath(`/applications/${id}`)
   return { values, saved: true }
@@ -241,10 +242,8 @@ export async function updateApplicationEnvAction(
   env: string
 ): Promise<ActionResult> {
   if (env.length > 20_000) {
-    return {
-      ok: false,
-      error: "Environment terlalu panjang (maks 20.000 karakter)",
-    }
+    const t = await getTranslations("applications")
+    return { ok: false, error: t("validation.envTooLong") }
   }
   try {
     await api<Application>(`/applications/${id}`, {
@@ -255,7 +254,7 @@ export async function updateApplicationEnvAction(
     revalidatePath(`/applications/${id}`)
     return { ok: true, data: undefined }
   } catch (err) {
-    return fail(err)
+    return await fail(err)
   }
 }
 
@@ -270,7 +269,7 @@ export async function deployApplicationAction(
     revalidatePath(`/applications/${id}`)
     return { ok: true, data }
   } catch (err) {
-    return fail(err)
+    return await fail(err)
   }
 }
 
@@ -287,7 +286,7 @@ export async function checkImageUpdateAction(
     revalidatePath(`/applications/${id}`)
     return { ok: true, data }
   } catch (err) {
-    return fail(err)
+    return await fail(err)
   }
 }
 
@@ -304,7 +303,7 @@ export async function rollbackApplicationAction(
     revalidatePath(`/applications/${id}`)
     return { ok: true, data }
   } catch (err) {
-    return fail(err)
+    return await fail(err)
   }
 }
 
@@ -317,7 +316,7 @@ export async function stopApplicationAction(id: string): Promise<ActionResult> {
     revalidatePath(`/applications/${id}`)
     return { ok: true, data: undefined }
   } catch (err) {
-    return fail(err)
+    return await fail(err)
   }
 }
 
@@ -332,7 +331,7 @@ export async function startApplicationAction(
     revalidatePath(`/applications/${id}`)
     return { ok: true, data: undefined }
   } catch (err) {
-    return fail(err)
+    return await fail(err)
   }
 }
 
@@ -359,7 +358,7 @@ export async function fetchContainerLogsAction(
     )
     return { ok: true, data: data.logs }
   } catch (err) {
-    return fail(err)
+    return await fail(err)
   }
 }
 
@@ -390,7 +389,7 @@ export async function addDomainAction(
     revalidatePath(`/applications/${applicationId}`)
     return { ok: true, data: { ...domain, proxyAutoProvisioned } }
   } catch (err) {
-    return fail(err)
+    return await fail(err)
   }
 }
 
@@ -412,7 +411,7 @@ export async function setDomainCertificateAction(
     revalidatePath(`/applications/${applicationId}`)
     return { ok: true, data }
   } catch (err) {
-    return fail(err)
+    return await fail(err)
   }
 }
 
@@ -434,7 +433,7 @@ export async function setDomainMiddlewaresAction(
     revalidatePath(`/applications/${applicationId}`)
     return { ok: true, data }
   } catch (err) {
-    return fail(err)
+    return await fail(err)
   }
 }
 
@@ -450,7 +449,7 @@ export async function checkDomainDnsAction(
     )
     return { ok: true, data }
   } catch (err) {
-    return fail(err)
+    return await fail(err)
   }
 }
 
@@ -466,7 +465,7 @@ export async function deleteDomainAction(
     revalidatePath(`/applications/${applicationId}`)
     return { ok: true, data: undefined }
   } catch (err) {
-    return fail(err)
+    return await fail(err)
   }
 }
 
@@ -484,7 +483,7 @@ export async function createLogTicketAction(
     )
     return { ok: true, data }
   } catch (err) {
-    return fail(err)
+    return await fail(err)
   }
 }
 
@@ -499,7 +498,7 @@ export async function regenerateWebhookAction(
     revalidatePath(`/applications/${applicationId}`)
     return { ok: true, data }
   } catch (err) {
-    return fail(err)
+    return await fail(err)
   }
 }
 
@@ -516,7 +515,7 @@ export async function setWebhookSecretAction(
     revalidatePath(`/applications/${applicationId}`)
     return { ok: true, data }
   } catch (err) {
-    return fail(err)
+    return await fail(err)
   }
 }
 
@@ -543,13 +542,7 @@ export async function deletePreviewAction(
     revalidatePath(`/applications/${applicationId}`)
     return { ok: true, data: undefined }
   } catch (err) {
-    return {
-      ok: false,
-      error:
-        err instanceof ApiError
-          ? err.message
-          : "Tidak dapat terhubung ke server",
-    }
+    return await fail(err)
   }
 }
 
@@ -578,7 +571,7 @@ export async function addMountAction(
     revalidatePath(mountOwnerPagePath(owner))
     return { ok: true, data }
   } catch (err) {
-    return fail(err)
+    return await fail(err)
   }
 }
 
@@ -595,7 +588,7 @@ export async function updateMountAction(
     revalidatePath(mountOwnerPagePath(owner))
     return { ok: true, data }
   } catch (err) {
-    return fail(err)
+    return await fail(err)
   }
 }
 
@@ -612,6 +605,6 @@ export async function deleteMountAction(
     revalidatePath(mountOwnerPagePath(owner))
     return { ok: true, data: undefined }
   } catch (err) {
-    return fail(err)
+    return await fail(err)
   }
 }

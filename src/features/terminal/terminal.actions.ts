@@ -1,5 +1,6 @@
 "use server"
 
+import { getTranslations } from "next-intl/server"
 import { requireToken } from "@/features/auth/auth.session"
 import { api, ApiError } from "@/lib/api"
 import type { TerminalAuthorizeResult } from "./terminal.entity"
@@ -34,7 +35,7 @@ export async function authorizeTerminalAction(): Promise<
       error:
         err instanceof ApiError
           ? err.message
-          : "Tidak dapat terhubung ke server",
+          : (await getTranslations("terminal"))("errors.serverUnreachable"),
     }
   }
 }

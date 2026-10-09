@@ -17,9 +17,11 @@ import {
   fetchQueryHistoryAction,
 } from "@/features/managed-database/data-browser.actions"
 import type { QueryHistoryEntry } from "@/features/managed-database/data-browser.entity"
+import { formatDateTime } from "@/i18n/format"
+import { useLocale, useTranslations } from "next-intl"
 
-function fmt(d: string) {
-  return new Date(d).toLocaleString("id-ID", {
+function fmt(d: string, locale: string) {
+  return formatDateTime(d, locale, {
     dateStyle: "medium",
     timeStyle: "short",
   })
@@ -37,6 +39,9 @@ export function QueryHistoryMenu({
   databaseId: string
   onPick: (sql: string) => void
 }) {
+  const t = useTranslations("database")
+  const tc = useTranslations("common")
+  const locale = useLocale()
   const [entries, setEntries] = useState<QueryHistoryEntry[] | null>(null)
   const [pending, start] = useTransition()
 
@@ -57,7 +62,7 @@ export function QueryHistoryMenu({
       <DropdownMenuTrigger asChild>
         <Button variant="outline" size="sm">
           <History data-icon="inline-start" />
-          Riwayat
+          {t("queryHistory.trigger")}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent
@@ -65,12 +70,12 @@ export function QueryHistoryMenu({
         className="max-h-96 w-96 overflow-y-auto"
       >
         <DropdownMenuLabel className="flex items-center justify-between">
-          Query terakhir
+          {t("queryHistory.title")}
           {entries && entries.length > 0 && (
             <Button
               variant="ghost"
               size="icon-sm"
-              aria-label="Bersihkan riwayat"
+              aria-label={t("queryHistory.clear")}
               disabled={pending}
               onClick={(e) => {
                 e.stopPropagation()
@@ -83,10 +88,10 @@ export function QueryHistoryMenu({
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         {entries === null || pending ? (
-          <p className="px-2 py-1.5 text-xs text-muted-foreground">Memuat…</p>
+          <p className="px-2 py-1.5 text-xs text-muted-foreground">{tc("states.loading")}</p>
         ) : entries.length === 0 ? (
           <p className="px-2 py-1.5 text-xs text-muted-foreground">
-            Belum ada riwayat.
+            {t("queryHistory.empty")}
           </p>
         ) : (
           entries.map((e) => (
@@ -106,7 +111,7 @@ export function QueryHistoryMenu({
                 </span>
               </div>
               <div className="flex items-center gap-1.5 ps-[18px] text-xs text-muted-foreground">
-                {fmt(e.createdAt)}
+                {fmt(e.createdAt, locale)}
                 {e.db && <Badge variant="outline">{e.db}</Badge>}
                 {!e.success && e.errorMessage && (
                   <span className="truncate text-destructive">

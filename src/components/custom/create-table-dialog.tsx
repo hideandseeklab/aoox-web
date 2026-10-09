@@ -1,6 +1,7 @@
 "use client"
 
 import { Plus, Trash2 } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { useMemo, useState, useTransition } from "react"
 import { Button } from "@/components/ui/button"
 import {
@@ -32,9 +33,9 @@ import { runQueryAction } from "@/features/managed-database/data-browser.actions
 import type { DatabaseEngine } from "@/features/managed-database/managed-database.entity"
 
 /**
- * Columns: Kolom, Tipe, Panjang, Null, PK, Default, hapus. On a phone each column is a small card (labels above each
+ * Columns: name, type, length, null, PK, default, remove. On a phone each column is a small card (labels above each
  * field); from `sm` up it is the table below. Template for the column header and every column row
- * so they line up; all cells are the default field height (h-7). Tipe is the widest so
+ * so they line up; all cells are the default field height (h-7). Type is the widest so
  * "bigserial (auto increment)" fits.
  */
 const COLUMNS_GRID =
@@ -57,6 +58,8 @@ export function CreateTableDialog({
   db?: string
   onCreated: (table: string) => void
 }) {
+  const t = useTranslations("database")
+  const tc = useTranslations("common")
   const [open, setOpen] = useState(false)
   const [table, setTable] = useState("")
   const [columns, setColumns] = useState<ColumnDraft[]>(() => [
@@ -75,11 +78,11 @@ export function CreateTableDialog({
 
   const preview = useMemo(() => {
     try {
-      return { sql: buildCreateTable(engine, table, columns), error: null }
+      return { sql: buildCreateTable(engine, table, columns, t), error: null }
     } catch (e) {
       return { sql: "", error: e instanceof Error ? e.message : String(e) }
     }
-  }, [engine, table, columns])
+  }, [engine, table, columns, t])
 
   const update = (i: number, patch: Partial<ColumnDraft>) =>
     setColumns((cols) => cols.map((c, j) => (j === i ? { ...c, ...patch } : c)))
@@ -108,21 +111,20 @@ export function CreateTableDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="icon-sm" aria-label="Buat tabel">
+        <Button variant="ghost" size="icon-sm" aria-label={t("createTable.trigger")}>
           <Plus />
         </Button>
       </DialogTrigger>
       <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-3xl">
         <DialogHeader>
-          <DialogTitle>Buat tabel</DialogTitle>
+          <DialogTitle>{t("createTable.title")}</DialogTitle>
           <DialogDescription>
-            Kolom dasar saja; index, foreign key, dan tipe khusus bisa
-            ditambahkan lewat kotak SQL setelah tabel ada.
+            {t("createTable.description")}
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
           <div className="space-y-1">
-            <Label htmlFor="ct-name">Nama tabel</Label>
+            <Label htmlFor="ct-name">{t("createTable.tableName")}</Label>
             <Input
               id="ct-name"
               value={table}
@@ -140,12 +142,12 @@ export function CreateTableDialog({
             <div
               className={`hidden items-center gap-2 text-xs text-muted-foreground sm:grid ${COLUMNS_GRID}`}
             >
-              <span>Kolom</span>
-              <span>Tipe</span>
-              <span>Panjang</span>
-              <span className="text-center">Null</span>
-              <span className="text-center">PK</span>
-              <span>Default</span>
+              <span>{t("createTable.columns.column")}</span>
+              <span>{tc("labels.type")}</span>
+              <span>{t("createTable.columns.length")}</span>
+              <span className="text-center">{t("createTable.columns.null")}</span>
+              <span className="text-center">{t("createTable.columns.pk")}</span>
+              <span>{t("createTable.columns.default")}</span>
               <span />
             </div>
             {columns.map((c, i) => {
@@ -157,19 +159,19 @@ export function CreateTableDialog({
                 >
                   <div className="col-span-3 min-w-0 space-y-1 sm:col-span-1 sm:space-y-0">
                     <span className="text-xs text-muted-foreground sm:hidden">
-                      Kolom
+                      {t("createTable.columns.column")}
                     </span>
                     <Input
                       value={c.name}
                       onChange={(e) => update(i, { name: e.target.value })}
-                      placeholder="nama"
+                      placeholder={t("createTable.columns.namePlaceholder")}
                       className="font-mono text-xs"
-                      aria-label={`Nama kolom ${i + 1}`}
+                      aria-label={t("createTable.columns.nameAria", { n: i + 1 })}
                     />
                   </div>
                   <div className="col-span-3 min-w-0 space-y-1 sm:col-span-1 sm:space-y-0">
                     <span className="text-xs text-muted-foreground sm:hidden">
-                      Tipe
+                      {tc("labels.type")}
                     </span>
                     <Select
                       value={c.type}
@@ -177,14 +179,14 @@ export function CreateTableDialog({
                     >
                       <SelectTrigger
                         className="w-full min-w-0 font-mono text-xs"
-                        aria-label={`Tipe kolom ${i + 1}`}
+                        aria-label={t("createTable.columns.typeAria", { n: i + 1 })}
                       >
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        {types.map((t) => (
-                          <SelectItem key={t.value} value={t.value}>
-                            {t.label}
+                        {types.map((o) => (
+                          <SelectItem key={o.value} value={o.value}>
+                            {o.label}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -192,60 +194,60 @@ export function CreateTableDialog({
                   </div>
                   <div className="min-w-0 space-y-1 sm:space-y-0">
                     <span className="text-xs text-muted-foreground sm:hidden">
-                      Panjang
+                      {t("createTable.columns.length")}
                     </span>
                     <Input
                       value={c.length}
                       onChange={(e) => update(i, { length: e.target.value })}
                       disabled={!opt?.hasLength}
                       className="font-mono text-xs"
-                      aria-label={`Panjang kolom ${i + 1}`}
+                      aria-label={t("createTable.columns.lengthAria", { n: i + 1 })}
                     />
                   </div>
                   <div className="space-y-1 sm:space-y-0">
                     <span className="text-xs text-muted-foreground sm:hidden">
-                      Null
+                      {t("createTable.columns.null")}
                     </span>
                     <div className="flex h-7 items-center sm:justify-center">
                       <Switch
                         checked={c.nullable && !c.primaryKey}
                         disabled={c.primaryKey}
                         onCheckedChange={(v) => update(i, { nullable: v })}
-                        aria-label={`Kolom ${i + 1} boleh NULL`}
+                        aria-label={t("createTable.columns.nullAria", { n: i + 1 })}
                       />
                     </div>
                   </div>
                   <div className="space-y-1 sm:space-y-0">
                     <span className="text-xs text-muted-foreground sm:hidden">
-                      PK
+                      {t("createTable.columns.pk")}
                     </span>
                     <div className="flex h-7 items-center sm:justify-center">
                       <Switch
                         checked={c.primaryKey}
                         onCheckedChange={(v) => update(i, { primaryKey: v })}
-                        aria-label={`Kolom ${i + 1} primary key`}
+                        aria-label={t("createTable.columns.pkAria", { n: i + 1 })}
                       />
                     </div>
                   </div>
                   <div className="col-span-3 min-w-0 space-y-1 sm:col-span-1 sm:space-y-0">
                     <span className="text-xs text-muted-foreground sm:hidden">
-                      Default
+                      {t("createTable.columns.default")}
                     </span>
                     <Input
                       value={c.defaultValue}
                       onChange={(e) =>
                         update(i, { defaultValue: e.target.value })
                       }
-                      placeholder="mis. 0, 'x', now()"
+                      placeholder={t("createTable.columns.defaultPlaceholder")}
                       className="font-mono text-xs"
-                      aria-label={`Default kolom ${i + 1}`}
+                      aria-label={t("createTable.columns.defaultAria", { n: i + 1 })}
                     />
                   </div>
                   <div className="col-span-3 flex justify-end sm:col-span-1">
                     <Button
                       variant="ghost"
                       size="icon"
-                      aria-label={`Hapus kolom ${i + 1}`}
+                      aria-label={t("createTable.columns.removeAria", { n: i + 1 })}
                       disabled={columns.length === 1}
                       onClick={() =>
                         setColumns((cols) => cols.filter((_, j) => j !== i))
@@ -265,12 +267,12 @@ export function CreateTableDialog({
               }
             >
               <Plus data-icon="inline-start" />
-              Tambah kolom
+              {t("createTable.addColumn")}
             </Button>
           </div>
 
           <div className="space-y-1">
-            <Label>SQL yang akan dijalankan</Label>
+            <Label>{t("createTable.sqlPreview")}</Label>
             <pre className="max-h-40 overflow-auto rounded-md border bg-muted/40 p-3 font-mono text-xs whitespace-pre-wrap">
               {preview.sql || (
                 <span className="text-muted-foreground">{preview.error}</span>
@@ -285,10 +287,10 @@ export function CreateTableDialog({
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>
-            Batal
+            {tc("actions.cancel")}
           </Button>
           <Button disabled={pending || !preview.sql} onClick={submit}>
-            {pending ? "Membuat…" : "Buat tabel"}
+            {pending ? tc("states.creating") : t("createTable.submit")}
           </Button>
         </DialogFooter>
       </DialogContent>

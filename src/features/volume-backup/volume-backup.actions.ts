@@ -1,5 +1,6 @@
 "use server"
 
+import { getTranslations } from "next-intl/server"
 import { revalidatePath } from "next/cache"
 import type { Application } from "@/features/application/application.entity"
 import { requireToken } from "@/features/auth/auth.session"
@@ -9,11 +10,13 @@ import type { VolumeBackup } from "./volume-backup.entity"
 export type ActionResult<T = undefined> =
   { ok: true; data: T } | { ok: false; error: string }
 
-function fail(err: unknown): { ok: false; error: string } {
+async function fail(err: unknown): Promise<{ ok: false; error: string }> {
   return {
     ok: false,
     error:
-      err instanceof ApiError ? err.message : "Tidak dapat terhubung ke server",
+      err instanceof ApiError
+        ? err.message
+        : (await getTranslations("common"))("messages.serverUnreachable"),
   }
 }
 
@@ -29,9 +32,12 @@ export async function createVolumeBackupAction(
     revalidatePath(`/applications/${applicationId}`)
     return data.status === "success"
       ? { ok: true, data }
-      : { ok: false, error: data.errorMessage ?? "Backup gagal" }
+      : { ok: false, error:
+            data.errorMessage ??
+            (await getTranslations("applications"))("volumeBackups.failed"),
+        }
   } catch (err) {
-    return fail(err)
+    return await fail(err)
   }
 }
 
@@ -47,7 +53,7 @@ export async function restoreVolumeBackupAction(
     revalidatePath(`/applications/${applicationId}`)
     return { ok: true, data: undefined }
   } catch (err) {
-    return fail(err)
+    return await fail(err)
   }
 }
 
@@ -63,7 +69,7 @@ export async function deleteVolumeBackupAction(
     revalidatePath(`/applications/${applicationId}`)
     return { ok: true, data: undefined }
   } catch (err) {
-    return fail(err)
+    return await fail(err)
   }
 }
 
@@ -85,6 +91,6 @@ export async function updateVolumeBackupScheduleAction(
     revalidatePath(`/applications/${applicationId}`)
     return { ok: true, data }
   } catch (err) {
-    return fail(err)
+    return await fail(err)
   }
 }

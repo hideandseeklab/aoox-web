@@ -40,14 +40,16 @@ import type {
   JobRunStatus,
   JobTarget,
 } from "@/features/job/job.entity"
+import { formatDateTime } from "@/i18n/format"
+import { useLocale, useTranslations } from "next-intl"
 
-const PRESETS: { label: string; cron: string }[] = [
-  { label: "Manual saja", cron: "off" },
-  { label: "Setiap menit", cron: "* * * * *" },
-  { label: "Setiap 5 menit", cron: "*/5 * * * *" },
-  { label: "Setiap jam", cron: "0 * * * *" },
-  { label: "Setiap hari 02:00", cron: "0 2 * * *" },
-  { label: "Kustom", cron: "custom" },
+const PRESETS: { key: string; cron: string }[] = [
+  { key: "manual", cron: "off" },
+  { key: "everyMinute", cron: "* * * * *" },
+  { key: "every5", cron: "*/5 * * * *" },
+  { key: "hourly", cron: "0 * * * *" },
+  { key: "daily", cron: "0 2 * * *" },
+  { key: "custom", cron: "custom" },
 ]
 
 const STATUS_VARIANT: Record<
@@ -60,9 +62,9 @@ const STATUS_VARIANT: Record<
   timeout: "destructive",
 }
 
-function fmt(d: string | null) {
+function fmt(d: string | null, locale: string) {
   return d
-    ? new Date(d).toLocaleString("id-ID", {
+    ? formatDateTime(d, locale, {
         dateStyle: "medium",
         timeStyle: "short",
       })
@@ -83,6 +85,8 @@ export function ApplicationJobs({
   /** Compose: service names to pick from. */
   services?: string[]
 }) {
+  const t = useTranslations("applications")
+  const tc = useTranslations("common")
   const [service, setService] = useState(services?.[0] ?? "")
   const [name, setName] = useState("")
   const [command, setCommand] = useState("")
@@ -99,7 +103,7 @@ export function ApplicationJobs({
     <div className="space-y-4">
       {jobs.length === 0 && (
         <EmptyState icon={History} compact>
-          Belum ada job.
+          {t("jobs.empty")}
         </EmptyState>
       )}
       {jobs.map((j) => (
@@ -108,26 +112,17 @@ export function ApplicationJobs({
 
       <Card>
         <CardHeader>
-          <CardTitle>Job baru</CardTitle>
+          <CardTitle>{t("jobs.new.title")}</CardTitle>
           <CardDescription>
-            Perintah dijalankan dengan <code>sh -c</code>. <b>Di container</b>:{" "}
-            <code>docker exec</code> di container yang berjalan (mis.{" "}
-            {owner.kind === "database" ? (
-              <code>
-                psql -U &quot;$POSTGRES_USER&quot; -c &quot;VACUUM ANALYZE&quot;
-              </code>
-            ) : (
-              <code>php artisan schedule:run</code>
-            )}
-            ). <b>Container terpisah</b>: container sekali-jalan dari image yang
-            sama
-            {owner.kind === "database"
-              ? " dengan env DB_HOST/DB_PORT/DB_USER/DB_PASSWORD/DB_NAME"
-              : owner.kind === "application"
-                ? " beserta env dan mount aplikasi"
-                : " beserta env service"}{" "}
-            — untuk pekerjaan berat atau saat container berhenti. Job yang masih
-            berjalan tidak dijalankan ganda.
+            {t.rich("jobs.new.description", {
+              code: (chunks) => <code>{chunks}</code>,
+              b: (chunks) => <b>{chunks}</b>,
+              example:
+                owner.kind === "database"
+                  ? 'psql -U "$POSTGRES_USER" -c "VACUUM ANALYZE"'
+                  : "php artisan schedule:run",
+              extra: t(`jobs.new.extra.${owner.kind}`),
+            })}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -156,7 +151,7 @@ export function ApplicationJobs({
           >
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="space-y-1">
-                <Label htmlFor="job-name">Nama</Label>
+                <Label htmlFor="job-name">{tc("labels.name")}</Label>
                 <Input
                   id="job-name"
                   value={name}
@@ -167,10 +162,10 @@ export function ApplicationJobs({
               </div>
               {owner.kind === "compose" && (
                 <div className="space-y-1">
-                  <Label htmlFor="job-service">Service</Label>
+                  <Label htmlFor="job-service">{t("jobs.new.service")}</Label>
                   <Select value={service} onValueChange={setService}>
                     <SelectTrigger id="job-service">
-                      <SelectValue placeholder="Deploy stack dulu" />
+                      <SelectValue placeholder={t("jobs.new.deployFirst")} />
                     </SelectTrigger>
                     <SelectContent>
                       {(services ?? []).map((sv) => (
@@ -183,7 +178,7 @@ export function ApplicationJobs({
                 </div>
               )}
               <div className="space-y-1">
-                <Label htmlFor="job-target">Jalankan</Label>
+                <Label htmlFor="job-target">{t("jobs.new.run")}</Label>
                 <Select
                   value={target}
                   onValueChange={(v) => setTarget(v as JobTarget)}
@@ -193,15 +188,17 @@ export function ApplicationJobs({
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="container">
-                      Di container aplikasi
+                      {t("jobs.new.targetContainer")}
                     </SelectItem>
-                    <SelectItem value="run">Container terpisah</SelectItem>
+                    <SelectItem value="run">
+                      {t("jobs.new.targetRun")}
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </div>
             <div className="space-y-1">
-              <Label htmlFor="job-cmd">Perintah</Label>
+              <Label htmlFor="job-cmd">{t("jobs.new.command")}</Label>
               <Textarea
                 id="job-cmd"
                 value={command}
@@ -215,7 +212,7 @@ export function ApplicationJobs({
             </div>
             <div className="flex flex-wrap items-end gap-3">
               <div className="space-y-1">
-                <Label htmlFor="job-preset">Jadwal</Label>
+                <Label htmlFor="job-preset">{t("jobs.new.schedule")}</Label>
                 <Select value={mode} onValueChange={setMode}>
                   <SelectTrigger id="job-preset" className="w-48">
                     <SelectValue />
@@ -223,7 +220,7 @@ export function ApplicationJobs({
                   <SelectContent>
                     {PRESETS.map((p) => (
                       <SelectItem key={p.cron} value={p.cron}>
-                        {p.label}
+                        {t(`jobs.preset.${p.key}`)}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -231,7 +228,7 @@ export function ApplicationJobs({
               </div>
               {mode === "custom" && (
                 <div className="space-y-1">
-                  <Label htmlFor="job-cron">Cron (5 kolom)</Label>
+                  <Label htmlFor="job-cron">{t("jobs.new.cron")}</Label>
                   <Input
                     id="job-cron"
                     value={customCron}
@@ -242,7 +239,7 @@ export function ApplicationJobs({
                 </div>
               )}
               <div className="space-y-1">
-                <Label htmlFor="job-timeout">Timeout (detik)</Label>
+                <Label htmlFor="job-timeout">{t("jobs.new.timeout")}</Label>
                 <Input
                   id="job-timeout"
                   type="number"
@@ -256,7 +253,7 @@ export function ApplicationJobs({
               <span className="flex-1" />
               <Button type="submit" disabled={pending}>
                 <Plus data-icon="inline-start" />
-                {pending ? "Menyimpan…" : "Tambah job"}
+                {pending ? tc("states.saving") : t("jobs.new.add")}
               </Button>
             </div>
             {error && (
@@ -272,6 +269,9 @@ export function ApplicationJobs({
 }
 
 function JobRow({ owner, job }: { owner: JobOwner; job: Job }) {
+  const t = useTranslations("applications")
+  const tc = useTranslations("common")
+  const locale = useLocale()
   const [open, setOpen] = useState(false)
   const [runs, setRuns] = useState<JobRun[] | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -308,7 +308,7 @@ function JobRow({ owner, job }: { owner: JobOwner; job: Job }) {
     start(async () => {
       setError(null)
       const r = await fn()
-      if (!r.ok) setError(r.error ?? "Gagal")
+      if (!r.ok) setError(r.error ?? tc("states.failed"))
     })
 
   return (
@@ -318,7 +318,7 @@ function JobRow({ owner, job }: { owner: JobOwner; job: Job }) {
           <Button
             variant="ghost"
             size="icon-sm"
-            aria-label={open ? "Tutup riwayat" : "Buka riwayat"}
+            aria-label={open ? t("jobs.row.closeHistory") : t("jobs.row.openHistory")}
             onClick={toggle}
           >
             {open ? <ChevronDown /> : <ChevronRight />}
@@ -329,11 +329,12 @@ function JobRow({ owner, job }: { owner: JobOwner; job: Job }) {
               {job.command}
             </CardDescription>
             <CardDescription className="text-xs">
-              {job.cron ? <code>{job.cron}</code> : "manual"} ·{" "}
+              {job.cron ? <code>{job.cron}</code> : t("jobs.row.manual")} ·{" "}
               {job.target === "container"
-                ? "di container"
-                : "container terpisah"}{" "}
-              · timeout {job.timeoutSeconds}s · terakhir {fmt(job.lastRunAt)}
+                ? t("jobs.row.inContainer")
+                : t("jobs.row.separate")}{" "}
+              · {t("jobs.row.timeout", { seconds: job.timeoutSeconds })} ·{" "}
+              {t("jobs.row.last", { when: fmt(job.lastRunAt, locale) })}
             </CardDescription>
           </div>
           {job.lastStatus && (
@@ -349,7 +350,7 @@ function JobRow({ owner, job }: { owner: JobOwner; job: Job }) {
                 act(() => updateJobAction(owner, job.id, { enabled }))
               }
             />
-            aktif
+            {t("jobs.row.active")}
           </label>
           <Button
             size="sm"
@@ -367,22 +368,22 @@ function JobRow({ owner, job }: { owner: JobOwner; job: Job }) {
             }
           >
             <Play data-icon="inline-start" />
-            Jalankan
+            {t("jobs.row.runNow")}
           </Button>
           <ConfirmDialog
             trigger={
               <Button
                 variant="ghost"
                 size="icon-sm"
-                aria-label="Hapus job"
+                aria-label={t("jobs.row.deleteAria")}
                 disabled={pending}
               >
                 <Trash2 />
               </Button>
             }
-            title={`Hapus job "${job.name}"?`}
-            description="Job dihapus permanen beserta riwayat run-nya, dan jadwalnya berhenti. Ini tidak bisa dibatalkan."
-            confirmLabel="Hapus"
+            title={t("jobs.row.deleteTitle", { name: job.name })}
+            description={t("jobs.row.deleteDescription")}
+            confirmLabel={tc("actions.delete")}
             onConfirm={() => deleteJobAction(owner, job.id)}
           />
         </div>
@@ -395,10 +396,12 @@ function JobRow({ owner, job }: { owner: JobOwner; job: Job }) {
       {open && (
         <CardContent>
           {runs === null ? (
-            <p className="text-xs text-muted-foreground">Memuat…</p>
+            <p className="text-xs text-muted-foreground">
+              {tc("states.loading")}
+            </p>
           ) : runs.length === 0 ? (
             <EmptyState icon={History} compact>
-              Belum pernah dijalankan.
+              {t("jobs.row.neverRun")}
             </EmptyState>
           ) : (
             <ul className="divide-y rounded-md border text-xs">
@@ -414,26 +417,31 @@ function JobRow({ owner, job }: { owner: JobOwner; job: Job }) {
 }
 
 function RunRow({ run }: { run: JobRun }) {
+  const t = useTranslations("applications")
+  const tc = useTranslations("common")
+  const locale = useLocale()
   const [show, setShow] = useState(false)
   return (
     <li className="px-3 py-2">
       <div className="flex items-center gap-3">
         <span className="min-w-0 flex-1 text-xs text-muted-foreground">
-          {fmt(run.startedAt)} ·{" "}
-          {run.trigger === "scheduled" ? "terjadwal" : "manual"}
+          {fmt(run.startedAt, locale)} ·{" "}
+          {run.trigger === "scheduled"
+            ? t("jobs.run.scheduled")
+            : t("jobs.row.manual")}
           {run.exitCode !== null && ` · exit ${run.exitCode}`}
         </span>
         <Badge variant={STATUS_VARIANT[run.status]}>{run.status}</Badge>
         <Button size="sm" variant="ghost" onClick={() => setShow((s) => !s)}>
-          {show ? "Sembunyikan" : "Output"}
+          {show ? tc("actions.hide") : t("jobs.run.output")}
         </Button>
       </div>
       {show && (
         <div className="mt-2">
           <LogViewer
             text={run.output ?? ""}
-            label="Output job"
-            empty="(tidak ada output)"
+            label={t("jobs.run.outputLabel")}
+            empty={t("jobs.run.noOutput")}
             className="max-h-72"
             initialFollow={false}
           />

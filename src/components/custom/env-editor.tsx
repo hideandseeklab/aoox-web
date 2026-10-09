@@ -1,6 +1,7 @@
 "use client"
 
 import { Eye, EyeOff, Plus, Trash2 } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { useId, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -54,6 +55,7 @@ export function EnvEditor({
   /** Viewers: values stay masked/revealable, nothing can be edited, added or removed. */
   readOnly?: boolean
 }) {
+  const t = useTranslations("common.envEditor")
   const [text, setText] = useState(defaultValue)
   const [rows, setRows] = useState<Row[]>(() => toRows(defaultValue))
   const [mode, setMode] = useState<"rows" | "text">("rows")
@@ -80,7 +82,7 @@ export function EnvEditor({
             variant={mode === "rows" ? "secondary" : "ghost"}
             onClick={() => switchMode("rows")}
           >
-            Baris
+            {t("rows")}
           </Button>
           <Button
             type="button"
@@ -88,7 +90,7 @@ export function EnvEditor({
             variant={mode === "text" ? "secondary" : "ghost"}
             onClick={() => switchMode("text")}
           >
-            Teks
+            {t("text")}
           </Button>
         </div>
         {mode === "rows" && (
@@ -100,7 +102,7 @@ export function EnvEditor({
             aria-pressed={revealed}
           >
             {revealed ? <EyeOff /> : <Eye />}
-            {revealed ? "Sembunyikan" : "Tampilkan nilai"}
+            {revealed ? t("hideValues") : t("showValues")}
           </Button>
         )}
       </div>
@@ -113,14 +115,14 @@ export function EnvEditor({
           readOnly={readOnly}
           placeholder={placeholder ?? "KEY=value\nANOTHER=value"}
           className="font-mono text-xs"
-          aria-label="Environment (teks)"
+          aria-label={t("textAria")}
         />
       ) : (
         <div className="space-y-1.5">
           {rows.map((row, i) => (
             <div key={row.id} className="flex items-center gap-1.5">
               <Input
-                aria-label={`Key ${i + 1}`}
+                aria-label={t("keyAria", { n: i + 1 })}
                 id={`${baseId}-k-${row.id}`}
                 value={row.key}
                 onChange={(e) =>
@@ -137,7 +139,7 @@ export function EnvEditor({
                 spellCheck={false}
               />
               <Input
-                aria-label={`Value ${i + 1}`}
+                aria-label={t("valueAria", { n: i + 1 })}
                 id={`${baseId}-v-${row.id}`}
                 type={revealed ? "text" : "password"}
                 value={row.value}
@@ -159,7 +161,9 @@ export function EnvEditor({
                   type="button"
                   variant="ghost"
                   size="icon"
-                  aria-label={`Hapus ${row.key || `baris ${i + 1}`}`}
+                  aria-label={t("removeAria", {
+                    name: row.key || t("rowFallback", { n: i + 1 }),
+                  })}
                   onClick={() =>
                     updateRows(rows.filter((r) => r.id !== row.id))
                   }
@@ -182,7 +186,7 @@ export function EnvEditor({
               }
             >
               <Plus data-icon="inline-start" />
-              Tambah variabel
+              {t("addVariable")}
             </Button>
           )}
         </div>

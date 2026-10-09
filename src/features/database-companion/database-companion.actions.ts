@@ -1,22 +1,24 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
+import { getTranslations } from "next-intl/server"
 import { requireToken } from "@/features/auth/auth.session"
 import { api, ApiError } from "@/lib/api"
 import type {
   CompanionCredentials,
   DatabaseCompanion,
 } from "./database-companion.entity"
-import { companionSchema, type CompanionInput } from "./database-companion.schema"
+import { createCompanionSchema, type CompanionInput } from "./database-companion.schema"
 
 export type ActionResult<T = undefined> =
   { ok: true; data: T } | { ok: false; error: string }
 
-function fail(err: unknown): { ok: false; error: string } {
+async function fail(err: unknown): Promise<{ ok: false; error: string }> {
+  const t = await getTranslations("common")
   return {
     ok: false,
     error:
-      err instanceof ApiError ? err.message : "Tidak dapat terhubung ke server",
+      err instanceof ApiError ? err.message : t("messages.serverUnreachable"),
   }
 }
 
@@ -24,9 +26,13 @@ export async function installCompanionAction(
   databaseId: string,
   input: CompanionInput
 ): Promise<ActionResult<DatabaseCompanion>> {
-  const parsed = companionSchema.safeParse(input)
+  const t = await getTranslations("database")
+  const parsed = createCompanionSchema(t).safeParse(input)
   if (!parsed.success) {
-    return { ok: false, error: parsed.error.issues[0]?.message ?? "Input tidak valid" }
+    return {
+      ok: false,
+      error: parsed.error.issues[0]?.message ?? t("companion.validation.invalidInput"),
+    }
   }
   const v = parsed.data
   const body =
@@ -41,7 +47,7 @@ export async function installCompanionAction(
     revalidatePath(`/databases/${databaseId}`)
     return { ok: true, data }
   } catch (err) {
-    return fail(err)
+    return await fail(err)
   }
 }
 
@@ -55,7 +61,7 @@ export async function getCompanionCredentialsAction(
     )
     return { ok: true, data }
   } catch (err) {
-    return fail(err)
+    return await fail(err)
   }
 }
 
@@ -70,6 +76,6 @@ export async function deleteCompanionAction(
     revalidatePath(`/databases/${databaseId}`)
     return { ok: true, data: undefined }
   } catch (err) {
-    return fail(err)
+    return await fail(err)
   }
 }

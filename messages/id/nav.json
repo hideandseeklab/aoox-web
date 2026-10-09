@@ -1,0 +1,29 @@
+{
+  "groups": {
+    "platform": "Platform",
+    "infrastructure": "Infrastruktur",
+    "settings": "Settings"
+  },
+  "dashboard": "Dashboard",
+  "projects": "Projects",
+  "templates": "Templates",
+  "registry": "Registry",
+  "docker": "Docker",
+  "terminal": "Terminal",
+  "reverseProxy": "Reverse proxy",
+  "remoteServers": "Server remote",
+  "sshKey": "Terminal",
+  "dockerSwarm": "Docker Swarm",
+  "dockerDisk": "Disk Docker",
+  "instanceBackup": "Backup instance",
+  "panelDomain": "Domain panel",
+  "updateAoox": "Update aoox",
+  "environment": "Environment",
+  "account": "Akun",
+  "team": "Tim",
+  "integrations": "Integrasi",
+  "auditLog": "Audit log",
+  "updating": "Sedang memperbarui…",
+  "updateAvailable": "Update tersedia",
+  "updateAvailableVersion": "Update tersedia: v{version}"
+}

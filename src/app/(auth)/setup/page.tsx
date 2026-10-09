@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server"
 import { redirect } from "next/navigation"
 import { SetupForm } from "@/components/custom/setup-form"
 import {
@@ -15,14 +16,15 @@ export const metadata = { title: "Setup · aoox" }
 export default async function SetupPage() {
   if (await getVerifiedSession()) redirect("/")
   if (!(await needsSetup())) redirect("/sign-in")
+  const t = await getTranslations("auth.setup")
 
   return (
     <main className="flex min-h-svh items-center justify-center p-6">
       <Card className="w-full max-w-sm">
         <CardHeader>
-          <CardTitle>Selamat datang di aoox</CardTitle>
+          <CardTitle>{t("title")}</CardTitle>
           <CardDescription>
-            Belum ada akun. Buat akun owner pertama untuk mulai.
+            {t("description")}
           </CardDescription>
         </CardHeader>
         <CardContent>

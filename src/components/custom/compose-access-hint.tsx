@@ -2,6 +2,7 @@
 
 import { PathArrow } from "@/components/custom/arrows"
 import { ExternalLink, Globe } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import type {
@@ -28,7 +29,9 @@ export function ComposeAccessHint({
   proxy: ProxyStatus
   running: boolean
 }) {
+  const t = useTranslations("compose")
   const browserHost = useBrowserHost()
+  const hostLabel = browserHost ?? `<${t("accessHint.serverIpPlaceholder")}>`
   const portSuffix = (https: boolean) => {
     const port = https ? proxy.httpsPort : proxy.httpPort
     return (https ? port === 443 : port === 80) ? "" : `:${port}`
@@ -38,26 +41,24 @@ export function ComposeAccessHint({
     return (
       <Alert>
         <Globe />
-        <AlertTitle>Stack ini belum punya alamat</AlertTitle>
+        <AlertTitle>{t("accessHint.noAddressTitle")}</AlertTitle>
         <AlertDescription>
-          Container stack hanya membuka port di dalam network Docker. Supaya
-          bisa dibuka dari browser, atur di tab{" "}
-          <span className="font-medium text-foreground">Pengaturan</span>
-          <PathArrow />
-          Akses: pakai <strong>domain</strong> lewat proxy (mis.{" "}
-          <code>wordpress.localhost</code> untuk dev — <code>*.localhost</code>{" "}
-          otomatis mengarah ke komputer ini) atau <strong>IP &amp; port</strong>{" "}
-          (port host langsung, mis. <code>8080</code>
-          <PathArrow />
-          dibuka di <code>http://{browserHost ?? "<ip-server>"}:8080</code>),
-          lalu <em>Deploy ulang</em>.
+          {t.rich("accessHint.noAddressBody", {
+            host: hostLabel,
+            tab: (chunks) => (
+              <span className="font-medium text-foreground">{chunks}</span>
+            ),
+            b: (chunks) => <strong>{chunks}</strong>,
+            i: (chunks) => <em>{chunks}</em>,
+            code: (chunks) => <code>{chunks}</code>,
+            arrow: () => <PathArrow />,
+          })}
           {!proxy.running && (
             <>
               {" "}
-              Reverse proxy belum berjalan — untuk domain, aktifkan dulu di
-              Infrastruktur
-              <PathArrow />
-              Reverse proxy.
+              {t.rich("accessHint.proxyOff", {
+                arrow: () => <PathArrow />,
+              })}
             </>
           )}
         </AlertDescription>
@@ -76,7 +77,7 @@ export function ComposeAccessHint({
     ...ports.map((p) => ({
       key: `p:${p.service}:${p.hostPort}`,
       service: p.service,
-      label: `${browserHost ?? "<ip-server>"}:${p.hostPort}`,
+      label: `${hostLabel}:${p.hostPort}`,
       url: `http://${browserHost ?? "localhost"}:${p.hostPort}`,
       needsProxy: false,
     })),
@@ -84,7 +85,7 @@ export function ComposeAccessHint({
 
   return (
     <div className="flex flex-wrap items-center gap-2 text-xs">
-      <span className="text-muted-foreground">Buka:</span>
+      <span className="text-muted-foreground">{t("accessHint.open")}</span>
       {links.map((l) => (
         <Button
           key={l.key}
@@ -102,7 +103,7 @@ export function ComposeAccessHint({
       ))}
       {!proxy.running && domains.length > 0 && (
         <span className="text-xs text-destructive">
-          Proxy belum berjalan — domain belum bisa dibuka.
+          {t("accessHint.proxyDown")}
         </span>
       )}
     </div>

@@ -1,19 +1,24 @@
 import { z } from "zod"
 
-export const signInSchema = z.object({
-  email: z.email("Email tidak valid"),
-  password: z.string().min(1, "Password wajib diisi"),
-})
+/** Translator for the `auth` namespace (from `getTranslations("auth")`). */
+type Translate = (key: string) => string
 
-export type SignInInput = z.infer<typeof signInSchema>
+export const signInSchema = (t: Translate) =>
+  z.object({
+    email: z.email(t("validation.emailInvalid")),
+    password: z.string().min(1, t("validation.passwordRequired")),
+  })
 
-export const setupSchema = z.object({
-  name: z.string().trim().max(100, "Maksimal 100 karakter").optional(),
-  email: z.email("Email tidak valid"),
-  password: z
-    .string()
-    .min(8, "Minimal 8 karakter")
-    .max(128, "Maksimal 128 karakter"),
-})
+export type SignInInput = z.infer<ReturnType<typeof signInSchema>>
 
-export type SetupInput = z.infer<typeof setupSchema>
+export const setupSchema = (t: Translate) =>
+  z.object({
+    name: z.string().trim().max(100, t("validation.max100")).optional(),
+    email: z.email(t("validation.emailInvalid")),
+    password: z
+      .string()
+      .min(8, t("validation.min8"))
+      .max(128, t("validation.max128")),
+  })
+
+export type SetupInput = z.infer<ReturnType<typeof setupSchema>>

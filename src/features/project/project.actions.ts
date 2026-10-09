@@ -1,6 +1,7 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
+import { getTranslations } from "next-intl/server"
 import { redirect } from "next/navigation"
 import { api, ApiError } from "@/lib/api"
 import type {
@@ -10,7 +11,7 @@ import type {
 } from "./project.entity"
 import { requireToken } from "@/features/auth/auth.session"
 import { getProjectResourceUsage, listProjects } from "./project.queries"
-import { projectSchema } from "./project.schema"
+import { createProjectSchema } from "./project.schema"
 
 export interface ProjectFormState {
   error?: string
@@ -18,14 +19,15 @@ export interface ProjectFormState {
   values?: { name: string; description: string; env?: string }
 }
 
-function parseForm(formData: FormData) {
+async function parseForm(formData: FormData) {
+  const t = await getTranslations("projects")
   const values = {
     name: String(formData.get("name") ?? ""),
     description: String(formData.get("description") ?? ""),
     // The create dialog has no env field; omit it so the API's whitelist passes.
     ...(formData.has("env") ? { env: String(formData.get("env") ?? "") } : {}),
   }
-  const parsed = projectSchema.safeParse(values)
+  const parsed = createProjectSchema(t).safeParse(values)
   if (parsed.success)
     return { values, data: parsed.data, fieldErrors: undefined }
 
@@ -37,16 +39,16 @@ function parseForm(formData: FormData) {
   return { values, data: undefined, fieldErrors }
 }
 
-function toMessage(err: unknown): string {
+async function toMessage(err: unknown): Promise<string> {
   if (err instanceof ApiError) return err.message
-  return "Tidak dapat terhubung ke server"
+  return (await getTranslations("common"))("messages.serverUnreachable")
 }
 
 export async function createProjectAction(
   _prev: ProjectFormState,
   formData: FormData
 ): Promise<ProjectFormState> {
-  const { values, data, fieldErrors } = parseForm(formData)
+  const { values, data, fieldErrors } = await parseForm(formData)
   if (!data) return { fieldErrors, values }
 
   let project: Project
@@ -57,7 +59,7 @@ export async function createProjectAction(
       token: await requireToken(),
     })
   } catch (err) {
-    return { error: toMessage(err), values }
+    return { error: await toMessage(err), values }
   }
 
   revalidatePath("/projects")
@@ -69,7 +71,7 @@ export async function updateProjectAction(
   _prev: ProjectFormState,
   formData: FormData
 ): Promise<ProjectFormState> {
-  const { values, data, fieldErrors } = parseForm(formData)
+  const { values, data, fieldErrors } = await parseForm(formData)
   if (!data) return { fieldErrors, values }
 
   try {
@@ -79,7 +81,7 @@ export async function updateProjectAction(
       token: await requireToken(),
     })
   } catch (err) {
-    return { error: toMessage(err), values }
+    return { error: await toMessage(err), values }
   }
 
   revalidatePath("/projects")

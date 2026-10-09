@@ -1,4 +1,5 @@
 import { Boxes, Cpu, MemoryStick } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { StatCard } from "@/components/custom/stat-card"
 import {
   Card,
@@ -18,6 +19,7 @@ import {
  * own usage (images, volumes, containers, build cache).
  */
 export function HostOverviewCard({ host }: { host: HostOverview }) {
+  const t = useTranslations("dashboard.host")
   const disk = host.disk
   const diskTotal =
     disk.imagesBytes +
@@ -29,19 +31,23 @@ export function HostOverviewCard({ host }: { host: HostOverview }) {
       ? (host.managed.memoryBytes / host.memoryTotalBytes) * 100
       : 0
   const segments: Array<[label: string, bytes: number, className: string]> = [
-    ["Image", disk.imagesBytes, "bg-primary"],
-    ["Volume", disk.volumesBytes, "bg-primary/70"],
-    ["Container", disk.containersBytes, "bg-primary/45"],
-    ["Build cache", disk.buildCacheBytes, "bg-primary/25"],
+    [t("segments.images"), disk.imagesBytes, "bg-primary"],
+    [t("segments.volumes"), disk.volumesBytes, "bg-primary/70"],
+    [t("segments.containers"), disk.containersBytes, "bg-primary/45"],
+    [t("segments.buildCache"), disk.buildCacheBytes, "bg-primary/25"],
   ]
 
   return (
     <Card className="sm:col-span-2 lg:col-span-3">
       <CardHeader>
-        <CardTitle>Host</CardTitle>
+        <CardTitle>{t("title")}</CardTitle>
         <CardDescription>
-          {host.operatingSystem} · Docker {host.serverVersion} · {host.cpus} CPU
-          · {formatBytes(host.memoryTotalBytes)} RAM
+          {t("summary", {
+            os: host.operatingSystem,
+            version: host.serverVersion,
+            cpus: host.cpus,
+            memory: formatBytes(host.memoryTotalBytes),
+          })}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -49,29 +55,32 @@ export function HostOverviewCard({ host }: { host: HostOverview }) {
           <StatCard
             variant="inset"
             icon={Boxes}
-            label="Container aoox"
+            label={t("aooxContainers")}
             value={String(host.managed.containers)}
-            hint={`${host.containers.running} berjalan dari ${host.containers.total} di host`}
+            hint={t("aooxContainersHint", {
+              running: host.containers.running,
+              total: host.containers.total,
+            })}
           />
           <StatCard
             variant="inset"
             icon={MemoryStick}
-            label="Memori dipakai container aoox"
+            label={t("aooxMemory")}
             value={formatBytes(host.managed.memoryBytes)}
-            hint={`${managedMemPct.toFixed(1)}% dari RAM host`}
+            hint={t("aooxMemoryHint", { percent: managedMemPct.toFixed(1) })}
           />
           <StatCard
             variant="inset"
             icon={Cpu}
-            label="CPU container aoox"
+            label={t("aooxCpu")}
             value={`${host.managed.cpuPercent.toFixed(1)}%`}
-            hint={`dari ${host.cpus * 100}% (${host.cpus} core)`}
+            hint={t("aooxCpuHint", { max: host.cpus * 100, cpus: host.cpus })}
           />
         </div>
 
         <div className="space-y-1.5">
           <div className="flex items-baseline justify-between text-xs">
-            <span className="text-muted-foreground">Disk Docker</span>
+            <span className="text-muted-foreground">{t("dockerDisk")}</span>
             <span className="font-medium tabular-nums">{formatBytes(diskTotal)}</span>
           </div>
           {/* Stacked meter: one hue, lighter steps per segment, 2px gaps. */}
@@ -101,7 +110,7 @@ export function HostOverviewCard({ host }: { host: HostOverview }) {
                 <span className="text-foreground tabular-nums">{formatBytes(bytes)}</span>
               </li>
             ))}
-            <li>{host.images} image</li>
+            <li>{t("imageCount", { count: host.images })}</li>
           </ul>
         </div>
       </CardContent>

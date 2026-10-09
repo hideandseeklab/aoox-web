@@ -10,7 +10,9 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import type { AuditLog } from "@/features/audit-log/audit-log.entity"
-import { statusVariant, VIA_LABEL } from "@/features/audit-log/audit-log.format"
+import { statusVariant, viaLabel } from "@/features/audit-log/audit-log.format"
+import { formatDateTime } from "@/i18n/format"
+import { useLocale, useTranslations } from "next-intl"
 
 /** Newest first; `before` cursor from the last row for the next page. */
 export function AuditLogTable({
@@ -20,6 +22,9 @@ export function AuditLogTable({
   rows: AuditLog[]
   action: string
 }) {
+  const t = useTranslations("settings")
+  const c = useTranslations("common")
+  const locale = useLocale()
   const router = useRouter()
   const [q, setQ] = useState(action)
   const [open, setOpen] = useState<string | null>(null)
@@ -39,19 +44,19 @@ export function AuditLogTable({
         <Input
           value={q}
           onChange={(e) => setQ(e.target.value)}
-          placeholder="Filter aksi, mis. deploy, /databases/, sign-in"
+          placeholder={t("audit.filterPlaceholder")}
           className="max-w-md font-mono text-xs"
-          aria-label="Filter aksi"
+          aria-label={t("audit.filterLabel")}
         />
         <Button type="submit" variant="outline">
           <Search data-icon="inline-start" />
-          Cari
+          {c("actions.search")}
         </Button>
       </form>
 
       {rows.length === 0 ? (
         <EmptyState icon={ScrollText} compact>
-          Tidak ada entri.
+          {t("audit.empty")}
         </EmptyState>
       ) : (
         <ul className="divide-y rounded-md border text-xs">
@@ -63,13 +68,15 @@ export function AuditLogTable({
                   <Button
                     variant="ghost"
                     size="icon-sm"
-                    aria-label={expanded ? "Tutup detail" : "Buka detail"}
+                    aria-label={
+                      expanded ? t("audit.closeDetail") : t("audit.openDetail")
+                    }
                     onClick={() => setOpen(expanded ? null : r.id)}
                   >
                     {expanded ? <ChevronDown /> : <ChevronRight />}
                   </Button>
                   <span className="w-36 shrink-0 text-xs text-muted-foreground">
-                    {new Date(r.createdAt).toLocaleString("id-ID", {
+                    {formatDateTime(r.createdAt, locale, {
                       dateStyle: "medium",
                       timeStyle: "medium",
                     })}
@@ -79,7 +86,7 @@ export function AuditLogTable({
                       {r.action}
                     </span>
                     <span className="block truncate text-xs text-muted-foreground">
-                      {r.actorEmail ?? "—"} · {VIA_LABEL[r.via] ?? r.via}
+                      {r.actorEmail ?? "—"} · {viaLabel(r.via, t)}
                       {r.ip && ` · ${r.ip.replace(/^::ffff:/, "")}`}
                     </span>
                   </span>
@@ -106,7 +113,7 @@ export function AuditLogTable({
             <Link
               href={`/settings/audit-log?before=${encodeURIComponent(last.createdAt)}${action ? `&action=${encodeURIComponent(action)}` : ""}`}
             >
-              Lebih lama
+              {t("audit.older")}
               <LinkArrow />
             </Link>
           </Button>

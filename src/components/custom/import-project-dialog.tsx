@@ -1,6 +1,7 @@
 "use client"
 
 import { Loader2, Upload } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { useRouter } from "@/lib/use-router"
 import { useState, useTransition } from "react"
 import { toast } from "sonner"
@@ -27,6 +28,8 @@ import type { ImportReport } from "@/features/project-transfer/project-transfer.
  * warnings are not lost.
  */
 export function ImportProjectDialog() {
+  const t = useTranslations("projects")
+  const tc = useTranslations("common")
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const [file, setFile] = useState<File | null>(null)
@@ -47,14 +50,14 @@ export function ImportProjectDialog() {
     start(async () => {
       setError(null)
       const toastId = toast.loading(
-        `Mengimpor project ${name.trim() || file.name}…`
+        t("import.importing", { name: name.trim() || file.name })
       )
       let parsed: unknown
       try {
         parsed = JSON.parse(await file.text())
       } catch {
-        setError("File bukan JSON yang valid")
-        toast.error("File bukan JSON yang valid", { id: toastId })
+        setError(t("import.invalidJson"))
+        toast.error(t("import.invalidJson"), { id: toastId })
         return
       }
       const r = await importProjectAction(parsed, name)
@@ -65,8 +68,8 @@ export function ImportProjectDialog() {
       }
       toast.success(
         r.data.warnings.length === 0
-          ? "Project diimpor."
-          : `Project diimpor dengan ${r.data.warnings.length} catatan — periksa di bawah.`,
+          ? t("import.imported")
+          : t("import.importedWithWarnings", { count: r.data.warnings.length }),
         { id: toastId }
       )
       if (r.data.warnings.length === 0) {
@@ -90,28 +93,32 @@ export function ImportProjectDialog() {
       <DialogTrigger asChild>
         <Button variant="outline">
           <Upload data-icon="inline-start" />
-          Impor
+          {tc("actions.import")}
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md" showCloseButton={!pending}>
         <DialogHeader>
-          <DialogTitle>Impor project</DialogTitle>
+          <DialogTitle>{t("import.title")}</DialogTitle>
           <DialogDescription>
-            Buat project baru dari file ekspor (<code>*.aoox.json</code>). Tidak
-            ada yang di-deploy; database dibuat kosong, aplikasi menunggu deploy
-            pertama.
+            {t.rich("import.description", {
+              code: (chunks) => <code>{chunks}</code>,
+            })}
           </DialogDescription>
         </DialogHeader>
         {report ? (
           <div className="space-y-3 text-xs">
             <p>
-              Dibuat: {report.created.applications} aplikasi,{" "}
-              {report.created.databases} database, {report.created.composeApps}{" "}
-              compose, {report.created.domains} domain, {report.created.mounts}{" "}
-              mount, {report.created.jobs} job.
+              {t("import.created", {
+                applications: report.created.applications,
+                databases: report.created.databases,
+                composeApps: report.created.composeApps,
+                domains: report.created.domains,
+                mounts: report.created.mounts,
+                jobs: report.created.jobs,
+              })}
             </p>
             <Alert>
-              <AlertTitle>Perlu diperiksa</AlertTitle>
+              <AlertTitle>{t("import.needsReview")}</AlertTitle>
               <AlertDescription>
                 <ul className="list-disc space-y-1 ps-4">
                   {report.warnings.map((w) => (
@@ -127,7 +134,7 @@ export function ImportProjectDialog() {
                   router.push(`/projects/${report.projectId}`)
                 }}
               >
-                Buka project
+                {t("import.openProject")}
               </Button>
             </DialogFooter>
           </div>
@@ -140,7 +147,7 @@ export function ImportProjectDialog() {
             }}
           >
             <div className="space-y-1.5">
-              <Label htmlFor="import-file">File ekspor</Label>
+              <Label htmlFor="import-file">{t("import.file")}</Label>
               <Input
                 id="import-file"
                 type="file"
@@ -150,12 +157,12 @@ export function ImportProjectDialog() {
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="import-name">Nama project (opsional)</Label>
+              <Label htmlFor="import-name">{t("import.name")}</Label>
               <Input
                 id="import-name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="Pakai nama dari file"
+                placeholder={t("import.namePlaceholder")}
                 maxLength={100}
               />
             </div>
@@ -169,7 +176,7 @@ export function ImportProjectDialog() {
                 {pending && (
                   <Loader2 data-icon="inline-start" className="animate-spin" />
                 )}
-                {pending ? "Mengimpor…" : "Impor"}
+                {pending ? t("import.submitting") : tc("actions.import")}
               </Button>
             </DialogFooter>
           </form>

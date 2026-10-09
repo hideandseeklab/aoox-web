@@ -1,0 +1,104 @@
+{
+  "metaTitle": "Dashboard · aoox",
+  "greeting": "Halo, {name}",
+  "subtitle": "Ringkasan platform kamu.",
+  "stats": {
+    "totalProjects": "Total project",
+    "viewAll": "Lihat semua",
+    "activeProjects": "Project aktif",
+    "activeHint": "Ada aplikasi, database, atau stack compose yang berjalan.",
+    "inactiveProjects": "Project tidak aktif",
+    "inactiveHint": "Semua berhenti/error, atau belum ada yang di-deploy."
+  },
+  "error": {
+    "title": "Terjadi kesalahan",
+    "fallback": "Tidak dapat memuat halaman ini.",
+    "reference": "ref: {digest}"
+  },
+  "notFound": {
+    "title": "Halaman tidak ditemukan",
+    "description": "Alamat yang kamu buka tidak ada atau sudah dihapus.",
+    "back": "Ke dashboard"
+  },
+  "host": {
+    "title": "Host",
+    "summary": "{os} · Docker {version} · {cpus} CPU · {memory} RAM",
+    "aooxContainers": "Container aoox",
+    "aooxContainersHint": "{running} berjalan dari {total} di host",
+    "aooxMemory": "Memori dipakai container aoox",
+    "aooxMemoryHint": "{percent}% dari RAM host",
+    "aooxCpu": "CPU container aoox",
+    "aooxCpuHint": "dari {max}% ({cpus} core)",
+    "dockerDisk": "Disk Docker",
+    "segments": {
+      "images": "Image",
+      "volumes": "Volume",
+      "containers": "Container",
+      "buildCache": "Build cache"
+    },
+    "imageCount": "{count} image"
+  },
+  "live": {
+    "waiting": "Sampel host pertama diambil dalam beberapa detik…",
+    "last5min": "5 menit terakhir",
+    "chartAria": "Riwayat 5 menit, terakhir {value}",
+    "cpu": "CPU host",
+    "cpuHint": "{cpus} core · container aoox ≈ {managed}%",
+    "cpuHintLoad": "{cpus} core · load {load} · container aoox ≈ {managed}%",
+    "ram": "RAM host",
+    "ramHint": "{used} dari {total} · container aoox {managed} ({percent}%)",
+    "storage": "Storage host",
+    "storageHint": "{used} dari {total} · sisa {free}",
+    "storageUnreadable": "Filesystem tidak terbaca"
+  },
+  "sparkline": {
+    "ariaLabel": "Riwayat 1 jam, terakhir {value}"
+  },
+  "activity": {
+    "title": "Aktivitas terakhir",
+    "viewAll": "Lihat semua",
+    "empty": "Belum ada aktivitas.",
+    "status": {
+      "failed": "Gagal",
+      "denied": "Ditolak",
+      "success": "Sukses"
+    },
+    "via": {
+      "session": "sesi",
+      "token": "API token",
+      "webhook": "webhook",
+      "anonymous": "anonim"
+    }
+  },
+  "onboarding": {
+    "title": "Mulai dengan aoox",
+    "progress": "{done} dari {total} langkah wajib selesai. Daftar ini hilang sendiri kalau semuanya beres.",
+    "hide": "Sembunyikan",
+    "progressAria": "Langkah wajib selesai",
+    "stepDone": "(selesai)",
+    "stepPending": "(belum)",
+    "open": "Buka",
+    "steps": {
+      "registry": {
+        "title": "Pasang registry lokal",
+        "hint": "Tempat image hasil build disimpan; perlu untuk deploy dari Git."
+      },
+      "proxy": {
+        "title": "Nyalakan reverse proxy",
+        "hint": "Traefik untuk domain dan HTTPS aplikasi."
+      },
+      "panelDomain": {
+        "title": "Atur domain panel (opsional)",
+        "hint": "Buka aoox lewat domain sendiri dengan HTTPS."
+      },
+      "project": {
+        "title": "Buat project pertama",
+        "hint": "Aplikasi, database, dan stack hidup di dalam project."
+      },
+      "workload": {
+        "title": "Jalankan aplikasi, database, atau stack pertama",
+        "hint": "Deploy sesuatu dan pastikan statusnya berjalan."
+      }
+    }
+  }
+}

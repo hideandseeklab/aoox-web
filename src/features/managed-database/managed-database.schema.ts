@@ -1,7 +1,10 @@
 import { z } from "zod"
 
-export const databaseSchema = z.object({
-  name: z.string().trim().min(1, "Nama wajib diisi").max(100),
+type Translator = (key: string, values?: Record<string, string | number>) => string
+
+export const createDatabaseSchema = (t: Translator) =>
+  z.object({
+  name: z.string().trim().min(1, t("validation.nameRequired")).max(100),
   engine: z.enum(["postgres", "mysql", "mariadb", "redis", "valkey", "mongodb"]),
   // Only meaningful when engine === "postgres"; empty = plain Postgres.
   variant: z
@@ -12,9 +15,11 @@ export const databaseSchema = z.object({
     .string()
     .trim()
     .max(64)
-    .regex(/^[\w.-]*$/, "Tag image tidak valid")
+    .regex(/^[\w.-]*$/, t("validation.invalidImageTag"))
     .optional(),
   hostPort: z
     .union([z.literal(""), z.coerce.number().int().min(1).max(65535)])
     .transform((v) => (v === "" ? null : v)),
 })
+
+export type DatabaseInput = z.infer<ReturnType<typeof createDatabaseSchema>>

@@ -1,5 +1,6 @@
 "use client"
 
+import { useTranslations } from "next-intl"
 import { useActionState } from "react"
 import { Button } from "@/components/ui/button"
 import {
@@ -19,6 +20,7 @@ import {
 const initialState: SignInState = {}
 
 export function SignInForm() {
+  const t = useTranslations("auth.signIn")
   const [state, action, pending] = useActionState(signInAction, initialState)
   const [twoFactor, twoFactorAction, twoFactorPending] = useActionState(
     signInTwoFactorAction,
@@ -43,7 +45,7 @@ export function SignInForm() {
         />
         <FieldGroup>
           <Field data-invalid={!!twoFactor.error || undefined}>
-            <FieldLabel htmlFor="code">Kode verifikasi</FieldLabel>
+            <FieldLabel htmlFor="code">{t("codeLabel")}</FieldLabel>
             <Input
               id="code"
               name="code"
@@ -54,8 +56,7 @@ export function SignInForm() {
               required
             />
             <FieldDescription>
-              6 digit dari aplikasi authenticator, atau salah satu kode
-              cadangan.
+              {t("codeHint")}
             </FieldDescription>
           </Field>
           {twoFactor.error && (
@@ -64,7 +65,7 @@ export function SignInForm() {
             </FieldDescription>
           )}
           <Button type="submit" className="w-full" disabled={twoFactorPending}>
-            {twoFactorPending ? "Memeriksa…" : "Verifikasi"}
+            {twoFactorPending ? t("verifying") : t("verify")}
           </Button>
         </FieldGroup>
       </form>
@@ -75,7 +76,7 @@ export function SignInForm() {
     <form action={action} noValidate>
       <FieldGroup>
         <Field data-invalid={!!state.fieldErrors?.email || undefined}>
-          <FieldLabel htmlFor="email">Email</FieldLabel>
+          <FieldLabel htmlFor="email">{t("email")}</FieldLabel>
           <Input
             id="email"
             name="email"
@@ -92,7 +93,7 @@ export function SignInForm() {
         </Field>
 
         <Field data-invalid={!!state.fieldErrors?.password || undefined}>
-          <FieldLabel htmlFor="password">Password</FieldLabel>
+          <FieldLabel htmlFor="password">{t("password")}</FieldLabel>
           <Input
             id="password"
             name="password"
@@ -115,7 +116,7 @@ export function SignInForm() {
         )}
 
         <Button type="submit" className="w-full" disabled={pending}>
-          {pending ? "Signing in…" : "Sign in"}
+          {pending ? t("submitting") : t("submit")}
         </Button>
       </FieldGroup>
     </form>

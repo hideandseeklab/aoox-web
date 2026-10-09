@@ -1,5 +1,6 @@
 "use server"
 
+import { getTranslations } from "next-intl/server"
 import { revalidatePath } from "next/cache"
 import { requireToken } from "@/features/auth/auth.session"
 import { api, ApiError } from "@/lib/api"
@@ -7,11 +8,11 @@ import { api, ApiError } from "@/lib/api"
 export type ActionResult<T = undefined> =
   { ok: true; data: T } | { ok: false; error: string }
 
-function fail(err: unknown): { ok: false; error: string } {
+async function fail(err: unknown): Promise<{ ok: false; error: string }> {
+  const t = await getTranslations("settings")
   return {
     ok: false,
-    error:
-      err instanceof ApiError ? err.message : "Tidak dapat terhubung ke server",
+    error: err instanceof ApiError ? err.message : t("errors.unreachable"),
   }
 }
 

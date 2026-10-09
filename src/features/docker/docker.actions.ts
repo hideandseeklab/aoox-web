@@ -1,5 +1,6 @@
 "use server"
 
+import { getTranslations } from "next-intl/server"
 import { revalidatePath } from "next/cache"
 import { requireToken } from "@/features/auth/auth.session"
 import { api, ApiError } from "@/lib/api"
@@ -8,12 +9,10 @@ import type { DockerContainerLogs } from "./docker.entity"
 export type ActionResult<T = undefined> =
   { ok: true; data: T } | { ok: false; error: string }
 
-function fail(err: unknown): { ok: false; error: string } {
-  return {
-    ok: false,
-    error:
-      err instanceof ApiError ? err.message : "Tidak dapat terhubung ke server",
-  }
+async function fail(err: unknown): Promise<{ ok: false; error: string }> {
+  if (err instanceof ApiError) return { ok: false, error: err.message }
+  const t = await getTranslations("docker")
+  return { ok: false, error: t("errors.serverUnreachable") }
 }
 
 function qs(serverId: string | null, extra: Record<string, string> = {}) {
@@ -39,7 +38,7 @@ export async function containerAction(
     revalidatePath("/infra/docker")
     return { ok: true, data: undefined }
   } catch (err) {
-    return fail(err)
+    return await fail(err)
   }
 }
 
@@ -56,7 +55,7 @@ export async function removeContainerAction(
     revalidatePath("/infra/docker")
     return { ok: true, data: undefined }
   } catch (err) {
-    return fail(err)
+    return await fail(err)
   }
 }
 
@@ -72,7 +71,7 @@ export async function removeImageAction(
     revalidatePath("/infra/docker")
     return { ok: true, data: undefined }
   } catch (err) {
-    return fail(err)
+    return await fail(err)
   }
 }
 
@@ -87,7 +86,7 @@ export async function pruneImagesAction(
     revalidatePath("/infra/docker")
     return { ok: true, data }
   } catch (err) {
-    return fail(err)
+    return await fail(err)
   }
 }
 
@@ -104,6 +103,6 @@ export async function containerLogsAction(
     )
     return { ok: true, data }
   } catch (err) {
-    return fail(err)
+    return await fail(err)
   }
 }

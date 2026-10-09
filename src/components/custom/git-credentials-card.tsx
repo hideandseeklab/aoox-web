@@ -2,6 +2,7 @@
 
 import { PathArrow } from "@/components/custom/arrows"
 import { KeyRound, Plus, Trash2 } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { useActionState, useState, useTransition } from "react"
 import { EmptyState } from "@/components/custom/empty-state"
 import { Button } from "@/components/ui/button"
@@ -42,10 +43,10 @@ import {
 } from "@/features/git-credential/git-credential.actions"
 import type { GitCredential } from "@/features/git-credential/git-credential.entity"
 
-const PROVIDER_LABEL: Record<GitCredential["provider"], string> = {
+/** Brand names; "generic" is translated at render time. */
+const PROVIDER_LABEL: Record<"github" | "gitlab", string> = {
   github: "GitHub",
   gitlab: "GitLab",
-  generic: "Generik (HTTPS)",
 }
 
 export function GitCredentialsCard({
@@ -55,6 +56,7 @@ export function GitCredentialsCard({
   credentials: GitCredential[]
   canManage: boolean
 }) {
+  const t = useTranslations("settings")
   const [pending, start] = useTransition()
   const [error, setError] = useState<string | null>(null)
 
@@ -63,11 +65,8 @@ export function GitCredentialsCard({
       <CardHeader>
         <div className="flex items-start justify-between gap-4">
           <div>
-            <CardTitle>Kredensial Git</CardTitle>
-            <CardDescription>
-              Token HTTPS untuk repo privat. Disimpan terenkripsi dan hanya
-              dipakai saat Docker meng-clone repo.
-            </CardDescription>
+            <CardTitle>{t("gitCredentials.title")}</CardTitle>
+            <CardDescription>{t("gitCredentials.description")}</CardDescription>
           </div>
           {canManage && <AddCredentialDialog />}
         </div>
@@ -75,7 +74,7 @@ export function GitCredentialsCard({
       <CardContent>
         {credentials.length === 0 ? (
           <EmptyState icon={KeyRound} compact>
-            Belum ada kredensial — semua repo di-clone secara anonim.
+            {t("gitCredentials.empty")}
           </EmptyState>
         ) : (
           <ul className="divide-y rounded-md border">
@@ -87,14 +86,19 @@ export function GitCredentialsCard({
                 <KeyRound className="size-4 text-muted-foreground" />
                 <span className="font-medium">{c.name}</span>
                 <span className="text-xs text-muted-foreground">
-                  {PROVIDER_LABEL[c.provider]} · {c.username}
+                  {c.provider === "generic"
+                    ? t("gitCredentials.generic")
+                    : PROVIDER_LABEL[c.provider]}{" "}
+                  · {c.username}
                 </span>
                 <span className="ms-auto" />
                 {canManage && (
                   <Button
                     variant="ghost"
                     size="icon-sm"
-                    aria-label={`Hapus ${c.name}`}
+                    aria-label={t("gitCredentials.deleteAria", {
+                      name: c.name,
+                    })}
                     disabled={pending}
                     onClick={() =>
                       start(async () => {
@@ -123,6 +127,8 @@ export function GitCredentialsCard({
 const initialState: GitCredentialFormState = {}
 
 function AddCredentialDialog() {
+  const t = useTranslations("settings")
+  const c = useTranslations("common")
   const [open, setOpen] = useState(false)
   const [provider, setProvider] = useState<GitCredential["provider"]>("github")
   const [state, action, pending] = useActionState(
@@ -136,38 +142,27 @@ function AddCredentialDialog() {
   const errs = (k: keyof NonNullable<GitCredentialFormState["fieldErrors"]>) =>
     state.fieldErrors?.[k]?.map((message) => ({ message }))
 
-  const hint =
-    provider === "github" ? (
-      "Personal access token (classic: scope repo; fine-grained: Contents read). Username bebas, mis. x-access-token."
-    ) : provider === "gitlab" ? (
-      <>
-        Deploy token (Settings
-        <PathArrow />
-        Repository
-        <PathArrow />
-        Deploy tokens, scope read_repository) — isi username token-nya.
-      </>
-    ) : (
-      "Username + password/token HTTPS dari server git kamu."
-    )
+  const hint = t.rich(`gitCredentials.hints.${provider}`, {
+    arrow: () => <PathArrow />,
+  })
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button size="sm">
           <Plus data-icon="inline-start" />
-          Tambah
+          {c("actions.add")}
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Kredensial Git baru</DialogTitle>
+          <DialogTitle>{t("gitCredentials.dialogTitle")}</DialogTitle>
           <DialogDescription>{hint}</DialogDescription>
         </DialogHeader>
         <form action={action} noValidate>
           <FieldGroup>
             <Field data-invalid={!!state.fieldErrors?.name || undefined}>
-              <FieldLabel htmlFor="cred-name">Nama</FieldLabel>
+              <FieldLabel htmlFor="cred-name">{c("labels.name")}</FieldLabel>
               <Input
                 id="cred-name"
                 name="name"
@@ -177,7 +172,9 @@ function AddCredentialDialog() {
               <FieldError errors={errs("name")} />
             </Field>
             <Field>
-              <FieldLabel htmlFor="cred-provider">Provider</FieldLabel>
+              <FieldLabel htmlFor="cred-provider">
+                {t("gitCredentials.provider")}
+              </FieldLabel>
               <Select
                 name="provider"
                 value={provider}
@@ -191,7 +188,9 @@ function AddCredentialDialog() {
                 <SelectContent>
                   <SelectItem value="github">GitHub</SelectItem>
                   <SelectItem value="gitlab">GitLab</SelectItem>
-                  <SelectItem value="generic">Generik (HTTPS)</SelectItem>
+                  <SelectItem value="generic">
+                    {t("gitCredentials.generic")}
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </Field>
@@ -216,7 +215,7 @@ function AddCredentialDialog() {
                 required
               />
               <FieldDescription>
-                Tidak bisa dilihat lagi setelah disimpan.
+                {t("gitCredentials.tokenHelp")}
               </FieldDescription>
               <FieldError errors={errs("token")} />
             </Field>
@@ -227,7 +226,7 @@ function AddCredentialDialog() {
             )}
             <div className="flex justify-end">
               <Button type="submit" disabled={pending}>
-                {pending ? "Menyimpan…" : "Simpan"}
+                {pending ? c("states.saving") : c("actions.save")}
               </Button>
             </div>
           </FieldGroup>

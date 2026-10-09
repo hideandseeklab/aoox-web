@@ -1,6 +1,7 @@
 "use client"
 
 import { ChevronDown, ChevronRight, ImageOff, Package, Trash2 } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { useState, useTransition } from "react"
 import { toast } from "sonner"
 import { EmptyState } from "@/components/custom/empty-state"
@@ -54,13 +55,13 @@ export function RegistryRepositories({
   repositories: RepositorySummary[]
   canManage: boolean
 }) {
+  const t = useTranslations("registry.repositories")
   const [repos, setRepos] = useState(repositories)
 
   if (repos.length === 0) {
     return (
       <EmptyState icon={Package}>
-        Belum ada image. Push pertama:{" "}
-        <code>docker push &lt;registry&gt;/&lt;nama&gt;:&lt;tag&gt;</code>
+        {t.rich("empty", { code: (c) => <code>{c}</code> })}
       </EmptyState>
     )
   }
@@ -92,6 +93,7 @@ function RepositoryRow({
   canManage: boolean
   onImageDeleted: () => void
 }) {
+  const t = useTranslations("registry.repositories")
   const [open, setOpen] = useState(false)
   const [tags, setTags] = useState<Tag[] | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -112,10 +114,10 @@ function RepositoryRow({
 
   const confirmDeleteImage = () =>
     startImage(async () => {
-      const id = toast.loading(`Menghapus image ${repo.name}…`)
+      const id = toast.loading(t("deletingImage", { name: repo.name }))
       const r = await deleteRepositoryAction(registryId, repo.name, true)
       if (r.ok) {
-        toast.success(`Image ${repo.name} dihapus`, { id })
+        toast.success(t("imageDeleted", { name: repo.name }), { id })
         setImageDialogOpen(false)
         onImageDeleted()
       } else {
@@ -137,7 +139,7 @@ function RepositoryRow({
   }
 
   const sharedDigest = (tag: Tag) =>
-    (tags ?? []).filter((t) => t.digest === tag.digest && t.name !== tag.name)
+    (tags ?? []).filter((x) => x.digest === tag.digest && x.name !== tag.name)
 
   return (
     <div>
@@ -155,13 +157,13 @@ function RepositoryRow({
           <span className="font-mono font-medium">{repo.name}</span>
         </button>
         <span className="text-xs text-muted-foreground">
-          {repo.tagCount} tag
+          {t("tagCount", { count: repo.tagCount })}
         </span>
         {canManage && (
           <Button
             variant="ghost"
             size="icon-sm"
-            aria-label={`Hapus image ${repo.name}`}
+            aria-label={t("deleteImageLabel", { name: repo.name })}
             onClick={openImageDialog}
           >
             <ImageOff />
@@ -176,21 +178,19 @@ function RepositoryRow({
             </p>
           )}
           {tags === null && !error ? (
-            <p className="py-2 text-xs text-muted-foreground">Memuat…</p>
+            <p className="py-2 text-xs text-muted-foreground">{t("loading")}</p>
           ) : tags && tags.length === 0 ? (
             <p className="py-2 text-xs text-muted-foreground">
-              {canManage
-                ? 'Tidak ada tag (manifest sudah dihapus). Pakai tombol "Hapus image" untuk membuang repo ini sepenuhnya dari katalog.'
-                : "Tidak ada tag (manifest sudah dihapus)."}
+              {canManage ? t("noTagsManage") : t("noTags")}
             </p>
           ) : (
             tags && (
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Tag</TableHead>
-                    <TableHead>Digest</TableHead>
-                    <TableHead className="text-end">Ukuran</TableHead>
+                    <TableHead>{t("tag")}</TableHead>
+                    <TableHead>{t("digest")}</TableHead>
+                    <TableHead className="text-end">{t("size")}</TableHead>
                     {canManage && <TableHead className="w-10" />}
                   </TableRow>
                 </TableHeader>
@@ -209,7 +209,7 @@ function RepositoryRow({
                           <Button
                             variant="ghost"
                             size="icon-sm"
-                            aria-label={`Hapus tag ${tag.name}`}
+                            aria-label={t("deleteTagLabel", { name: tag.name })}
                             onClick={() => setToDelete(tag)}
                           >
                             <Trash2 />
@@ -231,31 +231,29 @@ function RepositoryRow({
       >
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Hapus tag {toDelete?.name}?</DialogTitle>
+            <DialogTitle>{t("deleteTag.title", { name: toDelete?.name ?? "" })}</DialogTitle>
             <DialogDescription>
-              Registry menghapus <em>manifest</em>-nya, bukan hanya nama tag.
+              {t.rich("deleteTag.description", { em: (c) => <em>{c}</em> })}
               {toDelete && sharedDigest(toDelete).length > 0 && (
                 <>
                   {" "}
-                  Tag berikut menunjuk manifest yang sama dan{" "}
-                  <span className="font-medium text-foreground">
-                    ikut terhapus
-                  </span>
-                  :{" "}
-                  <code>
-                    {sharedDigest(toDelete)
-                      .map((t) => t.name)
-                      .join(", ")}
-                  </code>
-                  .
+                  {t.rich("deleteTag.shared", {
+                    b: (c) => (
+                      <span className="font-medium text-foreground">{c}</span>
+                    ),
+                    code: (c) => <code>{c}</code>,
+                    names: sharedDigest(toDelete)
+                      .map((x) => x.name)
+                      .join(", "),
+                  })}
                 </>
               )}{" "}
-              Ruang disk baru kembali setelah garbage collect.
+              {t("deleteTag.diskNote")}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setToDelete(null)}>
-              Batal
+              {t("cancel")}
             </Button>
             <Button
               variant="destructive"
@@ -278,7 +276,7 @@ function RepositoryRow({
                 })
               }
             >
-              {pending ? "Menghapus…" : "Hapus"}
+              {pending ? t("deleting") : t("delete")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -290,27 +288,22 @@ function RepositoryRow({
       >
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Hapus image {repo.name}?</DialogTitle>
+            <DialogTitle>{t("deleteImage.title", { name: repo.name })}</DialogTitle>
             <DialogDescription>
-              Menghapus repo ini sepenuhnya dari katalog: semua {repo.tagCount}{" "}
-              tag dan manifest-nya, foldernya di storage, lalu garbage collect
-              otomatis. Registry di-restart singkat agar cache blob-nya ikut
-              bersih — push ulang dengan nama yang sama tetap bisa dilakukan
-              setelahnya. Tidak bisa dibatalkan.
+              {t("deleteImage.description", { count: repo.tagCount })}
             </DialogDescription>
           </DialogHeader>
           {usage === null ? (
             <p className="text-xs text-muted-foreground">
-              Memeriksa pemakaian…
+              {t("deleteImage.checking")}
             </p>
           ) : usage.length > 0 ? (
             <p className="text-xs text-destructive">
-              Dipakai oleh {usage.length} aplikasi:{" "}
-              <span className="font-medium">
-                {usage.map((u) => u.applicationName).join(", ")}
-              </span>
-              . Rollback atau redeploy tanpa build ke image itu akan gagal
-              setelah dihapus.
+              {t.rich("deleteImage.usedBy", {
+                count: usage.length,
+                b: (c) => <span className="font-medium">{c}</span>,
+                names: usage.map((u) => u.applicationName).join(", "),
+              })}
             </p>
           ) : null}
           <DialogFooter>
@@ -319,14 +312,14 @@ function RepositoryRow({
               disabled={imagePending}
               onClick={() => setImageDialogOpen(false)}
             >
-              Batal
+              {t("cancel")}
             </Button>
             <Button
               variant="destructive"
               disabled={imagePending || usage === null}
               onClick={confirmDeleteImage}
             >
-              {imagePending ? "Menghapus…" : "Hapus image"}
+              {imagePending ? t("deleting") : t("deleteImage.confirm")}
             </Button>
           </DialogFooter>
         </DialogContent>

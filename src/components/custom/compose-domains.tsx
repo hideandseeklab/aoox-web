@@ -2,6 +2,7 @@
 
 import { PathArrow } from "@/components/custom/arrows"
 import { ExternalLink, Plus, Trash2 } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { useState, useTransition } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -50,6 +51,8 @@ export function ComposeAccess({
   /** `service:port` pairs the template exposes (free text otherwise). */
   suggestions: { service: string; port: number; label: string }[]
 }) {
+  const t = useTranslations("compose")
+  const tc = useTranslations("common")
   const [mode, setMode] = useState<Mode>(
     domains.length === 0 && ports.length > 0 ? "port" : "domain"
   )
@@ -111,26 +114,29 @@ export function ComposeAccess({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Akses</CardTitle>
+        <CardTitle>{t("access.title")}</CardTitle>
         <CardDescription>
-          Cara service dibuka dari luar — berlaku pada deploy berikutnya.
+          {t("access.description")}
           <span className="block">
-            <strong>Domain</strong>: lewat proxy (Traefik), arahkan DNS ke
-            server ini.
+            {t.rich("access.domainLine", {
+              b: (chunks) => <strong>{chunks}</strong>,
+            })}
             {!proxy.running && (
               <>
                 {" "}
-                Proxy belum berjalan (Infrastruktur
-                <PathArrow />
-                Reverse proxy).
+                {t.rich("access.proxyOff", {
+                  arrow: () => <PathArrow />,
+                })}
               </>
             )}
           </span>
           <span className="block">
-            <strong>IP &amp; port</strong>: port dipublikasikan langsung di
-            host, dibuka lewat{" "}
-            <code>http://{browserHost ?? "<ip-server>"}:&lt;port&gt;</code>{" "}
-            tanpa domain/proxy.
+            {t.rich("access.ipPortLine", {
+              host: browserHost ?? `<${t("accessHint.serverIpPlaceholder")}>`,
+              port: "<port>",
+              b: (chunks) => <strong>{chunks}</strong>,
+              code: (chunks) => <code>{chunks}</code>,
+            })}
           </span>
         </CardDescription>
       </CardHeader>
@@ -156,14 +162,14 @@ export function ComposeAccess({
                     {d.service}:{d.port}
                   </span>
                 </span>
-                <Badge variant="secondary">domain</Badge>
+                <Badge variant="secondary">{t("access.badgeDomain")}</Badge>
                 <Badge variant={d.https ? "default" : "outline"}>
                   {d.https ? "https" : "http"}
                 </Badge>
                 <Button
                   variant="ghost"
                   size="icon-sm"
-                  aria-label="Hapus domain"
+                  aria-label={t("access.removeDomain")}
                   disabled={pending}
                   onClick={() => saveDomains(domains.filter((_, j) => j !== i))}
                 >
@@ -194,11 +200,11 @@ export function ComposeAccess({
                     {p.service}:{p.port}
                   </span>
                 </span>
-                <Badge variant="secondary">IP &amp; port</Badge>
+                <Badge variant="secondary">{t("access.ipPort")}</Badge>
                 <Button
                   variant="ghost"
                   size="icon-sm"
-                  aria-label="Hapus port"
+                  aria-label={t("access.removePort")}
                   disabled={pending}
                   onClick={() => savePorts(ports.filter((_, j) => j !== i))}
                 >
@@ -211,14 +217,14 @@ export function ComposeAccess({
 
         <Tabs value={mode} onValueChange={(v) => setMode(v as Mode)}>
           <ScrollableTabsList>
-            <TabsTrigger value="domain">Domain</TabsTrigger>
-            <TabsTrigger value="port">IP &amp; port</TabsTrigger>
+            <TabsTrigger value="domain">{t("access.tabDomain")}</TabsTrigger>
+            <TabsTrigger value="port">{t("access.ipPort")}</TabsTrigger>
           </ScrollableTabsList>
         </Tabs>
 
         <form className="flex flex-wrap items-end gap-3" onSubmit={submit}>
           <div className="space-y-1">
-            <Label htmlFor="cd-service">Service</Label>
+            <Label htmlFor="cd-service">{t("access.service")}</Label>
             <Input
               id="cd-service"
               value={service}
@@ -238,7 +244,7 @@ export function ComposeAccess({
             ))}
           </datalist>
           <div className="space-y-1">
-            <Label htmlFor="cd-port">Port container</Label>
+            <Label htmlFor="cd-port">{t("access.containerPort")}</Label>
             <Input
               id="cd-port"
               type="number"
@@ -252,7 +258,7 @@ export function ComposeAccess({
           {mode === "domain" ? (
             <>
               <div className="min-w-48 flex-1 space-y-1">
-                <Label htmlFor="cd-host">Host</Label>
+                <Label htmlFor="cd-host">{tc("labels.host")}</Label>
                 <Input
                   id="cd-host"
                   value={host}
@@ -271,7 +277,7 @@ export function ComposeAccess({
             </>
           ) : (
             <div className="space-y-1">
-              <Label htmlFor="cd-host-port">Port host</Label>
+              <Label htmlFor="cd-host-port">{t("access.hostPort")}</Label>
               <Input
                 id="cd-host-port"
                 type="number"
@@ -286,7 +292,7 @@ export function ComposeAccess({
           )}
           <Button type="submit" variant="outline" disabled={pending}>
             <Plus data-icon="inline-start" />
-            Tambah
+            {tc("actions.add")}
           </Button>
         </form>
         {error && (

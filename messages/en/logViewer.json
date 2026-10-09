@@ -1,0 +1,17 @@
+{
+  "defaultEmpty": "Waiting for output…",
+  "defaultLabel": "Log",
+  "searchPlaceholder": "Search in log…",
+  "searchAria": "Search in {label}",
+  "noResults": "0 results",
+  "previous": "Previous result",
+  "next": "Next result",
+  "follow": "Follow",
+  "followTitle": "Scroll automatically to the latest line",
+  "wrap": "Wrap long lines",
+  "copyAllAria": "Copy all {label}",
+  "copyAllTitle": "Copy all",
+  "copied": "Log copied",
+  "copyFailed": "Could not copy the log",
+  "olderHidden": "{count} earlier lines hidden — show more"
+}

@@ -1,5 +1,6 @@
 "use server"
 
+import { getTranslations } from "next-intl/server"
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import { z } from "zod"
@@ -11,18 +12,21 @@ import type { CreatedInvitation } from "./member.entity"
 export type ActionResult<T = undefined> =
   { ok: true; data: T } | { ok: false; error: string }
 
-function fail(err: unknown): { ok: false; error: string } {
+async function fail(err: unknown): Promise<{ ok: false; error: string }> {
+  const t = await getTranslations("settings")
   return {
     ok: false,
-    error:
-      err instanceof ApiError ? err.message : "Tidak dapat terhubung ke server",
+    error: err instanceof ApiError ? err.message : t("errors.unreachable"),
   }
 }
 
-const inviteSchema = z.object({
-  email: z.string().trim().email("Email tidak valid"),
-  role: z.enum(["owner", "admin", "member"]),
-})
+type Translate = (key: string) => string
+
+const inviteSchema = (t: Translate) =>
+  z.object({
+    email: z.string().trim().email(t("validation.invalidEmail")),
+    role: z.enum(["owner", "admin", "member"]),
+  })
 
 export interface InviteFormState {
   error?: string
@@ -40,7 +44,8 @@ export async function createInvitationAction(
     email: String(formData.get("email") ?? ""),
     role: String(formData.get("role") ?? "member"),
   }
-  const parsed = inviteSchema.safeParse(values)
+  const t = await getTranslations("settings")
+  const parsed = inviteSchema(t).safeParse(values)
   if (!parsed.success) {
     const fieldErrors: InviteFormState["fieldErrors"] = {}
     for (const issue of parsed.error.issues) {
@@ -58,7 +63,7 @@ export async function createInvitationAction(
     revalidatePath("/settings")
     return { created }
   } catch (err) {
-    return { ...fail(err), values }
+    return { ...(await fail(err)), values }
   }
 }
 
@@ -107,10 +112,11 @@ export async function deleteMemberAction(id: string): Promise<ActionResult> {
   }
 }
 
-const acceptSchema = z.object({
-  name: z.string().trim().max(100).optional(),
-  password: z.string().min(8, "Minimal 8 karakter").max(128),
-})
+const acceptSchema = (t: Translate) =>
+  z.object({
+    name: z.string().trim().max(100).optional(),
+    password: z.string().min(8, t("validation.min8")).max(128),
+  })
 
 export interface AcceptInviteState {
   error?: string
@@ -125,7 +131,8 @@ export async function acceptInvitationAction(
   formData: FormData
 ): Promise<AcceptInviteState> {
   const values = { name: String(formData.get("name") ?? "") }
-  const parsed = acceptSchema.safeParse({
+  const t = await getTranslations("settings")
+  const parsed = acceptSchema(t).safeParse({
     ...values,
     password: formData.get("password"),
   })
@@ -144,7 +151,7 @@ export async function acceptInvitationAction(
     })
     await setSession({ token: result.accessToken, user: result.user })
   } catch (err) {
-    return { ...fail(err), values }
+    return { ...(await fail(err)), values }
   }
   redirect("/")
 }

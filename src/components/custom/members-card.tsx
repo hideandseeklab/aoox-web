@@ -8,6 +8,7 @@ import {
   Trash2,
   UserRound,
 } from "lucide-react"
+import { useLocale, useTranslations } from "next-intl"
 import { useActionState, useState, useTransition } from "react"
 import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
@@ -60,6 +61,7 @@ import {
   type Invitation,
   type Member,
 } from "@/features/member/member.entity"
+import { formatDate } from "@/i18n/format"
 import { copyToClipboard } from "@/lib/clipboard"
 
 /**
@@ -76,6 +78,8 @@ export function MembersCard({
   members: Member[]
   invitations: Invitation[]
 }) {
+  const t = useTranslations("settings")
+  const locale = useLocale()
   const [pending, start] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const isOwner = me.role === "owner"
@@ -85,7 +89,7 @@ export function MembersCard({
     start(async () => {
       setError(null)
       const r = await fn()
-      if (!r.ok) setError(r.error ?? "Gagal")
+      if (!r.ok) setError(r.error ?? t("errors.failed"))
     })
 
   return (
@@ -93,11 +97,8 @@ export function MembersCard({
       <CardHeader>
         <div className="flex items-start justify-between gap-4">
           <div>
-            <CardTitle>Anggota</CardTitle>
-            <CardDescription>
-              Semua anggota melihat semua project. Owner/admin mengelola
-              komponen platform; hanya owner yang mengubah peran.
-            </CardDescription>
+            <CardTitle>{t("members.title")}</CardTitle>
+            <CardDescription>{t("members.description")}</CardDescription>
           </div>
           <InviteDialog isOwner={isOwner} />
         </div>
@@ -111,7 +112,10 @@ export function MembersCard({
                 <p className="truncate font-medium">
                   {m.name ?? m.email}
                   {m.id === me.id && (
-                    <span className="text-muted-foreground"> (kamu)</span>
+                    <span className="text-muted-foreground">
+                      {" "}
+                      {t("members.you")}
+                    </span>
                   )}
                 </p>
                 {m.name && (
@@ -129,7 +133,10 @@ export function MembersCard({
                     run(() => updateMemberRoleAction(m.id, role as UserRole))
                   }
                 >
-                  <SelectTrigger size="sm" aria-label={`Peran ${m.email}`}>
+                  <SelectTrigger
+                    size="sm"
+                    aria-label={t("members.roleAria", { email: m.email })}
+                  >
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -148,12 +155,14 @@ export function MembersCard({
                   <Button
                     variant="ghost"
                     size="icon-sm"
-                    aria-label={`Set password ${m.email}`}
-                    title="Set password baru (reset)"
+                    aria-label={t("members.setPasswordAria", {
+                      email: m.email,
+                    })}
+                    title={t("members.setPasswordTitle")}
                     disabled={pending}
                     onClick={() => {
                       const pw = prompt(
-                        `Password baru untuk ${m.email} (min. 8 karakter). Sampaikan ke orangnya secara langsung.`
+                        t("members.setPasswordPrompt", { email: m.email })
                       )
                       if (!pw) return
                       run(() => setUserPasswordAction(m.id, pw))
@@ -166,16 +175,20 @@ export function MembersCard({
                       <Button
                         variant="ghost"
                         size="icon-sm"
-                        aria-label={`Nonaktifkan 2FA ${m.email}`}
-                        title="Nonaktifkan 2FA (kalau authenticator hilang)"
+                        aria-label={t("members.disable2faAria", {
+                          email: m.email,
+                        })}
+                        title={t("members.disable2faTitle")}
                         disabled={pending}
                       >
                         <ShieldOff />
                       </Button>
                     }
-                    title={`Nonaktifkan 2FA untuk ${m.email}?`}
-                    description="Akun ini hanya akan dilindungi password sehingga menjadi kurang aman, dan kode cadangannya tidak berlaku lagi. Pemiliknya bisa mengaktifkan 2FA lagi dari halaman Akun."
-                    confirmLabel="Nonaktifkan 2FA"
+                    title={t("members.disable2faDialogTitle", {
+                      email: m.email,
+                    })}
+                    description={t("members.disable2faDescription")}
+                    confirmLabel={t("members.disable2faConfirm")}
                     onConfirm={() => disableUserTwoFactorAction(m.id)}
                   />
                 </>
@@ -186,15 +199,15 @@ export function MembersCard({
                     <Button
                       variant="ghost"
                       size="icon-sm"
-                      aria-label={`Hapus ${m.email}`}
+                      aria-label={t("members.deleteAria", { email: m.email })}
                       disabled={pending}
                     >
                       <Trash2 />
                     </Button>
                   }
-                  title={`Hapus akun ${m.email}?`}
-                  description="Akun dihapus permanen: ia tidak bisa masuk lagi dan keanggotaannya di semua project hilang. Ini tidak bisa dibatalkan."
-                  confirmLabel="Hapus akun"
+                  title={t("members.deleteTitle", { email: m.email })}
+                  description={t("members.deleteDescription")}
+                  confirmLabel={t("members.deleteConfirm")}
                   onConfirm={() => deleteMemberAction(m.id)}
                 />
               )}
@@ -204,20 +217,24 @@ export function MembersCard({
 
         {pendingInvites.length > 0 && (
           <div className="space-y-1.5">
-            <p className="text-muted-foreground">Undangan menunggu</p>
+            <p className="text-muted-foreground">
+              {t("members.pendingInvites")}
+            </p>
             <ul className="divide-y rounded-md border">
               {pendingInvites.map((i) => (
                 <li key={i.id} className="flex items-center gap-3 px-3 py-2">
                   <span className="truncate">{i.email}</span>
                   <Badge variant="outline">{ROLE_LABEL[i.role]}</Badge>
                   <span className="text-xs text-muted-foreground">
-                    sampai {new Date(i.expiresAt).toLocaleDateString()}
+                    {t("members.until", {
+                      date: formatDate(i.expiresAt, locale),
+                    })}
                   </span>
                   <span className="ms-auto" />
                   <Button
                     variant="ghost"
                     size="icon-sm"
-                    aria-label={`Batalkan undangan ${i.email}`}
+                    aria-label={t("members.revokeAria", { email: i.email })}
                     disabled={pending}
                     onClick={() => run(() => revokeInvitationAction(i.id))}
                   >
@@ -242,6 +259,8 @@ export function MembersCard({
 const initialState: InviteFormState = {}
 
 function InviteDialog({ isOwner }: { isOwner: boolean }) {
+  const t = useTranslations("settings")
+  const c = useTranslations("common")
   const [open, setOpen] = useState(false)
   const [state, action, pending] = useActionState(
     createInvitationAction,
@@ -256,22 +275,24 @@ function InviteDialog({ isOwner }: { isOwner: boolean }) {
       <DialogTrigger asChild>
         <Button size="sm">
           <Plus data-icon="inline-start" />
-          Undang
+          {t("members.invite.button")}
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Undang anggota</DialogTitle>
+          <DialogTitle>{t("members.invite.title")}</DialogTitle>
           <DialogDescription>
-            Tautan undangan berlaku 7 hari dan hanya ditampilkan sekali —
-            kirimkan sendiri ke orangnya.
+            {t("members.invite.description")}
           </DialogDescription>
         </DialogHeader>
         {link ? (
           <div className="space-y-3 text-xs">
             <p>
-              Undangan untuk <strong>{state.created?.email}</strong> sebagai{" "}
-              {ROLE_LABEL[state.created!.role]}:
+              {t.rich("members.invite.created", {
+                b: (chunks) => <strong>{chunks}</strong>,
+                email: state.created?.email ?? "",
+                role: ROLE_LABEL[state.created!.role],
+              })}
             </p>
             <div className="flex items-start gap-2">
               <pre className="min-w-0 flex-1 overflow-x-auto rounded bg-muted px-2 py-1.5 font-mono text-xs break-all whitespace-pre-wrap">
@@ -280,12 +301,12 @@ function InviteDialog({ isOwner }: { isOwner: boolean }) {
               <Button
                 variant="ghost"
                 size="icon-sm"
-                aria-label="Salin tautan"
+                aria-label={t("members.invite.copyAria")}
                 onClick={() =>
                   void copyToClipboard(link).then((ok) =>
                     ok
-                      ? toast.success("Tautan disalin")
-                      : toast.error("Gagal menyalin tautan")
+                      ? toast.success(t("members.invite.copied"))
+                      : toast.error(t("members.invite.copyFailed"))
                   )
                 }
               >
@@ -294,9 +315,10 @@ function InviteDialog({ isOwner }: { isOwner: boolean }) {
             </div>
             {!state.created?.acceptUrl && (
               <p className="text-xs text-muted-foreground">
-                <code>WEB_ORIGIN</code> tidak diset di API, jadi hanya token
-                yang tersedia; buka <code>/invite/&lt;token&gt;</code> di web
-                ini.
+                {t.rich("members.invite.noOrigin", {
+                  code: (chunks) => <code>{chunks}</code>,
+                  path: "/invite/<token>",
+                })}
               </p>
             )}
           </div>
@@ -304,7 +326,7 @@ function InviteDialog({ isOwner }: { isOwner: boolean }) {
           <form action={action} noValidate>
             <FieldGroup>
               <Field data-invalid={!!state.fieldErrors?.email || undefined}>
-                <FieldLabel htmlFor="inv-email">Email</FieldLabel>
+                <FieldLabel htmlFor="inv-email">{c("labels.email")}</FieldLabel>
                 <Input
                   id="inv-email"
                   name="email"
@@ -316,7 +338,7 @@ function InviteDialog({ isOwner }: { isOwner: boolean }) {
                 <FieldError errors={errs("email")} />
               </Field>
               <Field>
-                <FieldLabel htmlFor="inv-role">Peran</FieldLabel>
+                <FieldLabel htmlFor="inv-role">{c("labels.role")}</FieldLabel>
                 <Select
                   name="role"
                   defaultValue={state.values?.role ?? "member"}
@@ -326,13 +348,15 @@ function InviteDialog({ isOwner }: { isOwner: boolean }) {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="member">
-                      Member — project & deploy
+                      {t("members.invite.roleMember")}
                     </SelectItem>
                     <SelectItem value="admin">
-                      Admin — + registry, server, notifikasi, terminal
+                      {t("members.invite.roleAdmin")}
                     </SelectItem>
                     {isOwner && (
-                      <SelectItem value="owner">Owner — semuanya</SelectItem>
+                      <SelectItem value="owner">
+                        {t("members.invite.roleOwner")}
+                      </SelectItem>
                     )}
                   </SelectContent>
                 </Select>
@@ -344,7 +368,7 @@ function InviteDialog({ isOwner }: { isOwner: boolean }) {
               )}
               <div className="flex justify-end">
                 <Button type="submit" disabled={pending}>
-                  {pending ? "Membuat…" : "Buat tautan"}
+                  {pending ? c("states.creating") : t("members.invite.submit")}
                 </Button>
               </div>
             </FieldGroup>

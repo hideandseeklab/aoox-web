@@ -1,4 +1,5 @@
 import { LinkArrow } from "@/components/custom/arrows"
+import { getTranslations } from "next-intl/server"
 import Link from "next/link"
 import { AccountCard } from "@/components/custom/account-card"
 import { ApiTokensCard } from "@/components/custom/api-tokens-card"
@@ -26,6 +27,7 @@ import { publicApiUrl } from "@/lib/api"
 export const metadata = { title: "Settings · aoox" }
 
 export default async function SettingsPage() {
+  const t = await getTranslations("settings")
   const [session, credentials, apiTokens, projects] = await Promise.all([
     getVerifiedSession(),
     listGitCredentials(),
@@ -58,19 +60,18 @@ export default async function SettingsPage() {
   return (
     <>
       <div>
-        <h1 className="text-lg font-semibold">Settings</h1>
-        <p className="text-xs text-muted-foreground">
-          Akun, tim, dan integrasi. Komponen host (proxy, server, swarm, disk)
-          ada di grup Infrastruktur.
-        </p>
+        <h1 className="text-lg font-semibold">{t("title")}</h1>
+        <p className="text-xs text-muted-foreground">{t("description")}</p>
       </div>
 
       {/* Grouped by what the cards are about; `?tab=` deep-links a group. */}
       <SettingsTabs
         tabs={[
-          { value: "account", label: "Akun" },
-          ...(canManage ? [{ value: "team" as const, label: "Tim" }] : []),
-          { value: "integrations", label: "Integrasi" },
+          { value: "account", label: t("tabs.account") },
+          ...(canManage
+            ? [{ value: "team" as const, label: t("tabs.team") }]
+            : []),
+          { value: "integrations", label: t("tabs.integrations") },
         ]}
       >
         <TabsContent value="account" className="pt-4">
@@ -97,7 +98,7 @@ export default async function SettingsPage() {
             )}
             <Button asChild variant="link" size="sm" className="px-0">
               <Link href="/settings/audit-log">
-                Lihat audit log
+                {t("viewAuditLog")}
                 <LinkArrow />
               </Link>
             </Button>

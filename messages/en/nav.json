@@ -1,0 +1,29 @@
+{
+  "groups": {
+    "platform": "Platform",
+    "infrastructure": "Infrastructure",
+    "settings": "Settings"
+  },
+  "dashboard": "Dashboard",
+  "projects": "Projects",
+  "templates": "Templates",
+  "registry": "Registry",
+  "docker": "Docker",
+  "terminal": "Terminal",
+  "reverseProxy": "Reverse proxy",
+  "remoteServers": "Remote servers",
+  "sshKey": "Terminal",
+  "dockerSwarm": "Docker Swarm",
+  "dockerDisk": "Docker disk",
+  "instanceBackup": "Instance backup",
+  "panelDomain": "Panel domain",
+  "updateAoox": "Update aoox",
+  "environment": "Environment",
+  "account": "Account",
+  "team": "Team",
+  "integrations": "Integrations",
+  "auditLog": "Audit log",
+  "updating": "Updating…",
+  "updateAvailable": "Update available",
+  "updateAvailableVersion": "Update available: v{version}"
+}

@@ -1,5 +1,6 @@
 "use server"
 
+import { getTranslations } from "next-intl/server"
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import { requireToken } from "@/features/auth/auth.session"
@@ -15,16 +16,20 @@ import type {
   ComposeServicePort,
   ComposeServiceResources,
 } from "./compose.entity"
-import { composeAppSchema, composeTemplateSchema } from "./compose.schema"
+import {
+  createComposeAppSchema,
+  createComposeTemplateSchema,
+} from "./compose.schema"
 
 export type ActionResult<T = undefined> =
   { ok: true; data: T } | { ok: false; error: string }
 
-function fail(err: unknown): { ok: false; error: string } {
+async function fail(err: unknown): Promise<{ ok: false; error: string }> {
+  const t = await getTranslations("common")
   return {
     ok: false,
     error:
-      err instanceof ApiError ? err.message : "Tidak dapat terhubung ke server",
+      err instanceof ApiError ? err.message : t("messages.serverUnreachable"),
   }
 }
 
@@ -61,11 +66,15 @@ function readForm(formData: FormData): Record<Field, string> {
   }
 }
 
-function parse(values: Record<Field, string>, source: "git" | "template") {
+async function parse(
+  values: Record<Field, string>,
+  source: "git" | "template"
+) {
+  const t = await getTranslations("compose")
   const parsed =
     source === "template"
-      ? composeTemplateSchema.safeParse(values)
-      : composeAppSchema.safeParse(values)
+      ? createComposeTemplateSchema(t).safeParse(values)
+      : createComposeAppSchema(t).safeParse(values)
   if (parsed.success) return { data: parsed.data, fieldErrors: undefined }
   const fieldErrors: ComposeFormState["fieldErrors"] = {}
   for (const issue of parsed.error.issues) {
@@ -81,7 +90,7 @@ export async function createComposeAppAction(
   formData: FormData
 ): Promise<ComposeFormState> {
   const values = readForm(formData)
-  const { data, fieldErrors } = parse(values, "git")
+  const { data, fieldErrors } = await parse(values, "git")
   if (!data) return { fieldErrors, values }
   let app: ComposeApp
   try {
@@ -91,7 +100,7 @@ export async function createComposeAppAction(
       token: await requireToken(),
     })
   } catch (err) {
-    return { ...fail(err), values }
+    return { ...(await fail(err)), values }
   }
   revalidatePath(`/projects/${projectId}`)
   return { values, createdId: app.id }
@@ -104,7 +113,7 @@ export async function updateComposeAppAction(
 ): Promise<ComposeFormState> {
   const values = readForm(formData)
   const source = formData.get("source") === "template" ? "template" : "git"
-  const { data, fieldErrors } = parse(values, source)
+  const { data, fieldErrors } = await parse(values, source)
   if (!data) return { fieldErrors, values }
   try {
     await api<ComposeApp>(`/compose-apps/${id}`, {
@@ -113,7 +122,7 @@ export async function updateComposeAppAction(
       token: await requireToken(),
     })
   } catch (err) {
-    return { ...fail(err), values }
+    return { ...(await fail(err)), values }
   }
   revalidatePath(`/compose/${id}`)
   return { values, saved: true }
@@ -128,7 +137,7 @@ async function post(id: string, action: string): Promise<ActionResult> {
     revalidatePath(`/compose/${id}`)
     return { ok: true, data: undefined }
   } catch (err) {
-    return fail(err)
+    return await fail(err)
   }
 }
 
@@ -155,7 +164,7 @@ export async function deleteComposeAppAction(
       token: await requireToken(),
     })
   } catch (err) {
-    return fail(err)
+    return await fail(err)
   }
   revalidatePath(`/projects/${projectId}`)
   redirect(`/projects/${projectId}`)
@@ -188,7 +197,7 @@ export async function updateServicePortsAction(
     revalidatePath(`/compose/${id}`)
     return { ok: true, data: undefined }
   } catch (err) {
-    return fail(err)
+    return await fail(err)
   }
 }
 
@@ -205,7 +214,7 @@ export async function updateServiceDomainsAction(
     revalidatePath(`/compose/${id}`)
     return { ok: true, data: undefined }
   } catch (err) {
-    return fail(err)
+    return await fail(err)
   }
 }
 
@@ -223,7 +232,7 @@ export async function updateServiceResourcesAction(
     revalidatePath(`/compose/${id}`)
     return { ok: true, data: undefined }
   } catch (err) {
-    return fail(err)
+    return await fail(err)
   }
 }
 
@@ -278,7 +287,7 @@ export async function regenerateComposeWebhookAction(
     revalidatePath(`/compose/${id}`)
     return { ok: true, data }
   } catch (err) {
-    return fail(err)
+    return await fail(err)
   }
 }
 
@@ -294,6 +303,6 @@ export async function setComposeWebhookSecretAction(
     revalidatePath(`/compose/${id}`)
     return { ok: true, data }
   } catch (err) {
-    return fail(err)
+    return await fail(err)
   }
 }

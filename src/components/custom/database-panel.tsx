@@ -1,6 +1,7 @@
 "use client"
 
 import { Database, Eye, EyeOff, Play, Plus, Square, Trash2 } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { useRouter } from "next/navigation"
 import { useEffect, useState, useTransition } from "react"
 import { ConfirmDialog } from "@/components/custom/confirm-dialog"
@@ -57,6 +58,8 @@ export function DatabasePanel({
   /** Owner/admin on a running SQL/Mongo server: add or drop databases on it. */
   canManageDatabases?: boolean
 }) {
+  const t = useTranslations("database")
+  const tc = useTranslations("common")
   const router = useRouter()
   // Same host/user/password for every database on the server; only the
   // name (and thus the URL path) changes with the selection.
@@ -95,20 +98,20 @@ export function DatabasePanel({
           ) : (
             <Eye data-icon="inline-start" />
           )}
-          {reveal ? "Sembunyikan password" : "Tampilkan password"}
+          {reveal ? t("panel.hidePassword") : t("panel.showPassword")}
         </Button>
       </div>
 
       {db.status === "error" && (
         <p className="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-xs text-destructive">
-          Pembuatan database gagal: {db.errorMessage}
+          {t("panel.createFailed", { error: db.errorMessage ?? "" })}
         </p>
       )}
 
       {(schemas.length > 1 || canManageDatabases) && (
         <div className="flex flex-wrap items-center gap-2 text-xs">
           <Database className="size-4 text-muted-foreground" />
-          <span className="text-muted-foreground">Koneksi untuk database</span>
+          <span className="text-muted-foreground">{t("panel.connectionFor")}</span>
           <Select value={selected ?? ""} onValueChange={setSelected}>
             <SelectTrigger size="sm" className="w-64 font-mono text-xs">
               <SelectValue />
@@ -118,7 +121,10 @@ export function DatabasePanel({
                 <SelectItem key={s.name} value={s.name}>
                   {s.name}
                   {s.isPrimary && (
-                    <span className="text-muted-foreground"> · utama</span>
+                    <span className="text-muted-foreground">
+                      {" "}
+                      · {t("panel.primary")}
+                    </span>
                   )}
                 </SelectItem>
               ))}
@@ -150,38 +156,39 @@ export function DatabasePanel({
         <CardContent className="grid gap-x-8 gap-y-6 lg:grid-cols-2">
           <section className="min-w-0 space-y-3">
             <div className="space-y-1">
-              <h3 className="text-sm font-medium">Koneksi internal</h3>
+              <h3 className="text-sm font-medium">{t("panel.internal.title")}</h3>
               <p className="text-xs/relaxed text-muted-foreground">
-                Dari aplikasi di project ini (network <code>aoox</code>). Tempel
-                ke env aplikasi, mis. <code>DATABASE_URL</code>.
+                {t.rich("panel.internal.description", {
+                  code: (chunks) => <code>{chunks}</code>,
+                })}
               </p>
             </div>
             <DetailList
               items={[
-                { label: "Host", value: connection.internalHost, mono: true },
+                { label: tc("labels.host"), value: connection.internalHost, mono: true },
                 {
-                  label: "Port",
+                  label: tc("labels.port"),
                   value: String(connection.internalPort),
                   mono: true,
                 },
                 ...(connection.database
                   ? [
                       {
-                        label: "Database",
+                        label: t("panel.fields.database"),
                         value: connection.database,
                         mono: true,
                       },
                     ]
                   : []),
-                { label: "User", value: connection.username, mono: true },
+                { label: t("panel.fields.user"), value: connection.username, mono: true },
                 {
-                  label: "Password",
+                  label: tc("labels.password"),
                   value: reveal ? connection.password : "••••••••",
                   mono: true,
                   copy: connection.password,
                 },
                 {
-                  label: "URL",
+                  label: tc("labels.url"),
                   value: mask(connection.internalUrl),
                   mono: true,
                   copy: connection.internalUrl,
@@ -191,28 +198,30 @@ export function DatabasePanel({
           </section>
           <section className="min-w-0 space-y-3">
             <div className="space-y-1">
-              <h3 className="text-sm font-medium">Koneksi eksternal</h3>
+              <h3 className="text-sm font-medium">{t("panel.external.title")}</h3>
               <p className="text-xs/relaxed text-muted-foreground">
                 {connection.externalUrl
-                  ? `Dipublikasikan di port host ${connection.externalPort}.`
-                  : "Tidak dipublikasikan — hanya bisa diakses dari network aoox."}
+                  ? t("panel.external.published", {
+                      port: connection.externalPort ?? 0,
+                    })
+                  : t("panel.external.notPublished")}
               </p>
             </div>
             {connection.externalUrl ? (
               <DetailList
                 items={[
                   {
-                    label: "Host",
+                    label: tc("labels.host"),
                     value: connection.externalHost ?? "",
                     mono: true,
                   },
                   {
-                    label: "Port",
+                    label: tc("labels.port"),
                     value: String(connection.externalPort),
                     mono: true,
                   },
                   {
-                    label: "URL",
+                    label: tc("labels.url"),
                     value: mask(connection.externalUrl),
                     mono: true,
                     copy: connection.externalUrl,
@@ -221,7 +230,7 @@ export function DatabasePanel({
               />
             ) : (
               <p className="text-xs text-muted-foreground">
-                Buat ulang database dengan port host bila perlu akses dari luar.
+                {t("panel.external.recreateHint")}
               </p>
             )}
           </section>
@@ -232,20 +241,19 @@ export function DatabasePanel({
         <DialogTrigger asChild>
           <Button variant="destructive" size="sm">
             <Trash2 data-icon="inline-start" />
-            Hapus database
+            {t("panel.delete.trigger")}
           </Button>
         </DialogTrigger>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Hapus {db.name}?</DialogTitle>
+            <DialogTitle>{t("panel.delete.title", { name: db.name })}</DialogTitle>
             <DialogDescription>
-              Container dihentikan dan dihapus. Pilih apakah data (volume) ikut
-              dihapus — ini tidak bisa dibatalkan.
+              {t("panel.delete.description")}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => setDeleteOpen(false)}>
-              Batal
+              {tc("actions.cancel")}
             </Button>
             <Button
               variant="outline"
@@ -254,7 +262,7 @@ export function DatabasePanel({
                 start(() => deleteDatabaseAction(db.id, db.projectId, false))
               }
             >
-              Hapus, simpan data
+              {t("panel.delete.keepData")}
             </Button>
             <Button
               variant="destructive"
@@ -263,7 +271,7 @@ export function DatabasePanel({
                 start(() => deleteDatabaseAction(db.id, db.projectId, true))
               }
             >
-              Hapus beserta data
+              {t("panel.delete.withData")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -280,6 +288,8 @@ function AddDatabaseDialog({
   databaseId: string
   onCreated: (name: string) => void
 }) {
+  const t = useTranslations("database")
+  const tc = useTranslations("common")
   const [open, setOpen] = useState(false)
   const [name, setName] = useState("")
   const [error, setError] = useState<string | null>(null)
@@ -311,15 +321,14 @@ function AddDatabaseDialog({
       <DialogTrigger asChild>
         <Button variant="outline" size="sm">
           <Plus data-icon="inline-start" />
-          Tambah database
+          {t("panel.add.trigger")}
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-sm">
         <DialogHeader>
-          <DialogTitle>Tambah database</DialogTitle>
+          <DialogTitle>{t("panel.add.title")}</DialogTitle>
           <DialogDescription>
-            Membuat database lain di server ini. Host, user, dan password sama;
-            hanya nama database di URL koneksi yang berbeda.
+            {t("panel.add.description")}
           </DialogDescription>
         </DialogHeader>
         <form
@@ -332,9 +341,9 @@ function AddDatabaseDialog({
           <Input
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="nama database"
+            placeholder={t("panel.add.placeholder")}
             className="font-mono"
-            aria-label="Nama database baru"
+            aria-label={t("panel.add.ariaLabel")}
             autoFocus
           />
           {error && (
@@ -344,7 +353,7 @@ function AddDatabaseDialog({
           )}
           <DialogFooter>
             <Button type="submit" disabled={pending || !name.trim()}>
-              Buat
+              {tc("actions.create")}
             </Button>
           </DialogFooter>
         </form>
@@ -363,26 +372,29 @@ function DropDatabaseDialog({
   name: string
   onDropped: () => void
 }) {
+  const t = useTranslations("database")
+  const tc = useTranslations("common")
   return (
     <ConfirmDialog
       trigger={
         <Button
           variant="ghost"
           size="icon-sm"
-          aria-label={`Hapus database ${name}`}
+          aria-label={t("panel.drop.ariaLabel", { name })}
         >
           <Trash2 />
         </Button>
       }
-      title={`Hapus database ${name}?`}
+      title={t("panel.drop.title", { name })}
       description={
         <>
-          Database <code>{name}</code> beserta seluruh tabel dan datanya dihapus
-          permanen dan tidak bisa dibatalkan. Aplikasi yang masih memakainya
-          akan gagal terhubung.
+          {t.rich("panel.drop.description", {
+            name,
+            code: (chunks) => <code>{chunks}</code>,
+          })}
         </>
       }
-      confirmLabel="Hapus"
+      confirmLabel={tc("actions.delete")}
       onConfirm={async () => {
         const r = await dropSchemaAction(databaseId, name)
         if (r.ok) onDropped()
@@ -397,6 +409,7 @@ function DropDatabaseDialog({
  * button used to be on the Ringkasan toolbar; a failure message sits beside it.
  */
 export function DatabaseStartStop({ db }: { db: ManagedDatabaseDetail }) {
+  const tc = useTranslations("common")
   const router = useRouter()
   const [pending, start] = useTransition()
   const [error, setError] = useState<string | null>(null)
@@ -406,7 +419,7 @@ export function DatabaseStartStop({ db }: { db: ManagedDatabaseDetail }) {
     start(async () => {
       setError(null)
       const r = await fn()
-      if (!r.ok) setError(r.error ?? "Gagal")
+      if (!r.ok) setError(r.error ?? tc("messages.genericError"))
       else router.refresh()
     })
 
@@ -419,7 +432,7 @@ export function DatabaseStartStop({ db }: { db: ManagedDatabaseDetail }) {
           onClick={() => run(() => stopDatabaseAction(db.id))}
         >
           <Square data-icon="inline-start" />
-          Stop
+          {tc("actions.stop")}
         </Button>
       ) : (
         <Button
@@ -428,7 +441,7 @@ export function DatabaseStartStop({ db }: { db: ManagedDatabaseDetail }) {
           onClick={() => run(() => startDatabaseAction(db.id))}
         >
           <Play data-icon="inline-start" />
-          Start
+          {tc("actions.start")}
         </Button>
       )}
       {error && (

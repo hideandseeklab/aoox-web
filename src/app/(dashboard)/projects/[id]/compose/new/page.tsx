@@ -1,5 +1,6 @@
 import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
+import { getTranslations } from "next-intl/server"
 import { notFound } from "next/navigation"
 import { SetBreadcrumb } from "@/components/custom/breadcrumb-store"
 import { ComposeForm } from "@/components/custom/compose-form"
@@ -16,6 +17,8 @@ export default async function NewComposePage({
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
+  const t = await getTranslations("compose")
+  const tb = await getTranslations("breadcrumb")
   const project = await getProject(id)
   if (!project) notFound()
 
@@ -28,25 +31,26 @@ export default async function NewComposePage({
     <>
       <SetBreadcrumb
         items={[
-          { label: "Projects", href: "/projects" },
+          { label: tb("projects"), href: "/projects" },
           { label: project.name, href: `/projects/${project.id}` },
-          { label: "Stack compose baru" },
+          { label: t("newPage.title") },
         ]}
       />
       <div className="flex items-start gap-3">
         <Button asChild variant="ghost" size="icon" className="mt-0.5">
           <Link
             href={`/projects/${project.id}`}
-            aria-label="Kembali ke project"
+            aria-label={t("page.backToProject")}
           >
             <ArrowLeft />
           </Link>
         </Button>
         <div>
-          <h1 className="text-lg font-semibold">Stack compose baru</h1>
+          <h1 className="text-lg font-semibold">{t("newPage.title")}</h1>
           <p className="text-xs text-muted-foreground">
-            Deploy <code>docker-compose.yml</code> dari repo git; layanan di
-            dalamnya di-build dan dijalankan apa adanya.
+            {t.rich("newPage.description", {
+              code: (chunks) => <code>{chunks}</code>,
+            })}
           </p>
         </div>
       </div>
@@ -56,7 +60,7 @@ export default async function NewComposePage({
           <ComposeForm
             action={createComposeAppAction.bind(null, project.id)}
             mode="create"
-            submitLabel="Buat stack"
+            submitLabel={t("form.createStack")}
             credentials={credentials}
             databaseSlugs={databases.map((d) => d.slug)}
             cancelHref={`/projects/${project.id}`}

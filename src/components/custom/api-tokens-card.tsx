@@ -37,17 +37,19 @@ import {
 import type { ApiToken } from "@/features/api-token/api-token.entity"
 import { Switch } from "@/components/ui/switch"
 import { copyToClipboard } from "@/lib/clipboard"
+import { formatDateTime } from "@/i18n/format"
+import { useLocale, useTranslations } from "next-intl"
 
-const EXPIRY: { label: string; days: number | null }[] = [
-  { label: "30 hari", days: 30 },
-  { label: "90 hari", days: 90 },
-  { label: "1 tahun", days: 365 },
-  { label: "Tidak kedaluwarsa", days: null },
+const EXPIRY: { labelKey: string; days: number | null }[] = [
+  { labelKey: "days30", days: 30 },
+  { labelKey: "days90", days: 90 },
+  { labelKey: "year1", days: 365 },
+  { labelKey: "never", days: null },
 ]
 
-function fmt(d: string | null) {
+function fmt(d: string | null, locale: string) {
   return d
-    ? new Date(d).toLocaleString("id-ID", {
+    ? formatDateTime(d, locale, {
         dateStyle: "medium",
         timeStyle: "short",
       })
@@ -68,6 +70,9 @@ export function ApiTokensCard({
   projects?: { id: string; name: string }[]
   publicApiUrl: string
 }) {
+  const t = useTranslations("settings")
+  const c = useTranslations("common")
+  const locale = useLocale()
   const [name, setName] = useState("")
   const [expiry, setExpiry] = useState("30")
   const [created, setCreated] = useState<string | null>(null)
@@ -86,76 +91,93 @@ export function ApiTokensCard({
     if (ok) {
       setCopied(true)
       setTimeout(() => setCopied(false), 1500)
-      toast.success("Token disalin")
+      toast.success(t("tokens.copied"))
     } else {
-      toast.error("Gagal menyalin token")
+      toast.error(t("tokens.copyFailed"))
     }
   }
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>API token</CardTitle>
+        <CardTitle>{t("tokens.title")}</CardTitle>
         <CardDescription>
-          Token akses pribadi untuk CI/CLI — bertindak sebagai akunmu (role
-          sama). Pakai sebagai <code>Authorization: Bearer aoox_…</code>.
-          Dokumentasi endpoint:{" "}
-          <a
-            href={`${publicApiUrl}/docs`}
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex items-center gap-1 underline"
-          >
-            <BookOpen className="size-3" /> {publicApiUrl}/docs
-          </a>
+          {t.rich("tokens.description", {
+            code: (chunks) => <code>{chunks}</code>,
+            docs: () => (
+              <a
+                href={`${publicApiUrl}/docs`}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1 underline"
+              >
+                <BookOpen className="size-3" /> {publicApiUrl}/docs
+              </a>
+            ),
+          })}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {tokens.length === 0 && (
           <EmptyState icon={KeySquare} compact>
-            Belum ada token API.
+            {t("tokens.empty")}
           </EmptyState>
         )}
         {tokens.length > 0 && (
           <ul className="divide-y rounded-md border text-xs">
-            {tokens.map((t) => {
+            {tokens.map((tok) => {
               const expired =
-                t.expiresAt && new Date(t.expiresAt).getTime() < now
+                tok.expiresAt && new Date(tok.expiresAt).getTime() < now
               return (
-                <li key={t.id} className="flex items-center gap-3 px-3 py-2">
+                <li key={tok.id} className="flex items-center gap-3 px-3 py-2">
                   <KeySquare className="size-4 shrink-0 text-muted-foreground" />
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate font-medium">{t.name}</span>
+                    <span className="block truncate font-medium">
+                      {tok.name}
+                    </span>
                     <span className="block truncate font-mono text-xs text-muted-foreground">
-                      {t.prefix}… · dipakai {fmt(t.lastUsedAt)} ·{" "}
-                      {t.expiresAt
-                        ? `berlaku sampai ${fmt(t.expiresAt)}`
-                        : "tanpa kedaluwarsa"}
+                      {t("tokens.meta", {
+                        prefix: tok.prefix,
+                        used: fmt(tok.lastUsedAt, locale),
+                        expiry: tok.expiresAt
+                          ? t("tokens.expiresOn", {
+                              date: fmt(tok.expiresAt, locale),
+                            })
+                          : t("tokens.noExpiry"),
+                      })}
                     </span>
                   </span>
-                  {t.readOnly && <Badge variant="outline">baca saja</Badge>}
-                  {t.projectIds && (
+                  {tok.readOnly && (
+                    <Badge variant="outline">{t("tokens.readOnlyBadge")}</Badge>
+                  )}
+                  {tok.projectIds && (
                     <Badge
                       variant="outline"
-                      title={t.projectIds
+                      title={tok.projectIds
                         .map(
                           (id) => projects.find((p) => p.id === id)?.name ?? id
                         )
                         .join(", ")}
                     >
-                      {t.projectIds.length} project
+                      {t("tokens.projectsBadge", {
+                        count: tok.projectIds.length,
+                      })}
                     </Badge>
                   )}
-                  {expired && <Badge variant="destructive">kedaluwarsa</Badge>}
+                  {expired && (
+                    <Badge variant="destructive">
+                      {t("tokens.expiredBadge")}
+                    </Badge>
+                  )}
                   <Button
                     variant="ghost"
                     size="icon-sm"
-                    aria-label="Cabut token"
+                    aria-label={t("tokens.revoke")}
                     disabled={pending}
                     onClick={() =>
                       start(async () => {
                         setError(null)
-                        const r = await deleteApiTokenAction(t.id)
+                        const r = await deleteApiTokenAction(tok.id)
                         if (!r.ok) setError(r.error)
                       })
                     }
@@ -190,17 +212,17 @@ export function ApiTokensCard({
           }}
         >
           <div className="min-w-48 flex-1 space-y-1">
-            <Label htmlFor="pat-name">Nama</Label>
+            <Label htmlFor="pat-name">{c("labels.name")}</Label>
             <Input
               id="pat-name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="GitLab CI"
+              placeholder={t("tokens.namePlaceholder")}
               required
             />
           </div>
           <div className="space-y-1">
-            <Label htmlFor="pat-expiry">Kedaluwarsa</Label>
+            <Label htmlFor="pat-expiry">{t("tokens.expiry")}</Label>
             <Select value={expiry} onValueChange={setExpiry}>
               <SelectTrigger id="pat-expiry" className="w-44">
                 <SelectValue />
@@ -211,14 +233,14 @@ export function ApiTokensCard({
                     key={String(e.days)}
                     value={String(e.days ?? "never")}
                   >
-                    {e.label}
+                    {t(`tokens.expiryOptions.${e.labelKey}`)}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
           <div className="space-y-1">
-            <Label htmlFor="pat-readonly">Hak</Label>
+            <Label htmlFor="pat-readonly">{t("tokens.permissions")}</Label>
             <label
               className="flex h-9 items-center gap-2 text-xs"
               htmlFor="pat-readonly"
@@ -228,12 +250,12 @@ export function ApiTokensCard({
                 checked={readOnly}
                 onCheckedChange={setReadOnly}
               />
-              Baca saja
+              {t("tokens.readOnly")}
             </label>
           </div>
           {projects.length > 0 && (
             <div className="w-full space-y-1">
-              <Label>Batasi ke project (opsional)</Label>
+              <Label>{t("tokens.scopeLabel")}</Label>
               <div className="flex flex-wrap gap-2">
                 {projects.map((p) => {
                   const on = scopeProjects.includes(p.id)
@@ -259,16 +281,13 @@ export function ApiTokensCard({
                 })}
               </div>
               <p className="text-xs text-muted-foreground">
-                Tanpa pilihan: token melihat semua project yang kamu lihat dan
-                boleh memakai pengaturan platform. Dengan pilihan: hanya project
-                itu, dan pengaturan platform (registry, server, proxy, swarm,
-                notifikasi) ditolak.
+                {t("tokens.scopeHelp")}
               </p>
             </div>
           )}
           <Button type="submit" disabled={pending}>
             <Plus data-icon="inline-start" />
-            {pending ? "Membuat…" : "Buat token"}
+            {pending ? c("states.creating") : t("tokens.create")}
           </Button>
         </form>
         {error && (
@@ -284,10 +303,9 @@ export function ApiTokensCard({
       >
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle>Token dibuat</DialogTitle>
+            <DialogTitle>{t("tokens.created.title")}</DialogTitle>
             <DialogDescription>
-              Salin sekarang — token tidak akan ditampilkan lagi. Hanya hash-nya
-              yang disimpan.
+              {t("tokens.created.description")}
             </DialogDescription>
           </DialogHeader>
           <div className="flex items-center gap-2">
@@ -297,7 +315,7 @@ export function ApiTokensCard({
             <Button
               variant="outline"
               size="icon-sm"
-              aria-label="Salin token"
+              aria-label={t("tokens.copyAria")}
               onClick={copy}
             >
               {copied ? <Check /> : <Copy />}
@@ -307,7 +325,7 @@ export function ApiTokensCard({
             {`curl -X POST ${publicApiUrl}/applications/<id>/deploy \\\n  -H "Authorization: Bearer ${created ?? ""}"`}
           </pre>
           <DialogFooter>
-            <Button onClick={() => setCreated(null)}>Selesai</Button>
+            <Button onClick={() => setCreated(null)}>{t("tokens.done")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

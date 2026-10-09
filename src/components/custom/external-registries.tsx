@@ -1,6 +1,7 @@
 "use client"
 
 import { Package, Plus, Trash2 } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { useActionState, useState, useTransition } from "react"
 import { EmptyState } from "@/components/custom/empty-state"
 import { Button } from "@/components/ui/button"
@@ -43,26 +44,26 @@ export function ExternalRegistries({
   registries: Registry[]
   canManage: boolean
 }) {
+  const t = useTranslations("registry.external")
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <p className="text-xs text-muted-foreground">
-          Docker Hub, GHCR, GitLab, atau registry lain. Kredensial disimpan
-          terenkripsi.
+          {t("description")}
         </p>
         {canManage && <AddExternalRegistryDialog />}
       </div>
       {registries.length === 0 ? (
-        <EmptyState icon={Package}>Belum ada registry eksternal.</EmptyState>
+        <EmptyState icon={Package}>{t("empty")}</EmptyState>
       ) : (
         <div className="rounded-lg border">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Nama</TableHead>
-                <TableHead>URL</TableHead>
-                <TableHead>Username</TableHead>
-                <TableHead>Prefix</TableHead>
+                <TableHead>{t("name")}</TableHead>
+                <TableHead>{t("url")}</TableHead>
+                <TableHead>{t("username")}</TableHead>
+                <TableHead>{t("prefix")}</TableHead>
                 <TableHead className="w-44" />
               </TableRow>
             </TableHeader>
@@ -89,6 +90,7 @@ function ExternalRegistryRow({
   registry: Registry
   canManage: boolean
 }) {
+  const t = useTranslations("registry.external")
   const [pending, start] = useTransition()
   const [result, setResult] = useState<string | null>(null)
 
@@ -121,12 +123,12 @@ function ExternalRegistryRow({
                 })
               }
             >
-              Test
+              {t("test")}
             </Button>
             <Button
               variant="ghost"
               size="icon-sm"
-              aria-label={`Hapus ${registry.name}`}
+              aria-label={t("deleteLabel", { name: registry.name })}
               disabled={pending}
               onClick={() =>
                 start(async () => {
@@ -147,6 +149,7 @@ function ExternalRegistryRow({
 const initialState: ExternalRegistryFormState = {}
 
 function AddExternalRegistryDialog() {
+  const t = useTranslations("registry.external")
   const [open, setOpen] = useState(false)
   const [state, action, pending] = useActionState(
     async (prev: ExternalRegistryFormState, formData: FormData) => {
@@ -167,21 +170,20 @@ function AddExternalRegistryDialog() {
       <DialogTrigger asChild>
         <Button size="sm">
           <Plus data-icon="inline-start" />
-          Tambah registry
+          {t("add")}
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Registry eksternal</DialogTitle>
+          <DialogTitle>{t("dialog.title")}</DialogTitle>
           <DialogDescription>
-            Untuk Docker Hub isi URL <code>docker.io</code>; GHCR{" "}
-            <code>ghcr.io</code>; GitLab <code>registry.gitlab.com</code>.
+            {t.rich("dialog.description", { code: (c) => <code>{c}</code> })}
           </DialogDescription>
         </DialogHeader>
         <form action={action} noValidate>
           <FieldGroup>
             <Field data-invalid={!!state.fieldErrors?.name || undefined}>
-              <FieldLabel htmlFor="reg-name">Nama</FieldLabel>
+              <FieldLabel htmlFor="reg-name">{t("name")}</FieldLabel>
               <Input
                 id="reg-name"
                 name="name"
@@ -191,7 +193,7 @@ function AddExternalRegistryDialog() {
               <FieldError errors={errs("name")} />
             </Field>
             <Field data-invalid={!!state.fieldErrors?.url || undefined}>
-              <FieldLabel htmlFor="reg-url">URL</FieldLabel>
+              <FieldLabel htmlFor="reg-url">{t("url")}</FieldLabel>
               <Input
                 id="reg-url"
                 name="url"
@@ -202,7 +204,7 @@ function AddExternalRegistryDialog() {
               <FieldError errors={errs("url")} />
             </Field>
             <Field>
-              <FieldLabel htmlFor="reg-user">Username</FieldLabel>
+              <FieldLabel htmlFor="reg-user">{t("username")}</FieldLabel>
               <Input
                 id="reg-user"
                 name="username"
@@ -210,7 +212,7 @@ function AddExternalRegistryDialog() {
               />
             </Field>
             <Field>
-              <FieldLabel htmlFor="reg-pass">Password / token</FieldLabel>
+              <FieldLabel htmlFor="reg-pass">{t("dialog.passwordToken")}</FieldLabel>
               <Input
                 id="reg-pass"
                 name="password"
@@ -219,7 +221,7 @@ function AddExternalRegistryDialog() {
               />
             </Field>
             <Field>
-              <FieldLabel htmlFor="reg-prefix">Image prefix</FieldLabel>
+              <FieldLabel htmlFor="reg-prefix">{t("dialog.imagePrefix")}</FieldLabel>
               <Input
                 id="reg-prefix"
                 name="imagePrefix"
@@ -227,8 +229,7 @@ function AddExternalRegistryDialog() {
                 defaultValue={state.values?.imagePrefix}
               />
               <FieldDescription>
-                Opsional; image akan di-push sebagai{" "}
-                <code>&lt;url&gt;/&lt;prefix&gt;/&lt;app&gt;</code>.
+                {t.rich("dialog.prefixHint", { code: (c) => <code>{c}</code> })}
               </FieldDescription>
             </Field>
             {state.error && (
@@ -238,7 +239,7 @@ function AddExternalRegistryDialog() {
             )}
             <div className="flex justify-end">
               <Button type="submit" disabled={pending}>
-                {pending ? "Menyimpan…" : "Simpan"}
+                {pending ? t("dialog.saving") : t("dialog.save")}
               </Button>
             </div>
           </FieldGroup>

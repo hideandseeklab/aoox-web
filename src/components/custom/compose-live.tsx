@@ -1,5 +1,6 @@
 "use client"
 
+import { useTranslations } from "next-intl"
 import {
   createContext,
   type ReactNode,
@@ -39,6 +40,7 @@ export function ComposeLiveProvider({
   initial: ComposeAppDetail
   children: ReactNode
 }) {
+  const t = useTranslations("common")
   const [app, setApp] = useState(initial)
   const [pending, start] = useTransition()
   const [error, setError] = useState<string | null>(null)
@@ -61,7 +63,7 @@ export function ComposeLiveProvider({
     start(async () => {
       setError(null)
       const r = await fn()
-      if (!r.ok) setError(r.error ?? "Gagal")
+      if (!r.ok) setError(r.error ?? t("states.failed"))
       else {
         const next = await fetchComposeAppAction(app.id)
         if (next) setApp(next)

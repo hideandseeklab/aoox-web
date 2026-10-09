@@ -2,6 +2,7 @@
 
 import { PathArrow } from "@/components/custom/arrows"
 import { Loader2, Rocket } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { useRouter } from "@/lib/use-router"
 import { useState, useTransition } from "react"
 import { toast } from "sonner"
@@ -48,6 +49,8 @@ export function DeployTemplateDialog({
   defaultProjectId?: string
   onClose: () => void
 }) {
+  const t = useTranslations("templates.dialog")
+  const tNav = useTranslations("nav")
   const router = useRouter()
   const browserHost = useBrowserHost()
   const [pending, start] = useTransition()
@@ -67,9 +70,8 @@ export function DeployTemplateDialog({
     start(async () => {
       if (!template) return
       setError(null)
-      const toastId = toast.loading(
-        `Membuat stack ${name.trim() || template.name}…`
-      )
+      const stackName = name.trim() || template.name
+      const toastId = toast.loading(t("creating", { name: stackName }))
       const serviceDomains = template.services
         .filter((s) => hosts[key(s)]?.trim())
         .map((s) => ({
@@ -97,10 +99,7 @@ export function DeployTemplateDialog({
         setError(r.error)
         toast.error(r.error, { id: toastId })
       } else {
-        toast.success(
-          `Stack "${name.trim() || template.name}" dibuat — sedang deploy.`,
-          { id: toastId }
-        )
+        toast.success(t("created", { name: stackName }), { id: toastId })
         onClose()
         router.push(`/compose/${r.id}`)
       }
@@ -118,10 +117,9 @@ export function DeployTemplateDialog({
         {template && (
           <>
             <DialogHeader>
-              <DialogTitle>Deploy {template.name}</DialogTitle>
+              <DialogTitle>{t("title", { name: template.name })}</DialogTitle>
               <DialogDescription>
-                {template.description} Stack dibuat sebagai compose app di
-                project yang dipilih dan langsung di-deploy.
+                {template.description} {t("description")}
               </DialogDescription>
             </DialogHeader>
 
@@ -131,7 +129,7 @@ export function DeployTemplateDialog({
                   <Label htmlFor="tpl-project">Project</Label>
                   <Select value={projectId} onValueChange={setProjectId}>
                     <SelectTrigger id="tpl-project">
-                      <SelectValue placeholder="Pilih project" />
+                      <SelectValue placeholder={t("projectPlaceholder")} />
                     </SelectTrigger>
                     <SelectContent>
                       {projects.map((p) => (
@@ -143,7 +141,7 @@ export function DeployTemplateDialog({
                   </Select>
                 </div>
                 <div className="space-y-1">
-                  <Label htmlFor="tpl-name">Nama</Label>
+                  <Label htmlFor="tpl-name">{t("name")}</Label>
                   <Input
                     id="tpl-name"
                     value={name}
@@ -154,17 +152,24 @@ export function DeployTemplateDialog({
               </div>
 
               <fieldset className="space-y-2">
-                <legend className="text-sm font-medium">Akses</legend>
+                <legend className="text-sm font-medium">{t("access.title")}</legend>
                 <p className="text-xs text-muted-foreground">
-                  Opsional, bisa diatur nanti di Pengaturan. Domain dibuka lewat
-                  proxy (arahkan DNS ke server ini); port host dibuka lewat IP,
-                  mis. <code>http://{browserHost ?? "<ip-server>"}:8080</code>.
+                  {t.rich("access.description", {
+                    example: `http://${browserHost ?? `<${t("access.serverIp")}>`}:8080`,
+                    code: (c) => <code>{c}</code>,
+                  })}
                   {!proxy.running && (
                     <>
                       {" "}
-                      Proxy belum berjalan (Infrastruktur
-                      <PathArrow />
-                      Reverse proxy); domain baru aktif setelah diaktifkan.
+                      {t.rich("access.proxyStopped", {
+                        path: () => (
+                          <>
+                            {tNav("groups.infrastructure")}
+                            <PathArrow />
+                            {tNav("reverseProxy")}
+                          </>
+                        ),
+                      })}
                     </>
                   )}
                 </p>
@@ -197,7 +202,7 @@ export function DeployTemplateDialog({
                       HTTPS
                     </label>
                     <div className="space-y-1">
-                      <Label htmlFor={`tpl-port-${key(s)}`}>Port host</Label>
+                      <Label htmlFor={`tpl-port-${key(s)}`}>{t("access.hostPort")}</Label>
                       <Input
                         id={`tpl-port-${key(s)}`}
                         type="number"
@@ -220,7 +225,7 @@ export function DeployTemplateDialog({
 
               {template.variables.length > 0 && (
                 <fieldset className="space-y-3">
-                  <legend className="text-sm font-medium">Konfigurasi</legend>
+                  <legend className="text-sm font-medium">{t("configuration")}</legend>
                   {template.variables.map((v) => (
                     <div key={v.key} className="space-y-1">
                       <Label htmlFor={`tpl-var-${v.key}`}>
@@ -237,7 +242,7 @@ export function DeployTemplateDialog({
                         }
                         placeholder={
                           v.generate
-                            ? "(dibuat otomatis kalau kosong)"
+                            ? t("autoGenerated")
                             : (v.default ?? "")
                         }
                         required={v.required}
@@ -261,7 +266,7 @@ export function DeployTemplateDialog({
 
             <DialogFooter>
               <Button variant="outline" onClick={onClose} disabled={pending}>
-                Batal
+                {t("cancel")}
               </Button>
               <Button onClick={submit} disabled={pending || !projectId}>
                 {pending ? (
@@ -269,7 +274,7 @@ export function DeployTemplateDialog({
                 ) : (
                   <Rocket data-icon="inline-start" />
                 )}
-                {pending ? "Membuat…" : "Deploy"}
+                {pending ? t("submitting") : t("submit")}
               </Button>
             </DialogFooter>
           </>

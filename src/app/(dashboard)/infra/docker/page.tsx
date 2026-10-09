@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { LinkArrow } from "@/components/custom/arrows"
@@ -57,6 +58,7 @@ export default async function DockerPage({
 }: {
   searchParams: Promise<{ server?: string; tab?: string }>
 }) {
+  const t = await getTranslations("docker")
   const session = await getVerifiedSession()
   // Owner/admin only (the API enforces it too; members get a 404 rather than a 403 page).
   if (!session || !canUseTerminal(session.user)) notFound()
@@ -71,11 +73,11 @@ export default async function DockerPage({
   } catch (err) {
     content = (
       <Alert variant="destructive">
-        <AlertTitle>Tidak bisa membaca Docker di server ini</AlertTitle>
+        <AlertTitle>{t("page.loadError")}</AlertTitle>
         <AlertDescription>
           {err instanceof ApiError
             ? err.message
-            : "Tidak dapat terhubung ke server."}
+            : t("errors.serverUnreachable")}
         </AlertDescription>
       </Alert>
     )
@@ -88,22 +90,28 @@ export default async function DockerPage({
       <div>
         <h1 className="text-lg font-semibold">Docker</h1>
         <p className="text-xs text-muted-foreground">
-          Container, image, volume, dan network di host atau server remote. Yang
-          dikelola aoox hanya ditampilkan; ubah lewat halaman resource-nya.
+          {t("page.description")}
         </p>
       </div>
       <DockerToolbar servers={servers} serverId={serverId} tab={tab}>
         {content}
       </DockerToolbar>
       <p className="text-xs text-muted-foreground">
-        Pemakaian disk dan pembersihan otomatis ada di{" "}
-        <Button asChild variant="link" size="sm" className="h-auto p-0 text-xs">
-          <Link href="/infra/disk">
-            Disk Docker
-            <LinkArrow />
-          </Link>
-        </Button>
-        .
+        {t.rich("page.diskNote", {
+          link: (c) => (
+            <Button
+              asChild
+              variant="link"
+              size="sm"
+              className="h-auto p-0 text-xs"
+            >
+              <Link href="/infra/disk">
+                {c}
+                <LinkArrow />
+              </Link>
+            </Button>
+          ),
+        })}
       </p>
     </>
   )

@@ -1,0 +1,104 @@
+{
+  "metaTitle": "Dashboard · aoox",
+  "greeting": "Hello, {name}",
+  "subtitle": "Your platform at a glance.",
+  "stats": {
+    "totalProjects": "Total projects",
+    "viewAll": "View all",
+    "activeProjects": "Active projects",
+    "activeHint": "At least one application, database or compose stack is running.",
+    "inactiveProjects": "Inactive projects",
+    "inactiveHint": "Everything is stopped or failing, or nothing has been deployed yet."
+  },
+  "error": {
+    "title": "Something went wrong",
+    "fallback": "Could not load this page.",
+    "reference": "ref: {digest}"
+  },
+  "notFound": {
+    "title": "Page not found",
+    "description": "The address you opened does not exist or was removed.",
+    "back": "Back to dashboard"
+  },
+  "host": {
+    "title": "Host",
+    "summary": "{os} · Docker {version} · {cpus} CPU · {memory} RAM",
+    "aooxContainers": "aoox containers",
+    "aooxContainersHint": "{running} running of {total} on the host",
+    "aooxMemory": "Memory used by aoox containers",
+    "aooxMemoryHint": "{percent}% of host RAM",
+    "aooxCpu": "CPU of aoox containers",
+    "aooxCpuHint": "of {max}% ({cpus, plural, one {# core} other {# cores}})",
+    "dockerDisk": "Docker disk",
+    "segments": {
+      "images": "Images",
+      "volumes": "Volumes",
+      "containers": "Containers",
+      "buildCache": "Build cache"
+    },
+    "imageCount": "{count, plural, one {# image} other {# images}}"
+  },
+  "live": {
+    "waiting": "The first host sample arrives in a few seconds…",
+    "last5min": "Last 5 minutes",
+    "chartAria": "5-minute history, latest {value}",
+    "cpu": "Host CPU",
+    "cpuHint": "{cpus, plural, one {# core} other {# cores}} · container aoox ≈ {managed}%",
+    "cpuHintLoad": "{cpus, plural, one {# core} other {# cores}} · load {load} · container aoox ≈ {managed}%",
+    "ram": "Host RAM",
+    "ramHint": "{used} of {total} · aoox containers {managed} ({percent}%)",
+    "storage": "Host storage",
+    "storageHint": "{used} of {total} · {free} free",
+    "storageUnreadable": "Filesystem could not be read"
+  },
+  "sparkline": {
+    "ariaLabel": "1-hour history, latest {value}"
+  },
+  "activity": {
+    "title": "Recent activity",
+    "viewAll": "View all",
+    "empty": "No activity yet.",
+    "status": {
+      "failed": "Failed",
+      "denied": "Denied",
+      "success": "Success"
+    },
+    "via": {
+      "session": "session",
+      "token": "API token",
+      "webhook": "webhook",
+      "anonymous": "anonymous"
+    }
+  },
+  "onboarding": {
+    "title": "Get started with aoox",
+    "progress": "{done} of {total} required steps done. This list disappears on its own once everything is done.",
+    "hide": "Hide",
+    "progressAria": "Required steps done",
+    "stepDone": "(done)",
+    "stepPending": "(not yet)",
+    "open": "Open",
+    "steps": {
+      "registry": {
+        "title": "Set up the local registry",
+        "hint": "Where build images are stored; needed to deploy from Git."
+      },
+      "proxy": {
+        "title": "Start the reverse proxy",
+        "hint": "Traefik for application domains and HTTPS."
+      },
+      "panelDomain": {
+        "title": "Set the panel domain (optional)",
+        "hint": "Open aoox on your own domain with HTTPS."
+      },
+      "project": {
+        "title": "Create your first project",
+        "hint": "Applications, databases and stacks live inside a project."
+      },
+      "workload": {
+        "title": "Run your first application, database or stack",
+        "hint": "Deploy something and make sure it is running."
+      }
+    }
+  }
+}

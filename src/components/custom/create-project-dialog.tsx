@@ -1,6 +1,7 @@
 "use client"
 
 import { Plus } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { useState } from "react"
 import { ProjectForm } from "@/components/custom/project-form"
 import { Button } from "@/components/ui/button"
@@ -15,6 +16,7 @@ import {
 import { createProjectAction } from "@/features/project/project.actions"
 
 export function CreateProjectDialog() {
+  const t = useTranslations("projects")
   const [open, setOpen] = useState(false)
 
   return (
@@ -22,17 +24,17 @@ export function CreateProjectDialog() {
       <DialogTrigger asChild>
         <Button>
           <Plus data-icon="inline-start" />
-          New project
+          {t("create.trigger")}
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Project baru</DialogTitle>
+          <DialogTitle>{t("create.title")}</DialogTitle>
           <DialogDescription>
-            Project mengelompokkan aplikasi dan database yang di-deploy.
+            {t("create.description")}
           </DialogDescription>
         </DialogHeader>
-        <ProjectForm action={createProjectAction} submitLabel="Buat project" />
+        <ProjectForm action={createProjectAction} submitLabel={t("create.submit")} />
       </DialogContent>
     </Dialog>
   )

@@ -30,26 +30,14 @@ import {
   THRESHOLD_OPTIONS,
   TIMEOUT_OPTIONS,
   type HttpMonitorConfig,
-  type HttpMonitorState,
-  type HttpMonitorTargetSource,
   type HttpMonitorView,
 } from "@/features/http-monitor/http-monitor.entity"
 import {
   checkHttpMonitorAction,
   saveHttpMonitorAction,
 } from "@/features/http-monitor/http-monitor.actions"
-
-const SOURCE_LABEL: Record<HttpMonitorTargetSource, string> = {
-  domain: "domain (lewat proxy)",
-  hostPort: "port host",
-  container: "nama container (jaringan aoox)",
-}
-
-const STATE_LABEL: Record<HttpMonitorState, string> = {
-  up: "sehat",
-  down: "down",
-  unknown: "belum dicek",
-}
+import { formatDateTime } from "@/i18n/format"
+import { useLocale, useTranslations } from "next-intl"
 
 /** Locale/timezone differ between server and browser: format dates only after mount. */
 function useMounted(): boolean {
@@ -60,11 +48,13 @@ function useMounted(): boolean {
   )
 }
 
-function formatDuration(seconds: number): string {
-  if (seconds < 60) return `${seconds} dtk`
+type Translator = (key: string, values?: Record<string, string | number>) => string
+
+function formatDuration(seconds: number, t: Translator): string {
+  if (seconds < 60) return t("monitor.duration.seconds", { n: seconds })
   const m = Math.round(seconds / 60)
-  if (m < 60) return `${m} mnt`
-  return `${Math.floor(m / 60)} j ${m % 60} mnt`
+  if (m < 60) return t("monitor.duration.minutes", { n: m })
+  return t("monitor.duration.hoursMinutes", { h: Math.floor(m / 60), m: m % 60 })
 }
 
 const pct = (v: number | null) => (v === null ? "–" : `${v}%`)
@@ -87,6 +77,9 @@ export function ApplicationMonitor({
   canEdit: boolean
   running: boolean
 }) {
+  const t = useTranslations("applications")
+  const tc = useTranslations("common")
+  const locale = useLocale()
   const mounted = useMounted()
   const [view, setView] = useState(initial)
   const [form, setForm] = useState<HttpMonitorConfig>(initial.config)
@@ -103,7 +96,7 @@ export function ApplicationMonitor({
   const dirty = JSON.stringify(form) !== JSON.stringify(view.config) && canEdit
   const when = (iso: string | null) =>
     iso && mounted
-      ? new Date(iso).toLocaleString("id-ID", {
+      ? formatDateTime(iso, locale, {
           dateStyle: "medium",
           timeStyle: "short",
         })
@@ -129,22 +122,26 @@ export function ApplicationMonitor({
 
   const save = () =>
     run("save", () => saveHttpMonitorAction(applicationId, form), {
-      loading: "Menyimpan monitor…",
-      success: "Monitor disimpan",
+      loading: t("monitor.toast.saving"),
+      success: t("monitor.toast.saved"),
     })
   const toggle = (enabled: boolean) =>
     run(
       "toggle",
       () => saveHttpMonitorAction(applicationId, { ...form, enabled }),
       {
-        loading: enabled ? "Mengaktifkan monitor…" : "Menonaktifkan monitor…",
-        success: enabled ? "Monitor aktif" : "Monitor nonaktif",
+        loading: enabled
+          ? t("monitor.toast.enabling")
+          : t("monitor.toast.disabling"),
+        success: enabled
+          ? t("monitor.toast.enabled")
+          : t("monitor.toast.disabled"),
       }
     )
   const checkNow = () =>
     run("check", () => checkHttpMonitorAction(applicationId), {
-      loading: "Memeriksa…",
-      success: "Pemeriksaan selesai",
+      loading: t("monitor.toast.checking"),
+      success: t("monitor.toast.checked"),
     })
 
   const enabled = view.config.enabled
@@ -157,7 +154,7 @@ export function ApplicationMonitor({
           <div className="space-y-1">
             <CardTitle className="flex flex-wrap items-center gap-2">
               <Activity className="size-4" aria-hidden="true" />
-              Monitor HTTP
+              {t("monitor.title")}
               <Badge
                 variant={
                   !enabled
@@ -169,19 +166,14 @@ export function ApplicationMonitor({
                         : "secondary"
                 }
               >
-                {enabled ? STATE_LABEL[state] : "nonaktif"}
+                {enabled ? t(`monitor.state.${state}`) : t("monitor.state.disabled")}
               </Badge>
             </CardTitle>
-            <CardDescription>
-              Memeriksa aplikasi lewat HTTP secara berkala dan mengirim
-              notifikasi bila gagal beberapa kali berturut-turut. Aplikasi yang
-              container-nya hidup tapi mengembalikan 5xx atau macet terdeteksi
-              di sini.
-            </CardDescription>
+            <CardDescription>{t("monitor.description")}</CardDescription>
           </div>
           <div className="flex items-center gap-2">
             <Label htmlFor={`${ids.path}-enabled`} className="text-xs">
-              Aktif
+              {t("monitor.active")}
             </Label>
             <Switch
               id={`${ids.path}-enabled`}
@@ -195,30 +187,28 @@ export function ApplicationMonitor({
       <CardContent className="space-y-5 text-xs">
         <div className="space-y-1">
           <p className="text-xs text-muted-foreground">
-            Target (diturunkan dari aplikasi, tidak bisa diubah)
+            {t("monitor.target.label")}
           </p>
           {view.target ? (
             <p className="font-mono text-xs break-all">
               {view.target.url}{" "}
               <span className="font-sans text-muted-foreground">
-                · {SOURCE_LABEL[view.target.source]}
+                · {t(`monitor.target.source.${view.target.source}`)}
               </span>
             </p>
           ) : (
             <p className="text-xs text-destructive">
-              {view.targetError ?? "Belum ada alamat"}
+              {view.targetError ?? t("monitor.target.none")}
             </p>
           )}
           <p className="text-xs text-muted-foreground">
-            Pemeriksaan dijalankan dari mesin panel: tidak membuktikan aplikasi
-            bisa dijangkau dari internet luar. Dengan domain publik, hasilnya
-            bisa terpengaruh hairpin NAT.
+            {t("monitor.target.note")}
           </p>
         </div>
 
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <div className="space-y-1 sm:col-span-2">
-            <Label htmlFor={ids.path}>Path</Label>
+            <Label htmlFor={ids.path}>{t("monitor.fields.path")}</Label>
             <Input
               id={ids.path}
               value={form.path}
@@ -231,7 +221,7 @@ export function ApplicationMonitor({
             />
           </div>
           <div className="space-y-1">
-            <Label htmlFor={ids.codes}>Status sehat</Label>
+            <Label htmlFor={ids.codes}>{t("monitor.fields.healthyCodes")}</Label>
             <Input
               id={ids.codes}
               value={form.expectedCodes}
@@ -246,7 +236,7 @@ export function ApplicationMonitor({
             />
           </div>
           <div className="space-y-1">
-            <Label htmlFor={ids.interval}>Interval</Label>
+            <Label htmlFor={ids.interval}>{t("monitor.fields.interval")}</Label>
             <Select
               value={String(form.intervalMinutes)}
               disabled={!canEdit}
@@ -260,14 +250,14 @@ export function ApplicationMonitor({
               <SelectContent>
                 {INTERVAL_OPTIONS.map((n) => (
                   <SelectItem key={n} value={String(n)}>
-                    {n} menit
+                    {t("monitor.fields.minutes", { n })}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
           <div className="space-y-1">
-            <Label htmlFor={ids.timeout}>Batas waktu</Label>
+            <Label htmlFor={ids.timeout}>{t("monitor.fields.timeout")}</Label>
             <Select
               value={String(form.timeoutSeconds)}
               disabled={!canEdit}
@@ -281,14 +271,14 @@ export function ApplicationMonitor({
               <SelectContent>
                 {TIMEOUT_OPTIONS.map((n) => (
                   <SelectItem key={n} value={String(n)}>
-                    {n} detik
+                    {t("monitor.fields.seconds", { n })}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
           <div className="space-y-1">
-            <Label htmlFor={ids.threshold}>Gagal berturut-turut</Label>
+            <Label htmlFor={ids.threshold}>{t("monitor.fields.threshold")}</Label>
             <Select
               value={String(form.failureThreshold)}
               disabled={!canEdit}
@@ -302,7 +292,7 @@ export function ApplicationMonitor({
               <SelectContent>
                 {THRESHOLD_OPTIONS.map((n) => (
                   <SelectItem key={n} value={String(n)}>
-                    {n}× sebelum alert
+                    {t("monitor.fields.beforeAlert", { n })}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -316,7 +306,7 @@ export function ApplicationMonitor({
               onCheckedChange={(v) => setForm({ ...form, useInternal: v })}
             />
             <Label htmlFor={`${ids.path}-internal`} className="text-xs">
-              Periksa lewat alamat internal (lewati domain publik)
+              {t("monitor.fields.useInternal")}
             </Label>
           </div>
         </div>
@@ -330,7 +320,7 @@ export function ApplicationMonitor({
               {busy === "save" && (
                 <Loader2 data-icon="inline-start" className="animate-spin" />
               )}
-              Simpan
+              {tc("actions.save")}
             </Button>
             <Button
               variant="outline"
@@ -338,16 +328,16 @@ export function ApplicationMonitor({
               disabled={busy !== null || !running || dirty}
               title={
                 !running
-                  ? "Aplikasi harus berjalan"
+                  ? t("monitor.mustRun")
                   : dirty
-                    ? "Simpan perubahan dulu"
+                    ? t("monitor.saveFirst")
                     : undefined
               }
             >
               {busy === "check" && (
                 <Loader2 data-icon="inline-start" className="animate-spin" />
               )}
-              Periksa sekarang
+              {t("monitor.checkNow")}
             </Button>
           </div>
         )}
@@ -356,11 +346,11 @@ export function ApplicationMonitor({
           <>
             <dl className="grid gap-x-6 gap-y-2 sm:grid-cols-2 lg:grid-cols-4">
               <Stat
-                label="Terakhir dicek"
+                label={t("monitor.stats.lastChecked")}
                 value={when(view.status.lastCheckedAt)}
               />
               <Stat
-                label="Hasil terakhir"
+                label={t("monitor.stats.lastResult")}
                 value={
                   view.status.lastError
                     ? view.status.lastError
@@ -370,23 +360,23 @@ export function ApplicationMonitor({
                 }
                 danger={!!view.status.lastError}
               />
-              <Stat label="Uptime 24 jam" value={pct(view.stats.uptime24h)} />
-              <Stat label="Uptime 7 hari" value={pct(view.stats.uptime7d)} />
+              <Stat label={t("monitor.stats.uptime24h")} value={pct(view.stats.uptime24h)} />
+              <Stat label={t("monitor.stats.uptime7d")} value={pct(view.stats.uptime7d)} />
               <Stat
-                label="Latensi rata-rata (24 jam)"
+                label={t("monitor.stats.avgLatency")}
                 value={ms(view.stats.avgLatencyMs24h)}
               />
               <Stat
-                label="Latensi p95 (24 jam)"
+                label={t("monitor.stats.p95Latency")}
                 value={ms(view.stats.p95LatencyMs24h)}
               />
               <Stat
-                label="Pemeriksaan (24 jam)"
+                label={t("monitor.stats.checks24h")}
                 value={String(view.stats.checks24h)}
               />
               {state === "down" && (
                 <Stat
-                  label="Down sejak"
+                  label={t("monitor.stats.downSince")}
                   value={when(view.status.since)}
                   danger
                 />
@@ -398,7 +388,7 @@ export function ApplicationMonitor({
 
         {view.incidents.length > 0 && (
           <div className="space-y-2">
-            <h3 className="text-xs font-medium">Kejadian down terakhir</h3>
+            <h3 className="text-xs font-medium">{t("monitor.incidents.title")}</h3>
             <ul className="divide-y rounded-md border">
               {view.incidents.map((i) => (
                 <li
@@ -406,7 +396,7 @@ export function ApplicationMonitor({
                   className="flex flex-wrap items-center gap-x-3 gap-y-1 px-3 py-2 text-xs"
                 >
                   <Badge variant={i.endedAt ? "secondary" : "destructive"}>
-                    {i.endedAt ? "selesai" : "berlangsung"}
+                    {i.endedAt ? t("monitor.incidents.done") : t("monitor.incidents.ongoing")}
                   </Badge>
                   <span className="tabular-nums">{when(i.startedAt)}</span>
                   <span className="text-muted-foreground tabular-nums">
@@ -418,7 +408,7 @@ export function ApplicationMonitor({
                     ) : (
                       "· "
                     )}
-                    {formatDuration(i.durationSeconds)}
+                    {formatDuration(i.durationSeconds, t)}
                   </span>
                   {i.reason && (
                     <span className="truncate font-mono text-muted-foreground">
@@ -467,10 +457,11 @@ function Stat({
  * the bottom, so outages show even where there is no latency to draw.
  */
 function LatencySeries({ series }: { series: HttpMonitorView["series"] }) {
+  const t = useTranslations("applications")
   if (series.length === 0) {
     return (
       <EmptyState icon={Activity} compact>
-        Belum ada data — pemeriksaan pertama berjalan dalam semenit.
+        {t("monitor.series.empty")}
       </EmptyState>
     )
   }
@@ -482,13 +473,19 @@ function LatencySeries({ series }: { series: HttpMonitorView["series"] }) {
       describe={(i) => {
         const s = series[i]
         return (
-          (s.latencyMs === null ? "tanpa respons sehat" : `${s.latencyMs} ms`) +
-          (s.failures > 0 ? ` · ${s.failures}/${s.checks} gagal` : "")
+          (s.latencyMs === null
+            ? t("monitor.series.noHealthy")
+            : `${s.latencyMs} ms`) +
+          (s.failures > 0
+            ? ` · ${t("monitor.series.failed", { failures: s.failures, checks: s.checks })}`
+            : "")
         )
       }}
       marks={series.flatMap((s, i) => (s.failures > 0 ? [i] : []))}
       height={64}
-      ariaLabel={`Latensi 24 jam terakhir, terakhir ${last.latencyMs ?? "tanpa respons"} ms`}
+      ariaLabel={t("monitor.series.aria", {
+        value: last.latencyMs ?? t("monitor.series.noResponse"),
+      })}
     />
   )
 }

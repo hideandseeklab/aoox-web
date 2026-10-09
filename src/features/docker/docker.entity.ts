@@ -86,27 +86,3 @@ export const DOCKER_TABS = [
 ] as const
 export type DockerTab = (typeof DOCKER_TABS)[number]
 
-export const MANAGED_LABEL: Record<ManagedKind, string> = {
-  panel: "Panel aoox",
-  application: "Aplikasi",
-  database: "Database",
-  compose: "Stack",
-  companion: "Admin database",
-  stack: "Stack",
-  proxy: "Proxy",
-  registry: "Registry",
-  build: "Build",
-  job: "Job",
-  backup: "Backup",
-  component: "Komponen aoox",
-  aoox: "Komponen aoox",
-}
-
-/** One-line meaning of a managed badge, for its tooltip. */
-export function managedHint(kind: ManagedKind): string {
-  const what =
-    kind === "panel"
-      ? "bagian dari panel aoox (postgres, api, web)"
-      : `dikelola aoox (${MANAGED_LABEL[kind].toLowerCase()})`
-  return `Container ini ${what}. Tidak bisa dihentikan atau dihapus dari halaman ini; kelola dari halamannya.`
-}

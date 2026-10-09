@@ -1,18 +1,25 @@
 "use client"
 
 import { Cpu, MemoryStick, Network } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { useEffect, useState } from "react"
 import { StatCard } from "@/components/custom/stat-card"
 import { fetchMetricsAction } from "@/features/monitoring/monitoring.actions"
 import {
   formatBytes,
-  METRIC_RANGE_LABEL,
   METRIC_RANGES,
   type ContainerMetrics,
   type MetricRange,
   type MetricsResponse,
   type MetricsTarget,
 } from "@/features/monitoring/monitoring.entity"
+
+const RANGE_KEY: Record<MetricRange, string> = {
+  "1h": "h1",
+  "24h": "h24",
+  "7d": "d7",
+  "30d": "d30",
+}
 
 /** Matches the API sampler (SAMPLE_INTERVAL_MS); polling faster gains nothing. */
 const POLL_MS = 15_000
@@ -34,6 +41,7 @@ export function MetricsPanel({
   initial: MetricsResponse
   running: boolean
 }) {
+  const t = useTranslations("common")
   const [data, setData] = useState(initial)
   const [range, setRange] = useState<MetricRange>("1h")
 
@@ -68,7 +76,7 @@ export function MetricsPanel({
               : "text-muted-foreground hover:bg-muted"
           }`}
         >
-          {METRIC_RANGE_LABEL[r]}
+          {t(`metrics.range.${RANGE_KEY[r]}`)}
         </button>
       ))}
     </div>
@@ -81,10 +89,10 @@ export function MetricsPanel({
         {picker}
         <p className="text-xs text-muted-foreground">
           {range !== "1h"
-            ? "Belum ada riwayat tersimpan untuk rentang ini."
+            ? t("metrics.noStoredHistory")
             : running
-              ? "Metrik belum tersedia — sampel pertama diambil dalam ±15 detik."
-              : "Container tidak berjalan; tidak ada metrik."}
+              ? t("metrics.notAvailableYet")
+              : t("metrics.notRunning")}
         </p>
       </div>
     )
@@ -108,8 +116,8 @@ export function MetricsPanel({
           }
           hint={
             data.tasks && data.tasks > 1
-              ? `dari satu core · jumlah ${data.tasks} task`
-              : "dari satu core"
+              ? t("metrics.cpuHintTasks", { tasks: data.tasks })
+              : t("metrics.cpuHint")
           }
           trend={{
             series: data.history.map((p) => p.cpuPercent ?? 0),
@@ -120,12 +128,15 @@ export function MetricsPanel({
         <StatCard
           variant="tile"
           icon={MemoryStick}
-          label="Memori"
+          label={t("metrics.memory")}
           value={formatBytes(cur.memoryBytes)}
           hint={
             memPct === null
               ? undefined
-              : `${memPct.toFixed(1)}% dari ${formatBytes(cur.memoryLimitBytes)} (RAM host, tanpa limit)`
+              : t("metrics.memoryHint", {
+                  pct: memPct.toFixed(1),
+                  limit: formatBytes(cur.memoryLimitBytes),
+                })
           }
           trend={{
             series: data.history.map((p) => p.memoryBytes),
@@ -136,9 +147,9 @@ export function MetricsPanel({
         <StatCard
           variant="tile"
           icon={Network}
-          label="Jaringan"
+          label={t("metrics.network")}
           value={`↓ ${formatBytes(cur.netRxBytes)}`}
-          hint={`↑ ${formatBytes(cur.netTxBytes)} · kumulatif sejak start · grafik: masuk per detik`}
+          hint={t("metrics.networkHint", { tx: formatBytes(cur.netTxBytes) })}
           trend={{
             series: rxRate(data.history),
             format: (v) => `${formatBytes(v)}/s`,
@@ -148,8 +159,12 @@ export function MetricsPanel({
       </div>
       {range !== "1h" && (
         <p className="text-xs text-muted-foreground">
-          Riwayat tersimpan: rata-rata per {range === "24h" ? "menit" : "jam"} (
-          {data.history.length} titik). Nilai besar = saat itu, bukan sekarang.
+          {t(
+            range === "24h"
+              ? "metrics.storedNotePerMinute"
+              : "metrics.storedNotePerHour",
+            { count: data.history.length }
+          )}
         </p>
       )}
     </div>

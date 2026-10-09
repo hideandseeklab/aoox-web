@@ -1,6 +1,7 @@
 "use client"
 
 import { ExternalLink, GitPullRequest, Trash2 } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { useEffect, useState, useTransition } from "react"
 import { LogViewer } from "@/components/custom/log-viewer"
 import { EmptyState } from "@/components/custom/empty-state"
@@ -36,6 +37,7 @@ export function PreviewsPanel({
   initial: PreviewDeployment[]
   proxyHttpPort: number
 }) {
+  const t = useTranslations("applications")
   const [previews, setPreviews] = useState(initial)
   const [open, setOpen] = useState<string | null>(null)
   const [pending, start] = useTransition()
@@ -66,17 +68,17 @@ export function PreviewsPanel({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Preview pull request</CardTitle>
+        <CardTitle>{t("previews.title")}</CardTitle>
         <CardDescription>
           {enabled
-            ? "Setiap PR yang dibuka di-build dari branch-nya dan dijalankan di container sendiri; ditutup otomatis saat PR ditutup."
-            : "Nonaktif — aktifkan di tab Pengaturan. Webhook provider harus mengirim event pull request."}
+            ? t("previews.descriptionEnabled")
+            : t("previews.descriptionDisabled")}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-2 text-xs">
         {previews.length === 0 ? (
           <EmptyState icon={GitPullRequest} compact>
-            Belum ada preview.
+            {t("previews.empty")}
           </EmptyState>
         ) : (
           <ul className="divide-y rounded-md border">
@@ -99,7 +101,7 @@ export function PreviewsPanel({
                             : "secondary"
                       }
                     >
-                      {p.status === "building" ? "building…" : p.status}
+                      {p.status === "building" ? t("previews.building") : p.status}
                     </Badge>
                     <span className="ms-auto" />
                     {href && p.status === "running" && (
@@ -108,7 +110,7 @@ export function PreviewsPanel({
                           href={href}
                           target="_blank"
                           rel="noreferrer"
-                          aria-label={`Buka preview #${p.prNumber}`}
+                          aria-label={t("previews.openAria", { n: p.prNumber })}
                         >
                           <ExternalLink />
                         </a>
@@ -119,12 +121,12 @@ export function PreviewsPanel({
                       size="sm"
                       onClick={() => setOpen(open === p.id ? null : p.id)}
                     >
-                      Log
+                      {t("previews.log")}
                     </Button>
                     <Button
                       variant="ghost"
                       size="icon-sm"
-                      aria-label={`Hapus preview #${p.prNumber}`}
+                      aria-label={t("previews.deleteAria", { n: p.prNumber })}
                       disabled={pending || p.status === "building"}
                       onClick={() => remove(p.id)}
                     >
@@ -134,7 +136,7 @@ export function PreviewsPanel({
                   <p className="font-mono text-xs text-muted-foreground">
                     {p.branch}
                     {p.commitSha ? ` @ ${p.commitSha.slice(0, 7)}` : ""}
-                    {p.host ? ` · ${p.host}` : " · tanpa domain preview"}
+                    {p.host ? ` · ${p.host}` : ` · ${t("previews.noDomain")}`}
                     {p.prUrl && (
                       <>
                         {" · "}
@@ -144,7 +146,7 @@ export function PreviewsPanel({
                           rel="noreferrer"
                           className="underline"
                         >
-                          PR
+                          {t("previews.pr")}
                         </a>
                       </>
                     )}
@@ -155,8 +157,8 @@ export function PreviewsPanel({
                   {open === p.id && (
                     <LogViewer
                       text={p.logs ?? ""}
-                      label="Log preview"
-                      empty="Belum ada log."
+                      label={t("previews.logLabel")}
+                      empty={t("previews.noLogs")}
                       className="max-h-64"
                     />
                   )}

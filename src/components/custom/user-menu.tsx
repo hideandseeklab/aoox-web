@@ -1,13 +1,21 @@
 "use client"
 
-import { LogOut, User as UserIcon } from "lucide-react"
+import { Languages, LogOut, User as UserIcon } from "lucide-react"
+import { useLocale, useTranslations } from "next-intl"
+import { useRouter } from "next/navigation"
+import { useTransition } from "react"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import {
@@ -18,6 +26,8 @@ import {
 } from "@/components/ui/sidebar"
 import { signOutAction } from "@/features/auth/auth.actions"
 import type { AuthUser } from "@/features/auth/auth.entity"
+import { setLocaleAction } from "@/features/locale/locale.actions"
+import { LOCALE_NAMES, LOCALES, isLocale } from "@/i18n/config"
 
 function initials(user: AuthUser) {
   const source = user.name?.trim() || user.email
@@ -34,6 +44,10 @@ function initials(user: AuthUser) {
  * the avatar (the name is the tooltip) and opens beside the rail instead of above the button.
  */
 export function UserMenu({ user }: { user: AuthUser }) {
+  const t = useTranslations("userMenu")
+  const locale = useLocale()
+  const router = useRouter()
+  const [, startTransition] = useTransition()
   const { isMobile, state } = useSidebar()
   const label = user.name ?? user.email
 
@@ -74,12 +88,36 @@ export function UserMenu({ user }: { user: AuthUser }) {
             <DropdownMenuSeparator />
             <DropdownMenuItem disabled>
               <UserIcon />
-              Profile
+              {t("profile")}
             </DropdownMenuItem>
+            <DropdownMenuSub>
+              <DropdownMenuSubTrigger>
+                <Languages />
+                {t("language")}
+              </DropdownMenuSubTrigger>
+              <DropdownMenuSubContent>
+                <DropdownMenuRadioGroup
+                  value={locale}
+                  onValueChange={(next) => {
+                    if (!isLocale(next) || next === locale) return
+                    startTransition(async () => {
+                      await setLocaleAction(next)
+                      router.refresh()
+                    })
+                  }}
+                >
+                  {LOCALES.map((l) => (
+                    <DropdownMenuRadioItem key={l} value={l}>
+                      {LOCALE_NAMES[l]}
+                    </DropdownMenuRadioItem>
+                  ))}
+                </DropdownMenuRadioGroup>
+              </DropdownMenuSubContent>
+            </DropdownMenuSub>
             <DropdownMenuSeparator />
             <DropdownMenuItem onSelect={() => void signOutAction()}>
               <LogOut />
-              Sign out
+              {t("signOut")}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

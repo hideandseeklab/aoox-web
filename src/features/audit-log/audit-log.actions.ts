@@ -1,5 +1,6 @@
 "use server"
 
+import { getTranslations } from "next-intl/server"
 import type { AuditLog } from "./audit-log.entity"
 import { listAuditLogs } from "./audit-log.queries"
 
@@ -17,6 +18,7 @@ export async function fetchRecentActivityAction(): Promise<RecentActivity> {
       rows: await listAuditLogs({ limit: RECENT_ACTIVITY_LIMIT }),
     }
   } catch {
-    return { ok: false, error: "Tidak dapat memuat aktivitas terakhir." }
+    const t = await getTranslations("settings")
+    return { ok: false, error: t("errors.recentActivity") }
   }
 }

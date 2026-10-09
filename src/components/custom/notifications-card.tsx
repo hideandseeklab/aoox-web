@@ -3,6 +3,7 @@
 import type { ReactNode } from "react"
 import { PathArrow } from "@/components/custom/arrows"
 import { Bell, BellRing, Plus, Send, Trash2 } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { useActionState, useState, useTransition } from "react"
 import { EmptyState } from "@/components/custom/empty-state"
 import { Button } from "@/components/ui/button"
@@ -57,19 +58,20 @@ const TYPE_LABEL: Record<NotificationType, string> = {
   email: "Email (SMTP)",
 }
 
-const EVENT_LABEL: Array<[keyof Notification & `on${string}`, string]> = [
-  ["onDeploymentStarted", "deploy dimulai"],
-  ["onDeploymentSuccess", "deploy sukses"],
-  ["onDeploymentFailure", "deploy gagal"],
-  ["onBackupFailure", "backup gagal"],
-  ["onJobFailure", "job gagal"],
-  ["onDiskLow", "disk hampir penuh"],
-  ["onCertificateFailure", "sertifikat gagal"],
-  ["onDnsIssue", "DNS domain bermasalah"],
-  ["onContainerDown", "container mati"],
-  ["onAppError", "error di log aplikasi"],
-  ["onServerDown", "server remote tidak terjangkau"],
-  ["onHttpDown", "monitor HTTP gagal"],
+/** Event toggles; the label of each is `notifications.events.<name>`. */
+const EVENTS: Array<keyof Notification & `on${string}`> = [
+  "onDeploymentStarted",
+  "onDeploymentSuccess",
+  "onDeploymentFailure",
+  "onBackupFailure",
+  "onJobFailure",
+  "onDiskLow",
+  "onCertificateFailure",
+  "onDnsIssue",
+  "onContainerDown",
+  "onAppError",
+  "onServerDown",
+  "onHttpDown",
 ]
 
 /** `onDeploymentStarted` and `onAppError` default off (API default too) —
@@ -81,9 +83,7 @@ const DEFAULT_OFF_EVENTS = new Set<keyof Notification & `on${string}`>([
   "onAppError",
 ])
 const DEFAULT_CHECKED_EVENTS = new Set<keyof Notification & `on${string}`>(
-  EVENT_LABEL.map(([name]) => name).filter(
-    (name) => !DEFAULT_OFF_EVENTS.has(name)
-  )
+  EVENTS.filter((name) => !DEFAULT_OFF_EVENTS.has(name))
 )
 
 /** Settings card: channels that receive deployment success/failure messages. */
@@ -92,6 +92,7 @@ export function NotificationsCard({
 }: {
   notifications: Notification[]
 }) {
+  const t = useTranslations("settings")
   const [pending, start] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const [tests, setTests] = useState<Record<string, NotificationTestResult>>({})
@@ -100,7 +101,7 @@ export function NotificationsCard({
     start(async () => {
       setError(null)
       const r = await testNotificationAction(id)
-      if (r.ok) setTests((t) => ({ ...t, [id]: r.data }))
+      if (r.ok) setTests((prev) => ({ ...prev, [id]: r.data }))
       else setError(r.error)
     })
 
@@ -116,12 +117,8 @@ export function NotificationsCard({
       <CardHeader>
         <div className="flex items-start justify-between gap-4">
           <div>
-            <CardTitle>Notifikasi</CardTitle>
-            <CardDescription>
-              Deploy dimulai/sukses/gagal, backup gagal, dan container mati ke
-              Telegram, Slack, Discord, email, atau webhook. Token disimpan
-              terenkripsi.
-            </CardDescription>
+            <CardTitle>{t("notifications.title")}</CardTitle>
+            <CardDescription>{t("notifications.description")}</CardDescription>
           </div>
           <AddNotificationDialog />
         </div>
@@ -129,14 +126,14 @@ export function NotificationsCard({
       <CardContent className="space-y-3 text-xs">
         {notifications.length === 0 ? (
           <EmptyState icon={Bell} compact>
-            Belum ada channel.
+            {t("notifications.empty")}
           </EmptyState>
         ) : (
           <ul className="divide-y rounded-md border">
             {notifications.map((n) => {
               const result = tests[n.id]
-              const events = EVENT_LABEL.filter(([k]) => n[k]).map(
-                ([, label]) => label
+              const events = EVENTS.filter((k) => n[k]).map((k) =>
+                t(`notifications.events.${k}`)
               )
               return (
                 <li key={n.id} className="space-y-1 px-3 py-2">
@@ -145,13 +142,15 @@ export function NotificationsCard({
                     <span className="font-medium">{n.name}</span>
                     <span className="truncate text-xs text-muted-foreground">
                       {TYPE_LABEL[n.type]} · {n.targetHint} ·{" "}
-                      {events.length ? events.join(", ") : "nonaktif"}
+                      {events.length
+                        ? events.join(", ")
+                        : t("notifications.none")}
                     </span>
                     <span className="ms-auto" />
                     <Button
                       variant="ghost"
                       size="icon-sm"
-                      aria-label={`Kirim tes ke ${n.name}`}
+                      aria-label={t("notifications.testAria", { name: n.name })}
                       disabled={pending}
                       onClick={() => test(n.id)}
                     >
@@ -160,7 +159,9 @@ export function NotificationsCard({
                     <Button
                       variant="ghost"
                       size="icon-sm"
-                      aria-label={`Hapus ${n.name}`}
+                      aria-label={t("notifications.deleteAria", {
+                        name: n.name,
+                      })}
                       disabled={pending}
                       onClick={() => remove(n.id)}
                     >
@@ -191,31 +192,14 @@ export function NotificationsCard({
 
 const initialState: NotificationFormState = {}
 
-const HINT: Record<NotificationType, ReactNode> = {
-  telegram:
-    "Buat bot lewat @BotFather, tambahkan ke grup/chat, lalu isi token dan chat ID (grup biasanya negatif).",
-  slack:
-    "Incoming Webhook dari Slack app (https://hooks.slack.com/services/…).",
-  discord: (
-    <>
-      Server Settings
-      <PathArrow />
-      Integrations
-      <PathArrow />
-      Webhooks
-      <PathArrow />
-      Copy Webhook URL.
-    </>
-  ),
-  webhook:
-    "Endpoint kamu sendiri; menerima POST JSON (title, level, event, …).",
-  email:
-    "Server SMTP kamu (mis. Gmail app password, Mailgun, SES). Port 465 = TLS implisit; 587 = STARTTLS.",
-}
-
 function AddNotificationDialog() {
+  const t = useTranslations("settings")
+  const c = useTranslations("common")
   const [open, setOpen] = useState(false)
   const [type, setType] = useState<NotificationType>("telegram")
+  const hint: ReactNode = t.rich(`notifications.hints.${type}`, {
+    arrow: () => <PathArrow />,
+  })
   const [state, action, pending] = useActionState(
     async (prev: NotificationFormState, formData: FormData) => {
       const next = await createNotificationAction(prev, formData)
@@ -232,18 +216,18 @@ function AddNotificationDialog() {
       <DialogTrigger asChild>
         <Button size="sm">
           <Plus data-icon="inline-start" />
-          Tambah
+          {c("actions.add")}
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Channel notifikasi baru</DialogTitle>
-          <DialogDescription>{HINT[type]}</DialogDescription>
+          <DialogTitle>{t("notifications.dialog.title")}</DialogTitle>
+          <DialogDescription>{hint}</DialogDescription>
         </DialogHeader>
         <form action={action} noValidate>
           <FieldGroup>
             <Field data-invalid={!!state.fieldErrors?.name || undefined}>
-              <FieldLabel htmlFor="ntf-name">Nama</FieldLabel>
+              <FieldLabel htmlFor="ntf-name">{c("labels.name")}</FieldLabel>
               <Input
                 id="ntf-name"
                 name="name"
@@ -253,7 +237,7 @@ function AddNotificationDialog() {
               <FieldError errors={errs("name")} />
             </Field>
             <Field>
-              <FieldLabel htmlFor="ntf-type">Tipe</FieldLabel>
+              <FieldLabel htmlFor="ntf-type">{c("labels.type")}</FieldLabel>
               <Select
                 name="type"
                 value={type}
@@ -263,9 +247,9 @@ function AddNotificationDialog() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {(Object.keys(TYPE_LABEL) as NotificationType[]).map((t) => (
-                    <SelectItem key={t} value={t}>
-                      {TYPE_LABEL[t]}
+                  {(Object.keys(TYPE_LABEL) as NotificationType[]).map((k) => (
+                    <SelectItem key={k} value={k}>
+                      {TYPE_LABEL[k]}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -276,7 +260,9 @@ function AddNotificationDialog() {
                 <Field
                   data-invalid={!!state.fieldErrors?.botToken || undefined}
                 >
-                  <FieldLabel htmlFor="ntf-token">Bot token</FieldLabel>
+                  <FieldLabel htmlFor="ntf-token">
+                    {t("notifications.dialog.botToken")}
+                  </FieldLabel>
                   <Input
                     id="ntf-token"
                     name="botToken"
@@ -288,7 +274,9 @@ function AddNotificationDialog() {
                   <FieldError errors={errs("botToken")} />
                 </Field>
                 <Field data-invalid={!!state.fieldErrors?.chatId || undefined}>
-                  <FieldLabel htmlFor="ntf-chat">Chat ID</FieldLabel>
+                  <FieldLabel htmlFor="ntf-chat">
+                    {t("notifications.dialog.chatId")}
+                  </FieldLabel>
                   <Input
                     id="ntf-chat"
                     name="chatId"
@@ -304,7 +292,9 @@ function AddNotificationDialog() {
               <Field
                 data-invalid={!!state.fieldErrors?.webhookUrl || undefined}
               >
-                <FieldLabel htmlFor="ntf-webhook">Webhook URL</FieldLabel>
+                <FieldLabel htmlFor="ntf-webhook">
+                  {t("notifications.dialog.webhookUrl")}
+                </FieldLabel>
                 <Input
                   id="ntf-webhook"
                   name="webhookUrl"
@@ -318,7 +308,7 @@ function AddNotificationDialog() {
             )}
             {type === "webhook" && (
               <Field data-invalid={!!state.fieldErrors?.url || undefined}>
-                <FieldLabel htmlFor="ntf-url">URL</FieldLabel>
+                <FieldLabel htmlFor="ntf-url">{c("labels.url")}</FieldLabel>
                 <Input
                   id="ntf-url"
                   name="url"
@@ -331,7 +321,9 @@ function AddNotificationDialog() {
             )}
             {type === "webhook" && (
               <Field>
-                <FieldLabel htmlFor="ntf-secret">Secret (opsional)</FieldLabel>
+                <FieldLabel htmlFor="ntf-secret">
+                  {t("notifications.dialog.secretOptional")}
+                </FieldLabel>
                 <Input
                   id="ntf-secret"
                   name="secret"
@@ -340,10 +332,9 @@ function AddNotificationDialog() {
                   defaultValue={state.values?.secret}
                 />
                 <FieldDescription>
-                  Bila diisi, tiap kiriman membawa{" "}
-                  <code>X-Aoox-Signature: sha256=HMAC(secret, body)</code> (plus{" "}
-                  <code>X-Aoox-Event</code> dan <code>X-Aoox-Delivery</code>) —
-                  verifikasi seperti webhook GitHub.
+                  {t.rich("notifications.dialog.secretHelp", {
+                    code: (chunks) => <code>{chunks}</code>,
+                  })}
                 </FieldDescription>
               </Field>
             )}
@@ -353,7 +344,9 @@ function AddNotificationDialog() {
                   <Field
                     data-invalid={!!state.fieldErrors?.smtpHost || undefined}
                   >
-                    <FieldLabel htmlFor="ntf-smtp-host">Host SMTP</FieldLabel>
+                    <FieldLabel htmlFor="ntf-smtp-host">
+                      {t("notifications.dialog.smtpHost")}
+                    </FieldLabel>
                     <Input
                       id="ntf-smtp-host"
                       name="smtpHost"
@@ -366,7 +359,9 @@ function AddNotificationDialog() {
                   <Field
                     data-invalid={!!state.fieldErrors?.smtpPort || undefined}
                   >
-                    <FieldLabel htmlFor="ntf-smtp-port">Port</FieldLabel>
+                    <FieldLabel htmlFor="ntf-smtp-port">
+                      {c("labels.port")}
+                    </FieldLabel>
                     <Input
                       id="ntf-smtp-port"
                       name="smtpPort"
@@ -379,7 +374,7 @@ function AddNotificationDialog() {
                 </div>
                 <label className="flex items-center gap-2 text-xs">
                   <Switch name="smtpSecure" />
-                  TLS implisit (port 465)
+                  {t("notifications.dialog.implicitTls")}
                 </label>
                 <div className="grid gap-3 sm:grid-cols-2">
                   <Field>
@@ -392,7 +387,9 @@ function AddNotificationDialog() {
                     />
                   </Field>
                   <Field>
-                    <FieldLabel htmlFor="ntf-smtp-pass">Password</FieldLabel>
+                    <FieldLabel htmlFor="ntf-smtp-pass">
+                      {c("labels.password")}
+                    </FieldLabel>
                     <Input
                       id="ntf-smtp-pass"
                       name="smtpPassword"
@@ -402,7 +399,9 @@ function AddNotificationDialog() {
                   </Field>
                 </div>
                 <Field data-invalid={!!state.fieldErrors?.from || undefined}>
-                  <FieldLabel htmlFor="ntf-from">Pengirim</FieldLabel>
+                  <FieldLabel htmlFor="ntf-from">
+                    {t("notifications.dialog.sender")}
+                  </FieldLabel>
                   <Input
                     id="ntf-from"
                     name="from"
@@ -414,7 +413,9 @@ function AddNotificationDialog() {
                   <FieldError errors={errs("from")} />
                 </Field>
                 <Field data-invalid={!!state.fieldErrors?.to || undefined}>
-                  <FieldLabel htmlFor="ntf-to">Penerima</FieldLabel>
+                  <FieldLabel htmlFor="ntf-to">
+                    {t("notifications.dialog.recipient")}
+                  </FieldLabel>
                   <Input
                     id="ntf-to"
                     name="to"
@@ -422,13 +423,15 @@ function AddNotificationDialog() {
                     defaultValue={state.values?.to}
                     required
                   />
-                  <FieldDescription>Pisahkan dengan koma.</FieldDescription>
+                  <FieldDescription>
+                    {t("notifications.dialog.recipientHelp")}
+                  </FieldDescription>
                   <FieldError errors={errs("to")} />
                 </Field>
               </>
             )}
             <div className="grid grid-cols-2 gap-x-6 gap-y-2">
-              {EVENT_LABEL.map(([name, label]) => (
+              {EVENTS.map((name) => (
                 <label
                   key={name}
                   className="flex items-center gap-2 text-xs capitalize"
@@ -437,12 +440,12 @@ function AddNotificationDialog() {
                     name={name}
                     defaultChecked={DEFAULT_CHECKED_EVENTS.has(name)}
                   />
-                  {label}
+                  {t(`notifications.events.${name}`)}
                 </label>
               ))}
             </div>
             <FieldDescription>
-              Token/URL tidak bisa dilihat lagi setelah disimpan.
+              {t("notifications.dialog.secretsNote")}
             </FieldDescription>
             {state.error && (
               <FieldDescription className="text-destructive" role="alert">
@@ -451,7 +454,7 @@ function AddNotificationDialog() {
             )}
             <div className="flex justify-end">
               <Button type="submit" disabled={pending}>
-                {pending ? "Menyimpan…" : "Simpan"}
+                {pending ? c("states.saving") : c("actions.save")}
               </Button>
             </div>
           </FieldGroup>

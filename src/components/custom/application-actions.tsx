@@ -1,6 +1,7 @@
 "use client"
 
 import { Play, Rocket, Square } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { useRouter } from "next/navigation"
 import { useState, useTransition } from "react"
 import { Button } from "@/components/ui/button"
@@ -30,6 +31,8 @@ export function ApplicationStatusActions({
   app: ApplicationDetail
   deployments: DeploymentSummary[]
 }) {
+  const t = useTranslations("applications")
+  const tc = useTranslations("common")
   const router = useRouter()
   const [pending, start] = useTransition()
   const [error, setError] = useState<string | null>(null)
@@ -42,7 +45,7 @@ export function ApplicationStatusActions({
     start(async () => {
       setError(null)
       const r = await fn()
-      if (!r.ok) setError(r.error ?? "Gagal")
+      if (!r.ok) setError(r.error ?? t("actions.failed"))
       else router.refresh()
     })
 
@@ -64,7 +67,7 @@ export function ApplicationStatusActions({
         }
       >
         <Rocket data-icon="inline-start" />
-        {active ? "Sedang deploy…" : "Deploy"}
+        {active ? t("actions.deploying") : t("actions.deploy")}
       </Button>
       {app.container &&
         (running ? (
@@ -74,7 +77,7 @@ export function ApplicationStatusActions({
             onClick={() => run(() => stopApplicationAction(app.id))}
           >
             <Square data-icon="inline-start" />
-            Stop
+            {tc("actions.stop")}
           </Button>
         ) : (
           <Button
@@ -83,7 +86,7 @@ export function ApplicationStatusActions({
             onClick={() => run(() => startApplicationAction(app.id))}
           >
             <Play data-icon="inline-start" />
-            Start
+            {tc("actions.start")}
           </Button>
         ))}
       {error && (

@@ -1,6 +1,7 @@
 "use client"
 
 import { Loader2 } from "lucide-react"
+import { useTranslations } from "next-intl"
 import Link from "next/link"
 import { useRouter } from "@/lib/use-router"
 import { useActionState, useEffect, useRef } from "react"
@@ -63,9 +64,11 @@ export function ComposeForm({
   source?: "git" | "template"
   /** Create dialog only: lets the dialog lock its close button while submitting. */
   onPendingChange?: (pending: boolean) => void
-  /** Standalone create page only: renders a "Batal" link back to the project. */
+  /** Standalone create page only: renders a "Cancel" link back to the project. */
   cancelHref?: string
 }) {
+  const t = useTranslations("compose")
+  const tc = useTranslations("common")
   const initial = { ...EMPTY, ...defaultValues }
   const [state, formAction, pending] = useActionState(action, {
     values: initial,
@@ -87,12 +90,12 @@ export function ComposeForm({
     if (wasPendingRef.current && !pending) {
       if (state.createdId) {
         toast.success(
-          `Stack "${state.values?.name ?? ""}" dibuat — sedang deploy.`,
+          t("form.toast.created", { name: state.values?.name ?? "" }),
           { id: toastIdRef.current }
         )
         router.push(`/compose/${state.createdId}`)
       } else if (state.error || state.fieldErrors) {
-        toast.error(state.error ?? "Periksa isian form", {
+        toast.error(state.error ?? t("form.toast.checkForm"), {
           id: toastIdRef.current,
         })
       }
@@ -114,7 +117,11 @@ export function ComposeForm({
           ? (e) => {
               const formData = new FormData(e.currentTarget)
               toastIdRef.current = toast.loading(
-                `Membuat stack ${String(formData.get("name") || "").trim() || "baru"}…`
+                t("form.toast.creating", {
+                  name:
+                    String(formData.get("name") || "").trim() ||
+                    t("form.toast.newName"),
+                })
               )
             }
           : undefined
@@ -124,7 +131,7 @@ export function ComposeForm({
       <input type="hidden" name="source" value={source} />
       <FieldGroup>
         <Field data-invalid={invalid("name")}>
-          <FieldLabel htmlFor="cmp-name">Nama</FieldLabel>
+          <FieldLabel htmlFor="cmp-name">{tc("labels.name")}</FieldLabel>
           <Input id="cmp-name" name="name" defaultValue={v.name} required />
           <FieldError errors={errs("name")} />
         </Field>
@@ -141,8 +148,7 @@ export function ComposeForm({
               className="font-mono text-xs"
             />
             <FieldDescription>
-              Disalin dari template saat dibuat; boleh diubah bebas. Cara
-              service dibuka (domain atau IP &amp; port) diatur di kartu Akses.
+              {t("form.templateHint")}
             </FieldDescription>
             <FieldError errors={errs("composeContent")} />
           </Field>
@@ -151,7 +157,7 @@ export function ComposeForm({
         {source === "git" && (
           <>
             <Field data-invalid={invalid("gitUrl")}>
-              <FieldLabel htmlFor="cmp-git">Git repository</FieldLabel>
+              <FieldLabel htmlFor="cmp-git">{t("form.gitRepository")}</FieldLabel>
               <Input
                 id="cmp-git"
                 name="gitUrl"
@@ -164,7 +170,7 @@ export function ComposeForm({
 
             <div className="grid gap-4 sm:grid-cols-2">
               <Field data-invalid={invalid("gitBranch")}>
-                <FieldLabel htmlFor="cmp-branch">Branch</FieldLabel>
+                <FieldLabel htmlFor="cmp-branch">{t("form.branch")}</FieldLabel>
                 <Input
                   id="cmp-branch"
                   name="gitBranch"
@@ -173,7 +179,7 @@ export function ComposeForm({
                 <FieldError errors={errs("gitBranch")} />
               </Field>
               <Field data-invalid={invalid("composePath")}>
-                <FieldLabel htmlFor="cmp-path">File compose</FieldLabel>
+                <FieldLabel htmlFor="cmp-path">{t("form.composeFile")}</FieldLabel>
                 <Input
                   id="cmp-path"
                   name="composePath"
@@ -181,15 +187,14 @@ export function ComposeForm({
                   defaultValue={v.composePath}
                 />
                 <FieldDescription>
-                  Relatif dari root repo; path relatif di dalamnya (build,
-                  volume) dihitung dari folder file ini.
+                  {t("form.composePathHint")}
                 </FieldDescription>
                 <FieldError errors={errs("composePath")} />
               </Field>
             </div>
 
             <Field>
-              <FieldLabel htmlFor="cmp-cred">Kredensial Git</FieldLabel>
+              <FieldLabel htmlFor="cmp-cred">{t("form.gitCredential")}</FieldLabel>
               <Select
                 name="gitCredentialId"
                 defaultValue={v.gitCredentialId || "none"}
@@ -198,7 +203,7 @@ export function ComposeForm({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="none">Tidak ada (repo publik)</SelectItem>
+                  <SelectItem value="none">{t("form.noCredential")}</SelectItem>
                   {credentials.map((c) => (
                     <SelectItem key={c.id} value={c.id}>
                       {c.name} · {c.username}
@@ -211,27 +216,24 @@ export function ComposeForm({
         )}
 
         <Field data-invalid={invalid("env")}>
-          <FieldLabel>Environment (.env)</FieldLabel>
+          <FieldLabel>{t("form.env")}</FieldLabel>
           <EnvEditor name="env" defaultValue={v.env} />
           <FieldDescription>
-            Ditulis ke <code>.aoox.env</code> dan dipakai sebagai sumber
-            interpolasi <code>{"${VAR}"}</code> di file compose (tidak otomatis
-            masuk ke container — pakai <code>environment:</code> atau{" "}
-            <code>env_file: .aoox.env</code>). Mendukung{" "}
-            <code>{"${{project.KEY}}"}</code>
-            {databaseSlugs?.length ? (
-              <>
-                {" "}
-                dan{" "}
-                {databaseSlugs.map((s, i) => (
-                  <span key={s}>
-                    {i > 0 && ", "}
-                    <code>{`\${{database.${s}.url}}`}</code>
-                  </span>
-                ))}
-              </>
-            ) : null}
-            .
+            {t.rich(databaseSlugs?.length ? "form.envHintDb" : "form.envHint", {
+              varExample: "${VAR}",
+              projectRef: "${{project.KEY}}",
+              code: (chunks) => <code>{chunks}</code>,
+              databases: () => (
+                <>
+                  {(databaseSlugs ?? []).map((s, i) => (
+                    <span key={s}>
+                      {i > 0 && ", "}
+                      <code>{`\${{database.${s}.url}}`}</code>
+                    </span>
+                  ))}
+                </>
+              ),
+            })}
           </FieldDescription>
           <FieldError errors={errs("env")} />
         </Field>
@@ -243,14 +245,14 @@ export function ComposeForm({
         )}
         {state.saved && !state.error && (
           <FieldDescription>
-            Tersimpan — berlaku pada deploy berikutnya.
+            {t("form.saved")}
           </FieldDescription>
         )}
 
         <div className="flex justify-end gap-2">
           {cancelHref && (
             <Button asChild variant="outline">
-              <Link href={cancelHref}>Batal</Link>
+              <Link href={cancelHref}>{tc("actions.cancel")}</Link>
             </Button>
           )}
           <Button type="submit" disabled={pending}>
@@ -259,8 +261,8 @@ export function ComposeForm({
             )}
             {pending
               ? mode === "create"
-                ? "Membuat…"
-                : "Menyimpan…"
+                ? tc("states.creating")
+                : tc("states.saving")
               : submitLabel}
           </Button>
         </div>

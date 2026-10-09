@@ -1,0 +1,61 @@
+{
+  "errors": {
+    "serverUnreachable": "Tidak dapat terhubung ke server"
+  },
+  "page": {
+    "description": "Shell di host aoox atau server remote (<path></path>). Hati-hati: perintah dijalankan langsung di mesin tujuan."
+  },
+  "settingsPage": {
+    "description": "Ke mana web shell terhubung (lokal atau SSH ke host) dan key platform yang dipakainya."
+  },
+  "authorize": {
+    "button": "Otorisasi otomatis",
+    "title": "Otorisasi key SSH terminal?",
+    "description": "aoox akan menambahkan public key platform ke <code>~/.ssh/authorized_keys</code> milik user <code>{user}</code> di host ini. Tidak ada password atau private key yang ditulis.",
+    "confirm": "Otorisasi",
+    "ready": "Terminal siap"
+  },
+  "card": {
+    "sshDescription": "Shell di host lewat SSH ke <code>{target}</code>",
+    "defaultUser": "(user default — TERMINAL_SSH_USER kosong)",
+    "keySource": {
+      "envKey": "key dari konfigurasi",
+      "envPassword": "password dari konfigurasi",
+      "generated": "key otomatis"
+    },
+    "localDescription": "Shell lokal di samping proses API. Di Docker, set <code>TERMINAL_SSH_HOST</code> agar terminal masuk ke host.",
+    "needsAttention": "Perlu perhatian",
+    "local": "Lokal",
+    "authorizeInstruction": "Jalankan sekali di host sebagai user <code>{user}</code> agar key ini diizinkan login:",
+    "commandLabel": "perintah",
+    "publicKey": "Public key:",
+    "publicKeyLabel": "public key",
+    "copy": "Salin {label}",
+    "copied": "{label} disalin",
+    "copyFailed": "Gagal menyalin {label}"
+  },
+  "view": {
+    "status": {
+      "connecting": "Menghubungkan…",
+      "connected": "Terhubung",
+      "closed": "Terputus",
+      "error": "Gagal"
+    },
+    "ticketFailed": "Tidak dapat membuat tiket terminal.",
+    "shellExited": "shell keluar dengan kode {code}",
+    "origin": {
+      "title": "Terminal tidak bisa diakses lewat alamat ini",
+      "description": "Panel ini sudah punya domain kustom (<code>{webOrigin}</code>), dan fitur Terminal hanya menerima koneksi dari domain itu — bukan dari <code>{browserOrigin}</code> yang sedang kamu pakai. Ini proteksi keamanan bawaan, bukan bug.",
+      "open": "Buka Terminal di {webOrigin}"
+    },
+    "targetLabel": "Target terminal",
+    "hostAoox": "Host aoox",
+    "reconnect": "Sambung ulang",
+    "hint": {
+      "title": "Terminal belum bisa terhubung ke targetnya",
+      "ownerOnly": "Periksa pengaturan koneksinya di <page></page> — halaman itu hanya bisa dibuka owner.",
+      "checkSettings": "Periksa pengaturan koneksinya di <link></link>, lalu klik Sambung ulang.",
+      "sshAuthFailed": "Kalau galatnya \"SSH authentication failed\": perintah otorisasi harus dijalankan di host sebagai user yang sama dengan kolom <b>User</b> di Environment. Login root sering ditolak sshd di VPS cloud, jadi di Ubuntu isi User dengan user login kamu (biasanya <code>ubuntu</code>), simpan, lalu jalankan perintah otorisasi sebagai user itu."
+    }
+  }
+}

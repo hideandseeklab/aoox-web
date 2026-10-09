@@ -8,6 +8,7 @@ import {
   Save,
   Trash2,
 } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { useState, useTransition } from "react"
 import { EmptyState } from "@/components/custom/empty-state"
 import { Badge } from "@/components/ui/badge"
@@ -41,11 +42,6 @@ import type {
   MountType,
 } from "@/features/application/application.entity"
 
-const TYPE_LABEL: Record<MountType, string> = {
-  volume: "Volume",
-  bind: "Bind (host)",
-  file: "File",
-}
 const TYPE_ICON = { volume: HardDrive, bind: FolderOpen, file: FileText }
 
 /**
@@ -64,6 +60,8 @@ export function ComposeMounts({
   mounts: Mount[]
   canBind: boolean
 }) {
+  const t = useTranslations("compose")
+  const tc = useTranslations("common")
   const owner = { kind: "compose" as const, id: appId }
   const [service, setService] = useState("")
   const [type, setType] = useState<MountType>("volume")
@@ -79,7 +77,7 @@ export function ComposeMounts({
     start(async () => {
       setError(null)
       const r = await fn()
-      if (!r.ok) setError(r.error ?? "Gagal")
+      if (!r.ok) setError(r.error ?? tc("states.failed"))
       else {
         setName("")
         setHostPath("")
@@ -93,7 +91,7 @@ export function ComposeMounts({
     <div className="space-y-4">
       {mounts.length === 0 && (
         <EmptyState icon={HardDrive} compact>
-          Belum ada mount.
+          {t("mounts.empty")}
         </EmptyState>
       )}
       {mounts.length > 0 && (
@@ -106,12 +104,11 @@ export function ComposeMounts({
 
       <Card>
         <CardHeader>
-          <CardTitle>Tambah mount</CardTitle>
+          <CardTitle>{t("mounts.addTitle")}</CardTitle>
           <CardDescription>
-            <b>Volume</b>: data persisten yang bertahan antar deploy.{" "}
-            <b>Bind</b>: folder/file di host (hanya owner/admin). <b>File</b>:
-            file konfigurasi kecil yang disimpan di sini dan di-mount read-only.
-            Berlaku pada deploy berikutnya.
+            {t.rich("mounts.addDescription", {
+              b: (chunks) => <b>{chunks}</b>,
+            })}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -135,7 +132,7 @@ export function ComposeMounts({
           >
             <div className="flex flex-wrap items-end gap-3">
               <div className="space-y-1">
-                <Label htmlFor="cmt-service">Service</Label>
+                <Label htmlFor="cmt-service">{t("access.service")}</Label>
                 <Input
                   id="cmt-service"
                   value={service}
@@ -146,7 +143,7 @@ export function ComposeMounts({
                 />
               </div>
               <div className="space-y-1">
-                <Label htmlFor="cmt-type">Jenis</Label>
+                <Label htmlFor="cmt-type">{t("mounts.kind")}</Label>
                 <Select
                   value={type}
                   onValueChange={(v) => setType(v as MountType)}
@@ -155,17 +152,19 @@ export function ComposeMounts({
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="volume">Volume</SelectItem>
-                    <SelectItem value="bind" disabled={!canBind}>
-                      Bind (host)
+                    <SelectItem value="volume">
+                      {t("mounts.type.volume")}
                     </SelectItem>
-                    <SelectItem value="file">File</SelectItem>
+                    <SelectItem value="bind" disabled={!canBind}>
+                      {t("mounts.type.bind")}
+                    </SelectItem>
+                    <SelectItem value="file">{t("mounts.type.file")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               {type === "volume" && (
                 <div className="space-y-1">
-                  <Label htmlFor="cmt-name">Nama volume</Label>
+                  <Label htmlFor="cmt-name">{t("mounts.volumeName")}</Label>
                   <Input
                     id="cmt-name"
                     value={name}
@@ -178,7 +177,7 @@ export function ComposeMounts({
               )}
               {type === "bind" && (
                 <div className="min-w-56 flex-1 space-y-1">
-                  <Label htmlFor="cmt-host">Path di host</Label>
+                  <Label htmlFor="cmt-host">{t("mounts.hostPath")}</Label>
                   <Input
                     id="cmt-host"
                     value={hostPath}
@@ -190,7 +189,7 @@ export function ComposeMounts({
                 </div>
               )}
               <div className="min-w-56 flex-1 space-y-1">
-                <Label htmlFor="cmt-path">Path di container</Label>
+                <Label htmlFor="cmt-path">{t("mounts.containerPath")}</Label>
                 <Input
                   id="cmt-path"
                   value={containerPath}
@@ -205,13 +204,13 @@ export function ComposeMounts({
               {type !== "file" && (
                 <label className="mb-2 flex items-center gap-2 text-xs">
                   <Switch checked={readOnly} onCheckedChange={setReadOnly} />
-                  Read-only
+                  {t("mounts.readOnly")}
                 </label>
               )}
             </div>
             {type === "file" && (
               <div className="space-y-1">
-                <Label htmlFor="cmt-content">Isi file</Label>
+                <Label htmlFor="cmt-content">{t("mounts.fileContent")}</Label>
                 <Textarea
                   id="cmt-content"
                   value={content}
@@ -230,7 +229,7 @@ export function ComposeMounts({
             <div className="flex justify-end">
               <Button type="submit" disabled={pending}>
                 <Plus data-icon="inline-start" />
-                {pending ? "Menyimpan…" : "Tambah"}
+                {pending ? tc("states.saving") : tc("actions.add")}
               </Button>
             </div>
           </form>
@@ -247,6 +246,8 @@ function MountRow({
   owner: { kind: "compose"; id: string }
   mount: Mount
 }) {
+  const t = useTranslations("compose")
+  const tc = useTranslations("common")
   const [content, setContent] = useState(mount.content ?? "")
   const [error, setError] = useState<string | null>(null)
   const [pending, start] = useTransition()
@@ -257,12 +258,12 @@ function MountRow({
     start(async () => {
       setError(null)
       const r = await fn()
-      if (!r.ok) setError(r.error ?? "Gagal")
+      if (!r.ok) setError(r.error ?? tc("states.failed"))
     })
 
   const source =
     mount.type === "volume"
-      ? `volume ${mount.name}`
+      ? t("mounts.volumeSource", { name: mount.name ?? "" })
       : mount.type === "bind"
         ? mount.hostPath
         : mount.name
@@ -281,29 +282,29 @@ function MountRow({
             </CardDescription>
           </div>
           <Badge variant="secondary">{mount.service}</Badge>
-          <Badge variant="outline">{TYPE_LABEL[mount.type]}</Badge>
+          <Badge variant="outline">{t(`mounts.type.${mount.type}`)}</Badge>
           {mount.readOnly && <Badge variant="secondary">ro</Badge>}
           <ConfirmDialog
             trigger={
               <Button
                 variant="ghost"
                 size="icon-sm"
-                aria-label="Hapus mount"
+                aria-label={t("mounts.detachAria")}
                 disabled={pending}
               >
                 <Trash2 />
               </Button>
             }
-            title={`Lepas mount ${mount.name}?`}
+            title={t("mounts.detachTitle", { name: mount.name ?? "" })}
             description={
               mount.type === "volume"
-                ? "Mount dilepas dari container. Pilih apa yang terjadi pada volume Docker-nya: dibiarkan (data tetap ada) atau ikut dihapus (data hilang permanen dan tidak bisa dibatalkan)."
-                : "Mount dilepas dari container. Ini tidak bisa dibatalkan."
+                ? t("mounts.detachDescriptionVolume")
+                : t("mounts.detachDescriptionOther")
             }
             confirmLabel={
               mount.type === "volume"
-                ? "Lepas dan hapus volume (data hilang)"
-                : "Lepas mount"
+                ? t("mounts.detachAndDelete")
+                : t("mounts.detach")
             }
             tone={mount.type === "volume" ? "destructive" : "neutral"}
             onConfirm={() =>
@@ -312,7 +313,7 @@ function MountRow({
             alternative={
               mount.type === "volume"
                 ? {
-                    label: "Lepas mount saja (data tetap ada)",
+                    label: t("mounts.detachKeepData"),
                     onConfirm: () => deleteMountAction(owner, mount.id, false),
                   }
                 : undefined
@@ -328,7 +329,7 @@ function MountRow({
             rows={Math.min(20, Math.max(4, content.split("\n").length + 1))}
             spellCheck={false}
             className="font-mono text-xs"
-            aria-label={`Isi ${mount.name}`}
+            aria-label={t("mounts.contentAria", { name: mount.name ?? "" })}
           />
           <div className="flex items-center justify-end gap-3">
             {error && (
@@ -345,7 +346,7 @@ function MountRow({
               }
             >
               <Save data-icon="inline-start" />
-              {pending ? "Menyimpan…" : "Simpan"}
+              {pending ? tc("states.saving") : tc("actions.save")}
             </Button>
           </div>
         </CardContent>

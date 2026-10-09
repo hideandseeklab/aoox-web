@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server"
 import { ProxyCard } from "@/components/custom/proxy-card"
 import { ProxyConfigCard } from "@/components/custom/proxy-config-card"
 import { canUseTerminal } from "@/features/auth/auth.entity"
@@ -10,13 +11,17 @@ import {
 import { listServers } from "@/features/server/server.queries"
 import { InfraPage } from "../infra-page"
 
-export const metadata = { title: "Reverse proxy · aoox" }
+export async function generateMetadata() {
+  const t = await getTranslations("infra.pages.proxy")
+  return { title: t("metadata") }
+}
 
 export default async function ProxyPage({
   searchParams,
 }: {
   searchParams: Promise<{ server?: string }>
 }) {
+  const t = await getTranslations("infra.pages.proxy")
   const [session, status, sp] = await Promise.all([
     getVerifiedSession(),
     getProxyStatus(),
@@ -26,10 +31,7 @@ export default async function ProxyPage({
   // The dynamic-config editor is owner/admin only (the API enforces it as well).
   const config = canManage ? await loadConfig(sp.server) : null
   return (
-    <InfraPage
-      title="Reverse proxy"
-      description="Traefik di host ini: merutekan domain ke container aplikasi dan menerbitkan sertifikat HTTPS."
-    >
+    <InfraPage title={t("title")} description={t("description")}>
       <ProxyCard status={status} canManage={canManage} />
       {config && (
         <ProxyConfigCard {...config} isOwner={session?.user.role === "owner"} />

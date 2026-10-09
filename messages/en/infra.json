@@ -1,0 +1,368 @@
+{
+  "disk": {
+    "parts": {
+      "image": "Image",
+      "volume": "Volume",
+      "buildCache": "Build cache",
+      "container": "Container"
+    },
+    "title": "Docker disk",
+    "description": "{size} used by Docker on this host. The nightly cleanup (04:30) removes old deployments beyond each application's history, unused images, build cache and orphaned registry blobs.",
+    "reclaimable": "Can be freed now:",
+    "prunable": "{count, plural, one {# old deployment will be pruned} other {# old deployments will be pruned}}",
+    "orphans": "{count, plural, one {# orphan volume} other {# orphan volumes}} (named like aoox's, but no project/application owns it anymore) — only deleted if \"Also delete orphan volumes\" is checked:",
+    "cleaning": "Cleaning…",
+    "cleanNow": "Clean now",
+    "registryGc": "Also GC the local registry",
+    "pruneVolumes": "Also delete orphan volumes",
+    "last": "Last run {date}: {deployments, plural, one {# deployment} other {# deployments}}, {images, plural, one {# image} other {# images}}, {dangling} dangling, {reclaimed} freed, registry GC {registryGc}, BuildKit cache {buildkit}",
+    "lastVolumes": "{count, plural, one {# orphan volume deleted} other {# orphan volumes deleted}}",
+    "errors": "{count, plural, one {# error} other {# errors}}"
+  },
+  "env": {
+    "saved": "Saved — the API will restart briefly to apply it",
+    "title": "Environment",
+    "description": "A subset of the instance env vars you can change from here, without SSH into <code>.env.dist</code>. Saving restarts the API container briefly to apply the new values.",
+    "installDirTitle": "INSTALL_DIR is not set",
+    "installDirBody": "Set <code>INSTALL_DIR</code> in <code>.env.dist</code> to the absolute path of the folder holding <code>docker-compose.dist.yml</code> on this server, then restart the stack before saving from here.",
+    "applied": "Applied",
+    "appliedBody": "The API container will restart in a few seconds — the connection to this dashboard may drop briefly, which is expected.",
+    "terminal": {
+      "title": "SSH Terminal (to the host)",
+      "description": "The web Terminal always connects over SSH (the container cannot open a host shell directly). Fill this in to use it.",
+      "host": "Host",
+      "port": "Port",
+      "user": "User",
+      "userPlaceholder": "{user} (default)",
+      "userEmpty": "Not set — the terminal signs in as <code>{user}</code> (default).",
+      "userHint": "On an Ubuntu VPS this is usually <code>ubuntu</code>: root login is often rejected by sshd, so use your SSH login user.",
+      "password": "Password",
+      "passwordSet": "(already set)",
+      "passwordKeep": "•••••••• (leave empty to keep it)",
+      "passwordOptional": "optional — you can also use the platform SSH key",
+      "save": "Save SSH Terminal"
+    },
+    "network": {
+      "title": "Network",
+      "description": "Used for application domain DNS checks and the local registry address.",
+      "publicIp": "Public IP",
+      "publicIpPlaceholder": "empty = detect automatically",
+      "registryHost": "Registry public host",
+      "save": "Save Network"
+    }
+  },
+  "errors": {
+    "serverUnreachable": "Could not reach the server",
+    "pickBackupFile": "Choose a backup file first",
+    "backupNotFound": "Backup not found"
+  },
+  "instanceBackup": {
+    "failed": "Failed",
+    "title": "Instance backup",
+    "description": "A snapshot of this panel's database (projects, applications, users, servers, notifications — secrets stay encrypted). To move servers: install the same aoox version with the same <code>ENCRYPTION_KEY</code> and <code>JWT_SECRET</code>, then upload this file.",
+    "backupNow": "Back up now",
+    "restoreFromFile": "Restore from file",
+    "empty": "No backups yet.",
+    "scheduled": "scheduled",
+    "copiedToS3": "Copied to S3",
+    "onlyOnS3": "only on S3",
+    "rows": "{count, plural, one {# row} other {# rows}}",
+    "download": "Download",
+    "restore": "Restore",
+    "delete": "Delete",
+    "restoring": "Restoring…",
+    "cancel": "Cancel",
+    "presets": {
+      "off": "Off",
+      "daily": "Every day 01:00",
+      "every6h": "Every 6 hours",
+      "weekly": "Every week (Sunday 01:00)",
+      "custom": "Custom"
+    },
+    "schedule": "Schedule",
+    "cron": "Cron (5 fields)",
+    "keep": "Keep",
+    "destination": "S3 destination",
+    "localOnly": "Local only",
+    "saveSchedule": "Save schedule",
+    "restoreDone": "Restore finished: {rows, plural, one {# row} other {# rows}} in {tables, plural, one {# table} other {# tables}}",
+    "confirm": {
+      "title": "Restore instance?",
+      "description": "All panel data (projects, applications, users, settings) is replaced with the contents of the backup from {date}. Running containers are not touched. Changes made after that backup are lost."
+    },
+    "upload": {
+      "title": "Restore from file",
+      "description": "Upload the <code>*.json.gz</code> file downloaded from an instance backup. The aoox version (migrations) must match. All panel data is replaced.",
+      "file": "Backup file"
+    }
+  },
+  "page": {
+    "breadcrumb": "Infrastructure"
+  },
+  "pages": {
+    "proxy": {
+      "metadata": "Reverse proxy · aoox",
+      "title": "Reverse proxy",
+      "description": "Traefik on this host: routes domains to application containers and issues HTTPS certificates."
+    },
+    "servers": {
+      "metadata": "Remote servers · aoox",
+      "title": "Remote servers",
+      "description": "Other VPSs reached over SSH: where applications are deployed and Terminal targets."
+    },
+    "environment": {
+      "metadata": "Environment · aoox",
+      "title": "Environment",
+      "description": "Change some of this instance's env vars from the dashboard, without SSH."
+    },
+    "backup": {
+      "metadata": "Instance backup · aoox",
+      "title": "Instance backup",
+      "description": "A snapshot of this panel's database for moving servers or recovery."
+    },
+    "disk": {
+      "metadata": "Docker disk · aoox",
+      "title": "Docker disk",
+      "description": "Disk usage by images, volumes, containers and build cache; manual or nightly cleanup."
+    },
+    "domain": {
+      "metadata": "Panel domain · aoox",
+      "title": "Panel domain",
+      "description": "Reach this dashboard and API through your own domain."
+    },
+    "swarm": {
+      "metadata": "Docker Swarm · aoox",
+      "title": "Docker Swarm",
+      "description": "Service mode for applications (replicas, rolling updates) and the joined nodes."
+    },
+    "update": {
+      "metadata": "aoox update · aoox",
+      "title": "aoox update",
+      "description": "Check and apply updates for this panel itself."
+    }
+  },
+  "panelDomain": {
+    "title": "Panel domain",
+    "description": "Reach this dashboard and API through your own domain instead of <code>IP:port</code>. You need two DNS A records (dashboard and API) pointing to this server, and <code>INSTALL_DIR</code> set in <code>.env.dist</code>.",
+    "installDirTitle": "INSTALL_DIR is not set",
+    "installDirBody": "Set <code>INSTALL_DIR</code> in <code>.env.dist</code> to the absolute path of the folder containing <code>docker-compose.dist.yml</code> on this server, then restart the stack before saving a domain here.",
+    "webDomain": "Dashboard domain",
+    "apiDomain": "API domain",
+    "acmeEmail": "ACME email (Let's Encrypt)",
+    "current": "Currently installed: <code>{web}</code> · <code>{api}</code>",
+    "saving": "Saving…",
+    "saveApply": "Save & apply",
+    "applied": "Applied",
+    "appliedBody": "The panel will restart in a few seconds to install the new domain — the connection to this dashboard will drop for a moment, which is expected. Reload the page at <code>https://{host}</code> afterwards.",
+    "proxy": {
+      "title": "The reverse proxy was not active — it has been started automatically",
+      "intro": "The proxy (Traefik) was not running before, so it was enabled for you. The new domain is only reachable if these three things are also right — check them one by one if <code>https://{host}</code> still does not open after a few minutes:",
+      "dns": "DNS A records for <code>{web}</code> and <code>{api}</code> point to this server's IP (check: <code>nslookup {lookup}</code>).",
+      "domainFallback": "your-domain",
+      "ports": "Ports <code>80</code> and <code>443</code> are open to the public — both the OS firewall (<code>ufw</code>) and your VPS provider's firewall/security group.",
+      "cert": "Wait a moment: the HTTPS certificate (Let's Encrypt) is only issued by Traefik the first time the domain is accessed, which takes a few seconds up to a minute."
+    }
+  },
+  "proxyCard": {
+    "title": "Reverse proxy (Traefik)",
+    "description": "Routes domains to application containers through Docker labels. Port <code>{httpPort}</code> (HTTP) and <code>{httpsPort}</code> (HTTPS).",
+    "notInstalled": "Not installed",
+    "running": "Running",
+    "acmeLabel": "Automatic HTTPS certificates (Let's Encrypt):",
+    "acmeOn": "enabled for <code>{email}</code>",
+    "acmeOff": "disabled — set <code>PROXY_ACME_EMAIL</code> in the API, then enable it again.",
+    "provision": "Enable proxy",
+    "provisioning": "Setting up…",
+    "remove": "Remove proxy",
+    "failed": "Failed"
+  },
+  "proxyConfigCard": {
+    "title": "Dynamic configuration",
+    "description": "Custom Traefik middlewares, routers and services (basic auth, security headers, rate limit, IP allowlist, www redirect). Middlewares are attached per domain in the application's Domain tab. Dynamic configuration only; static configuration and certificates are not changed here.",
+    "newFile": "New file",
+    "proxyOn": "Proxy on",
+    "selectProxy": "Select proxy",
+    "hostOption": "aoox host",
+    "resyncHint": "Rewrite all enabled files to the proxy (e.g. after a restore or when the proxy was recreated)",
+    "resync": "Apply again",
+    "resynced": "{count, plural, one {# file rewritten to the proxy} other {# files rewritten to the proxy}}",
+    "remoteNote": "Remote server: this feature is written for remote servers but has not been tested there. Make sure its proxy is installed under Infrastructure → Remote servers.",
+    "warning": "Invalid files are rejected by Traefik and rolled back automatically, but a valid configuration can change the routing of every domain on this proxy. Middleware, router and service names must be unique per proxy. Traefik does not report every wrong value (e.g. an invalid service URL), so check the result after saving.",
+    "empty": "No configuration files yet.",
+    "emptyOwner": "No configuration files yet — create one from a preset or write your own.",
+    "usedBy": "{count, plural, one {# domain uses it} other {# domains use it}}",
+    "enableFile": "Enable {name}",
+    "editFile": "Edit {name}",
+    "viewFile": "View {name}",
+    "deleteFile": "Delete {name}",
+    "deleteTitle": "Delete {fileName}?",
+    "deleteInUse": "{count, plural, one {# domain still uses this file's middlewares, so it cannot be deleted. Detach them from the domain first.} other {# domains still use this file's middlewares, so it cannot be deleted. Detach them from the domains first.}}",
+    "deleteDescription": "The file is deleted from aoox and from the proxy. This cannot be undone.",
+    "delete": "Delete",
+    "summaryMiddleware": "middleware: {list}",
+    "summaryRouter": "router: {list}",
+    "summaryService": "service: {list}",
+    "disabled": "disabled",
+    "recreateTitle": "Recreate the proxy once?",
+    "recreateDescription": "The proxy on this server was created by an older aoox version, so it must be recreated once to load dynamic configuration: a few seconds without service for every domain on this proxy. Certificates and other routes are kept. This warning only appears once.",
+    "recreateConfirm": "Recreate proxy and save"
+  },
+  "proxyConfigEditor": {
+    "template": "# Traefik dynamic configuration (the \"http\" section only).\n# Example: a response header middleware, then attach it to a domain in the application's Domain tab.\nhttp:\n  middlewares:\n    example-header:\n      headers:\n        customResponseHeaders:\n          X-Powered-By: aoox\n",
+    "recreated": "The proxy was recreated once to load dynamic configuration.",
+    "savedLoaded": "Saved and loaded by Traefik",
+    "saved": "Saved",
+    "nameProblem": "Name: lowercase letters, digits, \"-\" (max. 40 characters).",
+    "editTitle": "Edit {fileName}",
+    "newTitle": "New configuration file",
+    "description": "Traefik dynamic configuration YAML. Only the <code>http</code> section (middlewares, routers, services, serversTransports) is accepted; certificates are managed in Settings. Traefik reloads the file without a restart.",
+    "fileName": "File name",
+    "namePlaceholder": "security-headers",
+    "nameFallback": "name",
+    "writtenAs": "Written as <code>user-{name}.yml</code>.",
+    "content": "Content (YAML)",
+    "loading": "Loading…",
+    "enabled": "Enabled (written to the proxy)",
+    "cancel": "Cancel",
+    "close": "Close",
+    "saving": "Saving…",
+    "save": "Save"
+  },
+  "proxyPresetDialog": {
+    "trigger": "From preset",
+    "title": "Create from preset",
+    "description": "Generates middleware YAML that is ready to save. You can edit the result in the editor before saving.",
+    "preset": "Preset",
+    "cancel": "Cancel",
+    "creating": "Creating…",
+    "create": "Create YAML"
+  },
+  "serverProxy": {
+    "title": "Proxy (Traefik) on this server",
+    "running": "running",
+    "notInstalled": "not installed",
+    "checkStatus": "Check proxy status",
+    "acmeEmail": "ACME email (optional)",
+    "staging": "staging",
+    "reenable": "Enable again",
+    "enable": "Enable",
+    "delete": "Delete",
+    "deleteTitle": "Delete the proxy on this server?",
+    "deleteDescription": "The proxy container on this server is stopped and removed. Application domains on this server stop being served until the proxy is enabled again.",
+    "deleteConfirm": "Delete proxy"
+  },
+  "servers": {
+    "title": "Remote servers",
+    "description": "Other VPSs you can open from the Terminal page over SSH. By default the aoox key below is used.",
+    "runOnce": "Run once on each server, as the user that will be used:",
+    "commandLabel": "command",
+    "keyUnavailable": "The platform key is not available yet.",
+    "empty": "No remote servers yet.",
+    "ownKey": "own key",
+    "testConnection": "Test connection {name}",
+    "delete": "Delete {name}",
+    "copy": "Copy {label}",
+    "copied": "Copied {label}",
+    "copyFailed": "Could not copy {label}",
+    "health": {
+      "up": "reachable",
+      "down": "unreachable",
+      "unchecked": "not checked yet",
+      "checked": "checked {time}",
+      "since": "since {time}",
+      "monitored": "{count, plural, one {# container monitored} other {# containers monitored}}"
+    },
+    "add": {
+      "trigger": "Add",
+      "title": "New remote server",
+      "description": "The server must be reachable over SSH from the aoox machine.",
+      "name": "Name",
+      "host": "Host",
+      "port": "Port",
+      "username": "Username",
+      "privateKey": "Private key (optional)",
+      "privateKeyHint": "Leave empty to use the aoox key (just run the command from this card on the server). Keys without a passphrase only.",
+      "saving": "Saving…",
+      "save": "Save"
+    }
+  },
+  "swarm": {
+    "failed": "Failed",
+    "copied": "{label} copied",
+    "copyFailed": "Could not copy {label}",
+    "description": "Runs applications as a <em>service</em> (replicas, rolling updates by the daemon) — chosen per application through <em>Deploy mode</em>. Databases, compose stacks and previews stay plain containers.",
+    "manager": "Manager",
+    "worker": "Worker",
+    "inactive": "Inactive",
+    "advertise": "Advertise address (optional)",
+    "advertisePlaceholder": "Public/private IP of the host, for other nodes",
+    "reinit": "Re-init swarm",
+    "init": "Init swarm",
+    "leader": "leader",
+    "engine": "engine {version}",
+    "drain": "Drain",
+    "activate": "Activate",
+    "removeNode": "Remove node",
+    "addNode": "Add a node: run this on another server (with Docker installed). Extra nodes cannot run aoox apps yet (the registry and volumes are still local) — a later stage.",
+    "copiedShort": "Copied",
+    "registryWarning": "The local registry address is <code>{url}</code> — other nodes cannot pull built images. Set <code>REGISTRY_PUBLIC_HOST</code> to a host address reachable by all nodes (and <code>insecure-registries</code> or TLS on each daemon), then re-enable the registry. Public images (Docker Hub, GHCR) are not affected.",
+    "serviceApps": "{count, plural, one {# application runs as a service.} other {# applications run as services.}}",
+    "leaveBlocked": "Switch the applications back to container mode first",
+    "leave": "Leave swarm",
+    "leaveTitle": "Leave the swarm?",
+    "leaveDescription": "This node leaves the swarm: services running there disappear, and the swarm overlay network is removed. The proxy will be reinstalled without swarm mode.",
+    "labelsPlaceholder": "labels: zone=eu tier=db",
+    "labelsAria": "Labels of node {hostname}",
+    "save": "Save"
+  },
+  "update": {
+    "timeoutToast": "The update is not finished after 5 minutes — the panel may need manual attention.",
+    "doneToast": "Update finished — version {version}.",
+    "sendingToast": "Sending the update command…",
+    "restartingToast": "Pulling images & restarting the panel…",
+    "title": "aoox update",
+    "description": "Check and apply updates for this panel itself — running version <code>{version}</code>.",
+    "installDirTitle": "INSTALL_DIR is not set",
+    "installDirBody": "Set <code>INSTALL_DIR</code> in <code>.env.dist</code> to the absolute path of the folder holding <code>docker-compose.dist.yml</code> on this server, then restart the stack before applying updates from here.",
+    "checking": "Checking…",
+    "check": "Check for updates",
+    "apply": "Apply update",
+    "cancel": "Cancel",
+    "timedOut": {
+      "title": "Not back after 5 minutes",
+      "intro": "The panel may still be working, or need manual attention. Check over SSH on the server:",
+      "manual": "If the containers do not come back, run the compose command manually from <code>INSTALL_DIR</code>:",
+      "docs": "See the Installation documentation for full details."
+    },
+    "confirm": {
+      "title": "Apply the update?",
+      "description": "The panel will restart (usually 1–3 minutes) — the connection to this dashboard will drop for a moment, which is expected. This page reloads by itself once the panel is back on the new version."
+    },
+    "version": {
+      "unknown": "The latest version could not be checked (this server may have no access to the registry). It is retried automatically every few hours.",
+      "pinned": "The images are installed with tag <code>{tag}</code> (not <code>:latest</code>), so updates are not tracked automatically. Latest published version: <code>v{latest}</code>.",
+      "untracked": "The installed image tag cannot be determined, so the sidebar button is not shown. Latest published version: <code>v{latest}</code>.",
+      "available": "<badge>Update available</badge> <code>v{latest}</code> has been published.",
+      "upToDate": "You are on the latest published version (<code>v{latest}</code>).",
+      "lastChecked": "Last checked {time}"
+    },
+    "progress": {
+      "sending": "Sending the update command",
+      "restarting": "Pulling images & restarting the panel, then waiting for it to come back"
+    },
+    "image": {
+      "newBaseline": "new baseline",
+      "available": "Update available",
+      "latest": "Latest"
+    }
+  },
+  "validation": {
+    "server": {
+      "nameRequired": "Name is required",
+      "hostRequired": "Host is required",
+      "hostInvalid": "Host must be a hostname or an IP",
+      "usernameRequired": "Username is required",
+      "usernameInvalid": "Invalid username"
+    }
+  }
+}

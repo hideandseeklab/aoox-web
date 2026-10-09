@@ -1,5 +1,6 @@
 "use client"
 
+import { useTranslations } from "next-intl"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Fragment } from "react"
@@ -13,18 +14,18 @@ import {
 } from "@/components/ui/breadcrumb"
 import { type Crumb, useBreadcrumb } from "./breadcrumb-store"
 
+/** Path segment -> key under `breadcrumb` in the message files. */
 const STATIC: Record<string, string> = {
-  "": "Dashboard",
-  projects: "Projects",
-  templates: "Templates",
-  registry: "Registry",
-  terminal: "Terminal",
-  settings: "Settings",
-  "audit-log": "Audit log",
-  infra: "Infrastruktur",
-  applications: "Aplikasi",
-  databases: "Database",
-  compose: "Stack compose",
+  projects: "projects",
+  templates: "templates",
+  registry: "registry",
+  terminal: "terminal",
+  settings: "settings",
+  "audit-log": "auditLog",
+  infra: "infrastructure",
+  applications: "applications",
+  databases: "databases",
+  compose: "compose",
 }
 
 /**
@@ -34,6 +35,7 @@ const STATIC: Record<string, string> = {
  * crumb subtree un-hydrated on a full page load until the first interaction.
  */
 export function AppBreadcrumb() {
+  const t = useTranslations("breadcrumb")
   const published = useBreadcrumb()
   const pathname = usePathname()
 
@@ -43,7 +45,7 @@ export function AppBreadcrumb() {
   } else {
     const segments = pathname.split("/").filter(Boolean)
     crumbs = segments.map((seg, i) => ({
-      label: STATIC[seg] ?? seg,
+      label: STATIC[seg] ? t(STATIC[seg]) : seg,
       href:
         i < segments.length - 1
           ? `/${segments.slice(0, i + 1).join("/")}`
@@ -53,8 +55,8 @@ export function AppBreadcrumb() {
   // Dashboard is always the root; on "/" it is the only crumb.
   const items: Crumb[] =
     pathname === "/"
-      ? [{ label: "Dashboard" }]
-      : [{ label: "Dashboard", href: "/" }, ...crumbs]
+      ? [{ label: t("dashboard") }]
+      : [{ label: t("dashboard"), href: "/" }, ...crumbs]
 
   return (
     <Breadcrumb>

@@ -1,5 +1,6 @@
 "use server"
 
+import { getTranslations } from "next-intl/server"
 import { requireToken } from "@/features/auth/auth.session"
 import { api, ApiError } from "@/lib/api"
 import type {
@@ -16,11 +17,12 @@ import type {
 export type ActionResult<T = undefined> =
   { ok: true; data: T } | { ok: false; error: string }
 
-function fail(err: unknown): { ok: false; error: string } {
+async function fail(err: unknown): Promise<{ ok: false; error: string }> {
+  const t = await getTranslations("common")
   return {
     ok: false,
     error:
-      err instanceof ApiError ? err.message : "Tidak dapat terhubung ke server",
+      err instanceof ApiError ? err.message : t("messages.serverUnreachable"),
   }
 }
 
@@ -36,7 +38,7 @@ export async function listTablesAction(
     )
     return { ok: true, data }
   } catch (err) {
-    return fail(err)
+    return await fail(err)
   }
 }
 
@@ -59,7 +61,7 @@ export async function fetchTableRowsAction(
     )
     return { ok: true, data }
   } catch (err) {
-    return fail(err)
+    return await fail(err)
   }
 }
 
@@ -78,7 +80,7 @@ export async function listColumnsAction(
     )
     return { ok: true, data }
   } catch (err) {
-    return fail(err)
+    return await fail(err)
   }
 }
 
@@ -101,7 +103,7 @@ export async function updateRowAction(
     )
     return { ok: true, data }
   } catch (err) {
-    return fail(err)
+    return await fail(err)
   }
 }
 
@@ -122,7 +124,7 @@ export async function deleteRowAction(
     )
     return { ok: true, data }
   } catch (err) {
-    return fail(err)
+    return await fail(err)
   }
 }
 
@@ -136,7 +138,7 @@ export async function fetchQueryHistoryAction(
     )
     return { ok: true, data }
   } catch (err) {
-    return fail(err)
+    return await fail(err)
   }
 }
 
@@ -150,7 +152,7 @@ export async function clearQueryHistoryAction(
     })
     return { ok: true, data: undefined }
   } catch (err) {
-    return fail(err)
+    return await fail(err)
   }
 }
 
@@ -167,7 +169,7 @@ export async function runQueryAction(
     })
     return { ok: true, data }
   } catch (err) {
-    return fail(err)
+    return await fail(err)
   }
 }
 
@@ -180,7 +182,7 @@ export async function listSchemasAction(
     })
     return { ok: true, data }
   } catch (err) {
-    return fail(err)
+    return await fail(err)
   }
 }
 
@@ -196,7 +198,7 @@ export async function createSchemaAction(
     })
     return { ok: true, data }
   } catch (err) {
-    return fail(err)
+    return await fail(err)
   }
 }
 
@@ -211,7 +213,7 @@ export async function dropSchemaAction(
     )
     return { ok: true, data: undefined }
   } catch (err) {
-    return fail(err)
+    return await fail(err)
   }
 }
 
@@ -228,7 +230,8 @@ export async function importSqlAction(
 ): Promise<ActionResult<{ message: string }>> {
   const file = formData.get("file")
   if (!(file instanceof File) || file.size === 0) {
-    return { ok: false, error: "Pilih file .sql dulu" }
+    const t = await getTranslations("database")
+    return { ok: false, error: t("browser.errors.pickSqlFile") }
   }
   const body = new FormData()
   body.set("file", file, file.name)
@@ -254,9 +257,9 @@ export async function importSqlAction(
     }
     return {
       ok: true,
-      data: { message: String(json.message ?? "Import selesai") },
+      data: { message: String(json.message ?? (await getTranslations("database"))("browser.importDone")) },
     }
   } catch {
-    return { ok: false, error: "Tidak dapat terhubung ke server" }
+    return await fail(null)
   }
 }

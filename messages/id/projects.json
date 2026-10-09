@@ -1,0 +1,123 @@
+{
+  "meta": {
+    "title": "Projects · aoox"
+  },
+  "list": {
+    "title": "Projects",
+    "subtitle": "Kelompokkan aplikasi dan database per project.",
+    "empty": "Belum ada project. Buat project pertama untuk mulai men-deploy."
+  },
+  "create": {
+    "trigger": "New project",
+    "title": "Project baru",
+    "description": "Project mengelompokkan aplikasi dan database yang di-deploy.",
+    "submit": "Buat project"
+  },
+  "card": {
+    "active": "active",
+    "inactive": "inactive",
+    "noDescription": "Tanpa deskripsi",
+    "noInstances": "Belum ada instance",
+    "runningCount": "{running}/{total} berjalan",
+    "deploying": "deploy…",
+    "kind": {
+      "application": "aplikasi",
+      "database": "database",
+      "compose": "stack"
+    }
+  },
+  "detail": {
+    "backToProjects": "Kembali ke projects",
+    "created": "Dibuat {date}",
+    "sections": {
+      "resourceUsage": "Resource usage",
+      "applications": "Aplikasi",
+      "compose": "Stack compose",
+      "databases": "Database"
+    },
+    "newApplication": "New application",
+    "newDatabase": "New database",
+    "composeStack": "Stack compose",
+    "fromTemplate": "Dari template",
+    "empty": {
+      "applications": "Belum ada aplikasi di project ini.",
+      "compose": "Belum ada stack compose di project ini.",
+      "databases": "Belum ada database di project ini."
+    },
+    "settings": {
+      "title": "Pengaturan",
+      "description": "Nama, deskripsi, dan environment bersama untuk semua aplikasi."
+    }
+  },
+  "form": {
+    "namePlaceholder": "my-app",
+    "envLabel": "Environment bersama",
+    "envHint": "Diwarisi semua aplikasi di project ini (env aplikasi menang bila key sama). Aplikasi bisa merujuknya sebagai <code>{ref}</code>. Berlaku pada deploy berikutnya."
+  },
+  "validation": {
+    "nameRequired": "Nama wajib diisi",
+    "maxChars": "Maksimal {max} karakter"
+  },
+  "instance": {
+    "noAccess": "Belum ada akses",
+    "openInNewTab": "Buka {label} di tab baru",
+    "remoteServer": "server remote",
+    "composeDeploying": "berjalan…",
+    "copied": "{address} disalin",
+    "copyFailed": "Gagal menyalin alamat",
+    "copyAria": "Salin {address}",
+    "internal": "internal"
+  },
+  "resource": {
+    "empty": "Tidak ada aplikasi/database/stack yang berjalan di project ini.",
+    "memory": "Memori",
+    "network": "Jaringan",
+    "containerSum": "jumlah {count} container"
+  },
+  "members": {
+    "title": "Anggota",
+    "description": "Siapa yang melihat project ini. Owner/admin platform dan pembuat project selalu termasuk; anggota lain ditambah lewat e-mail akun yang sudah ada (undang dari Settings<arrow></arrow>Tim).",
+    "creator": "pembuat project",
+    "platformRole": "{role} platform",
+    "roleAria": "Peran",
+    "removeAria": "Keluarkan",
+    "emailAria": "E-mail anggota",
+    "emailPlaceholder": "email@akun-yang-sudah-ada",
+    "newRoleAria": "Peran baru",
+    "add": "Tambah",
+    "failed": "Gagal",
+    "legend": "Admin mengelola anggota dan bisa menghapus project; developer melakukan aksi lain; viewer hanya membaca.",
+    "roles": {
+      "admin": "Admin",
+      "developer": "Developer",
+      "viewer": "Viewer"
+    }
+  },
+  "delete": {
+    "title": "Hapus project?",
+    "description": "Project <b>{name}</b> akan dihapus permanen."
+  },
+  "export": {
+    "label": "Ekspor konfigurasi (JSON)",
+    "withoutSecrets": "Tanpa rahasia",
+    "withoutSecretsHint": "Password database dikosongkan, dibuat baru saat impor",
+    "withSecrets": "Dengan password database",
+    "withSecretsHint": "Simpan file ini seperti rahasia lain"
+  },
+  "import": {
+    "title": "Impor project",
+    "description": "Buat project baru dari file ekspor (<code>*.aoox.json</code>). Tidak ada yang di-deploy; database dibuat kosong, aplikasi menunggu deploy pertama.",
+    "file": "File ekspor",
+    "name": "Nama project (opsional)",
+    "namePlaceholder": "Pakai nama dari file",
+    "submit": "Impor",
+    "submitting": "Mengimpor…",
+    "importing": "Mengimpor project {name}…",
+    "invalidJson": "File bukan JSON yang valid",
+    "imported": "Project diimpor.",
+    "importedWithWarnings": "Project diimpor dengan {count} catatan — periksa di bawah.",
+    "created": "Dibuat: {applications} aplikasi, {databases} database, {composeApps} compose, {domains} domain, {mounts} mount, {jobs} job.",
+    "needsReview": "Perlu diperiksa",
+    "openProject": "Buka project"
+  }
+}

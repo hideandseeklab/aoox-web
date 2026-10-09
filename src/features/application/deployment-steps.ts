@@ -1,3 +1,4 @@
+import { formatNumber } from "@/i18n/format"
 import type {
   DeploymentStatus,
   DeploymentStepTimes,
@@ -10,9 +11,13 @@ export type StepKey =
 
 export type StepState = "done" | "active" | "failed" | "pending"
 
+/** Translation key (under `stepper.steps`) of a step label. */
+export type StepLabelKey =
+  "queued" | "pull" | "build" | "push" | "start" | "finished" | "failed"
+
 export interface StepView {
   key: StepKey
-  label: string
+  labelKey: StepLabelKey
   state: StepState
   /** Milliseconds the step took (or has taken so far while active); null when unknown. */
   durationMs: number | null
@@ -37,24 +42,24 @@ interface StepInput {
 const TIMED: StepKey[] = ["building", "pushing", "starting"]
 
 /** Which steps a deployment goes through, by what it actually does. */
-function stepsFor(i: StepInput): { key: StepKey; label: string }[] {
-  const steps: { key: StepKey; label: string }[] = [
-    { key: "queued", label: "Antre" },
+function stepsFor(i: StepInput): { key: StepKey; labelKey: StepLabelKey }[] {
+  const steps: { key: StepKey; labelKey: StepLabelKey }[] = [
+    { key: "queued", labelKey: "queued" },
   ]
   const { kind, stepTimes } = i.deployment
   if (kind === "build" || kind === "auto-update") {
     if (i.sourceType === "image") {
-      steps.push({ key: "building", label: "Pull" })
+      steps.push({ key: "building", labelKey: "pull" })
     } else {
-      steps.push({ key: "building", label: "Build" })
+      steps.push({ key: "building", labelKey: "build" })
       // A push that really happened stays visible even if the app moved servers since.
       if (!i.remote || stepTimes?.pushing) {
-        steps.push({ key: "pushing", label: "Push" })
+        steps.push({ key: "pushing", labelKey: "push" })
       }
     }
   }
-  steps.push({ key: "starting", label: "Start" })
-  steps.push({ key: "finished", label: "Selesai" })
+  steps.push({ key: "starting", labelKey: "start" })
+  steps.push({ key: "finished", labelKey: "finished" })
   return steps
 }
 
@@ -126,19 +131,34 @@ export function buildSteps(i: StepInput): StepView[] {
       if (state === "active") durationMs = Math.max(0, i.now - start)
       else if (next !== undefined) durationMs = Math.max(0, next - start)
     }
-    const label = s.key === "finished" && state === "failed" ? "Gagal" : s.label
-    return { key: s.key, label, state, durationMs }
+    const labelKey: StepLabelKey =
+      s.key === "finished" && state === "failed" ? "failed" : s.labelKey
+    return { key: s.key, labelKey, state, durationMs }
   })
 }
 
-/** "850 ms", "3,2 dtk", "1 mnt 5 dtk". */
-export function formatDuration(ms: number): string {
-  if (ms < 1000) return `${Math.round(ms)} ms`
+type Translator = (key: string, values?: Record<string, string | number>) => string
+
+/** "850 ms", "3.2 s", "1 min 5 s"; `t` is the `applications` translator. */
+export function formatDuration(
+  ms: number,
+  locale: string,
+  t: Translator
+): string {
+  if (ms < 1000) return t("stepper.duration.ms", { value: Math.round(ms) })
   const s = ms / 1000
-  if (s < 60) return `${s.toFixed(s < 10 ? 1 : 0).replace(".", ",")} dtk`
-  const m = Math.floor(s / 60)
-  const rest = Math.round(s - m * 60)
-  return rest > 0 ? `${m} mnt ${rest} dtk` : `${m} mnt`
+  if (s < 60) {
+    const value = formatNumber(s, locale, {
+      minimumFractionDigits: s < 10 ? 1 : 0,
+      maximumFractionDigits: s < 10 ? 1 : 0,
+    })
+    return t("stepper.duration.seconds", { value })
+  }
+  const minutes = Math.floor(s / 60)
+  const seconds = Math.round(s - minutes * 60)
+  return seconds > 0
+    ? t("stepper.duration.minutesSeconds", { minutes, seconds })
+    : t("stepper.duration.minutes", { minutes })
 }
 
 /** Whole-deployment duration for the history list; null when it has not finished. */

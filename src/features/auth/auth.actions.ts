@@ -1,5 +1,6 @@
 "use server"
 
+import { getTranslations } from "next-intl/server"
 import { redirect } from "next/navigation"
 import { api, ApiError } from "@/lib/api"
 import type { SignInResponse, TwoFactorRequired } from "./auth.entity"
@@ -18,7 +19,8 @@ export async function signInAction(
   _prev: SignInState,
   formData: FormData
 ): Promise<SignInState> {
-  const parsed = signInSchema.safeParse({
+  const t = await getTranslations("auth")
+  const parsed = signInSchema(t).safeParse({
     email: formData.get("email"),
     password: formData.get("password"),
   })
@@ -46,9 +48,9 @@ export async function signInAction(
     const message =
       err instanceof ApiError
         ? err.status === 401
-          ? "Email atau password salah"
+          ? t("errors.invalidCredentials")
           : err.message
-        : "Tidak dapat terhubung ke server"
+        : t("errors.serverUnreachable")
     return { error: message, values: { email: parsed.data.email } }
   }
 
@@ -60,11 +62,12 @@ export async function signInTwoFactorAction(
   _prev: SignInState,
   formData: FormData
 ): Promise<SignInState> {
+  const t = await getTranslations("auth")
   const challengeToken = String(formData.get("challengeToken") ?? "")
   const code = String(formData.get("code") ?? "").trim()
   const email = String(formData.get("email") ?? "")
   if (!code) {
-    return { challengeToken, values: { email }, error: "Masukkan kode" }
+    return { challengeToken, values: { email }, error: t("errors.codeRequired") }
   }
   try {
     const result = await api<SignInResponse>("/auth/sign-in/2fa", {
@@ -77,8 +80,8 @@ export async function signInTwoFactorAction(
       // Challenge expired (5 min) → back to step one; otherwise just a wrong code.
       const expired = /sign in again/i.test(err.message)
       return expired
-        ? { values: { email }, error: "Sesi kedaluwarsa, masuk lagi" }
-        : { challengeToken, values: { email }, error: "Kode salah" }
+        ? { values: { email }, error: t("errors.sessionExpired") }
+        : { challengeToken, values: { email }, error: t("errors.codeWrong") }
     }
     return {
       challengeToken,
@@ -86,7 +89,7 @@ export async function signInTwoFactorAction(
       error:
         err instanceof ApiError
           ? err.message
-          : "Tidak dapat terhubung ke server",
+          : t("errors.serverUnreachable"),
     }
   }
   redirect("/")
@@ -103,11 +106,12 @@ export async function setupAction(
   _prev: SetupState,
   formData: FormData
 ): Promise<SetupState> {
+  const t = await getTranslations("auth")
   const values = {
     name: String(formData.get("name") ?? ""),
     email: String(formData.get("email") ?? ""),
   }
-  const parsed = setupSchema.safeParse({
+  const parsed = setupSchema(t).safeParse({
     ...values,
     password: formData.get("password"),
   })
@@ -126,9 +130,9 @@ export async function setupAction(
     const message =
       err instanceof ApiError
         ? err.status === 409
-          ? "Setup sudah pernah dilakukan. Silakan sign in."
+          ? t("errors.setupDone")
           : err.message
-        : "Tidak dapat terhubung ke server"
+        : t("errors.serverUnreachable")
     return { error: message, values }
   }
 

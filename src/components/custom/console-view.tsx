@@ -3,6 +3,7 @@
 import "@xterm/xterm/css/xterm.css"
 
 import { ExternalLink, RotateCw } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { io, type Socket } from "socket.io-client"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
@@ -28,13 +29,6 @@ type ConsoleSocket = Socket<ConsoleServerEvents, ConsoleClientEvents>
 
 type Status = "connecting" | "connected" | "closed" | "error"
 
-const STATUS_LABEL: Record<Status, string> = {
-  connecting: "Menghubungkan…",
-  connected: "Terhubung",
-  closed: "Terputus",
-  error: "Gagal",
-}
-
 export interface ConsoleTask {
   containerId: string
   label: string
@@ -54,6 +48,7 @@ export function ConsoleView({
    *  undefined/empty = plain container mode, the API picks the one container. */
   tasks?: ConsoleTask[]
 }) {
+  const t = useTranslations("applications")
   const hostRef = useRef<HTMLDivElement>(null)
   const [status, setStatus] = useState<Status>("connecting")
   const [attempt, setAttempt] = useState(0)
@@ -139,7 +134,7 @@ export function ConsoleView({
         ;({ ticket } = await createConsoleTicket(applicationId, task))
       } catch {
         if (!disposed) setStatus("error")
-        term.writeln("\x1b[31mTidak dapat membuka console.\x1b[0m")
+        term.writeln(`\x1b[31m${t("console.openFailed")}\x1b[0m`)
         return
       }
       if (disposed) return
@@ -162,7 +157,9 @@ export function ConsoleView({
       })
       socket.on("output", (data) => term.write(data))
       socket.on("exit", (code) =>
-        term.writeln(`\r\n\x1b[33m[sesi keluar dengan kode ${code}]\x1b[0m`)
+        term.writeln(
+          `\r\n\x1b[33m[${t("console.exited", { code })}]\x1b[0m`
+        )
       )
       socket.on("error", (message) => {
         setStatus("error")
@@ -188,24 +185,26 @@ export function ConsoleView({
       socket?.disconnect()
       cleanup?.()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- `t` is stable per locale; a locale change must not reopen the shell
   }, [attempt, applicationId, publicApiUrl, task])
 
   if (originMismatch) {
     const target = webOrigin + window.location.pathname + window.location.search
     return (
       <Alert variant="destructive">
-        <AlertTitle>Console tidak bisa diakses lewat alamat ini</AlertTitle>
+        <AlertTitle>{t("console.origin.title")}</AlertTitle>
         <AlertDescription className="space-y-3">
           <p>
-            Panel ini sudah punya domain kustom (<code>{webOrigin}</code>), dan
-            fitur Console hanya menerima koneksi dari domain itu — bukan dari{" "}
-            <code>{browserOrigin}</code> yang sedang kamu pakai. Ini proteksi
-            keamanan bawaan, bukan bug.
+            {t.rich("console.origin.body", {
+              code: (chunks) => <code>{chunks}</code>,
+              webOrigin,
+              browserOrigin: browserOrigin ?? "",
+            })}
           </p>
           <Button size="sm" asChild>
             <a href={target}>
               <ExternalLink data-icon="inline-start" />
-              Buka Console di {webOrigin}
+              {t("console.origin.open", { origin: webOrigin })}
             </a>
           </Button>
         </AlertDescription>
@@ -219,20 +218,20 @@ export function ConsoleView({
         <div className="flex items-center gap-2">
           {tasks && tasks.length > 1 && (
             <Select value={task} onValueChange={setTask}>
-              <SelectTrigger size="sm" aria-label="Task">
+              <SelectTrigger size="sm" aria-label={t("console.task")}>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {tasks.map((t) => (
-                  <SelectItem key={t.containerId} value={t.containerId}>
-                    {t.label}
+                {tasks.map((tk) => (
+                  <SelectItem key={tk.containerId} value={tk.containerId}>
+                    {tk.label}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           )}
           <Badge variant={status === "connected" ? "default" : "secondary"}>
-            {STATUS_LABEL[status]}
+            {t(`console.status.${status}`)}
           </Badge>
         </div>
         <Button
@@ -242,12 +241,11 @@ export function ConsoleView({
           disabled={status === "connecting"}
         >
           <RotateCw data-icon="inline-start" />
-          Sambung ulang
+          {t("console.reconnect")}
         </Button>
       </div>
       <p className="text-xs text-muted-foreground">
-        Shell ini ada di dalam container. Perubahan file hilang saat redeploy,
-        kecuali di mount volume.
+        {t("console.note")}
       </p>
       <div
         ref={hostRef}

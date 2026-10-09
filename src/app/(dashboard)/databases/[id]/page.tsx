@@ -3,6 +3,7 @@ import { getProject } from "@/features/project/project.queries"
 import { SetBreadcrumb } from "@/components/custom/breadcrumb-store"
 import { EngineIcon } from "@/components/custom/brand-icon"
 import Link from "next/link"
+import { getTranslations } from "next-intl/server"
 import { notFound } from "next/navigation"
 import { ApplicationJobs } from "@/components/custom/application-jobs"
 import { ApplicationMounts } from "@/components/custom/application-mounts"
@@ -44,6 +45,8 @@ export default async function DatabasePage({
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
+  const t = await getTranslations("database")
+  const tb = await getTranslations("breadcrumb")
   const db = await getDatabase(id)
   if (!db) notFound()
   const running = db.container?.state === "running"
@@ -81,9 +84,9 @@ export default async function DatabasePage({
     <>
       <SetBreadcrumb
         items={[
-          { label: "Projects", href: "/projects" },
+          { label: tb("projects"), href: "/projects" },
           {
-            label: project?.name ?? "Project",
+            label: project?.name ?? t("page.projectFallback"),
             href: `/projects/${db.projectId}`,
           },
           { label: db.name },
@@ -93,7 +96,7 @@ export default async function DatabasePage({
         <Button asChild variant="ghost" size="icon" className="mt-0.5">
           <Link
             href={`/projects/${db.projectId}`}
-            aria-label="Kembali ke project"
+            aria-label={t("page.backToProject")}
           >
             <ArrowLeft />
           </Link>
@@ -108,11 +111,17 @@ export default async function DatabasePage({
       </div>
       <Tabs defaultValue="overview">
         <ScrollableTabsList>
-          <TabsTrigger value="overview">Ringkasan</TabsTrigger>
-          <TabsTrigger value="data">Data</TabsTrigger>
-          <TabsTrigger value="backups">Backup ({backups.length})</TabsTrigger>
-          <TabsTrigger value="mounts">Mount ({mounts.length})</TabsTrigger>
-          <TabsTrigger value="jobs">Jobs ({jobs.length})</TabsTrigger>
+          <TabsTrigger value="overview">{t("page.tabs.overview")}</TabsTrigger>
+          <TabsTrigger value="data">{t("page.tabs.data")}</TabsTrigger>
+          <TabsTrigger value="backups">
+            {t("page.tabs.backups", { count: backups.length })}
+          </TabsTrigger>
+          <TabsTrigger value="mounts">
+            {t("page.tabs.mounts", { count: mounts.length })}
+          </TabsTrigger>
+          <TabsTrigger value="jobs">
+            {t("page.tabs.jobs", { count: jobs.length })}
+          </TabsTrigger>
         </ScrollableTabsList>
         <StatusStrip
           className="pt-4"
@@ -129,8 +138,10 @@ export default async function DatabasePage({
               }
             >
               {db.status === "creating"
-                ? "creating…"
-                : (db.container?.state ?? db.status)}
+                ? t("status.creating")
+                : t.has(`status.${db.container?.state ?? db.status}`)
+                  ? t(`status.${db.container?.state ?? db.status}`)
+                  : (db.container?.state ?? db.status)}
             </Badge>
           }
           info={

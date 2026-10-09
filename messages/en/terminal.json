@@ -1,0 +1,61 @@
+{
+  "errors": {
+    "serverUnreachable": "Cannot reach the server"
+  },
+  "page": {
+    "description": "Shell on the aoox host or a remote server (<path></path>). Be careful: commands run directly on the target machine."
+  },
+  "settingsPage": {
+    "description": "Where the web shell connects (local or SSH to the host) and the platform key it uses."
+  },
+  "authorize": {
+    "button": "Authorize automatically",
+    "title": "Authorize the terminal SSH key?",
+    "description": "aoox will add the platform public key to <code>~/.ssh/authorized_keys</code> of user <code>{user}</code> on this host. No password or private key is written.",
+    "confirm": "Authorize",
+    "ready": "Terminal ready"
+  },
+  "card": {
+    "sshDescription": "Shell on the host over SSH to <code>{target}</code>",
+    "defaultUser": "(default user: TERMINAL_SSH_USER is empty)",
+    "keySource": {
+      "envKey": "key from configuration",
+      "envPassword": "password from configuration",
+      "generated": "automatic key"
+    },
+    "localDescription": "Local shell next to the API process. In Docker, set <code>TERMINAL_SSH_HOST</code> so the terminal reaches the host.",
+    "needsAttention": "Needs attention",
+    "local": "Local",
+    "authorizeInstruction": "Run once on the host as user <code>{user}</code> so this key is allowed to log in:",
+    "commandLabel": "command",
+    "publicKey": "Public key:",
+    "publicKeyLabel": "public key",
+    "copy": "Copy {label}",
+    "copied": "{label} copied",
+    "copyFailed": "Failed to copy {label}"
+  },
+  "view": {
+    "status": {
+      "connecting": "Connecting…",
+      "connected": "Connected",
+      "closed": "Disconnected",
+      "error": "Failed"
+    },
+    "ticketFailed": "Could not create a terminal ticket.",
+    "shellExited": "shell exited with code {code}",
+    "origin": {
+      "title": "Terminal cannot be reached through this address",
+      "description": "This panel has a custom domain (<code>{webOrigin}</code>), and the Terminal only accepts connections from that domain, not from <code>{browserOrigin}</code> that you are using now. This is a built-in security protection, not a bug.",
+      "open": "Open Terminal at {webOrigin}"
+    },
+    "targetLabel": "Terminal target",
+    "hostAoox": "aoox host",
+    "reconnect": "Reconnect",
+    "hint": {
+      "title": "The terminal could not connect to its target",
+      "ownerOnly": "Check its connection settings in <page></page>. Only the owner can open that page.",
+      "checkSettings": "Check its connection settings in <link></link>, then click Reconnect.",
+      "sshAuthFailed": "If the error is \"SSH authentication failed\": the authorization command must be run on the host as the same user as the <b>User</b> field in Environment. Root login is often refused by sshd on cloud VPS, so on Ubuntu set User to your login user (usually <code>ubuntu</code>), save, then run the authorization command as that user."
+    }
+  }
+}

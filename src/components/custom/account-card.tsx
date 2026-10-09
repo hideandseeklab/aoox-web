@@ -1,6 +1,7 @@
 "use client"
 
 import { Check, Copy, ShieldCheck, ShieldOff } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { useState, useTransition } from "react"
 import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
@@ -34,6 +35,8 @@ import { copyToClipboard } from "@/lib/clipboard"
 
 /** Own account: password change and TOTP two-factor (setup → confirm → backup codes). */
 export function AccountCard({ me }: { me: AuthUser }) {
+  const t = useTranslations("settings")
+  const c = useTranslations("common")
   const [pending, start] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
@@ -53,7 +56,7 @@ export function AccountCard({ me }: { me: AuthUser }) {
       setError(null)
       setNotice(null)
       const r = await fn()
-      if (!r.ok) setError(r.error ?? "Gagal")
+      if (!r.ok) setError(r.error ?? t("errors.failed"))
       else done?.()
     })
 
@@ -63,16 +66,16 @@ export function AccountCard({ me }: { me: AuthUser }) {
     if (ok) {
       setCopied(true)
       setTimeout(() => setCopied(false), 1500)
-      toast.success("Kode cadangan disalin")
+      toast.success(t("account.backup.copied"))
     } else {
-      toast.error("Gagal menyalin kode cadangan")
+      toast.error(t("account.backup.copyFailed"))
     }
   }
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Akun</CardTitle>
+        <CardTitle>{t("account.title")}</CardTitle>
         <CardDescription>
           {me.email} · {me.role}
         </CardDescription>
@@ -87,15 +90,17 @@ export function AccountCard({ me }: { me: AuthUser }) {
               () => {
                 setCurrent("")
                 setNext("")
-                setNotice("Password diganti.")
+                setNotice(t("account.passwordChanged"))
               }
             )
           }}
         >
-          <p className="text-sm font-medium">Ganti password</p>
+          <p className="text-sm font-medium">{t("account.changePassword")}</p>
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="space-y-1">
-              <Label htmlFor="acc-current">Password sekarang</Label>
+              <Label htmlFor="acc-current">
+                {t("account.currentPassword")}
+              </Label>
               <Input
                 id="acc-current"
                 type="password"
@@ -106,7 +111,7 @@ export function AccountCard({ me }: { me: AuthUser }) {
               />
             </div>
             <div className="space-y-1">
-              <Label htmlFor="acc-next">Password baru (min. 8)</Label>
+              <Label htmlFor="acc-next">{t("account.newPassword")}</Label>
               <Input
                 id="acc-next"
                 type="password"
@@ -119,22 +124,23 @@ export function AccountCard({ me }: { me: AuthUser }) {
             </div>
           </div>
           <Button type="submit" variant="outline" size="sm" disabled={pending}>
-            Simpan password
+            {t("account.savePassword")}
           </Button>
         </form>
 
         <div className="space-y-3">
           <div className="flex items-center gap-2">
-            <p className="text-sm font-medium">Verifikasi dua langkah (2FA)</p>
+            <p className="text-sm font-medium">
+              {t("account.twoFactor.title")}
+            </p>
             {me.twoFactorEnabled ? (
-              <Badge>aktif</Badge>
+              <Badge>{t("account.twoFactor.on")}</Badge>
             ) : (
-              <Badge variant="outline">nonaktif</Badge>
+              <Badge variant="outline">{t("account.twoFactor.off")}</Badge>
             )}
           </div>
           <p className="text-xs text-muted-foreground">
-            Kode TOTP dari aplikasi authenticator (Google Authenticator, Aegis,
-            1Password, …) diminta setiap masuk. API token tidak terpengaruh.
+            {t("account.twoFactor.description")}
           </p>
           {me.twoFactorEnabled ? (
             <Button
@@ -144,7 +150,7 @@ export function AccountCard({ me }: { me: AuthUser }) {
               onClick={() => setDisablePw("")}
             >
               <ShieldOff data-icon="inline-start" />
-              Nonaktifkan 2FA
+              {t("account.twoFactor.disable")}
             </Button>
           ) : (
             <Button
@@ -163,7 +169,7 @@ export function AccountCard({ me }: { me: AuthUser }) {
               }
             >
               <ShieldCheck data-icon="inline-start" />
-              Aktifkan 2FA
+              {t("account.twoFactor.enable")}
             </Button>
           )}
         </div>
@@ -183,10 +189,9 @@ export function AccountCard({ me }: { me: AuthUser }) {
       >
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Aktifkan 2FA</DialogTitle>
+            <DialogTitle>{t("account.setup.title")}</DialogTitle>
             <DialogDescription>
-              Pindai QR ini dengan aplikasi authenticator, lalu masukkan kode 6
-              digit yang muncul.
+              {t("account.setup.description")}
             </DialogDescription>
           </DialogHeader>
           {setup && (
@@ -204,7 +209,7 @@ export function AccountCard({ me }: { me: AuthUser }) {
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={setup.qrDataUrl}
-                alt="QR code 2FA"
+                alt={t("account.setup.qrAlt")}
                 width={192}
                 height={192}
                 className="mx-auto rounded bg-white p-2"
@@ -213,7 +218,7 @@ export function AccountCard({ me }: { me: AuthUser }) {
                 {setup.secret}
               </p>
               <div className="space-y-1">
-                <Label htmlFor="acc-code">Kode</Label>
+                <Label htmlFor="acc-code">{t("account.setup.code")}</Label>
                 <Input
                   id="acc-code"
                   inputMode="numeric"
@@ -235,10 +240,10 @@ export function AccountCard({ me }: { me: AuthUser }) {
                   variant="outline"
                   onClick={() => setSetup(null)}
                 >
-                  Batal
+                  {c("actions.cancel")}
                 </Button>
                 <Button type="submit" disabled={pending}>
-                  {pending ? "Memeriksa…" : "Konfirmasi"}
+                  {pending ? t("account.setup.checking") : c("actions.confirm")}
                 </Button>
               </DialogFooter>
             </form>
@@ -258,10 +263,9 @@ export function AccountCard({ me }: { me: AuthUser }) {
       >
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>2FA aktif — simpan kode cadangan</DialogTitle>
+            <DialogTitle>{t("account.backup.title")}</DialogTitle>
             <DialogDescription>
-              Tiap kode hanya bisa dipakai sekali, untuk masuk saat
-              authenticator tidak ada. Tidak akan ditampilkan lagi.
+              {t("account.backup.description")}
             </DialogDescription>
           </DialogHeader>
           <div className="grid grid-cols-2 gap-1 rounded bg-muted p-3 font-mono text-xs">
@@ -276,7 +280,7 @@ export function AccountCard({ me }: { me: AuthUser }) {
               ) : (
                 <Copy data-icon="inline-start" />
               )}
-              Salin
+              {c("actions.copy")}
             </Button>
             <Button
               onClick={() => {
@@ -284,7 +288,7 @@ export function AccountCard({ me }: { me: AuthUser }) {
                 setSetup(null)
               }}
             >
-              Selesai
+              {t("account.backup.done")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -297,10 +301,9 @@ export function AccountCard({ me }: { me: AuthUser }) {
       >
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Nonaktifkan 2FA?</DialogTitle>
+            <DialogTitle>{t("account.disableDialog.title")}</DialogTitle>
             <DialogDescription>
-              Masukkan password untuk mengonfirmasi. Rahasia dan kode cadangan
-              akan dihapus.
+              {t("account.disableDialog.description")}
             </DialogDescription>
           </DialogHeader>
           <form
@@ -318,7 +321,7 @@ export function AccountCard({ me }: { me: AuthUser }) {
               autoComplete="current-password"
               value={disablePw ?? ""}
               onChange={(e) => setDisablePw(e.target.value)}
-              placeholder="Password"
+              placeholder={c("labels.password")}
               required
             />
             {error && (
@@ -332,10 +335,10 @@ export function AccountCard({ me }: { me: AuthUser }) {
                 variant="outline"
                 onClick={() => setDisablePw(null)}
               >
-                Batal
+                {c("actions.cancel")}
               </Button>
               <Button type="submit" variant="destructive" disabled={pending}>
-                Nonaktifkan
+                {c("actions.disable")}
               </Button>
             </DialogFooter>
           </form>

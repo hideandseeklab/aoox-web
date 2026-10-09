@@ -2,6 +2,7 @@
 
 import { PathArrow } from "@/components/custom/arrows"
 import { Trash2, UserPlus } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { useState, useTransition } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -26,7 +27,6 @@ import {
   updateProjectMemberAction,
 } from "@/features/project-member/project-member.actions"
 import {
-  PROJECT_ROLE_LABEL,
   type ProjectMembers,
   type ProjectRole,
 } from "@/features/project-member/project-member.entity"
@@ -45,6 +45,7 @@ export function ProjectMembers({
   projectId: string
   data: ProjectMembers
 }) {
+  const t = useTranslations("projects")
   const [pending, start] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const [email, setEmail] = useState("")
@@ -55,19 +56,17 @@ export function ProjectMembers({
     start(async () => {
       setError(null)
       const r = await fn()
-      if (!r.ok) setError(r.error ?? "Gagal")
+      if (!r.ok) setError(r.error ?? t("members.failed"))
     })
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Anggota</CardTitle>
+        <CardTitle>{t("members.title")}</CardTitle>
         <CardDescription>
-          Siapa yang melihat project ini. Owner/admin platform dan pembuat
-          project selalu termasuk; anggota lain ditambah lewat e-mail akun yang
-          sudah ada (undang dari Settings
-          <PathArrow />
-          Tim).
+          {t.rich("members.description", {
+            arrow: () => <PathArrow />,
+          })}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-3">
@@ -86,8 +85,8 @@ export function ProjectMembers({
                 {m.implicit && (
                   <p className="text-xs text-muted-foreground">
                     {m.platformRole === "member"
-                      ? "pembuat project"
-                      : `${m.platformRole} platform`}
+                      ? t("members.creator")
+                      : t("members.platformRole", { role: m.platformRole })}
                   </p>
                 )}
               </div>
@@ -105,13 +104,13 @@ export function ProjectMembers({
                       )
                     }
                   >
-                    <SelectTrigger className="w-32" aria-label="Peran">
+                    <SelectTrigger className="w-32" aria-label={t("members.roleAria")}>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
                       {ROLES.map((r) => (
                         <SelectItem key={r} value={r}>
-                          {PROJECT_ROLE_LABEL[r]}
+                          {t(`members.roles.${r}`)}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -119,7 +118,7 @@ export function ProjectMembers({
                   <Button
                     variant="ghost"
                     size="icon"
-                    aria-label="Keluarkan"
+                    aria-label={t("members.removeAria")}
                     disabled={pending}
                     onClick={() =>
                       run(() => removeProjectMemberAction(projectId, m.userId))
@@ -129,7 +128,7 @@ export function ProjectMembers({
                   </Button>
                 </>
               ) : (
-                <Badge variant="outline">{PROJECT_ROLE_LABEL[m.role]}</Badge>
+                <Badge variant="outline">{t(`members.roles.${m.role}`)}</Badge>
               )}
             </li>
           ))}
@@ -152,28 +151,28 @@ export function ProjectMembers({
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="email@akun-yang-sudah-ada"
+              placeholder={t("members.emailPlaceholder")}
               className="min-w-48 flex-1"
-              aria-label="E-mail anggota"
+              aria-label={t("members.emailAria")}
             />
             <Select
               value={role}
               onValueChange={(r) => setRole(r as ProjectRole)}
             >
-              <SelectTrigger className="w-32" aria-label="Peran baru">
+              <SelectTrigger className="w-32" aria-label={t("members.newRoleAria")}>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 {ROLES.map((r) => (
                   <SelectItem key={r} value={r}>
-                    {PROJECT_ROLE_LABEL[r]}
+                    {t(`members.roles.${r}`)}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
             <Button type="submit" disabled={pending || !email}>
               <UserPlus data-icon="inline-start" />
-              Tambah
+              {t("members.add")}
             </Button>
           </form>
         )}
@@ -183,8 +182,7 @@ export function ProjectMembers({
           </p>
         )}
         <p className="text-xs text-muted-foreground">
-          Admin mengelola anggota dan bisa menghapus project; developer
-          melakukan aksi lain; viewer hanya membaca.
+          {t("members.legend")}
         </p>
       </CardContent>
     </Card>

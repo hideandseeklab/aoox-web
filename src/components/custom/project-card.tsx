@@ -1,4 +1,5 @@
 import { Boxes, Database, Layers } from "lucide-react"
+import { useTranslations } from "next-intl"
 import Link from "next/link"
 import { EngineIcon } from "@/components/custom/brand-icon"
 import { StatusDot } from "@/components/custom/status-dot"
@@ -22,12 +23,6 @@ const KIND_ICON = {
   application: Boxes,
   database: Database,
   compose: Layers,
-} as const
-
-const KIND_LABEL = {
-  application: "aplikasi",
-  database: "database",
-  compose: "stack",
 } as const
 
 /** "CPU 12% · RAM 340 MB · ↓2.1 MB/s ↑0.4 MB/s" — nothing running = no line at all. */
@@ -56,6 +51,7 @@ function ResourceUsageLine({ usage }: { usage: ProjectResourceUsageSummary }) {
 }
 
 function InstanceRow({ instance }: { instance: ProjectInstance }) {
+  const t = useTranslations("projects")
   const Icon = KIND_ICON[instance.kind]
   return (
     <li className="flex items-center gap-2 text-xs">
@@ -73,11 +69,11 @@ function InstanceRow({ instance }: { instance: ProjectInstance }) {
           variant="outline"
           className="shrink-0 border-amber-500/40 px-1.5 py-0 text-[10px] text-amber-500"
         >
-          deploy…
+          {t("card.deploying")}
         </Badge>
       )}
       <span className="font-mono text-[11px] text-muted-foreground">
-        {instance.engine ?? KIND_LABEL[instance.kind]}
+        {instance.engine ?? t(`card.kind.${instance.kind}`)}
       </span>
       <StatusDot status={instance.deploying ? "deploying" : instance.status} />
     </li>
@@ -90,6 +86,7 @@ function InstanceRow({ instance }: { instance: ProjectInstance }) {
  * opening each project.
  */
 export function ProjectCard({ project }: { project: ProjectListItem }) {
+  const t = useTranslations("projects")
   const running = project.instances.filter((i) => i.status === "running").length
   const total = project.instances.length
   const active = running > 0
@@ -110,17 +107,19 @@ export function ProjectCard({ project }: { project: ProjectListItem }) {
                     : "text-muted-foreground"
                 )}
               >
-                {active ? "active" : "inactive"}
+                {active ? t("card.active") : t("card.inactive")}
               </Badge>
             )}
           </div>
           <CardDescription className="line-clamp-2">
-            {project.description || "Tanpa deskripsi"}
+            {project.description || t("card.noDescription")}
           </CardDescription>
         </CardHeader>
         <CardContent>
           {total === 0 ? (
-            <p className="text-xs text-muted-foreground">Belum ada instance</p>
+            <p className="text-xs text-muted-foreground">
+              {t("card.noInstances")}
+            </p>
           ) : (
             <>
               <ul className="space-y-1.5">
@@ -129,7 +128,7 @@ export function ProjectCard({ project }: { project: ProjectListItem }) {
                 ))}
               </ul>
               <p className="mt-3 text-xs text-muted-foreground tabular-nums">
-                {running}/{total} berjalan
+                {t("card.runningCount", { running, total })}
               </p>
               {project.resourceUsage && (
                 <ResourceUsageLine usage={project.resourceUsage} />

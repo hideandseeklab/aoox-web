@@ -42,13 +42,15 @@ import {
   updateVolumeBackupScheduleAction,
 } from "@/features/volume-backup/volume-backup.actions"
 import type { VolumeBackup } from "@/features/volume-backup/volume-backup.entity"
+import { formatDateTime } from "@/i18n/format"
+import { useLocale, useTranslations } from "next-intl"
 
-const PRESETS: { label: string; cron: string }[] = [
-  { label: "Nonaktif", cron: "off" },
-  { label: "Setiap jam", cron: "0 * * * *" },
-  { label: "Setiap hari 02:00", cron: "0 2 * * *" },
-  { label: "Setiap minggu (Minggu 03:00)", cron: "0 3 * * 0" },
-  { label: "Kustom", cron: "custom" },
+const PRESETS: { key: string; cron: string }[] = [
+  { key: "off", cron: "off" },
+  { key: "hourly", cron: "0 * * * *" },
+  { key: "daily", cron: "0 2 * * *" },
+  { key: "weekly", cron: "0 3 * * 0" },
+  { key: "custom", cron: "custom" },
 ]
 
 function formatBytes(n: string | null) {
@@ -79,6 +81,9 @@ export function VolumeBackups({
   backups: VolumeBackup[]
   destinations: BackupDestination[]
 }) {
+  const t = useTranslations("applications")
+  const tc = useTranslations("common")
+  const locale = useLocale()
   const router = useRouter()
   const [pending, start] = useTransition()
   const [error, setError] = useState<string | null>(null)
@@ -100,13 +105,13 @@ export function VolumeBackups({
   const effectiveCron =
     mode === "custom" ? customCron.trim() : mode === "off" ? "" : mode
   const mountName = (id: string) =>
-    volumes.find((m) => m.id === id)?.name ?? "(volume dihapus)"
+    volumes.find((m) => m.id === id)?.name ?? t("volumeBackups.volumeDeleted")
 
   const run = (fn: () => Promise<{ ok: boolean; error?: string }>) =>
     start(async () => {
       setError(null)
       const r = await fn()
-      if (!r.ok) setError(r.error ?? "Gagal")
+      if (!r.ok) setError(r.error ?? tc("states.failed"))
       else router.refresh()
     })
 
@@ -118,21 +123,26 @@ export function VolumeBackups({
         <CardHeader>
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
-              <CardTitle>Backup volume</CardTitle>
+              <CardTitle>{t("volumeBackups.title")}</CardTitle>
               <CardDescription>
-                Arsip <code>tar.gz</code> tiap volume di{" "}
-                <code>aoox_backups</code>
-                {app.backupDestinationId &&
-                  ` dan disalin ke ${destinations.find((d) => d.id === app.backupDestinationId)?.name ?? "tujuan S3"}`}
-                . Restore menghentikan container sebentar dan menimpa isi
-                volume.
+                {t.rich("volumeBackups.description", {
+                  code: (chunks) => <code>{chunks}</code>,
+                  copied: app.backupDestinationId
+                    ? t("volumeBackups.copiedTo", {
+                        name:
+                          destinations.find(
+                            (d) => d.id === app.backupDestinationId
+                          )?.name ?? t("volumeBackups.s3Destination"),
+                      })
+                    : "",
+                })}
               </CardDescription>
             </div>
             {volumes.length > 0 && (
               <div className="flex items-center gap-2">
                 {volumes.length > 1 && (
                   <Select value={mountId} onValueChange={setMountId}>
-                    <SelectTrigger className="w-40" aria-label="Volume">
+                    <SelectTrigger className="w-40" aria-label={t("volumeBackups.volume")}>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -151,7 +161,11 @@ export function VolumeBackups({
                   }
                 >
                   <HardDriveDownload data-icon="inline-start" />
-                  {pending ? "Memproses…" : `Backup ${mountName(mountId)}`}
+                  {pending
+                    ? t("volumeBackups.processing")
+                    : t("volumeBackups.backupVolume", {
+                        name: mountName(mountId),
+                      })}
                 </Button>
               </div>
             )}
@@ -165,7 +179,7 @@ export function VolumeBackups({
           )}
           {backups.length === 0 ? (
             <EmptyState icon={Archive} compact>
-              Belum ada backup.
+              {t("volumeBackups.empty")}
             </EmptyState>
           ) : (
             <ul className="divide-y rounded-md border text-xs">
@@ -176,13 +190,18 @@ export function VolumeBackups({
                       {mountName(b.mountId)} · {b.filename.split("/").pop()}
                     </span>
                     <span className="text-xs text-muted-foreground tabular-nums">
-                      {new Date(b.createdAt).toLocaleString("id-ID", {
+                      {formatDateTime(b.createdAt, locale, {
                         dateStyle: "medium",
                         timeStyle: "short",
                       })}{" "}
                       · {formatBytes(b.sizeBytes)} ·{" "}
-                      {b.trigger === "scheduled" ? "terjadwal" : "manual"}
-                      {b.remoteKey && (b.local ? " · S3" : " · hanya di S3")}
+                      {b.trigger === "scheduled"
+                        ? t("volumeBackups.scheduled")
+                        : t("volumeBackups.manual")}
+                      {b.remoteKey &&
+                        (b.local
+                          ? " · S3"
+                          : ` · ${t("volumeBackups.s3Only")}`)}
                       {b.errorMessage && ` · ${b.errorMessage}`}
                     </span>
                   </span>
@@ -203,7 +222,7 @@ export function VolumeBackups({
                         asChild
                         variant="ghost"
                         size="icon-sm"
-                        aria-label="Unduh"
+                        aria-label={tc("actions.download")}
                       >
                         <a href={`/api/volume-backups/${b.id}/download`}>
                           <Download />
@@ -212,7 +231,7 @@ export function VolumeBackups({
                       <Button
                         variant="ghost"
                         size="icon-sm"
-                        aria-label="Restore"
+                        aria-label={t("volumeBackups.restore")}
                         disabled={
                           pending || !volumes.some((m) => m.id === b.mountId)
                         }
@@ -225,7 +244,7 @@ export function VolumeBackups({
                   <Button
                     variant="ghost"
                     size="icon-sm"
-                    aria-label="Hapus backup"
+                    aria-label={t("volumeBackups.deleteAria")}
                     disabled={pending}
                     onClick={() =>
                       run(() => deleteVolumeBackupAction(app.id, b.id))
@@ -243,10 +262,9 @@ export function VolumeBackups({
       {volumes.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle>Jadwal backup volume</CardTitle>
+            <CardTitle>{t("volumeBackups.schedule.title")}</CardTitle>
             <CardDescription>
-              Berlaku untuk semua volume aplikasi ini. Backup terjadwal lama
-              dihapus melebihi jumlah yang disimpan (per volume).
+              {t("volumeBackups.schedule.description")}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -265,7 +283,7 @@ export function VolumeBackups({
               }}
             >
               <div className="space-y-1">
-                <Label htmlFor="vbk-preset">Frekuensi</Label>
+                <Label htmlFor="vbk-preset">{t("volumeBackups.schedule.frequency")}</Label>
                 <Select value={mode} onValueChange={setMode}>
                   <SelectTrigger id="vbk-preset" className="w-56">
                     <SelectValue />
@@ -273,7 +291,7 @@ export function VolumeBackups({
                   <SelectContent>
                     {PRESETS.map((p) => (
                       <SelectItem key={p.cron} value={p.cron}>
-                        {p.label}
+                        {t(`volumeBackups.preset.${p.key}`)}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -281,7 +299,7 @@ export function VolumeBackups({
               </div>
               {mode === "custom" && (
                 <div className="space-y-1">
-                  <Label htmlFor="vbk-cron">Cron (5 kolom)</Label>
+                  <Label htmlFor="vbk-cron">{t("volumeBackups.schedule.cron")}</Label>
                   <Input
                     id="vbk-cron"
                     value={customCron}
@@ -292,7 +310,7 @@ export function VolumeBackups({
                 </div>
               )}
               <div className="space-y-1">
-                <Label htmlFor="vbk-keep">Simpan</Label>
+                <Label htmlFor="vbk-keep">{t("volumeBackups.schedule.keep")}</Label>
                 <Input
                   id="vbk-keep"
                   type="number"
@@ -304,13 +322,15 @@ export function VolumeBackups({
                 />
               </div>
               <div className="space-y-1">
-                <Label htmlFor="vbk-dest">Tujuan S3</Label>
+                <Label htmlFor="vbk-dest">{t("volumeBackups.schedule.destination")}</Label>
                 <Select value={destination} onValueChange={setDestination}>
                   <SelectTrigger id="vbk-dest" className="w-56">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="local">Hanya lokal</SelectItem>
+                    <SelectItem value="local">
+                      {t("volumeBackups.schedule.localOnly")}
+                    </SelectItem>
                     {destinations.map((d) => (
                       <SelectItem key={d.id} value={d.id}>
                         {d.name}
@@ -320,11 +340,15 @@ export function VolumeBackups({
                 </Select>
               </div>
               <Button type="submit" variant="outline" disabled={pending}>
-                Simpan
+                {tc("actions.save")}
               </Button>
               <span className="text-xs text-muted-foreground">
-                Sekarang:{" "}
-                {app.backupCron ? <code>{app.backupCron}</code> : "nonaktif"}
+                {t("volumeBackups.schedule.current")}{" "}
+                {app.backupCron ? (
+                  <code>{app.backupCron}</code>
+                ) : (
+                  t("volumeBackups.schedule.off")
+                )}
               </span>
             </form>
           </CardContent>
@@ -337,20 +361,21 @@ export function VolumeBackups({
       >
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Restore volume?</DialogTitle>
+            <DialogTitle>{t("volumeBackups.restoreDialog.title")}</DialogTitle>
             <DialogDescription>
-              Isi volume{" "}
-              <span className="font-medium text-foreground">
-                {restoreTarget && mountName(restoreTarget.mountId)}
-              </span>{" "}
-              akan dihapus dan diganti dengan{" "}
-              <code>{restoreTarget?.filename.split("/").pop()}</code>. Container
-              dihentikan selama proses. Tidak bisa dibatalkan.
+              {t.rich("volumeBackups.restoreDialog.description", {
+                strong: (chunks) => (
+                  <span className="font-medium text-foreground">{chunks}</span>
+                ),
+                code: (chunks) => <code>{chunks}</code>,
+                volume: restoreTarget ? mountName(restoreTarget.mountId) : "",
+                file: restoreTarget?.filename.split("/").pop() ?? "",
+              })}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setRestoreTarget(null)}>
-              Batal
+              {tc("actions.cancel")}
             </Button>
             <Button
               variant="destructive"
@@ -367,7 +392,7 @@ export function VolumeBackups({
                 })
               }
             >
-              {pending ? "Me-restore…" : "Restore"}
+              {pending ? t("volumeBackups.restoring") : t("volumeBackups.restore")}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -1,17 +1,20 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
+import { getTranslations } from "next-intl/server"
 import { requireToken } from "@/features/auth/auth.session"
 import { api, ApiError } from "@/lib/api"
 import type { ProjectRole } from "./project-member.entity"
 
 export type ActionResult = { ok: true } | { ok: false; error: string }
 
-function fail(err: unknown): { ok: false; error: string } {
+async function fail(err: unknown): Promise<{ ok: false; error: string }> {
   return {
     ok: false,
     error:
-      err instanceof ApiError ? err.message : "Tidak dapat terhubung ke server",
+      err instanceof ApiError
+        ? err.message
+        : (await getTranslations("common"))("messages.serverUnreachable"),
   }
 }
 
@@ -29,7 +32,7 @@ export async function addProjectMemberAction(
     revalidatePath(`/projects/${projectId}`)
     return { ok: true }
   } catch (err) {
-    return fail(err)
+    return await fail(err)
   }
 }
 
@@ -47,7 +50,7 @@ export async function updateProjectMemberAction(
     revalidatePath(`/projects/${projectId}`)
     return { ok: true }
   } catch (err) {
-    return fail(err)
+    return await fail(err)
   }
 }
 
@@ -63,6 +66,6 @@ export async function removeProjectMemberAction(
     revalidatePath(`/projects/${projectId}`)
     return { ok: true }
   } catch (err) {
-    return fail(err)
+    return await fail(err)
   }
 }

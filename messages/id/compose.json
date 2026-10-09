@@ -1,0 +1,150 @@
+{
+  "validation": {
+    "nameRequired": "Nama wajib diisi",
+    "gitUrlRequired": "URL git wajib diisi",
+    "gitUrlInvalid": "Harus URL http(s)/git tanpa kredensial",
+    "branchInvalid": "Nama branch tidak valid",
+    "pathInvalid": "Path tidak valid",
+    "composeRequired": "File compose wajib diisi",
+    "tooLong": "Terlalu panjang"
+  },
+  "accessHint": {
+    "noAddressTitle": "Stack ini belum punya alamat",
+    "noAddressBody": "Container stack hanya membuka port di dalam network Docker. Supaya bisa dibuka dari browser, atur di tab <tab>Pengaturan</tab><arrow></arrow>Akses: pakai <b>domain</b> lewat proxy (mis. <code>wordpress.localhost</code> untuk dev — <code>*.localhost</code> otomatis mengarah ke komputer ini) atau <b>IP & port</b> (port host langsung, mis. <code>8080</code><arrow></arrow>dibuka di <code>http://{host}:8080</code>), lalu <i>Deploy ulang</i>.",
+    "proxyOff": "Reverse proxy belum berjalan — untuk domain, aktifkan dulu di Infrastruktur<arrow></arrow>Reverse proxy.",
+    "open": "Buka:",
+    "proxyDown": "Proxy belum berjalan — domain belum bisa dibuka.",
+    "serverIpPlaceholder": "ip-server"
+  },
+  "form": {
+    "templateHint": "Disalin dari template saat dibuat; boleh diubah bebas. Cara service dibuka (domain atau IP & port) diatur di kartu Akses.",
+    "gitRepository": "Git repository",
+    "branch": "Branch",
+    "composeFile": "File compose",
+    "composePathHint": "Relatif dari root repo; path relatif di dalamnya (build, volume) dihitung dari folder file ini.",
+    "gitCredential": "Kredensial Git",
+    "noCredential": "Tidak ada (repo publik)",
+    "env": "Environment (.env)",
+    "envHint": "Ditulis ke <code>.aoox.env</code> dan dipakai sebagai sumber interpolasi <code>{varExample}</code> di file compose (tidak otomatis masuk ke container — pakai <code>environment:</code> atau <code>env_file: .aoox.env</code>). Mendukung <code>{projectRef}</code>.",
+    "envHintDb": "Ditulis ke <code>.aoox.env</code> dan dipakai sebagai sumber interpolasi <code>{varExample}</code> di file compose (tidak otomatis masuk ke container — pakai <code>environment:</code> atau <code>env_file: .aoox.env</code>). Mendukung <code>{projectRef}</code> dan {databases}.",
+    "saved": "Tersimpan — berlaku pada deploy berikutnya.",
+    "createStack": "Buat stack",
+    "toast": {
+      "created": "Stack \"{name}\" dibuat — sedang deploy.",
+      "checkForm": "Periksa isian form",
+      "creating": "Membuat stack {name}…",
+      "newName": "baru"
+    }
+  },
+  "history": {
+    "empty": "Belum ada riwayat — deploy dulu.",
+    "noOutput": "Tidak ada output.",
+    "webhook": "webhook",
+    "webhookTitle": "Dipicu push ke repository",
+    "log": "Log",
+    "actionLog": "Log aksi",
+    "action": {
+      "deploy": "deploy",
+      "stop": "stop",
+      "start": "start",
+      "down": "down"
+    }
+  },
+  "panel": {
+    "containers": "Container",
+    "composeProject": "Project compose <code>aoox-{slug}</code>",
+    "noContainers": "Belum ada container — deploy dulu.",
+    "lastLog": "Log aksi terakhir",
+    "running": "Sedang berjalan…",
+    "done": "Selesai",
+    "noLogs": "Belum ada log."
+  },
+  "statusStrip": {
+    "status": {
+      "idle": "idle",
+      "deploying": "berjalan…",
+      "running": "running",
+      "stopped": "stopped",
+      "error": "error"
+    },
+    "deploy": "Deploy",
+    "redeploy": "Deploy ulang",
+    "deleteTitle": "Hapus stack {name}?",
+    "deleteDescription": "Semua container stack dihentikan dan dihapus, beserta volume datanya dan salinan checkout-nya. Data di volume hilang permanen dan tidak bisa dibatalkan.",
+    "deleteConfirm": "Hapus stack"
+  },
+  "webhook": {
+    "templateNote": "Stack ini dibuat dari template, jadi tidak ada repository yang bisa dipantau — push diabaikan."
+  },
+  "access": {
+    "title": "Akses",
+    "description": "Cara service dibuka dari luar — berlaku pada deploy berikutnya.",
+    "domainLine": "<b>Domain</b>: lewat proxy (Traefik), arahkan DNS ke server ini.",
+    "proxyOff": "Proxy belum berjalan (Infrastruktur<arrow></arrow>Reverse proxy).",
+    "ipPortLine": "<b>IP & port</b>: port dipublikasikan langsung di host, dibuka lewat <code>http://{host}:{port}</code> tanpa domain/proxy.",
+    "badgeDomain": "domain",
+    "ipPort": "IP & port",
+    "tabDomain": "Domain",
+    "removeDomain": "Hapus domain",
+    "removePort": "Hapus port",
+    "service": "Service",
+    "containerPort": "Port container",
+    "hostPort": "Port host"
+  },
+  "mounts": {
+    "empty": "Belum ada mount.",
+    "addTitle": "Tambah mount",
+    "addDescription": "<b>Volume</b>: data persisten yang bertahan antar deploy. <b>Bind</b>: folder/file di host (hanya owner/admin). <b>File</b>: file konfigurasi kecil yang disimpan di sini dan di-mount read-only. Berlaku pada deploy berikutnya.",
+    "kind": "Jenis",
+    "type": {
+      "volume": "Volume",
+      "bind": "Bind (host)",
+      "file": "File"
+    },
+    "volumeName": "Nama volume",
+    "hostPath": "Path di host",
+    "containerPath": "Path di container",
+    "readOnly": "Read-only",
+    "fileContent": "Isi file",
+    "volumeSource": "volume {name}",
+    "detachAria": "Hapus mount",
+    "detachTitle": "Lepas mount {name}?",
+    "detachDescriptionVolume": "Mount dilepas dari container. Pilih apa yang terjadi pada volume Docker-nya: dibiarkan (data tetap ada) atau ikut dihapus (data hilang permanen dan tidak bisa dibatalkan).",
+    "detachDescriptionOther": "Mount dilepas dari container. Ini tidak bisa dibatalkan.",
+    "detachAndDelete": "Lepas dan hapus volume (data hilang)",
+    "detach": "Lepas mount",
+    "detachKeepData": "Lepas mount saja (data tetap ada)",
+    "contentAria": "Isi {name}"
+  },
+  "resources": {
+    "title": "Batas sumber daya",
+    "description": "Per service dalam stack — kosong berarti tanpa batas. Berlaku pada deploy berikutnya.",
+    "cpuLimit": "{value}m CPU",
+    "cpuUnlimited": "CPU tanpa batas",
+    "memoryLimit": "{value} MiB",
+    "ramUnlimited": "RAM tanpa batas",
+    "removeAria": "Hapus batas {service}",
+    "cpuLabel": "CPU (millicore)",
+    "cpuPlaceholder": "1000 = 1 core",
+    "memoryLabel": "Memori (MiB)",
+    "memoryPlaceholder": "mis. 512",
+    "submit": "Tambah / ubah"
+  },
+  "page": {
+    "backToProject": "Kembali ke project",
+    "tabs": {
+      "deploy": "Deploy",
+      "history": "Riwayat ({count})",
+      "mounts": "Mount ({count})",
+      "jobs": "Jobs ({count})",
+      "settings": "Pengaturan"
+    },
+    "templateInfo": "template · {id}",
+    "settingsTitle": "Pengaturan",
+    "settingsDescription": "Perubahan berlaku pada deploy berikutnya."
+  },
+  "newPage": {
+    "title": "Stack compose baru",
+    "description": "Deploy <code>docker-compose.yml</code> dari repo git; layanan di dalamnya di-build dan dijalankan apa adanya."
+  }
+}

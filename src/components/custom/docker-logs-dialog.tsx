@@ -1,6 +1,7 @@
 "use client"
 
 import { RefreshCw } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { useCallback, useEffect, useState, useTransition } from "react"
 import { LogViewer } from "@/components/custom/log-viewer"
 import { Button } from "@/components/ui/button"
@@ -44,6 +45,7 @@ function LogsDialog({
   serverId: string | null
   onClose: () => void
 }) {
+  const t = useTranslations("docker.logs")
   const [tail, setTail] = useState("200")
   const [data, setData] = useState<DockerContainerLogs | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -69,20 +71,20 @@ function LogsDialog({
     <Dialog open={!!container} onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="sm:max-w-3xl">
         <DialogHeader>
-          <DialogTitle>Log {container?.name}</DialogTitle>
+          <DialogTitle>{t("title", { name: container?.name ?? "" })}</DialogTitle>
           <DialogDescription>
-            Baris terakhir sekali ambil, bukan stream. Maksimal 500 baris.
+            {t("description")}
           </DialogDescription>
         </DialogHeader>
         <div className="flex flex-wrap items-center gap-2 text-xs">
           <Select value={tail} onValueChange={setTail}>
-            <SelectTrigger className="w-32" aria-label="Jumlah baris">
+            <SelectTrigger className="w-32" aria-label={t("lineCount")}>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {TAILS.map((t) => (
-                <SelectItem key={t} value={t}>
-                  {t} baris
+              {TAILS.map((n) => (
+                <SelectItem key={n} value={n}>
+                  {t("lines", { count: n })}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -94,10 +96,10 @@ function LogsDialog({
             onClick={load}
           >
             <RefreshCw data-icon="inline-start" />
-            Muat ulang
+            {t("reload")}
           </Button>
           {data?.truncated && (
-            <span className="text-muted-foreground">Bagian lama dipotong.</span>
+            <span className="text-muted-foreground">{t("truncated")}</span>
           )}
         </div>
         {error ? (
@@ -107,8 +109,8 @@ function LogsDialog({
         ) : (
           <LogViewer
             text={data?.logs ?? ""}
-            label="Log container"
-            empty={pending && !data ? "Memuat…" : "(tidak ada keluaran log)"}
+            label={t("label")}
+            empty={pending && !data ? t("loading") : t("empty")}
             className="h-[50vh]"
           />
         )}

@@ -1,6 +1,7 @@
 "use client"
 
 import { Network } from "lucide-react"
+import { useTranslations } from "next-intl"
 import {
   DockerEmpty,
   useDockerQuery,
@@ -19,6 +20,7 @@ import type { DockerNetwork } from "@/features/docker/docker.entity"
 
 /** Networks of the chosen server, read only. */
 export function DockerNetworks({ networks }: { networks: DockerNetwork[] }) {
+  const t = useTranslations("docker")
   const query = useDockerQuery()
   const rows = networks.filter((n) =>
     matches(query, n.name, n.driver, n.subnet ?? undefined, ...n.usedByNames)
@@ -27,19 +29,17 @@ export function DockerNetworks({ networks }: { networks: DockerNetwork[] }) {
     <div className="space-y-3">
       {rows.length === 0 ? (
         <DockerEmpty icon={Network}>
-          {networks.length === 0
-            ? "Belum ada network di server ini."
-            : "Tidak ada network yang cocok."}
+          {networks.length === 0 ? t("networks.empty") : t("networks.noMatch")}
         </DockerEmpty>
       ) : (
         <div className="rounded-lg border">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Network</TableHead>
-                <TableHead>Driver</TableHead>
-                <TableHead>Subnet</TableHead>
-                <TableHead>Dipakai oleh</TableHead>
+                <TableHead>{t("networks.network")}</TableHead>
+                <TableHead>{t("driver")}</TableHead>
+                <TableHead>{t("networks.subnet")}</TableHead>
+                <TableHead>{t("usedByHeader")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -50,10 +50,10 @@ export function DockerNetworks({ networks }: { networks: DockerNetwork[] }) {
                       <span className="truncate font-mono" title={n.name}>
                         {n.name}
                       </span>
-                      {n.builtin && <Badge variant="secondary">bawaan</Badge>}
+                      {n.builtin && <Badge variant="secondary">{t("networks.builtin")}</Badge>}
                       {n.managed && <Badge variant="outline">aoox</Badge>}
                       {n.internal && (
-                        <Badge variant="secondary">internal</Badge>
+                        <Badge variant="secondary">{t("networks.internal")}</Badge>
                       )}
                     </div>
                   </TableCell>
@@ -66,7 +66,7 @@ export function DockerNetworks({ networks }: { networks: DockerNetwork[] }) {
                   <TableCell className="max-w-72 whitespace-normal">
                     {n.usedByNames.length === 0 ? (
                       <span className="text-muted-foreground">
-                        tidak dipakai
+                        {t("unused")}
                       </span>
                     ) : (
                       <span className="font-mono">

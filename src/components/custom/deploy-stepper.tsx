@@ -1,6 +1,7 @@
 "use client"
 
 import { Check, Circle, Loader2, X } from "lucide-react"
+import { useLocale, useTranslations } from "next-intl"
 import { useEffect, useState } from "react"
 import {
   buildSteps,
@@ -19,15 +20,8 @@ const ICON_CLASS: Record<StepState, string> = {
   pending: "bg-muted text-muted-foreground",
 }
 
-const STATE_TEXT: Record<StepState, string> = {
-  done: "selesai",
-  active: "berjalan",
-  failed: "gagal",
-  pending: "menunggu",
-}
-
 /**
- * Antre → Build/Pull → Push → Start → Selesai for one deployment, with the
+ * Queued → Build/Pull → Push → Start → Selesai for one deployment, with the
  * time each step took. The active step spins (only when the user allows
  * motion) and its time keeps counting; a failed deployment marks the step
  * that was running. Older deployments without step times show the states
@@ -46,6 +40,8 @@ export function DeployStepper({
   liveStatus?: string | null
   liveTimes?: DeploymentStepTimes & { finished?: string }
 }) {
+  const t = useTranslations("applications")
+  const locale = useLocale()
   const status = liveStatus ?? deployment.status
   const running = status !== "success" && status !== "failed"
   // Re-render every second only while something is running (the active step's time).
@@ -67,7 +63,7 @@ export function DeployStepper({
 
   return (
     <ol
-      aria-label="Langkah deployment"
+      aria-label={t("stepper.ariaLabel")}
       className="flex flex-wrap items-start gap-x-5 gap-y-2 rounded-md border px-3 py-2 text-xs"
     >
       {steps.map((s) => (
@@ -93,12 +89,12 @@ export function DeployStepper({
                 s.state === "pending" ? "text-muted-foreground" : "font-medium"
               }
             >
-              {s.label}
-              <span className="sr-only"> ({STATE_TEXT[s.state]})</span>
+              {t(`stepper.steps.${s.labelKey}`)}
+              <span className="sr-only"> ({t(`stepper.state.${s.state}`)})</span>
             </span>
             {s.durationMs !== null && (
               <span className="block text-muted-foreground tabular-nums">
-                {formatDuration(s.durationMs)}
+                {formatDuration(s.durationMs, locale, t)}
               </span>
             )}
           </span>

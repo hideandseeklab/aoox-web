@@ -1,6 +1,7 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
+import { getTranslations } from "next-intl/server"
 import { z } from "zod"
 import { requireToken } from "@/features/auth/auth.session"
 import type { ProxyStatus } from "@/features/proxy/proxy.entity"
@@ -10,23 +11,26 @@ import type { Server, ServerTestResult } from "./server.entity"
 export type ActionResult<T = undefined> =
   { ok: true; data: T } | { ok: false; error: string }
 
-const schema = z.object({
-  name: z.string().trim().min(1, "Nama wajib diisi").max(100),
-  host: z
-    .string()
-    .trim()
-    .min(1, "Host wajib diisi")
-    .max(255)
-    .regex(/^[a-z0-9.:-]+$/i, "Host harus berupa hostname atau IP"),
-  port: z.coerce.number().int().min(1).max(65535),
-  username: z
-    .string()
-    .trim()
-    .min(1, "Username wajib diisi")
-    .max(64)
-    .regex(/^[a-z_][a-z0-9_.-]*$/i, "Username tidak valid"),
-  privateKey: z.string().trim().max(16384).optional(),
-})
+type Translator = Awaited<ReturnType<typeof getTranslations>>
+
+const buildSchema = (t: Translator) =>
+  z.object({
+    name: z.string().trim().min(1, t("nameRequired")).max(100),
+    host: z
+      .string()
+      .trim()
+      .min(1, t("hostRequired"))
+      .max(255)
+      .regex(/^[a-z0-9.:-]+$/i, t("hostInvalid")),
+    port: z.coerce.number().int().min(1).max(65535),
+    username: z
+      .string()
+      .trim()
+      .min(1, t("usernameRequired"))
+      .max(64)
+      .regex(/^[a-z_][a-z0-9_.-]*$/i, t("usernameInvalid")),
+    privateKey: z.string().trim().max(16384).optional(),
+  })
 
 type Fields = "name" | "host" | "port" | "username" | "privateKey"
 
@@ -47,6 +51,7 @@ export async function createServerAction(
     port: String(formData.get("port") || "22"),
     username: String(formData.get("username") ?? ""),
   }
+  const schema = buildSchema(await getTranslations("infra.validation.server"))
   const parsed = schema.safeParse({
     ...values,
     privateKey: String(formData.get("privateKey") ?? "") || undefined,
@@ -70,7 +75,7 @@ export async function createServerAction(
       error:
         err instanceof ApiError
           ? err.message
-          : "Tidak dapat terhubung ke server",
+          : (await getTranslations("infra.errors"))("serverUnreachable"),
       values,
     }
   }
@@ -94,7 +99,7 @@ export async function deleteServerAction(id: string): Promise<ActionResult> {
       error:
         err instanceof ApiError
           ? err.message
-          : "Tidak dapat terhubung ke server",
+          : (await getTranslations("infra.errors"))("serverUnreachable"),
     }
   }
 }
@@ -114,7 +119,7 @@ export async function testServerAction(
       error:
         err instanceof ApiError
           ? err.message
-          : "Tidak dapat terhubung ke server",
+          : (await getTranslations("infra.errors"))("serverUnreachable"),
     }
   }
 }
@@ -145,7 +150,7 @@ export async function provisionServerProxyAction(
       error:
         err instanceof ApiError
           ? err.message
-          : "Tidak dapat terhubung ke server",
+          : (await getTranslations("infra.errors"))("serverUnreachable"),
     }
   }
 }
@@ -164,7 +169,7 @@ export async function serverProxyStatusAction(
       error:
         err instanceof ApiError
           ? err.message
-          : "Tidak dapat terhubung ke server",
+          : (await getTranslations("infra.errors"))("serverUnreachable"),
     }
   }
 }
@@ -185,7 +190,7 @@ export async function removeServerProxyAction(
       error:
         err instanceof ApiError
           ? err.message
-          : "Tidak dapat terhubung ke server",
+          : (await getTranslations("infra.errors"))("serverUnreachable"),
     }
   }
 }

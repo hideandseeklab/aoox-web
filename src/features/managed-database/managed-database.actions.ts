@@ -1,21 +1,20 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
+import { getTranslations } from "next-intl/server"
 import { redirect } from "next/navigation"
 import { requireToken } from "@/features/auth/auth.session"
 import { api, ApiError } from "@/lib/api"
 import type { DatabaseBackup, ManagedDatabase } from "./managed-database.entity"
-import { databaseSchema } from "./managed-database.schema"
+import { createDatabaseSchema } from "./managed-database.schema"
 
 export type ActionResult<T = undefined> =
   { ok: true; data: T } | { ok: false; error: string }
 
-function fail(err: unknown): { ok: false; error: string } {
-  return {
-    ok: false,
-    error:
-      err instanceof ApiError ? err.message : "Tidak dapat terhubung ke server",
-  }
+async function fail(err: unknown): Promise<{ ok: false; error: string }> {
+  if (err instanceof ApiError) return { ok: false, error: err.message }
+  const t = await getTranslations("common")
+  return { ok: false, error: t("messages.serverUnreachable") }
 }
 
 type Field = "name" | "engine" | "variant" | "imageTag" | "hostPort"
@@ -44,7 +43,8 @@ export async function createDatabaseAction(
     imageTag: String(formData.get("imageTag") ?? ""),
     hostPort: String(formData.get("hostPort") ?? ""),
   }
-  const parsed = databaseSchema.safeParse(values)
+  const t = await getTranslations("database")
+  const parsed = createDatabaseSchema(t).safeParse(values)
   if (!parsed.success) {
     const fieldErrors: DatabaseFormState["fieldErrors"] = {}
     for (const issue of parsed.error.issues) {
@@ -66,7 +66,7 @@ export async function createDatabaseAction(
       token: await requireToken(),
     })
   } catch (err) {
-    return { ...fail(err), values }
+    return { ...(await fail(err)), values }
   }
   revalidatePath(`/projects/${projectId}`)
   return { values, createdId: db.id }
@@ -81,7 +81,7 @@ export async function stopDatabaseAction(id: string): Promise<ActionResult> {
     revalidatePath(`/databases/${id}`)
     return { ok: true, data: undefined }
   } catch (err) {
-    return fail(err)
+    return await fail(err)
   }
 }
 
@@ -94,7 +94,7 @@ export async function startDatabaseAction(id: string): Promise<ActionResult> {
     revalidatePath(`/databases/${id}`)
     return { ok: true, data: undefined }
   } catch (err) {
-    return fail(err)
+    return await fail(err)
   }
 }
 
@@ -112,7 +112,7 @@ export async function updateDatabaseResourcesAction(
     revalidatePath(`/databases/${id}`)
     return { ok: true, data }
   } catch (err) {
-    return fail(err)
+    return await fail(err)
   }
 }
 
@@ -140,7 +140,7 @@ export async function createBackupAction(
     revalidatePath(`/databases/${databaseId}`)
     return { ok: true, data }
   } catch (err) {
-    return fail(err)
+    return await fail(err)
   }
 }
 
@@ -156,7 +156,7 @@ export async function restoreBackupAction(
     revalidatePath(`/databases/${databaseId}`)
     return { ok: true, data: undefined }
   } catch (err) {
-    return fail(err)
+    return await fail(err)
   }
 }
 
@@ -172,7 +172,7 @@ export async function deleteBackupAction(
     revalidatePath(`/databases/${databaseId}`)
     return { ok: true, data: undefined }
   } catch (err) {
-    return fail(err)
+    return await fail(err)
   }
 }
 
@@ -200,6 +200,6 @@ export async function updateBackupScheduleAction(
     revalidatePath(`/databases/${databaseId}`)
     return { ok: true, data }
   } catch (err) {
-    return fail(err)
+    return await fail(err)
   }
 }

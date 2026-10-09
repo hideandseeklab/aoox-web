@@ -1,0 +1,123 @@
+{
+  "meta": {
+    "title": "Projects · aoox"
+  },
+  "list": {
+    "title": "Projects",
+    "subtitle": "Group applications and databases by project.",
+    "empty": "No projects yet. Create your first project to start deploying."
+  },
+  "create": {
+    "trigger": "New project",
+    "title": "New project",
+    "description": "A project groups the applications and databases you deploy.",
+    "submit": "Create project"
+  },
+  "card": {
+    "active": "active",
+    "inactive": "inactive",
+    "noDescription": "No description",
+    "noInstances": "No instances yet",
+    "runningCount": "{running}/{total} running",
+    "deploying": "deploying…",
+    "kind": {
+      "application": "application",
+      "database": "database",
+      "compose": "stack"
+    }
+  },
+  "detail": {
+    "backToProjects": "Back to projects",
+    "created": "Created {date}",
+    "sections": {
+      "resourceUsage": "Resource usage",
+      "applications": "Applications",
+      "compose": "Compose stacks",
+      "databases": "Databases"
+    },
+    "newApplication": "New application",
+    "newDatabase": "New database",
+    "composeStack": "Compose stack",
+    "fromTemplate": "From template",
+    "empty": {
+      "applications": "No applications in this project yet.",
+      "compose": "No compose stacks in this project yet.",
+      "databases": "No databases in this project yet."
+    },
+    "settings": {
+      "title": "Settings",
+      "description": "Name, description, and the environment shared by all applications."
+    }
+  },
+  "form": {
+    "namePlaceholder": "my-app",
+    "envLabel": "Shared environment",
+    "envHint": "Inherited by every application in this project (an application's own env wins when keys match). Applications can reference it as <code>{ref}</code>. Applies on the next deploy."
+  },
+  "validation": {
+    "nameRequired": "Name is required",
+    "maxChars": "Maximum {max} characters"
+  },
+  "instance": {
+    "noAccess": "No access yet",
+    "openInNewTab": "Open {label} in a new tab",
+    "remoteServer": "remote server",
+    "composeDeploying": "running…",
+    "copied": "{address} copied",
+    "copyFailed": "Could not copy the address",
+    "copyAria": "Copy {address}",
+    "internal": "internal"
+  },
+  "resource": {
+    "empty": "No applications, databases or stacks are running in this project.",
+    "memory": "Memory",
+    "network": "Network",
+    "containerSum": "sum of {count, plural, one {# container} other {# containers}}"
+  },
+  "members": {
+    "title": "Members",
+    "description": "Who can see this project. Platform owners/admins and the project creator are always included; other members are added by the e-mail of an existing account (invite from Settings<arrow></arrow>Team).",
+    "creator": "project creator",
+    "platformRole": "platform {role}",
+    "roleAria": "Role",
+    "removeAria": "Remove",
+    "emailAria": "Member e-mail",
+    "emailPlaceholder": "email@existing-account",
+    "newRoleAria": "New role",
+    "add": "Add",
+    "failed": "Failed",
+    "legend": "Admins manage members and can delete the project; developers do everything else; viewers can only read.",
+    "roles": {
+      "admin": "Admin",
+      "developer": "Developer",
+      "viewer": "Viewer"
+    }
+  },
+  "delete": {
+    "title": "Delete project?",
+    "description": "Project <b>{name}</b> will be permanently deleted."
+  },
+  "export": {
+    "label": "Export configuration (JSON)",
+    "withoutSecrets": "Without secrets",
+    "withoutSecretsHint": "Database passwords are left blank and generated anew on import",
+    "withSecrets": "With database passwords",
+    "withSecretsHint": "Keep this file as safe as any other secret"
+  },
+  "import": {
+    "title": "Import project",
+    "description": "Create a new project from an export file (<code>*.aoox.json</code>). Nothing is deployed; databases are created empty and applications wait for their first deploy.",
+    "file": "Export file",
+    "name": "Project name (optional)",
+    "namePlaceholder": "Use the name from the file",
+    "submit": "Import",
+    "submitting": "Importing…",
+    "importing": "Importing project {name}…",
+    "invalidJson": "The file is not valid JSON",
+    "imported": "Project imported.",
+    "importedWithWarnings": "Project imported with {count, plural, one {# note} other {# notes}} — see below.",
+    "created": "Created: {applications} applications, {databases} databases, {composeApps} compose, {domains} domains, {mounts} mounts, {jobs} jobs.",
+    "needsReview": "Needs review",
+    "openProject": "Open project"
+  }
+}

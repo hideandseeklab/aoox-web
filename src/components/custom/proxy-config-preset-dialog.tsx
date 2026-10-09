@@ -1,6 +1,7 @@
 "use client"
 
 import { Wand2 } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { useState, useTransition } from "react"
 import { Button } from "@/components/ui/button"
 import {
@@ -69,6 +70,7 @@ export function ProxyConfigPresetDialog({
   presets: ProxyPreset[]
   onResult: (name: string, content: string) => void
 }) {
+  const t = useTranslations("infra.proxyPresetDialog")
   const [open, setOpen] = useState(false)
   const [id, setId] = useState(presets[0]?.id ?? "")
   const preset = presets.find((p) => p.id === id) ?? presets[0]
@@ -122,15 +124,14 @@ export function ProxyConfigPresetDialog({
       <DialogTrigger asChild>
         <Button size="sm" variant="outline">
           <Wand2 data-icon="inline-start" />
-          Dari preset
+          {t("trigger")}
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Buat dari preset</DialogTitle>
+          <DialogTitle>{t("title")}</DialogTitle>
           <DialogDescription>
-            Membuat YAML middleware yang siap disimpan. Hasilnya bisa diubah di
-            editor sebelum disimpan.
+            {t("description")}
           </DialogDescription>
         </DialogHeader>
         <form
@@ -142,7 +143,7 @@ export function ProxyConfigPresetDialog({
         >
           <FieldGroup>
             <Field>
-              <FieldLabel htmlFor="preset-id">Preset</FieldLabel>
+              <FieldLabel htmlFor="preset-id">{t("preset")}</FieldLabel>
               <Select value={preset.id} onValueChange={choose}>
                 <SelectTrigger id="preset-id">
                   <SelectValue />
@@ -179,10 +180,10 @@ export function ProxyConfigPresetDialog({
               disabled={pending}
               onClick={() => setOpen(false)}
             >
-              Batal
+              {t("cancel")}
             </Button>
             <Button type="submit" disabled={pending || missing}>
-              {pending ? "Membuat…" : "Buat YAML"}
+              {pending ? t("creating") : t("create")}
             </Button>
           </DialogFooter>
         </form>

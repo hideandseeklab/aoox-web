@@ -1,12 +1,13 @@
 "use client"
 
 import { Broom, Layers, Trash2 } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { toast } from "sonner"
 import { ConfirmDialog } from "@/components/custom/confirm-dialog"
 import {
   DockerEmpty,
+  useAgo,
   useDockerQuery,
-  ago,
   matches,
 } from "@/components/custom/docker-ui"
 import { Badge } from "@/components/ui/badge"
@@ -38,6 +39,8 @@ export function DockerImages({
   serverId: string | null
   isOwner: boolean
 }) {
+  const t = useTranslations("docker")
+  const ago = useAgo()
   const query = useDockerQuery()
   const rows = images.filter((i) =>
     matches(query, ...i.tags, shortId(i.id), ...i.usedByNames)
@@ -58,25 +61,26 @@ export function DockerImages({
                 disabled={dangling.length === 0}
               >
                 <Broom data-icon="inline-start" />
-                Bersihkan dangling ({dangling.length})
+                {t("images.prune", { count: dangling.length })}
               </Button>
             }
-            title="Bersihkan image dangling?"
+            title={t("images.pruneTitle")}
             description={
-              <>
-                Ini menghapus <strong>semua</strong> image dangling (tanpa tag
-                dan tidak dipakai container) di server ini, bukan hanya milik
-                aoox — sekitar {dangling.length} image,{" "}
-                {formatBytes(danglingBytes)}. Jumlah sebenarnya bisa lebih
-                sedikit bila ada image yang masih menjadi induk image lain.
-              </>
+              t.rich("images.pruneDescription", {
+                b: (c) => <strong>{c}</strong>,
+                count: dangling.length,
+                size: formatBytes(danglingBytes),
+              })
             }
-            confirmLabel="Bersihkan"
+            confirmLabel={t("images.pruneConfirm")}
             onConfirm={async () => {
               const r = await pruneImagesAction(serverId)
               if (!r.ok) return { ok: false, error: r.error }
               toast.success(
-                `${r.data.deleted} image dangling dihapus, ${formatBytes(r.data.reclaimedBytes)} dibebaskan`
+                t("images.pruned", {
+                  count: r.data.deleted,
+                  size: formatBytes(r.data.reclaimedBytes),
+                })
               )
             }}
           />
@@ -84,9 +88,7 @@ export function DockerImages({
       </div>
       {rows.length === 0 ? (
         <DockerEmpty icon={Layers}>
-          {images.length === 0
-            ? "Belum ada image di server ini."
-            : "Tidak ada image yang cocok."}
+          {images.length === 0 ? t("images.empty") : t("images.noMatch")}
         </DockerEmpty>
       ) : (
         <div className="rounded-lg border">
@@ -94,11 +96,11 @@ export function DockerImages({
             <TableHeader>
               <TableRow>
                 <TableHead>Image</TableHead>
-                <TableHead>Ukuran</TableHead>
-                <TableHead>Dibuat</TableHead>
-                <TableHead>Dipakai</TableHead>
-                <TableHead>Managed by aoox</TableHead>
-                <TableHead className="text-end">Aksi</TableHead>
+                <TableHead>{t("images.size")}</TableHead>
+                <TableHead>{t("images.created")}</TableHead>
+                <TableHead>{t("images.usedBy")}</TableHead>
+                <TableHead>{t("managedBy")}</TableHead>
+                <TableHead className="text-end">{t("actions")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -113,7 +115,7 @@ export function DockerImages({
                       ))
                     ) : (
                       <div className="text-muted-foreground">
-                        (tanpa tag, dangling)
+                        {t("images.untagged")}
                       </div>
                     )}
                     <div className="font-mono text-muted-foreground">
@@ -129,11 +131,11 @@ export function DockerImages({
                   <TableCell className="max-w-48 whitespace-normal">
                     {i.usedBy === 0 ? (
                       <span className="text-muted-foreground">
-                        tidak dipakai
+                        {t("images.unused")}
                       </span>
                     ) : (
                       <span title={i.usedByNames.join(", ")}>
-                        {i.usedBy} container
+                        {t("images.containers", { count: i.usedBy })}
                       </span>
                     )}
                   </TableCell>
@@ -141,13 +143,13 @@ export function DockerImages({
                     {i.managed ? (
                       <Badge
                         variant="outline"
-                        title="Image milik aoox (helper, panel, atau rollback). Bersihkan lewat Disk Docker."
+                        title={t("images.aooxHint")}
                       >
-                        Image aoox
+                        {t("images.aooxImage")}
                       </Badge>
                     ) : i.protectedReason ? (
                       <Badge variant="outline" title={i.protectedReason}>
-                        dilindungi
+                        {t("images.protected")}
                       </Badge>
                     ) : (
                       <span className="text-muted-foreground">-</span>
@@ -180,23 +182,25 @@ function RemoveImageButton({
   image: DockerImage
   serverId: string | null
 }) {
+  const t = useTranslations("docker")
   const label = image.tags[0] ?? shortId(image.id)
   return (
     <ConfirmDialog
       trigger={
         <Button type="button" variant="outline" size="sm">
           <Trash2 data-icon="inline-start" />
-          Hapus
+          {t("remove")}
         </Button>
       }
-      title={`Hapus image ${label}?`}
+      title={t("images.removeTitle", { name: label })}
       description={
         <span className="space-y-2">
           <span className="block">
-            Penghapusan berlaku per ID image (
-            <span className="font-mono">{shortId(image.id)}</span>), jadi{" "}
-            <strong>semua tag</strong> image ini ikut terhapus dari server ini.
-            Tarik lagi dari registry bila dibutuhkan.
+            {t.rich("images.removeDescription", {
+              b: (c) => <strong>{c}</strong>,
+              code: (c) => <span className="font-mono">{c}</span>,
+              id: shortId(image.id),
+            })}
           </span>
           {image.tags.length > 0 ? (
             <span className="block max-h-40 overflow-y-auto rounded-md border bg-muted/40 p-2">
@@ -208,17 +212,19 @@ function RemoveImageButton({
             </span>
           ) : (
             <span className="block text-muted-foreground">
-              Image ini tanpa tag (
-              <span className="font-mono">{shortId(image.id)}</span>).
+              {t.rich("images.removeNoTag", {
+                code: (c) => <span className="font-mono">{c}</span>,
+                id: shortId(image.id),
+              })}
             </span>
           )}
         </span>
       }
-      confirmLabel="Hapus"
+      confirmLabel={t("remove")}
       onConfirm={async () => {
         const r = await removeImageAction(image.id, serverId)
         if (!r.ok) return { ok: false, error: r.error }
-        toast.success(`${label} dihapus`)
+        toast.success(t("images.removed", { name: label }))
       }}
     />
   )

@@ -1,5 +1,6 @@
 "use client"
 
+import { useTranslations } from "next-intl"
 import { useActionState } from "react"
 import { Button } from "@/components/ui/button"
 import {
@@ -15,6 +16,7 @@ import { setupAction, type SetupState } from "@/features/auth/auth.actions"
 const initialState: SetupState = {}
 
 export function SetupForm() {
+  const t = useTranslations("auth.setup")
   const [state, action, pending] = useActionState(setupAction, initialState)
   const errors = (key: "name" | "email" | "password") =>
     state.fieldErrors?.[key]?.map((message) => ({ message }))
@@ -23,7 +25,7 @@ export function SetupForm() {
     <form action={action} noValidate>
       <FieldGroup>
         <Field data-invalid={!!state.fieldErrors?.name || undefined}>
-          <FieldLabel htmlFor="name">Nama</FieldLabel>
+          <FieldLabel htmlFor="name">{t("name")}</FieldLabel>
           <Input
             id="name"
             name="name"
@@ -36,7 +38,7 @@ export function SetupForm() {
         </Field>
 
         <Field data-invalid={!!state.fieldErrors?.email || undefined}>
-          <FieldLabel htmlFor="email">Email</FieldLabel>
+          <FieldLabel htmlFor="email">{t("email")}</FieldLabel>
           <Input
             id="email"
             name="email"
@@ -51,7 +53,7 @@ export function SetupForm() {
         </Field>
 
         <Field data-invalid={!!state.fieldErrors?.password || undefined}>
-          <FieldLabel htmlFor="password">Password</FieldLabel>
+          <FieldLabel htmlFor="password">{t("password")}</FieldLabel>
           <Input
             id="password"
             name="password"
@@ -60,7 +62,7 @@ export function SetupForm() {
             aria-invalid={!!state.fieldErrors?.password || undefined}
             required
           />
-          <FieldDescription>Minimal 8 karakter.</FieldDescription>
+          <FieldDescription>{t("passwordHint")}</FieldDescription>
           <FieldError errors={errors("password")} />
         </Field>
 
@@ -71,7 +73,7 @@ export function SetupForm() {
         )}
 
         <Button type="submit" className="w-full" disabled={pending}>
-          {pending ? "Membuat akun…" : "Buat akun owner"}
+          {pending ? t("submitting") : t("submit")}
         </Button>
       </FieldGroup>
     </form>

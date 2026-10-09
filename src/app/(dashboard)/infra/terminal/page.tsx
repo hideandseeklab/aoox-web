@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server"
 import { notFound } from "next/navigation"
 import { TerminalCard } from "@/components/custom/terminal-card"
 import { canUseTerminal } from "@/features/auth/auth.entity"
@@ -11,11 +12,12 @@ export default async function TerminalSettingsPage() {
   const session = await getVerifiedSession()
   // Owner/admin only (the API enforces it too; members get a 404 rather than a 403 page).
   if (!session || !canUseTerminal(session.user)) notFound()
+  const t = await getTranslations("terminal.settingsPage")
   const status = await getTerminalStatus()
   return (
     <InfraPage
       title="Terminal"
-      description="Ke mana web shell terhubung (lokal atau SSH ke host) dan key platform yang dipakainya."
+      description={t("description")}
     >
       <TerminalCard
         status={status}

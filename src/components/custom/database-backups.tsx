@@ -49,16 +49,18 @@ import type {
   DatabaseBackup,
   ManagedDatabase,
 } from "@/features/managed-database/managed-database.entity"
+import { formatDateTime, formatNumber } from "@/i18n/format"
+import { useLocale, useTranslations } from "next-intl"
 
-const PRESETS: { label: string; cron: string }[] = [
-  { label: "Nonaktif", cron: "off" },
-  { label: "Setiap jam", cron: "0 * * * *" },
-  { label: "Setiap hari 02:00", cron: "0 2 * * *" },
-  { label: "Setiap minggu (Minggu 03:00)", cron: "0 3 * * 0" },
-  { label: "Kustom", cron: "custom" },
+const PRESETS: { key: string; cron: string }[] = [
+  { key: "off", cron: "off" },
+  { key: "hourly", cron: "0 * * * *" },
+  { key: "daily", cron: "0 2 * * *" },
+  { key: "weekly", cron: "0 3 * * 0" },
+  { key: "custom", cron: "custom" },
 ]
 
-function formatBytes(n: string | null) {
+function formatBytes(n: string | null, locale: string) {
   if (!n) return "—"
   let v = Number(n)
   const units = ["B", "KB", "MB", "GB"]
@@ -67,7 +69,10 @@ function formatBytes(n: string | null) {
     v /= 1024
     i++
   }
-  return `${v.toFixed(i === 0 ? 0 : 1)} ${units[i]}`
+  return `${formatNumber(v, locale, {
+    minimumFractionDigits: i === 0 ? 0 : 1,
+    maximumFractionDigits: i === 0 ? 0 : 1,
+  })} ${units[i]}`
 }
 
 export function DatabaseBackups({
@@ -81,6 +86,9 @@ export function DatabaseBackups({
   running: boolean
   destinations: BackupDestination[]
 }) {
+  const t = useTranslations("database")
+  const tc = useTranslations("common")
+  const locale = useLocale()
   const router = useRouter()
   const [pending, start] = useTransition()
   const [error, setError] = useState<string | null>(null)
@@ -105,7 +113,7 @@ export function DatabaseBackups({
     start(async () => {
       setError(null)
       const r = await fn()
-      if (!r.ok) setError(r.error ?? "Gagal")
+      if (!r.ok) setError(r.error ?? tc("messages.genericError"))
       else router.refresh()
     })
 
@@ -115,12 +123,19 @@ export function DatabaseBackups({
         <CardHeader>
           <div className="flex items-start justify-between gap-4">
             <div>
-              <CardTitle>Backup</CardTitle>
+              <CardTitle>{t("backups.title")}</CardTitle>
               <CardDescription>
-                Dump disimpan di volume <code>aoox_backups</code> di server ini
-                {db.backupDestinationId &&
-                  ` dan disalin ke ${destinationName(db.backupDestinationId) ?? "tujuan S3"}`}
-                . Restore menimpa data yang ada.
+                {t.rich(
+                  db.backupDestinationId
+                    ? "backups.descriptionWithDestination"
+                    : "backups.description",
+                  {
+                    code: (chunks) => <code>{chunks}</code>,
+                    destination:
+                      destinationName(db.backupDestinationId) ??
+                      t("backups.s3Destination"),
+                  }
+                )}
               </CardDescription>
             </div>
             <Button
@@ -129,7 +144,7 @@ export function DatabaseBackups({
               onClick={() => run(() => createBackupAction(db.id))}
             >
               <HardDriveDownload data-icon="inline-start" />
-              {pending ? "Memproses…" : "Backup sekarang"}
+              {pending ? tc("states.working") : t("backups.backupNow")}
             </Button>
           </div>
         </CardHeader>
@@ -141,7 +156,7 @@ export function DatabaseBackups({
           )}
           {backups.length === 0 ? (
             <EmptyState icon={Archive} compact>
-              Belum ada backup.
+              {t("backups.empty")}
             </EmptyState>
           ) : (
             <ul className="divide-y rounded-md border text-xs">
@@ -152,21 +167,24 @@ export function DatabaseBackups({
                       {b.filename.split("/").pop()}
                     </span>
                     <span className="text-xs text-muted-foreground tabular-nums">
-                      {new Date(b.createdAt).toLocaleString("id-ID", {
+                      {formatDateTime(b.createdAt, locale, {
                         dateStyle: "medium",
                         timeStyle: "short",
                       })}{" "}
-                      · {formatBytes(b.sizeBytes)} ·{" "}
-                      {b.trigger === "scheduled" ? "terjadwal" : "manual"}
-                      {b.remoteKey && (b.local ? " · S3" : " · hanya di S3")}
-                      {b.scope === "all" && " · semua database"}
+                      · {formatBytes(b.sizeBytes, locale)} ·{" "}
+                      {t(`backups.trigger.${b.trigger}`)}
+                      {b.remoteKey &&
+                        ` · ${b.local ? t("backups.s3") : t("backups.s3Only")}`}
+                      {b.scope === "all" && ` · ${t("backups.allDatabases")}`}
                       {b.errorMessage && ` · ${b.errorMessage}`}
                     </span>
                   </span>
                   {b.remoteKey && (
                     <CloudUpload
                       className="size-4 shrink-0 text-muted-foreground"
-                      aria-label={`Tersalin ke ${destinationName(b.destinationId) ?? "S3"}`}
+                      aria-label={t("backups.copiedTo", {
+                        destination: destinationName(b.destinationId) ?? "S3",
+                      })}
                     />
                   )}
                   <Badge
@@ -178,7 +196,7 @@ export function DatabaseBackups({
                           : "secondary"
                     }
                   >
-                    {b.status}
+                    {t(`status.backup.${b.status}`)}
                   </Badge>
                   {b.status === "success" && (
                     <>
@@ -186,7 +204,7 @@ export function DatabaseBackups({
                         asChild
                         variant="ghost"
                         size="icon-sm"
-                        aria-label="Unduh"
+                        aria-label={tc("actions.download")}
                       >
                         <a href={`/api/backups/${b.id}/download`}>
                           <Download />
@@ -195,7 +213,7 @@ export function DatabaseBackups({
                       <Button
                         variant="ghost"
                         size="icon-sm"
-                        aria-label="Restore"
+                        aria-label={t("backups.restore")}
                         disabled={pending || !running}
                         onClick={() => setRestoreTarget(b)}
                       >
@@ -206,7 +224,7 @@ export function DatabaseBackups({
                   <Button
                     variant="ghost"
                     size="icon-sm"
-                    aria-label="Hapus backup"
+                    aria-label={t("backups.deleteAria")}
                     disabled={pending}
                     onClick={() => run(() => deleteBackupAction(db.id, b.id))}
                   >
@@ -221,10 +239,9 @@ export function DatabaseBackups({
 
       <Card>
         <CardHeader>
-          <CardTitle>Jadwal & tujuan backup</CardTitle>
+          <CardTitle>{t("backups.schedule.title")}</CardTitle>
           <CardDescription>
-            Backup terjadwal lama dihapus otomatis melebihi jumlah yang disimpan
-            (juga dari S3). Tujuan S3 ditambahkan di Settings.
+            {t("backups.schedule.description")}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -244,7 +261,7 @@ export function DatabaseBackups({
             }}
           >
             <div className="space-y-1">
-              <Label htmlFor="bk-preset">Frekuensi</Label>
+              <Label htmlFor="bk-preset">{t("backups.schedule.frequency")}</Label>
               <Select value={mode} onValueChange={setMode}>
                 <SelectTrigger id="bk-preset" className="w-56">
                   <SelectValue />
@@ -252,7 +269,7 @@ export function DatabaseBackups({
                 <SelectContent>
                   {PRESETS.map((p) => (
                     <SelectItem key={p.cron} value={p.cron}>
-                      {p.label}
+                      {t(`backups.presets.${p.key}`)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -260,7 +277,7 @@ export function DatabaseBackups({
             </div>
             {mode === "custom" && (
               <div className="space-y-1">
-                <Label htmlFor="bk-cron">Cron (5 kolom)</Label>
+                <Label htmlFor="bk-cron">{t("backups.schedule.cron")}</Label>
                 <Input
                   id="bk-cron"
                   value={customCron}
@@ -271,7 +288,7 @@ export function DatabaseBackups({
               </div>
             )}
             <div className="space-y-1">
-              <Label htmlFor="bk-keep">Simpan</Label>
+              <Label htmlFor="bk-keep">{t("backups.schedule.keep")}</Label>
               <Input
                 id="bk-keep"
                 type="number"
@@ -283,13 +300,13 @@ export function DatabaseBackups({
               />
             </div>
             <div className="space-y-1">
-              <Label htmlFor="bk-dest">Tujuan S3</Label>
+              <Label htmlFor="bk-dest">{t("backups.schedule.destination")}</Label>
               <Select value={destination} onValueChange={setDestination}>
                 <SelectTrigger id="bk-dest" className="w-56">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="local">Hanya lokal</SelectItem>
+                  <SelectItem value="local">{t("backups.schedule.localOnly")}</SelectItem>
                   {destinations.map((d) => (
                     <SelectItem key={d.id} value={d.id}>
                       {d.name}
@@ -305,15 +322,19 @@ export function DatabaseBackups({
                   checked={allDatabases}
                   onCheckedChange={setAllDatabases}
                 />
-                <Label htmlFor="bk-all">Semua database di server</Label>
+                <Label htmlFor="bk-all">{t("backups.schedule.allDatabases")}</Label>
               </div>
             )}
             <Button type="submit" variant="outline" disabled={pending}>
-              Simpan
+              {tc("actions.save")}
             </Button>
             <span className="text-xs text-muted-foreground">
-              Sekarang:{" "}
-              {db.backupCron ? <code>{db.backupCron}</code> : "nonaktif"}
+              {t("backups.schedule.current")}{" "}
+              {db.backupCron ? (
+                <code>{db.backupCron}</code>
+              ) : (
+                t("backups.schedule.currentOff")
+              )}
             </span>
           </form>
         </CardContent>
@@ -325,18 +346,21 @@ export function DatabaseBackups({
       >
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Restore backup?</DialogTitle>
+            <DialogTitle>{t("backups.restoreDialog.title")}</DialogTitle>
             <DialogDescription>
-              Data{" "}
-              <span className="font-medium text-foreground">{db.name}</span>{" "}
-              saat ini akan ditimpa dengan isi{" "}
-              <code>{restoreTarget?.filename.split("/").pop()}</code>. Tidak
-              bisa dibatalkan — buat backup dulu kalau ragu.
+              {t.rich("backups.restoreDialog.description", {
+                name: db.name,
+                file: restoreTarget?.filename.split("/").pop() ?? "",
+                b: (chunks) => (
+                  <span className="font-medium text-foreground">{chunks}</span>
+                ),
+                code: (chunks) => <code>{chunks}</code>,
+              })}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setRestoreTarget(null)}>
-              Batal
+              {tc("actions.cancel")}
             </Button>
             <Button
               variant="destructive"
@@ -350,7 +374,7 @@ export function DatabaseBackups({
                 })
               }
             >
-              {pending ? "Me-restore…" : "Restore"}
+              {pending ? t("backups.restoreDialog.restoring") : t("backups.restore")}
             </Button>
           </DialogFooter>
         </DialogContent>

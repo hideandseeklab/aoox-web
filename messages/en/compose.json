@@ -1,0 +1,150 @@
+{
+  "validation": {
+    "nameRequired": "Name is required",
+    "gitUrlRequired": "Git URL is required",
+    "gitUrlInvalid": "Must be an http(s)/git URL without credentials",
+    "branchInvalid": "Invalid branch name",
+    "pathInvalid": "Invalid path",
+    "composeRequired": "The compose file is required",
+    "tooLong": "Too long"
+  },
+  "accessHint": {
+    "noAddressTitle": "This stack has no address yet",
+    "noAddressBody": "Stack containers only expose ports inside the Docker network. To open it from a browser, set it up in the <tab>Settings</tab><arrow></arrow>Access tab: use a <b>domain</b> through the proxy (e.g. <code>wordpress.localhost</code> for dev — <code>*.localhost</code> points to this computer automatically) or <b>IP & port</b> (a direct host port, e.g. <code>8080</code><arrow></arrow>opens at <code>http://{host}:8080</code>), then <i>Redeploy</i>.",
+    "proxyOff": "The reverse proxy is not running — for domains, enable it first in Infrastructure<arrow></arrow>Reverse proxy.",
+    "open": "Open:",
+    "proxyDown": "The proxy is not running — domains cannot be opened yet.",
+    "serverIpPlaceholder": "server-ip"
+  },
+  "form": {
+    "templateHint": "Copied from the template when created; edit it freely. How services are reached (domain or IP & port) is set in the Access card.",
+    "gitRepository": "Git repository",
+    "branch": "Branch",
+    "composeFile": "Compose file",
+    "composePathHint": "Relative to the repo root; relative paths inside it (build, volumes) are resolved from this file's folder.",
+    "gitCredential": "Git credential",
+    "noCredential": "None (public repo)",
+    "env": "Environment (.env)",
+    "envHint": "Written to <code>.aoox.env</code> and used as the source for <code>{varExample}</code> interpolation in the compose file (not passed into containers automatically — use <code>environment:</code> or <code>env_file: .aoox.env</code>). Supports <code>{projectRef}</code>.",
+    "envHintDb": "Written to <code>.aoox.env</code> and used as the source for <code>{varExample}</code> interpolation in the compose file (not passed into containers automatically — use <code>environment:</code> or <code>env_file: .aoox.env</code>). Supports <code>{projectRef}</code> and {databases}.",
+    "saved": "Saved — applies on the next deploy.",
+    "createStack": "Create stack",
+    "toast": {
+      "created": "Stack \"{name}\" created — deploying.",
+      "checkForm": "Check the form fields",
+      "creating": "Creating stack {name}…",
+      "newName": "new"
+    }
+  },
+  "history": {
+    "empty": "No history yet — deploy first.",
+    "noOutput": "No output.",
+    "webhook": "webhook",
+    "webhookTitle": "Triggered by a push to the repository",
+    "log": "Log",
+    "actionLog": "Action log",
+    "action": {
+      "deploy": "deploy",
+      "stop": "stop",
+      "start": "start",
+      "down": "down"
+    }
+  },
+  "panel": {
+    "containers": "Containers",
+    "composeProject": "Compose project <code>aoox-{slug}</code>",
+    "noContainers": "No containers yet — deploy first.",
+    "lastLog": "Last action log",
+    "running": "Running…",
+    "done": "Done",
+    "noLogs": "No logs yet."
+  },
+  "statusStrip": {
+    "status": {
+      "idle": "idle",
+      "deploying": "running…",
+      "running": "running",
+      "stopped": "stopped",
+      "error": "error"
+    },
+    "deploy": "Deploy",
+    "redeploy": "Redeploy",
+    "deleteTitle": "Delete stack {name}?",
+    "deleteDescription": "All stack containers are stopped and removed, along with their data volumes and the checkout copy. Data in the volumes is lost permanently and this cannot be undone.",
+    "deleteConfirm": "Delete stack"
+  },
+  "webhook": {
+    "templateNote": "This stack was created from a template, so there is no repository to watch — pushes are ignored."
+  },
+  "access": {
+    "title": "Access",
+    "description": "How services are reached from outside — applies on the next deploy.",
+    "domainLine": "<b>Domain</b>: through the proxy (Traefik), point DNS to this server.",
+    "proxyOff": "The proxy is not running (Infrastructure<arrow></arrow>Reverse proxy).",
+    "ipPortLine": "<b>IP & port</b>: the port is published directly on the host, opened via <code>http://{host}:{port}</code> without a domain/proxy.",
+    "badgeDomain": "domain",
+    "ipPort": "IP & port",
+    "tabDomain": "Domain",
+    "removeDomain": "Remove domain",
+    "removePort": "Remove port",
+    "service": "Service",
+    "containerPort": "Container port",
+    "hostPort": "Host port"
+  },
+  "mounts": {
+    "empty": "No mounts yet.",
+    "addTitle": "Add mount",
+    "addDescription": "<b>Volume</b>: persistent data that survives deploys. <b>Bind</b>: a folder/file on the host (owner/admin only). <b>File</b>: a small config file stored here and mounted read-only. Applies on the next deploy.",
+    "kind": "Type",
+    "type": {
+      "volume": "Volume",
+      "bind": "Bind (host)",
+      "file": "File"
+    },
+    "volumeName": "Volume name",
+    "hostPath": "Path on host",
+    "containerPath": "Path in container",
+    "readOnly": "Read-only",
+    "fileContent": "File contents",
+    "volumeSource": "volume {name}",
+    "detachAria": "Detach mount",
+    "detachTitle": "Detach mount {name}?",
+    "detachDescriptionVolume": "The mount is detached from the container. Choose what happens to its Docker volume: keep it (data stays) or delete it too (data is lost permanently and this cannot be undone).",
+    "detachDescriptionOther": "The mount is detached from the container. This cannot be undone.",
+    "detachAndDelete": "Detach and delete volume (data lost)",
+    "detach": "Detach mount",
+    "detachKeepData": "Detach mount only (keep data)",
+    "contentAria": "Contents of {name}"
+  },
+  "resources": {
+    "title": "Resource limits",
+    "description": "Per service in the stack — empty means no limit. Applies on the next deploy.",
+    "cpuLimit": "{value}m CPU",
+    "cpuUnlimited": "CPU unlimited",
+    "memoryLimit": "{value} MiB",
+    "ramUnlimited": "RAM unlimited",
+    "removeAria": "Remove limit for {service}",
+    "cpuLabel": "CPU (millicores)",
+    "cpuPlaceholder": "1000 = 1 core",
+    "memoryLabel": "Memory (MiB)",
+    "memoryPlaceholder": "e.g. 512",
+    "submit": "Add / change"
+  },
+  "page": {
+    "backToProject": "Back to project",
+    "tabs": {
+      "deploy": "Deploy",
+      "history": "History ({count})",
+      "mounts": "Mounts ({count})",
+      "jobs": "Jobs ({count})",
+      "settings": "Settings"
+    },
+    "templateInfo": "template · {id}",
+    "settingsTitle": "Settings",
+    "settingsDescription": "Changes apply on the next deploy."
+  },
+  "newPage": {
+    "title": "New compose stack",
+    "description": "Deploy a <code>docker-compose.yml</code> from a git repo; the services in it are built and run as they are."
+  }
+}

@@ -1,6 +1,7 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
+import { getTranslations } from "next-intl/server"
 import { requireToken } from "@/features/auth/auth.session"
 import { api, ApiError } from "@/lib/api"
 import type { ImportReport } from "./project-transfer.entity"
@@ -27,7 +28,7 @@ export async function importProjectAction(
       error:
         err instanceof ApiError
           ? err.message
-          : "Tidak dapat terhubung ke server",
+          : (await getTranslations("common"))("messages.serverUnreachable"),
     }
   }
 }

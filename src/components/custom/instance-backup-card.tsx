@@ -44,13 +44,15 @@ import type {
   InstanceBackupSettings,
   RestoreReport,
 } from "@/features/instance-backup/instance-backup.entity"
+import { formatDateTime } from "@/i18n/format"
+import { useLocale, useTranslations } from "next-intl"
 
-const PRESETS: { label: string; cron: string }[] = [
-  { label: "Nonaktif", cron: "off" },
-  { label: "Setiap hari 01:00", cron: "0 1 * * *" },
-  { label: "Setiap 6 jam", cron: "0 */6 * * *" },
-  { label: "Setiap minggu (Minggu 01:00)", cron: "0 1 * * 0" },
-  { label: "Kustom", cron: "custom" },
+const PRESETS: { labelKey: string; cron: string }[] = [
+  { labelKey: "off", cron: "off" },
+  { labelKey: "daily", cron: "0 1 * * *" },
+  { labelKey: "every6h", cron: "0 */6 * * *" },
+  { labelKey: "weekly", cron: "0 1 * * 0" },
+  { labelKey: "custom", cron: "custom" },
 ]
 
 function formatBytes(n: string | null) {
@@ -74,6 +76,8 @@ export function InstanceBackupCard({
   settings: InstanceBackupSettings
   destinations: BackupDestination[]
 }) {
+  const t = useTranslations("infra.instanceBackup")
+  const locale = useLocale()
   const router = useRouter()
   const [pending, start] = useTransition()
   const [error, setError] = useState<string | null>(null)
@@ -96,7 +100,7 @@ export function InstanceBackupCard({
     start(async () => {
       setError(null)
       const r = await fn()
-      if (!r.ok) setError(r.error ?? "Gagal")
+      if (!r.ok) setError(r.error ?? t("failed"))
     })
 
   const finishRestore = (r: RestoreReport) => {
@@ -109,12 +113,9 @@ export function InstanceBackupCard({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Backup instance</CardTitle>
+        <CardTitle>{t("title")}</CardTitle>
         <CardDescription>
-          Snapshot database panel ini (project, aplikasi, user, server,
-          notifikasi — rahasia tetap terenkripsi). Untuk pindah server: pasang
-          aoox versi sama dengan <code>ENCRYPTION_KEY</code> dan{" "}
-          <code>JWT_SECRET</code> yang sama, lalu unggah file ini.
+          {t.rich("description", { code: (c) => <code>{c}</code> })}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -124,7 +125,7 @@ export function InstanceBackupCard({
             disabled={pending}
             onClick={() => run(createInstanceBackupAction)}
           >
-            Backup sekarang
+            {t("backupNow")}
           </Button>
           <Button
             size="sm"
@@ -133,13 +134,13 @@ export function InstanceBackupCard({
             onClick={() => setUploadOpen(true)}
           >
             <Upload data-icon="inline-start" />
-            Restore dari file
+            {t("restoreFromFile")}
           </Button>
         </div>
 
         {backups.length === 0 ? (
           <EmptyState icon={Archive} compact>
-            Belum ada backup.
+            {t("empty")}
           </EmptyState>
         ) : (
           <ul className="divide-y rounded-md border text-xs">
@@ -148,7 +149,7 @@ export function InstanceBackupCard({
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
                     <span>
-                      {new Date(b.createdAt).toLocaleString("id-ID", {
+                      {formatDateTime(b.createdAt, locale, {
                         dateStyle: "medium",
                         timeStyle: "short",
                       })}
@@ -161,20 +162,20 @@ export function InstanceBackupCard({
                       {b.status}
                     </Badge>
                     {b.trigger === "scheduled" && (
-                      <Badge variant="outline">terjadwal</Badge>
+                      <Badge variant="outline">{t("scheduled")}</Badge>
                     )}
                     {b.remoteKey && (
                       <Cloud
                         className="size-3.5 text-muted-foreground"
-                        aria-label="Tersalin ke S3"
+                        aria-label={t("copiedToS3")}
                       />
                     )}
                     {!b.local && b.status === "success" && (
-                      <Badge variant="outline">hanya di S3</Badge>
+                      <Badge variant="outline">{t("onlyOnS3")}</Badge>
                     )}
                   </div>
                   <p className="truncate text-xs text-muted-foreground tabular-nums">
-                    {formatBytes(b.sizeBytes)} · {b.rowCount} baris ·{" "}
+                    {formatBytes(b.sizeBytes)} · {t("rows", { count: b.rowCount })} ·{" "}
                     {b.schemaVersion ?? "?"}
                     {b.errorMessage && ` · ${b.errorMessage}`}
                   </p>
@@ -185,7 +186,7 @@ export function InstanceBackupCard({
                       asChild
                       variant="ghost"
                       size="icon-sm"
-                      aria-label="Unduh"
+                      aria-label={t("download")}
                     >
                       <a href={`/api/instance-backups/${b.id}/download`}>
                         <Download />
@@ -194,7 +195,7 @@ export function InstanceBackupCard({
                     <Button
                       variant="ghost"
                       size="icon-sm"
-                      aria-label="Restore"
+                      aria-label={t("restore")}
                       disabled={pending}
                       onClick={() => setConfirm(b)}
                     >
@@ -205,7 +206,7 @@ export function InstanceBackupCard({
                 <Button
                   variant="ghost"
                   size="icon-sm"
-                  aria-label="Hapus"
+                  aria-label={t("delete")}
                   disabled={pending}
                   onClick={() => run(() => deleteInstanceBackupAction(b.id))}
                 >
@@ -230,7 +231,7 @@ export function InstanceBackupCard({
           }}
         >
           <div className="space-y-1">
-            <Label htmlFor="ib-preset">Jadwal</Label>
+            <Label htmlFor="ib-preset">{t("schedule")}</Label>
             <Select value={mode} onValueChange={setMode}>
               <SelectTrigger id="ib-preset" className="w-56">
                 <SelectValue />
@@ -238,7 +239,7 @@ export function InstanceBackupCard({
               <SelectContent>
                 {PRESETS.map((p) => (
                   <SelectItem key={p.cron} value={p.cron}>
-                    {p.label}
+                    {t(`presets.${p.labelKey}`)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -246,7 +247,7 @@ export function InstanceBackupCard({
           </div>
           {mode === "custom" && (
             <div className="space-y-1">
-              <Label htmlFor="ib-cron">Cron (5 kolom)</Label>
+              <Label htmlFor="ib-cron">{t("cron")}</Label>
               <Input
                 id="ib-cron"
                 value={customCron}
@@ -257,7 +258,7 @@ export function InstanceBackupCard({
             </div>
           )}
           <div className="space-y-1">
-            <Label htmlFor="ib-keep">Simpan</Label>
+            <Label htmlFor="ib-keep">{t("keep")}</Label>
             <Input
               id="ib-keep"
               type="number"
@@ -269,13 +270,13 @@ export function InstanceBackupCard({
             />
           </div>
           <div className="space-y-1">
-            <Label htmlFor="ib-dest">Tujuan S3</Label>
+            <Label htmlFor="ib-dest">{t("destination")}</Label>
             <Select value={destination} onValueChange={setDestination}>
               <SelectTrigger id="ib-dest" className="w-56">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="local">Hanya lokal</SelectItem>
+                <SelectItem value="local">{t("localOnly")}</SelectItem>
                 {destinations.map((d) => (
                   <SelectItem key={d.id} value={d.id}>
                     {d.name}
@@ -285,7 +286,7 @@ export function InstanceBackupCard({
             </Select>
           </div>
           <Button type="submit" variant="outline" disabled={pending}>
-            Simpan jadwal
+            {t("saveSchedule")}
           </Button>
         </form>
 
@@ -297,7 +298,7 @@ export function InstanceBackupCard({
         {report && (
           <Alert>
             <AlertTitle>
-              Restore selesai: {report.rows} baris di {report.tables} tabel
+              {t("restoreDone", { rows: report.rows, tables: report.tables })}
             </AlertTitle>
             <AlertDescription>
               <ul className="list-disc space-y-1 ps-4">
@@ -316,22 +317,21 @@ export function InstanceBackupCard({
       >
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Restore instance?</DialogTitle>
+            <DialogTitle>{t("confirm.title")}</DialogTitle>
             <DialogDescription>
-              Semua data panel (project, aplikasi, user, pengaturan) diganti
-              dengan isi backup{" "}
-              {confirm &&
-                new Date(confirm.createdAt).toLocaleString("id-ID", {
-                  dateStyle: "medium",
-                  timeStyle: "short",
-                })}
-              . Container yang berjalan tidak disentuh. Perubahan setelah backup
-              itu hilang.
+              {t("confirm.description", {
+                date: confirm
+                  ? formatDateTime(confirm.createdAt, locale, {
+                      dateStyle: "medium",
+                      timeStyle: "short",
+                    })
+                  : "",
+              })}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setConfirm(null)}>
-              Batal
+              {t("cancel")}
             </Button>
             <Button
               variant="destructive"
@@ -349,7 +349,7 @@ export function InstanceBackupCard({
                 })
               }
             >
-              {pending ? "Me-restore…" : "Restore"}
+              {pending ? t("restoring") : t("restore")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -358,10 +358,9 @@ export function InstanceBackupCard({
       <Dialog open={uploadOpen} onOpenChange={setUploadOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Restore dari file</DialogTitle>
+            <DialogTitle>{t("upload.title")}</DialogTitle>
             <DialogDescription>
-              Unggah file <code>*.json.gz</code> hasil unduhan backup instance.
-              Versi aoox (migrasi) harus sama. Semua data panel diganti.
+              {t.rich("upload.description", { code: (c) => <code>{c}</code> })}
             </DialogDescription>
           </DialogHeader>
           <form
@@ -381,7 +380,7 @@ export function InstanceBackupCard({
             }}
           >
             <div className="space-y-1.5">
-              <Label htmlFor="ib-file">File backup</Label>
+              <Label htmlFor="ib-file">{t("upload.file")}</Label>
               <Input
                 id="ib-file"
                 name="file"
@@ -392,7 +391,7 @@ export function InstanceBackupCard({
             </div>
             <DialogFooter>
               <Button type="submit" variant="destructive" disabled={pending}>
-                {pending ? "Me-restore…" : "Restore"}
+                {pending ? t("restoring") : t("restore")}
               </Button>
             </DialogFooter>
           </form>

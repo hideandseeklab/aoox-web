@@ -1,6 +1,8 @@
 "use client"
 
 import { useSyncExternalStore } from "react"
+import { formatDate, formatTime } from "@/i18n/format"
+import { useLocale } from "next-intl"
 
 /** Whole seconds since epoch; the interval is the "external store" the clock subscribes to. */
 function subscribe(onTick: () => void) {
@@ -17,6 +19,7 @@ const getServerSeconds = () => null
  * timezone.
  */
 export function LiveClock() {
+  const locale = useLocale()
   const seconds = useSyncExternalStore(subscribe, getSeconds, getServerSeconds)
   if (seconds === null) return <div className="h-10" aria-hidden />
   const now = new Date(seconds * 1000)
@@ -24,7 +27,7 @@ export function LiveClock() {
   return (
     <div className="text-end tabular-nums" aria-live="off">
       <p className="text-sm font-medium">
-        {now.toLocaleDateString("id-ID", {
+        {formatDate(now, locale, {
           weekday: "long",
           day: "numeric",
           month: "long",
@@ -33,7 +36,7 @@ export function LiveClock() {
       </p>
       <p className="font-mono text-2xl leading-tight font-semibold">
         <time dateTime={now.toISOString()}>
-          {now.toLocaleTimeString("id-ID", {
+          {formatTime(now, locale, {
             hour: "2-digit",
             minute: "2-digit",
             second: "2-digit",

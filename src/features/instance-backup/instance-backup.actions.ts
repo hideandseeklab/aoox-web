@@ -1,6 +1,7 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
+import { getTranslations } from "next-intl/server"
 import { requireToken } from "@/features/auth/auth.session"
 import { api, ApiError } from "@/lib/api"
 import type {
@@ -14,11 +15,11 @@ const API_URL = process.env.API_URL ?? "http://localhost:3001"
 export type ActionResult<T = undefined> =
   { ok: true; data: T } | { ok: false; error: string }
 
-function fail(err: unknown): { ok: false; error: string } {
+async function fail(err: unknown): Promise<{ ok: false; error: string }> {
+  const t = await getTranslations("infra.errors")
   return {
     ok: false,
-    error:
-      err instanceof ApiError ? err.message : "Tidak dapat terhubung ke server",
+    error: err instanceof ApiError ? err.message : t("serverUnreachable"),
   }
 }
 
@@ -88,7 +89,10 @@ export async function restoreInstanceUploadAction(
 ): Promise<ActionResult<RestoreReport>> {
   const file = formData.get("file")
   if (!(file instanceof File) || file.size === 0) {
-    return { ok: false, error: "Pilih file backup dulu" }
+    return {
+      ok: false,
+      error: (await getTranslations("infra.errors"))("pickBackupFile"),
+    }
   }
   const body = new FormData()
   body.set("file", file, file.name)
@@ -111,6 +115,9 @@ export async function restoreInstanceUploadAction(
     revalidatePath("/", "layout")
     return { ok: true, data: json as RestoreReport }
   } catch {
-    return { ok: false, error: "Tidak dapat terhubung ke server" }
+    return {
+      ok: false,
+      error: (await getTranslations("infra.errors"))("serverUnreachable"),
+    }
   }
 }

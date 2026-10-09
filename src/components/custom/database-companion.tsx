@@ -9,8 +9,9 @@ import {
   Plus,
   Trash2,
 } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { useRouter } from "next/navigation"
-import { useEffect, useRef, useState, useTransition } from "react"
+import { useEffect, useMemo, useRef, useState, useTransition } from "react"
 import { toast } from "sonner"
 import { useBrowserHost } from "@/components/custom/use-browser-host"
 import { Badge } from "@/components/ui/badge"
@@ -43,7 +44,7 @@ import type {
   CompanionTool,
   DatabaseCompanion,
 } from "@/features/database-companion/database-companion.entity"
-import { companionSchema } from "@/features/database-companion/database-companion.schema"
+import { createCompanionSchema } from "@/features/database-companion/database-companion.schema"
 import type { ManagedDatabaseDetail } from "@/features/managed-database/managed-database.entity"
 import { copyToClipboard } from "@/lib/clipboard"
 import { cn } from "@/lib/utils"
@@ -59,6 +60,8 @@ export function DatabaseCompanionCard({
   tools: CompanionTool[]
   running: boolean
 }) {
+  const t = useTranslations("database")
+  const tc = useTranslations("common")
   const router = useRouter()
   const canManage = db.projectRole !== "viewer"
   const [installOpen, setInstallOpen] = useState(false)
@@ -86,7 +89,7 @@ export function DatabaseCompanionCard({
   if (!companion && tools.length === 0) return null
 
   const tool = companion
-    ? tools.find((t) => t.id === companion.tool)
+    ? tools.find((x) => x.id === companion.tool)
     : undefined
   const toolLabel = tool?.label ?? companion?.tool ?? ""
   const url = companion
@@ -110,7 +113,7 @@ export function DatabaseCompanionCard({
         toast.error(r.error)
         return
       }
-      toast.success("Admin UI dihapus")
+      toast.success(t("companion.toast.removed"))
       setDeleteOpen(false)
       router.refresh()
     })
@@ -118,18 +121,16 @@ export function DatabaseCompanionCard({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Admin UI</CardTitle>
+        <CardTitle>{t("companion.title")}</CardTitle>
         <CardDescription>
-          Antarmuka web untuk mengelola database ini, berjalan di container
-          terpisah.
+          {t("companion.description")}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-3 text-xs">
         {!companion ? (
           <div className="space-y-2">
             <p className="text-muted-foreground">
-              Belum ada Admin UI. Pasang dengan satu klik, lalu buka dari domain
-              atau IP dan port.
+              {t("companion.empty")}
             </p>
             {canManage ? (
               <>
@@ -138,17 +139,17 @@ export function DatabaseCompanionCard({
                   onClick={() => setInstallOpen(true)}
                 >
                   <Plus data-icon="inline-start" />
-                  Pasang Admin UI
+                  {t("companion.install")}
                 </Button>
                 {!running && (
                   <p className="text-muted-foreground">
-                    Jalankan database terlebih dahulu.
+                    {t("companion.startDatabaseFirst")}
                   </p>
                 )}
               </>
             ) : (
               <p className="text-muted-foreground">
-                Hanya developer ke atas yang bisa memasang Admin UI.
+                {t("companion.developerOnly")}
               </p>
             )}
           </div>
@@ -168,7 +169,7 @@ export function DatabaseCompanionCard({
                 {companion.status === "creating" && (
                   <Loader2 className="animate-spin" />
                 )}
-                {companion.status}
+                {t(`companion.status.${companion.status}`)}
               </Badge>
             </div>
             {companion.status === "error" && companion.errorMessage && (
@@ -181,12 +182,12 @@ export function DatabaseCompanionCard({
             )}
             {url && (
               <div className="flex min-w-0 items-center gap-2">
-                <span className="w-20 shrink-0 text-muted-foreground">URL</span>
+                <span className="w-20 shrink-0 text-muted-foreground">{tc("labels.url")}</span>
                 <a
                   href={url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  aria-label={`Buka ${toolLabel} di tab baru`}
+                  aria-label={t("companion.openInNewTab", { tool: toolLabel })}
                   className="flex min-w-0 items-center gap-1 font-mono hover:underline"
                 >
                   <span className="truncate">{url}</span>
@@ -198,13 +199,20 @@ export function DatabaseCompanionCard({
               <div className="space-y-2">
                 {tool?.usesDatabaseLogin ? (
                   <p className="text-muted-foreground">
-                    Masuk dengan username dan password database (lihat kartu
-                    Koneksi internal, tombol Tampilkan password).
+                    {t("companion.databaseLoginHint")}
                   </p>
                 ) : creds ? (
                   <div className="space-y-2">
-                    <CredRow label="User" value={creds.username} />
-                    <CredRow label="Password" value={creds.password} />
+                    <CredRow
+                      kind="username"
+                      label={t("companion.credentials.user")}
+                      value={creds.username}
+                    />
+                    <CredRow
+                      kind="password"
+                      label={tc("labels.password")}
+                      value={creds.password}
+                    />
                   </div>
                 ) : null}
                 <div className="flex flex-wrap items-center gap-2">
@@ -212,7 +220,7 @@ export function DatabaseCompanionCard({
                     (creds ? (
                       <Button variant="outline" onClick={() => setCreds(null)}>
                         <EyeOff data-icon="inline-start" />
-                        Sembunyikan kredensial
+                        {t("companion.credentials.hide")}
                       </Button>
                     ) : (
                       <Button
@@ -221,7 +229,7 @@ export function DatabaseCompanionCard({
                         onClick={showCreds}
                       >
                         <Eye data-icon="inline-start" />
-                        Tampilkan kredensial
+                        {t("companion.credentials.show")}
                       </Button>
                     ))}
                   <Button
@@ -230,7 +238,7 @@ export function DatabaseCompanionCard({
                     onClick={() => setDeleteOpen(true)}
                   >
                     <Trash2 data-icon="inline-start" />
-                    Hapus Admin UI
+                    {t("companion.remove")}
                   </Button>
                 </div>
               </div>
@@ -251,21 +259,20 @@ export function DatabaseCompanionCard({
       <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Hapus Admin UI?</DialogTitle>
+            <DialogTitle>{t("companion.removeDialog.title")}</DialogTitle>
             <DialogDescription>
-              Container {toolLabel} dihentikan dan dihapus. Data database tidak
-              terpengaruh.
+              {t("companion.removeDialog.description", { tool: toolLabel })}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => setDeleteOpen(false)}>
-              Batal
+              {tc("actions.cancel")}
             </Button>
             <Button variant="destructive" disabled={pending} onClick={remove}>
               {pending && (
                 <Loader2 className="animate-spin" data-icon="inline-start" />
               )}
-              Hapus
+              {tc("actions.delete")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -274,7 +281,16 @@ export function DatabaseCompanionCard({
   )
 }
 
-function CredRow({ label, value }: { label: string; value: string | null }) {
+function CredRow({
+  kind,
+  label,
+  value,
+}: {
+  kind: "username" | "password"
+  label: string
+  value: string | null
+}) {
+  const t = useTranslations("database")
   return (
     <div className="flex items-center gap-2">
       <span className="w-20 shrink-0 text-muted-foreground">{label}</span>
@@ -285,12 +301,12 @@ function CredRow({ label, value }: { label: string; value: string | null }) {
         <Button
           variant="ghost"
           size="icon-sm"
-          aria-label={`Salin ${label}`}
+          aria-label={t("companion.credentials.copyAria", { label })}
           onClick={() =>
             void copyToClipboard(value).then((ok) =>
               ok
-                ? toast.success(`${label} disalin`)
-                : toast.error(`Gagal menyalin ${label.toLowerCase()}`)
+                ? toast.success(t(`companion.credentials.copied.${kind}`))
+                : toast.error(t(`companion.credentials.copyFailed.${kind}`))
             )
           }
         >
@@ -314,6 +330,9 @@ function InstallDialog({
   dbId: string
   tools: CompanionTool[]
 }) {
+  const t = useTranslations("database")
+  const tc = useTranslations("common")
+  const schema = useMemo(() => createCompanionSchema(t), [t])
   const router = useRouter()
   const [pending, start] = useTransition()
   const toastId = useRef<string | number | undefined>(undefined)
@@ -326,7 +345,7 @@ function InstallDialog({
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault()
-    const parsed = companionSchema.safeParse({
+    const parsed = schema.safeParse({
       tool,
       access,
       host,
@@ -341,17 +360,14 @@ function InstallDialog({
       return setErrors(next)
     }
     setErrors({})
-    toastId.current = toast.loading("Memasang Admin UI…")
+    toastId.current = toast.loading(t("companion.toast.installing"))
     start(async () => {
       const r = await installCompanionAction(dbId, parsed.data)
       if (!r.ok) {
         toast.error(r.error, { id: toastId.current })
         return
       }
-      toast.success(
-        "Admin UI sedang disiapkan, pull image bisa beberapa menit",
-        { id: toastId.current }
-      )
+      toast.success(t("companion.toast.installed"), { id: toastId.current })
       onOpenChange(false)
       router.refresh()
     })
@@ -364,28 +380,30 @@ function InstallDialog({
         showCloseButton={!pending}
       >
         <DialogHeader>
-          <DialogTitle>Pasang Admin UI</DialogTitle>
-          <DialogDescription>Pilih alat dan cara membukanya.</DialogDescription>
+          <DialogTitle>{t("companion.installDialog.title")}</DialogTitle>
+          <DialogDescription>
+            {t("companion.installDialog.description")}
+          </DialogDescription>
         </DialogHeader>
         <form onSubmit={submit} className="space-y-4 text-xs">
           <div className="space-y-1">
-            <Label id="companion-tool-label">Alat</Label>
+            <Label id="companion-tool-label">{t("companion.installDialog.tool")}</Label>
             <div
               role="radiogroup"
               aria-labelledby="companion-tool-label"
               className="space-y-2"
             >
-              {tools.map((t) => (
+              {tools.map((x) => (
                 <Choice
-                  key={t.id}
-                  checked={tool === t.id}
-                  onSelect={() => setTool(t.id)}
-                  title={t.label}
-                  description={t.description}
+                  key={x.id}
+                  checked={tool === x.id}
+                  onSelect={() => setTool(x.id)}
+                  title={x.label}
+                  description={x.description}
                   note={
-                    t.usesDatabaseLogin
-                      ? "Masuk dengan login database"
-                      : "Password dibuat otomatis"
+                    x.usesDatabaseLogin
+                      ? t("companion.installDialog.noteDatabaseLogin")
+                      : t("companion.installDialog.noteGeneratedPassword")
                   }
                 />
               ))}
@@ -398,7 +416,7 @@ function InstallDialog({
           </div>
 
           <div className="space-y-1">
-            <Label id="companion-access-label">Akses</Label>
+            <Label id="companion-access-label">{t("companion.installDialog.access")}</Label>
             <div
               role="radiogroup"
               aria-labelledby="companion-access-label"
@@ -407,14 +425,14 @@ function InstallDialog({
               <Choice
                 checked={access === "domain"}
                 onSelect={() => setAccess("domain")}
-                title="Domain"
-                description="Lewat reverse proxy dengan hostname sendiri."
+                title={t("companion.installDialog.domain.title")}
+                description={t("companion.installDialog.domain.description")}
               />
               <Choice
                 checked={access === "port"}
                 onSelect={() => setAccess("port")}
-                title="IP & port"
-                description="Dipublikasikan di port host server ini."
+                title={t("companion.installDialog.port.title")}
+                description={t("companion.installDialog.port.description")}
               />
             </div>
           </div>
@@ -422,7 +440,7 @@ function InstallDialog({
           {access === "domain" ? (
             <div className="space-y-2">
               <div className="space-y-1">
-                <Label htmlFor="companion-host">Hostname</Label>
+                <Label htmlFor="companion-host">{t("companion.installDialog.hostname")}</Label>
                 <Input
                   id="companion-host"
                   value={host}
@@ -445,13 +463,12 @@ function InstallDialog({
                 <Label htmlFor="companion-https">HTTPS</Label>
               </div>
               <p className="text-muted-foreground">
-                Reverse proxy harus aktif dan DNS hostname sudah mengarah ke IP
-                server ini.
+                {t("companion.installDialog.domainHint")}
               </p>
             </div>
           ) : (
             <div className="space-y-1">
-              <Label htmlFor="companion-port">Port host</Label>
+              <Label htmlFor="companion-port">{t("companion.installDialog.hostPort")}</Label>
               <Input
                 id="companion-port"
                 inputMode="numeric"
@@ -475,13 +492,13 @@ function InstallDialog({
               disabled={pending}
               onClick={() => onOpenChange(false)}
             >
-              Batal
+              {tc("actions.cancel")}
             </Button>
             <Button type="submit" disabled={pending}>
               {pending && (
                 <Loader2 className="animate-spin" data-icon="inline-start" />
               )}
-              {pending ? "Memasang…" : "Pasang"}
+              {pending ? t("companion.installDialog.installing") : t("companion.installDialog.submit")}
             </Button>
           </DialogFooter>
         </form>

@@ -1,5 +1,6 @@
 "use client"
 
+import { useTranslations } from "next-intl"
 import { WebhookCard } from "@/components/custom/webhook-card"
 import {
   regenerateComposeWebhookAction,
@@ -15,6 +16,7 @@ export function ComposeWebhook({
   composeAppId: string
   webhook: WebhookInfo & { supported: boolean }
 }) {
+  const t = useTranslations("compose")
   return (
     <WebhookCard
       webhook={webhook}
@@ -26,8 +28,7 @@ export function ComposeWebhook({
         webhook.supported ? undefined : (
           <>
             {" "}
-            Stack ini dibuat dari template, jadi tidak ada repository yang bisa
-            dipantau — push diabaikan.
+            {t("webhook.templateNote")}
           </>
         )
       }

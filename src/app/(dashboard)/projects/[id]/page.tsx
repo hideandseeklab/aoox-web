@@ -39,12 +39,17 @@ import {
 } from "@/features/project/project.queries"
 import { listProjectMembers } from "@/features/project-member/project-member.queries"
 import { getSession } from "@/features/auth/auth.session"
+import { formatDateTime } from "@/i18n/format"
+import { getLocale, getTranslations } from "next-intl/server"
 
 export default async function ProjectDetailPage({
   params,
 }: {
   params: Promise<{ id: string }>
 }) {
+  const locale = await getLocale()
+  const t = await getTranslations("projects")
+  const tc = await getTranslations("common")
   const { id } = await params
   const project = await getProject(id)
   if (!project) notFound()
@@ -82,14 +87,14 @@ export default async function ProjectDetailPage({
     <>
       <SetBreadcrumb
         items={[
-          { label: "Projects", href: "/projects" },
+          { label: t("list.title"), href: "/projects" },
           { label: project.name },
         ]}
       />
       <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-3">
         <div className="flex min-w-0 items-start gap-3">
           <Button asChild variant="ghost" size="icon" className="mt-0.5">
-            <Link href="/projects" aria-label="Kembali ke projects">
+            <Link href="/projects" aria-label={t("detail.backToProjects")}>
               <ArrowLeft />
             </Link>
           </Button>
@@ -98,10 +103,11 @@ export default async function ProjectDetailPage({
               {project.name}
             </h1>
             <p className="text-xs text-muted-foreground">
-              Dibuat{" "}
-              {new Date(project.createdAt).toLocaleString("id-ID", {
-                dateStyle: "medium",
-                timeStyle: "short",
+              {t("detail.created", {
+                date: formatDateTime(project.createdAt, locale, {
+                  dateStyle: "medium",
+                  timeStyle: "short",
+                }),
               })}
             </p>
           </div>
@@ -121,7 +127,7 @@ export default async function ProjectDetailPage({
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_400px] lg:items-start">
         <div className="space-y-6">
           <section className="space-y-3">
-            <h2 className="text-sm font-medium">Resource usage</h2>
+            <h2 className="text-sm font-medium">{t("detail.sections.resourceUsage")}</h2>
             <ProjectResourcePanel
               projectId={project.id}
               initial={resourceUsage}
@@ -130,12 +136,12 @@ export default async function ProjectDetailPage({
 
           <section className="space-y-3">
             <div className="flex items-center justify-between">
-              <h2 className="text-sm font-medium">Aplikasi</h2>
+              <h2 className="text-sm font-medium">{t("detail.sections.applications")}</h2>
               {canWrite && (
                 <Button asChild size="sm">
                   <Link href={`/projects/${project.id}/applications/new`}>
                     <Plus data-icon="inline-start" />
-                    New application
+                    {t("detail.newApplication")}
                   </Link>
                 </Button>
               )}
@@ -148,13 +154,13 @@ export default async function ProjectDetailPage({
                     <Button asChild size="sm">
                       <Link href={`/projects/${project.id}/applications/new`}>
                         <Plus data-icon="inline-start" />
-                        New application
+                        {t("detail.newApplication")}
                       </Link>
                     </Button>
                   )
                 }
               >
-                Belum ada aplikasi di project ini.
+                {t("detail.empty.applications")}
               </EmptyState>
             ) : (
               <div className="grid gap-4 sm:grid-cols-2 2xl:grid-cols-3">
@@ -171,19 +177,19 @@ export default async function ProjectDetailPage({
 
           <section className="space-y-3">
             <div className="flex items-center justify-between">
-              <h2 className="text-sm font-medium">Stack compose</h2>
+              <h2 className="text-sm font-medium">{t("detail.sections.compose")}</h2>
               {canWrite && (
                 <div className="flex gap-2">
                   <Button asChild size="sm" variant="outline">
                     <Link href={`/templates?project=${project.id}`}>
                       <LayoutTemplate data-icon="inline-start" />
-                      Dari template
+                      {t("detail.fromTemplate")}
                     </Link>
                   </Button>
                   <Button asChild size="sm">
                     <Link href={`/projects/${project.id}/compose/new`}>
                       <Plus data-icon="inline-start" />
-                      Stack compose
+                      {t("detail.composeStack")}
                     </Link>
                   </Button>
                 </div>
@@ -197,13 +203,13 @@ export default async function ProjectDetailPage({
                     <Button asChild size="sm">
                       <Link href={`/projects/${project.id}/compose/new`}>
                         <Plus data-icon="inline-start" />
-                        Stack compose
+                        {t("detail.composeStack")}
                       </Link>
                     </Button>
                   )
                 }
               >
-                Belum ada stack compose di project ini.
+                {t("detail.empty.compose")}
               </EmptyState>
             ) : (
               <div className="grid gap-4 sm:grid-cols-2 2xl:grid-cols-3">
@@ -216,12 +222,12 @@ export default async function ProjectDetailPage({
 
           <section className="space-y-3">
             <div className="flex items-center justify-between">
-              <h2 className="text-sm font-medium">Database</h2>
+              <h2 className="text-sm font-medium">{t("detail.sections.databases")}</h2>
               {canWrite && (
                 <Button asChild size="sm" variant="outline">
                   <Link href={`/projects/${project.id}/databases/new`}>
                     <Plus data-icon="inline-start" />
-                    New database
+                    {t("detail.newDatabase")}
                   </Link>
                 </Button>
               )}
@@ -234,13 +240,13 @@ export default async function ProjectDetailPage({
                     <Button asChild size="sm" variant="outline">
                       <Link href={`/projects/${project.id}/databases/new`}>
                         <Plus data-icon="inline-start" />
-                        New database
+                        {t("detail.newDatabase")}
                       </Link>
                     </Button>
                   )
                 }
               >
-                Belum ada database di project ini.
+                {t("detail.empty.databases")}
               </EmptyState>
             ) : (
               <div className="grid gap-4 sm:grid-cols-2 2xl:grid-cols-3">
@@ -255,9 +261,9 @@ export default async function ProjectDetailPage({
         <div className="space-y-6 lg:sticky lg:top-6">
           <Card>
             <CardHeader>
-              <CardTitle>Pengaturan</CardTitle>
+              <CardTitle>{t("detail.settings.title")}</CardTitle>
               <CardDescription>
-                Nama, deskripsi, dan environment bersama untuk semua aplikasi.
+                {t("detail.settings.description")}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -268,7 +274,7 @@ export default async function ProjectDetailPage({
                   description: project.description ?? "",
                   env: project.env,
                 }}
-                submitLabel="Simpan"
+                submitLabel={tc("actions.save")}
                 showEnv
               />
             </CardContent>

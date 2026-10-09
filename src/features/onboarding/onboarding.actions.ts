@@ -1,13 +1,14 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
+import { getTranslations } from "next-intl/server"
 import { requireToken } from "@/features/auth/auth.session"
 import { api, ApiError } from "@/lib/api"
 
 export type ActionResult =
   { ok: true } | { ok: false; error: string }
 
-/** "Sembunyikan": persisted per user by the API (audit-logged), and the dashboard re-renders without it. */
+/** "Hide": persisted per user by the API (audit-logged), and the dashboard re-renders without it. */
 export async function dismissOnboardingAction(): Promise<ActionResult> {
   try {
     await api("/onboarding/dismiss", {
@@ -22,7 +23,7 @@ export async function dismissOnboardingAction(): Promise<ActionResult> {
       error:
         err instanceof ApiError
           ? err.message
-          : "Tidak dapat terhubung ke server",
+          : (await getTranslations("common"))("messages.serverUnreachable"),
     }
   }
 }

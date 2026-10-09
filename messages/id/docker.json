@@ -1,0 +1,126 @@
+{
+  "ago": {
+    "justNow": "baru saja",
+    "minutes": "{count} menit",
+    "hours": "{count} jam",
+    "days": "{count} hari",
+    "months": "{count} bulan"
+  },
+  "managedBy": "Managed by aoox",
+  "actions": "Aksi",
+  "driver": "Driver",
+  "usedByHeader": "Dipakai oleh",
+  "unused": "tidak dipakai",
+  "remove": "Hapus",
+  "managed": {
+    "hint": "Container ini dikelola aoox ({kind}). Tidak bisa dihentikan atau dihapus dari halaman ini; kelola dari halamannya.",
+    "hintPanel": "Container ini bagian dari panel aoox (postgres, api, web). Tidak bisa dihentikan atau dihapus dari halaman ini; kelola dari halamannya.",
+    "kinds": {
+      "panel": "Panel aoox",
+      "application": "Aplikasi",
+      "database": "Database",
+      "compose": "Stack",
+      "companion": "Admin database",
+      "stack": "Stack",
+      "proxy": "Proxy",
+      "registry": "Registry",
+      "build": "Build",
+      "job": "Job",
+      "backup": "Backup",
+      "component": "Komponen aoox",
+      "aoox": "Komponen aoox"
+    }
+  },
+  "containers": {
+    "actionDone": "{name}: {action} berhasil",
+    "empty": "Belum ada container di server ini.",
+    "noMatch": "Tidak ada container yang cocok.",
+    "state": "State",
+    "container": "Container",
+    "status": "Status",
+    "port": "Port",
+    "age": "Umur",
+    "logs": "Log",
+    "openPage": "Buka halamannya",
+    "stop": "Stop",
+    "start": "Start",
+    "restart": "Restart",
+    "removeTitle": "Hapus container {name}?",
+    "removeDescription": "Container dihapus dari server ini. Volume bernama tidak ikut terhapus.",
+    "force": "Paksa: hentikan dulu lalu hapus (container sedang berjalan)",
+    "removed": "{name} dihapus"
+  },
+  "images": {
+    "prune": "Bersihkan dangling ({count})",
+    "pruneTitle": "Bersihkan image dangling?",
+    "pruneDescription": "Ini menghapus <b>semua</b> image dangling (tanpa tag dan tidak dipakai container) di server ini, bukan hanya milik aoox — sekitar {count} image, {size}. Jumlah sebenarnya bisa lebih sedikit bila ada image yang masih menjadi induk image lain.",
+    "pruneConfirm": "Bersihkan",
+    "pruned": "{count} image dangling dihapus, {size} dibebaskan",
+    "empty": "Belum ada image di server ini.",
+    "noMatch": "Tidak ada image yang cocok.",
+    "size": "Ukuran",
+    "created": "Dibuat",
+    "usedBy": "Dipakai",
+    "untagged": "(tanpa tag, dangling)",
+    "unused": "tidak dipakai",
+    "containers": "{count} container",
+    "aooxHint": "Image milik aoox (helper, panel, atau rollback). Bersihkan lewat Disk Docker.",
+    "aooxImage": "Image aoox",
+    "protected": "dilindungi",
+    "removeTitle": "Hapus image {name}?",
+    "removeDescription": "Penghapusan berlaku per ID image (<code>{id}</code>), jadi <b>semua tag</b> image ini ikut terhapus dari server ini. Tarik lagi dari registry bila dibutuhkan.",
+    "removeNoTag": "Image ini tanpa tag (<code>{id}</code>).",
+    "removed": "{name} dihapus"
+  },
+  "logs": {
+    "title": "Log {name}",
+    "description": "Baris terakhir sekali ambil, bukan stream. Maksimal 500 baris.",
+    "lineCount": "Jumlah baris",
+    "lines": "{count} baris",
+    "reload": "Muat ulang",
+    "truncated": "Bagian lama dipotong.",
+    "label": "Log container",
+    "loading": "Memuat…",
+    "empty": "(tidak ada keluaran log)"
+  },
+  "networks": {
+    "empty": "Belum ada network di server ini.",
+    "noMatch": "Tidak ada network yang cocok.",
+    "network": "Network",
+    "subnet": "Subnet",
+    "builtin": "bawaan",
+    "internal": "internal"
+  },
+  "volumes": {
+    "empty": "Belum ada volume di server ini.",
+    "noMatch": "Tidak ada volume yang cocok.",
+    "volume": "Volume",
+    "size": "Ukuran",
+    "created": "Dibuat",
+    "orphan": "yatim"
+  },
+  "toolbar": {
+    "pickServer": "Pilih server Docker",
+    "host": "Host (mesin aoox)",
+    "tabs": {
+      "containers": "Container",
+      "images": "Image",
+      "volumes": "Volume",
+      "networks": "Network"
+    },
+    "search": {
+      "containers": "Cari nama, image, atau id",
+      "images": "Cari tag, id, atau container",
+      "volumes": "Cari nama volume atau container",
+      "networks": "Cari nama network atau container"
+    }
+  },
+  "page": {
+    "loadError": "Tidak bisa membaca Docker di server ini",
+    "description": "Container, image, volume, dan network di host atau server remote. Yang dikelola aoox hanya ditampilkan; ubah lewat halaman resource-nya.",
+    "diskNote": "Pemakaian disk dan pembersihan otomatis ada di <link>Disk Docker</link>."
+  },
+  "errors": {
+    "serverUnreachable": "Tidak dapat terhubung ke server"
+  }
+}

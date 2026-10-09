@@ -1,5 +1,6 @@
 "use client"
 
+import { useTranslations } from "next-intl"
 import { useRouter } from "next/navigation"
 import { useState, useTransition } from "react"
 import { Button } from "@/components/ui/button"
@@ -17,6 +18,8 @@ import type { ManagedDatabase } from "@/features/managed-database/managed-databa
 
 /** CPU/memory limits; raising/lowering applies live, removing restarts the container. */
 export function DatabaseResources({ db }: { db: ManagedDatabase }) {
+  const t = useTranslations("database")
+  const tc = useTranslations("common")
   const router = useRouter()
   const [pending, start] = useTransition()
   const [error, setError] = useState<string | null>(null)
@@ -28,11 +31,9 @@ export function DatabaseResources({ db }: { db: ManagedDatabase }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Batas sumber daya</CardTitle>
+        <CardTitle>{t("resources.title")}</CardTitle>
         <CardDescription>
-          Kosong = tanpa batas. Menaikkan/menurunkan batas berlaku langsung;
-          mencabut batas membuat container dibuat ulang (restart singkat, data
-          aman di volume).
+          {t("resources.description")}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -53,35 +54,35 @@ export function DatabaseResources({ db }: { db: ManagedDatabase }) {
           }}
         >
           <div className="space-y-1">
-            <Label htmlFor="db-cpu">CPU (millicore)</Label>
+            <Label htmlFor="db-cpu">{t("resources.cpu")}</Label>
             <Input
               id="db-cpu"
               type="number"
               min={100}
               max={64000}
               step={100}
-              placeholder="1000 = 1 core"
+              placeholder={t("resources.cpuPlaceholder")}
               value={cpu}
               onChange={(e) => setCpu(e.target.value)}
               className="w-40"
             />
           </div>
           <div className="space-y-1">
-            <Label htmlFor="db-mem">Memori (MiB)</Label>
+            <Label htmlFor="db-mem">{t("resources.memory")}</Label>
             <Input
               id="db-mem"
               type="number"
               min={64}
               max={1048576}
               step={64}
-              placeholder="mis. 512"
+              placeholder={t("resources.memoryPlaceholder")}
               value={memory}
               onChange={(e) => setMemory(e.target.value)}
               className="w-40"
             />
           </div>
           <Button type="submit" variant="outline" disabled={pending}>
-            {pending ? "Menyimpan…" : "Simpan"}
+            {pending ? tc("states.saving") : tc("actions.save")}
           </Button>
           {error && (
             <p className="basis-full text-xs text-destructive" role="alert">

@@ -2,6 +2,7 @@
 
 import { PathArrow } from "@/components/custom/arrows"
 import { Check, Container, GitBranch, Loader2 } from "lucide-react"
+import { useTranslations } from "next-intl"
 import Link from "next/link"
 import { useRouter } from "@/lib/use-router"
 import {
@@ -40,6 +41,7 @@ import { Tabs, TabsTrigger } from "@/components/ui/tabs"
 import { ScrollableTabsList } from "@/components/custom/scrollable-tabs-list"
 import { Textarea } from "@/components/ui/textarea"
 import { EnvEditor } from "@/components/custom/env-editor"
+import { EnvRefsHint } from "@/components/custom/application-environment"
 import { ImagePickerDialog } from "@/components/custom/image-picker-dialog"
 import { useBrowserHost } from "@/components/custom/use-browser-host"
 import type {
@@ -52,21 +54,11 @@ import type { Registry } from "@/features/registry/registry.entity"
 import type { Server } from "@/features/server/server.entity"
 import type { SwarmNode } from "@/features/swarm/swarm.entity"
 
-type Akses = "port" | "domain" | "later"
+type Access = "port" | "domain" | "later"
 
 const SOURCE_OPTIONS = [
-  {
-    value: "git",
-    title: "Repo git (di-build)",
-    description: "Clone repo, build image, lalu jalankan.",
-    icon: GitBranch,
-  },
-  {
-    value: "image",
-    title: "Image siap pakai (di-pull)",
-    description: "Tarik image dari registry, tanpa build.",
-    icon: Container,
-  },
+  { value: "git", icon: GitBranch },
+  { value: "image", icon: Container },
 ] as const
 
 type Values = NonNullable<ApplicationFormState["values"]>
@@ -130,7 +122,7 @@ export function ApplicationForm({
     prev: ApplicationFormState,
     formData: FormData
   ) => Promise<ApplicationFormState>
-  /** Create mode adds the "Akses" step (host port / domain / later). */
+  /** Create mode adds the "Access" step (host port / domain / later). */
   mode?: "create" | "edit"
   defaultValues?: Partial<Values>
   submitLabel: string
@@ -166,9 +158,12 @@ export function ApplicationForm({
   hostPortApply?: "recreate" | "rolling" | "on-start" | "next-deploy"
   /** Create mode only: lets the dialog lock its close/cancel button while a submission is in flight. */
   onPendingChange?: (pending: boolean) => void
-  /** Standalone create page only: renders a "Batal" link back to the project. */
+  /** Standalone create page only: renders a "Cancel" link back to the project. */
   cancelHref?: string
 }) {
+  const t = useTranslations("applications")
+  const tc = useTranslations("common")
+  const code = (chunks: React.ReactNode) => <code>{chunks}</code>
   const initial = { ...EMPTY, ...defaultValues }
   const [state, formAction, pending] = useActionState(action, {
     values: initial,
@@ -191,7 +186,7 @@ export function ApplicationForm({
   const [imageRegistryId, setImageRegistryId] = useState(
     v.imageRegistryId || "public"
   )
-  const [akses, setAkses] = useState<Akses>(v.hostPort ? "port" : "later")
+  const [access, setAccess] = useState<Access>(v.hostPort ? "port" : "later")
   const [domainHost, setDomainHost] = useState("")
   const [domainHttps, setDomainHttps] = useState(false)
   const [domainPending, setDomainPending] = useState(false)
@@ -206,8 +201,8 @@ export function ApplicationForm({
   const portConflict =
     !!state.error &&
     /port/i.test(state.error) &&
-    (mode === "edit" || akses === "port")
-  const domainMode = mode === "create" && akses === "domain"
+    (mode === "edit" || access === "port")
+  const domainMode = mode === "create" && access === "domain"
 
   // Plain create (IP+port / later): the action no longer redirects itself
   // (a server `redirect()` would abort before this toast could be resolved,
@@ -217,12 +212,13 @@ export function ApplicationForm({
     if (mode !== "create" || domainMode) return
     if (wasPendingRef.current && !pending) {
       if (state.createdId) {
-        toast.success(`Aplikasi "${state.values?.name ?? ""}" dibuat.`, {
-          id: toastIdRef.current,
-        })
+        toast.success(
+          t("form.toast.created", { name: state.values?.name ?? "" }),
+          { id: toastIdRef.current }
+        )
         router.push(`/applications/${state.createdId}`)
       } else if (state.error || state.fieldErrors) {
-        toast.error(state.error ?? "Periksa isian form", {
+        toast.error(state.error ?? t("form.toast.checkFields"), {
           id: toastIdRef.current,
         })
       }
@@ -235,14 +231,16 @@ export function ApplicationForm({
   // changed Port host says what actually happened to the running app.
   useEffect(() => {
     if (mode !== "edit") return
-    const t = editToastRef.current
-    if (t && !pending) {
+    const pendingToast = editToastRef.current
+    if (pendingToast && !pending) {
       if (state.error || state.fieldErrors) {
-        toast.error(state.error ?? "Periksa isian form", { id: t.id })
+        toast.error(state.error ?? t("form.toast.checkFields"), {
+          id: pendingToast.id,
+        })
       } else if (state.saved) {
-        toast.success(t.message, { id: t.id })
+        toast.success(pendingToast.message, { id: pendingToast.id })
       } else {
-        toast.dismiss(t.id)
+        toast.dismiss(pendingToast.id)
       }
       editToastRef.current = null
     }
@@ -254,12 +252,17 @@ export function ApplicationForm({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pending, domainPending, domainMode])
 
+  const creatingMessage = (formData: FormData) => {
+    const name = String(formData.get("name") || "").trim()
+    return name
+      ? t("form.toast.creatingNamed", { name })
+      : t("form.toast.creatingUnnamed")
+  }
+
   const submitCreate = (e: FormEvent<HTMLFormElement>) => {
     if (mode !== "create" || domainMode) return
     const formData = new FormData(e.currentTarget)
-    toastIdRef.current = toast.loading(
-      `Membuat aplikasi ${String(formData.get("name") || "").trim() || "baru"}…`
-    )
+    toastIdRef.current = toast.loading(creatingMessage(formData))
   }
 
   const submitEdit = (e: FormEvent<HTMLFormElement>) => {
@@ -268,20 +271,21 @@ export function ApplicationForm({
       new FormData(e.currentTarget).get("hostPort") ?? ""
     ).trim()
     const changed = next !== (defaultValues?.hostPort ?? "")
-    const what = next ? "diterapkan" : "dihapus"
     const message =
       !changed || hostPortApply === "next-deploy" || !hostPortApply
-        ? "Tersimpan."
+        ? t("form.toast.saved")
         : hostPortApply === "recreate"
-          ? `Port host ${what}, container dibuat ulang.`
+          ? next
+            ? t("form.toast.hostPortSetRecreated")
+            : t("form.toast.hostPortRemovedRecreated")
           : hostPortApply === "rolling"
-            ? "Port host disimpan; diterapkan lewat deployment konfigurasi (lihat Riwayat)."
-            : "Port host disimpan; berlaku saat aplikasi dijalankan lagi."
+            ? t("form.toast.hostPortRolling")
+            : t("form.toast.hostPortOnStart")
     editToastRef.current = {
       id: toast.loading(
         changed && hostPortApply === "recreate"
-          ? "Menerapkan port host — container dibuat ulang…"
-          : "Menyimpan…"
+          ? t("form.toast.applyingHostPort")
+          : tc("states.saving")
       ),
       message,
     }
@@ -291,7 +295,7 @@ export function ApplicationForm({
     e.preventDefault()
     if (!onCreateWithDomain) return
     if (!domainHost.trim()) {
-      setDomainError("Host wajib diisi")
+      setDomainError(t("form.access.hostRequired"))
       return
     }
     const formData = new FormData(e.currentTarget)
@@ -300,9 +304,7 @@ export function ApplicationForm({
     formData.set("domainHttps", domainHttps ? "on" : "")
     setDomainError(null)
     setDomainPending(true)
-    const toastId = toast.loading(
-      `Membuat aplikasi ${String(formData.get("name") || "").trim() || "baru"}…`
-    )
+    const toastId = toast.loading(creatingMessage(formData))
     onCreateWithDomain(formData, toastId).then((r) => {
       setDomainPending(false)
       if (!r.ok) setDomainError(r.error)
@@ -319,7 +321,7 @@ export function ApplicationForm({
     >
       <FieldGroup className="@container">
         <Field data-invalid={invalid("name")}>
-          <FieldLabel htmlFor="app-name">Nama</FieldLabel>
+          <FieldLabel htmlFor="app-name">{tc("labels.name")}</FieldLabel>
           <Input id="app-name" name="name" defaultValue={v.name} required />
           <FieldError errors={errs("name")} />
         </Field>
@@ -328,14 +330,14 @@ export function ApplicationForm({
           <div className="flex flex-col gap-4">
             <Card>
               <CardHeader>
-                <CardTitle>Sumber</CardTitle>
+                <CardTitle>{t("form.source.title")}</CardTitle>
                 <CardDescription>
-                  Dari mana aplikasi ini dijalankan.
+                  {t("form.source.description")}
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <fieldset className="grid gap-3 sm:grid-cols-2">
-                  <legend className="sr-only">Sumber aplikasi</legend>
+                  <legend className="sr-only">{t("form.source.legend")}</legend>
                   {SOURCE_OPTIONS.map((o) => (
                     <label
                       key={o.value}
@@ -351,9 +353,11 @@ export function ApplicationForm({
                       />
                       <o.icon className="mt-0.5 size-4 shrink-0 text-muted-foreground group-has-[:checked]:text-primary" />
                       <span className="grid gap-0.5">
-                        <span className="text-sm font-medium">{o.title}</span>
+                        <span className="text-sm font-medium">
+                          {t(`form.source.options.${o.value}.title`)}
+                        </span>
                         <span className="text-xs text-muted-foreground">
-                          {o.description}
+                          {t(`form.source.options.${o.value}.description`)}
                         </span>
                       </span>
                       <Check className="ms-auto size-4 shrink-0 text-primary opacity-0 group-has-[:checked]:opacity-100" />
@@ -366,7 +370,9 @@ export function ApplicationForm({
             <Card>
               <CardHeader>
                 <CardTitle>
-                  {sourceType === "image" ? "Image" : "Repository git"}
+                  {sourceType === "image"
+                    ? t("form.image.title")
+                    : t("form.git.title")}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -374,12 +380,14 @@ export function ApplicationForm({
                   {sourceType === "image" && (
                     <div className="grid gap-4 sm:grid-cols-[1fr_auto]">
                       <Field data-invalid={invalid("imageRef")}>
-                        <FieldLabel htmlFor="app-image">Image</FieldLabel>
+                        <FieldLabel htmlFor="app-image">
+                          {t("form.image.label")}
+                        </FieldLabel>
                         <div className="flex gap-2">
                           <Input
                             id="app-image"
                             name="imageRef"
-                            placeholder="ghcr.io/org/app:1.2 atau nginx:1.27"
+                            placeholder={t("form.image.placeholder")}
                             value={imageRef}
                             onChange={(e) => setImageRef(e.target.value)}
                             className="font-mono"
@@ -395,15 +403,13 @@ export function ApplicationForm({
                           )}
                         </div>
                         <FieldDescription>
-                          Di-pull ulang tiap deploy, jadi tag bergerak seperti{" "}
-                          <code>latest</code> ikut terbarui. Tanpa build &
-                          registry lokal.
+                          {t.rich("form.image.description", { code })}
                         </FieldDescription>
                         <FieldError errors={errs("imageRef")} />
                       </Field>
                       <Field>
                         <FieldLabel htmlFor="app-image-registry">
-                          Kredensial
+                          {t("form.image.credentials")}
                         </FieldLabel>
                         <Select
                           name="imageRegistryId"
@@ -417,7 +423,9 @@ export function ApplicationForm({
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="public">Publik</SelectItem>
+                            <SelectItem value="public">
+                              {t("form.image.public")}
+                            </SelectItem>
                             {registries.map((r) => (
                               <SelectItem key={r.id} value={r.id}>
                                 {r.name} · {r.url}
@@ -430,34 +438,33 @@ export function ApplicationForm({
                         className="sm:col-span-2"
                         data-invalid={invalid("autoUpdateIntervalMinutes")}
                       >
-                        <FieldLabel>Update otomatis</FieldLabel>
+                        <FieldLabel>{t("form.image.autoUpdate")}</FieldLabel>
                         <div className="flex flex-wrap items-center gap-3 text-xs">
                           <label className="flex items-center gap-2">
                             <Switch
                               name="autoUpdate"
                               defaultChecked={v.autoUpdate === "on"}
                             />
-                            Deploy ulang saat digest tag berubah di registry
+                            {t("form.image.autoUpdateSwitch")}
                           </label>
                           <span className="flex items-center gap-2">
-                            cek tiap
-                            <Input
-                              name="autoUpdateIntervalMinutes"
-                              type="number"
-                              min={5}
-                              max={1440}
-                              defaultValue={v.autoUpdateIntervalMinutes}
-                              className="w-20"
-                              aria-label="Interval cek (menit)"
-                            />
-                            menit
+                            {t.rich("form.image.checkEvery", {
+                              input: () => (
+                                <Input
+                                  name="autoUpdateIntervalMinutes"
+                                  type="number"
+                                  min={5}
+                                  max={1440}
+                                  defaultValue={v.autoUpdateIntervalMinutes}
+                                  className="w-20"
+                                  aria-label={t("form.image.intervalAria")}
+                                />
+                              ),
+                            })}
                           </span>
                         </div>
                         <FieldDescription>
-                          Seperti Watchtower: digest manifest dibandingkan lewat
-                          registry API (Docker Hub, GHCR, registry lokal), tanpa
-                          pull. Tag yang dipin digest (<code>@sha256:…</code>)
-                          tidak pernah berubah.
+                          {t.rich("form.image.autoUpdateHelp", { code })}
                         </FieldDescription>
                         <FieldError
                           errors={errs("autoUpdateIntervalMinutes")}
@@ -470,7 +477,9 @@ export function ApplicationForm({
                     className={sourceType === "image" ? "hidden" : "contents"}
                   >
                     <Field data-invalid={invalid("gitUrl")}>
-                      <FieldLabel htmlFor="app-git">Git repository</FieldLabel>
+                      <FieldLabel htmlFor="app-git">
+                        {t("form.git.label")}
+                      </FieldLabel>
                       <Input
                         id="app-git"
                         name="gitUrl"
@@ -479,14 +488,16 @@ export function ApplicationForm({
                         required={sourceType === "git"}
                       />
                       <FieldDescription>
-                        Repo git yang bisa di-clone lewat HTTPS.
+                        {t("form.git.description")}
                       </FieldDescription>
                       <FieldError errors={errs("gitUrl")} />
                     </Field>
 
                     <div className="grid gap-4 sm:grid-cols-2">
                       <Field data-invalid={invalid("gitBranch")}>
-                        <FieldLabel htmlFor="app-branch">Branch</FieldLabel>
+                        <FieldLabel htmlFor="app-branch">
+                          {t("form.git.branch")}
+                        </FieldLabel>
                         <Input
                           id="app-branch"
                           name="gitBranch"
@@ -496,15 +507,15 @@ export function ApplicationForm({
                       </Field>
                       <Field>
                         <FieldLabel htmlFor="app-build-type">
-                          Cara build
+                          {t("form.git.buildType")}
                         </FieldLabel>
                         <Select
                           name="buildType"
                           value={buildType}
-                          onValueChange={(t) => {
-                            setBuildType(t as typeof buildType)
+                          onValueChange={(bt) => {
+                            setBuildType(bt as typeof buildType)
                             if (mode === "create" && !portTouched.current) {
-                              setContainerPort(t === "static" ? "80" : "3000")
+                              setContainerPort(bt === "static" ? "80" : "3000")
                             }
                           }}
                         >
@@ -513,16 +524,16 @@ export function ApplicationForm({
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="dockerfile">
-                              Dockerfile di repo
+                              {t("form.git.buildTypes.dockerfile")}
                             </SelectItem>
                             <SelectItem value="nixpacks">
-                              Nixpacks (deteksi otomatis)
+                              {t("form.git.buildTypes.nixpacks")}
                             </SelectItem>
                             <SelectItem value="railpack">
-                              Railpack (deteksi otomatis, cache build)
+                              {t("form.git.buildTypes.railpack")}
                             </SelectItem>
                             <SelectItem value="static">
-                              Situs statis (nginx)
+                              {t("form.git.buildTypes.static")}
                             </SelectItem>
                           </SelectContent>
                         </Select>
@@ -530,29 +541,26 @@ export function ApplicationForm({
                     </div>
                     <Field data-invalid={invalid("rootDirectory")}>
                       <FieldLabel htmlFor="app-root-dir">
-                        Root directory
+                        {t("form.git.rootDirectory")}
                       </FieldLabel>
                       <Input
                         id="app-root-dir"
                         name="rootDirectory"
-                        placeholder="apps/web (kosong = root repo)"
+                        placeholder={t("form.git.rootDirectoryPlaceholder")}
                         defaultValue={v.rootDirectory}
                         className="font-mono"
                       />
                       <FieldDescription>
-                        Untuk monorepo: folder yang di-build, mis.{" "}
-                        <code>apps/web</code>. Path Dockerfile dan folder output
-                        di bawah dihitung dari folder ini, dan file di luarnya
-                        tidak ikut build.
+                        {t.rich("form.git.rootDirectoryHelp", { code })}
                       </FieldDescription>
                       <FieldError errors={errs("rootDirectory")} />
                       <label className="mt-2 flex items-center gap-2 text-xs">
                         <Switch
                           name="watchRootOnly"
                           defaultChecked={v.watchRootOnly === "on"}
-                          aria-label="Deploy hanya bila folder ini berubah"
+                          aria-label={t("form.git.watchRootAria")}
                         />
-                        Webhook: deploy hanya bila file di folder ini berubah
+                        {t("form.git.watchRoot")}
                       </label>
                     </Field>
                     {buildType === "dockerfile" ? (
@@ -571,26 +579,26 @@ export function ApplicationForm({
                       <div className="space-y-4 rounded-md border p-4">
                         <Field data-invalid={invalid("staticBuildCommand")}>
                           <FieldLabel htmlFor="app-static-build">
-                            Perintah build
+                            {t("form.static.buildCommand")}
                           </FieldLabel>
                           <Input
                             id="app-static-build"
                             name="staticBuildCommand"
-                            placeholder="npm ci && npm run build (kosong = file sudah ada di repo)"
+                            placeholder={t(
+                              "form.static.buildCommandPlaceholder"
+                            )}
                             defaultValue={v.staticBuildCommand}
                             className="font-mono"
                           />
                           <FieldDescription>
-                            Dijalankan di image <code>node:22-alpine</code>;
-                            hasilnya disalin ke nginx. Kosongkan untuk HTML
-                            statis biasa.
+                            {t.rich("form.static.buildCommandHelp", { code })}
                           </FieldDescription>
                           <FieldError errors={errs("staticBuildCommand")} />
                         </Field>
                         <div className="grid gap-4 sm:grid-cols-2">
                           <Field data-invalid={invalid("staticOutputDir")}>
                             <FieldLabel htmlFor="app-static-out">
-                              Folder output
+                              {t("form.static.outputDir")}
                             </FieldLabel>
                             <Input
                               id="app-static-out"
@@ -600,15 +608,13 @@ export function ApplicationForm({
                               className="font-mono"
                             />
                             <FieldDescription>
-                              <code>dist</code>, <code>build</code>,{" "}
-                              <code>out</code>, atau <code>.</code> untuk
-                              seluruh repo.
+                              {t.rich("form.static.outputDirHelp", { code })}
                             </FieldDescription>
                             <FieldError errors={errs("staticOutputDir")} />
                           </Field>
                           <Field>
                             <FieldLabel htmlFor="app-static-spa">
-                              Mode SPA
+                              {t("form.static.spaMode")}
                             </FieldLabel>
                             <label className="flex items-center gap-2 text-xs">
                               <Switch
@@ -616,39 +622,31 @@ export function ApplicationForm({
                                 name="staticSpa"
                                 defaultChecked={v.staticSpa === "on"}
                               />
-                              Arahkan path tak dikenal ke{" "}
-                              <code>index.html</code>
+                              {t.rich("form.static.spaSwitch", { code })}
                             </label>
                             <FieldDescription>
-                              Port container = 80. Nyalakan untuk React/Vue
-                              Router.
+                              {t("form.static.spaHelp")}
                             </FieldDescription>
                           </Field>
                         </div>
                       </div>
                     ) : buildType === "railpack" ? (
                       <FieldDescription>
-                        Railpack (Railway) juga mendeteksi stack dari isi repo,
-                        tetapi build-nya dijalankan BuildKit sehingga{" "}
-                        <strong>cache dependensi bertahan antar deploy</strong>{" "}
-                        (uji di sini: 284 s<PathArrow />
-                        54 s). Butuh container BuildKit di host — dinyalakan
-                        otomatis saat build pertama; aplikasi di server remote
-                        tidak didukung. Build args diteruskan sebagai{" "}
-                        <code>--env</code>.
+                        {t.rich("form.git.railpackHelp", {
+                          code,
+                          strong: (chunks) => <strong>{chunks}</strong>,
+                          arrow: () => <PathArrow />,
+                        })}
                       </FieldDescription>
                     ) : (
                       <FieldDescription>
-                        Nixpacks mengenali Node, Python, Go, PHP, Ruby, Rust,
-                        dan lainnya dari isi repo. Build pertama lebih lama
-                        (image dasar ±430 MB + instalasi paket via Nix); cache
-                        build dinonaktifkan — pakai Railpack kalau ingin cache.
-                        Build args di bawah diteruskan sebagai env ke Nixpacks
-                        (mis. <code>NIXPACKS_NODE_VERSION=22</code>).
+                        {t.rich("form.git.nixpacksHelp", { code })}
                       </FieldDescription>
                     )}
                     <Field>
-                      <FieldLabel htmlFor="app-cred">Kredensial Git</FieldLabel>
+                      <FieldLabel htmlFor="app-cred">
+                        {t("form.git.credential")}
+                      </FieldLabel>
                       <Select
                         name="gitCredentialId"
                         defaultValue={v.gitCredentialId || "none"}
@@ -658,7 +656,7 @@ export function ApplicationForm({
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="none">
-                            Tidak ada (repo publik)
+                            {t("form.git.credentialNone")}
                           </SelectItem>
                           {credentials.map((c) => (
                             <SelectItem key={c.id} value={c.id}>
@@ -668,7 +666,7 @@ export function ApplicationForm({
                         </SelectContent>
                       </Select>
                       <FieldDescription>
-                        Untuk repo privat; tambahkan kredensial di Settings.
+                        {t("form.git.credentialHelp")}
                       </FieldDescription>
                     </Field>
                   </div>
@@ -679,7 +677,7 @@ export function ApplicationForm({
           <div className="flex flex-col gap-4">
             <Card>
               <CardHeader>
-                <CardTitle>Jaringan &amp; akses</CardTitle>
+                <CardTitle>{t("form.network.title")}</CardTitle>
               </CardHeader>
               <CardContent>
                 <FieldGroup>
@@ -692,7 +690,7 @@ export function ApplicationForm({
                   >
                     <Field data-invalid={invalid("containerPort")}>
                       <FieldLabel htmlFor="app-cport">
-                        Port container
+                        {t("form.network.containerPort")}
                       </FieldLabel>
                       <Input
                         id="app-cport"
@@ -709,7 +707,7 @@ export function ApplicationForm({
                       {buildType === "static" &&
                         (mode === "create" || containerPort !== "80") && (
                           <FieldDescription>
-                            Situs statis dilayani nginx di port 80.
+                            {t("form.network.staticNote")}
                           </FieldDescription>
                         )}
                       <FieldError errors={errs("containerPort")} />
@@ -720,24 +718,26 @@ export function ApplicationForm({
                           invalid("hostPort") || portConflict || undefined
                         }
                       >
-                        <FieldLabel htmlFor="app-hport">Port host</FieldLabel>
+                        <FieldLabel htmlFor="app-hport">
+                          {t("form.network.hostPort")}
+                        </FieldLabel>
                         <Input
                           id="app-hport"
                           name="hostPort"
                           type="number"
                           min={1}
                           max={65535}
-                          placeholder="kosong = tidak dipublikasikan"
+                          placeholder={t("form.network.hostPortPlaceholder")}
                           defaultValue={v.hostPort}
                         />
                         <FieldDescription>
                           {hostPortApply === "recreate"
-                            ? "Diterapkan langsung: container dibuat ulang dari image yang berjalan (tanpa build; ada downtime singkat karena port yang sama tidak bisa dipakai dua container)."
+                            ? t("form.network.applyRecreate")
                             : hostPortApply === "rolling"
-                              ? "Diterapkan sebagai deployment konfigurasi (rolling update service swarm)."
+                              ? t("form.network.applyRolling")
                               : hostPortApply === "on-start"
-                                ? "Aplikasi sedang berhenti: berlaku saat dijalankan lagi."
-                                : "Berlaku pada deploy pertama."}
+                                ? t("form.network.applyOnStart")
+                                : t("form.network.applyNextDeploy")}
                         </FieldDescription>
                         <FieldError errors={errs("hostPort")} />
                         {portConflict && (
@@ -752,45 +752,50 @@ export function ApplicationForm({
                   {mode === "create" && (
                     <Field
                       data-invalid={
-                        akses === "port"
+                        access === "port"
                           ? invalid("hostPort") || portConflict || undefined
                           : undefined
                       }
                     >
-                      <FieldLabel>Akses</FieldLabel>
+                      <FieldLabel>{t("form.access.label")}</FieldLabel>
                       <FieldDescription>
-                        Tanpa port host atau domain, aplikasi berjalan tapi
-                        tidak bisa dibuka dari luar — ini bisa diatur nanti juga
-                        di tab Pengaturan atau Domain.
+                        {t("form.access.description")}
                       </FieldDescription>
                       <Tabs
-                        value={akses}
-                        onValueChange={(next) => setAkses(next as Akses)}
+                        value={access}
+                        onValueChange={(next) => setAccess(next as Access)}
                       >
                         <ScrollableTabsList>
-                          <TabsTrigger value="port">IP &amp; port</TabsTrigger>
-                          <TabsTrigger value="domain">Domain</TabsTrigger>
-                          <TabsTrigger value="later">Nanti saja</TabsTrigger>
+                          <TabsTrigger value="port">
+                            {t("form.access.tabPort")}
+                          </TabsTrigger>
+                          <TabsTrigger value="domain">
+                            {t("form.access.tabDomain")}
+                          </TabsTrigger>
+                          <TabsTrigger value="later">
+                            {t("form.access.tabLater")}
+                          </TabsTrigger>
                         </ScrollableTabsList>
                       </Tabs>
-                      {akses === "port" && (
+                      {access === "port" && (
                         <div className="space-y-1">
-                          <FieldLabel htmlFor="app-hport">Port host</FieldLabel>
+                          <FieldLabel htmlFor="app-hport">
+                            {t("form.network.hostPort")}
+                          </FieldLabel>
                           <Input
                             id="app-hport"
                             name="hostPort"
                             type="number"
                             min={1}
                             max={65535}
-                            placeholder="mis. 8080"
+                            placeholder={t("form.access.hostPortPlaceholder")}
                             defaultValue={v.hostPort}
                           />
                           <FieldDescription>
-                            Dibuka langsung lewat IP:{" "}
-                            <code>
-                              http://{browserHost ?? "<ip-server>"}:&lt;port&gt;
-                            </code>
-                            , tanpa domain/proxy.
+                            {t.rich("form.access.hostPortHelp", {
+                              code,
+                              url: `http://${browserHost ?? t("form.access.ipPlaceholder")}:<port>`,
+                            })}
                           </FieldDescription>
                           <FieldError errors={errs("hostPort")} />
                           {portConflict && (
@@ -803,12 +808,12 @@ export function ApplicationForm({
                           )}
                         </div>
                       )}
-                      {akses === "domain" && (
+                      {access === "domain" && (
                         <div className="space-y-3">
                           <div className="flex flex-wrap items-end gap-3">
                             <div className="min-w-64 flex-1 space-y-1">
                               <FieldLabel htmlFor="app-domain-host">
-                                Hostname
+                                {t("form.access.hostname")}
                               </FieldLabel>
                               <Input
                                 id="app-domain-host"
@@ -827,14 +832,13 @@ export function ApplicationForm({
                             </label>
                           </div>
                           <FieldDescription>
-                            Dibuka lewat reverse proxy (arahkan DNS host ini ke
-                            server ini).
+                            {t("form.access.domainHelp")}
                             {proxy &&
                               !proxy.running &&
-                              " Proxy belum berjalan — akan diaktifkan otomatis kalau perlu."}
+                              ` ${t("form.access.proxyNotRunning")}`}
                             {proxy &&
                               !proxy.acmeEmail &&
-                              " HTTPS memerlukan PROXY_ACME_EMAIL di API."}
+                              ` ${t("form.access.httpsNeedsAcme")}`}
                           </FieldDescription>
                           {domainError && (
                             <p
@@ -846,10 +850,9 @@ export function ApplicationForm({
                           )}
                         </div>
                       )}
-                      {akses === "later" && (
+                      {access === "later" && (
                         <FieldDescription>
-                          Aplikasi dibuat tanpa alamat akses — atur port host
-                          atau domain belakangan.
+                          {t("form.access.laterHelp")}
                         </FieldDescription>
                       )}
                     </Field>
@@ -857,21 +860,16 @@ export function ApplicationForm({
 
                   <Field data-invalid={invalid("healthcheckPath")}>
                     <FieldLabel htmlFor="app-health">
-                      Health check path
+                      {t("form.network.healthcheck")}
                     </FieldLabel>
                     <Input
                       id="app-health"
                       name="healthcheckPath"
-                      placeholder="/health (kosong = tanpa health check)"
+                      placeholder={t("form.network.healthcheckPlaceholder")}
                       defaultValue={v.healthcheckPath}
                     />
                     <FieldDescription>
-                      Deploy menunggu path ini menjawab 2xx/3xx di dalam
-                      container (butuh wget/curl/node/python3 di image). Untuk
-                      app yang dirutekan lewat domain tanpa port host, container
-                      baru dinaikkan di samping yang lama dan baru
-                      menggantikannya setelah sehat — tanpa downtime. Gagal
-                      sehat = deploy gagal, container lama tetap jalan.
+                      {t("form.network.healthcheckHelp")}
                     </FieldDescription>
                     <FieldError errors={errs("healthcheckPath")} />
                   </Field>
@@ -884,37 +882,16 @@ export function ApplicationForm({
             {mode === "create" && (
               <Card>
                 <CardHeader>
-                  <CardTitle>Environment</CardTitle>
+                  <CardTitle>{t("environment.title")}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <FieldGroup>
                     <Field data-invalid={invalid("env")}>
-                      <FieldLabel>Environment variables</FieldLabel>
+                      <FieldLabel>{t("form.env.label")}</FieldLabel>
                       <EnvEditor name="env" defaultValue={v.env} />
                       <FieldDescription>
-                        Berlaku pada deploy berikutnya, di atas env bersama
-                        project. Nilai bisa merujuk{" "}
-                        <code>{"${{project.KEY}}"}</code>
-                        {databaseSlugs && databaseSlugs.length > 0 ? (
-                          <>
-                            {" "}
-                            dan database project ini:{" "}
-                            {databaseSlugs.map((s, i) => (
-                              <span key={s}>
-                                {i > 0 && ", "}
-                                <code>{`\${{database.${s}.url}}`}</code>
-                              </span>
-                            ))}{" "}
-                            (juga <code>.host</code>, <code>.port</code>,{" "}
-                            <code>.username</code>, <code>.password</code>,{" "}
-                            <code>.database</code>).
-                          </>
-                        ) : (
-                          <>
-                            {" "}
-                            dan <code>{"${{database.<slug>.url}}"}</code>.
-                          </>
-                        )}
+                        {t("form.env.description")}{" "}
+                        <EnvRefsHint databaseSlugs={databaseSlugs} />
                       </FieldDescription>
                       <FieldError errors={errs("env")} />
                     </Field>
@@ -925,13 +902,15 @@ export function ApplicationForm({
 
             <Card>
               <CardHeader>
-                <CardTitle>Sumber daya &amp; lanjutan</CardTitle>
+                <CardTitle>{t("form.advanced.title")}</CardTitle>
               </CardHeader>
               <CardContent>
                 <FieldGroup>
                   {servers.length > 0 && (
                     <Field>
-                      <FieldLabel htmlFor="app-server">Server</FieldLabel>
+                      <FieldLabel htmlFor="app-server">
+                        {tc("labels.server")}
+                      </FieldLabel>
                       <Select
                         name="serverId"
                         defaultValue={v.serverId || "local"}
@@ -940,7 +919,9 @@ export function ApplicationForm({
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="local">Host aoox</SelectItem>
+                          <SelectItem value="local">
+                            {t("form.advanced.localHost")}
+                          </SelectItem>
                           {servers.map((s) => (
                             <SelectItem key={s.id} value={s.id}>
                               {s.name} · {s.username}@{s.host}
@@ -949,14 +930,9 @@ export function ApplicationForm({
                         </SelectContent>
                       </Select>
                       <FieldDescription>
-                        Di server remote: build dan container berjalan di Docker
-                        server itu (lewat SSH) dan image tidak di-push ke
-                        registry. Domain dilayani proxy server itu sendiri
-                        (Infrastruktur
-                        <PathArrow />
-                        Server remote
-                        <PathArrow />
-                        Proxy).
+                        {t.rich("form.advanced.serverHelp", {
+                          arrow: () => <PathArrow />,
+                        })}
                       </FieldDescription>
                     </Field>
                   )}
@@ -965,7 +941,7 @@ export function ApplicationForm({
                     <div className="grid gap-4 sm:grid-cols-[1fr_auto]">
                       <Field>
                         <FieldLabel htmlFor="app-deploy-mode">
-                          Mode deploy
+                          {t("form.advanced.deployMode")}
                         </FieldLabel>
                         <Select
                           name="deployMode"
@@ -979,23 +955,21 @@ export function ApplicationForm({
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="container">
-                              Container (blue/green oleh aoox)
+                              {t("form.advanced.modeContainer")}
                             </SelectItem>
                             <SelectItem value="service">
-                              Swarm service (replika, rolling update oleh
-                              daemon)
+                              {t("form.advanced.modeService")}
                             </SelectItem>
                           </SelectContent>
                         </Select>
                         <FieldDescription>
-                          Service hanya di host aoox. Stop/start = skala ke 0
-                          dan kembali; log & metrik dari task-nya. Ganti mode =
-                          deploy ulang image terakhir. Replika &gt; 1 berbagi
-                          mount volume yang sama.
+                          {t("form.advanced.deployModeHelp")}
                         </FieldDescription>
                       </Field>
                       <Field data-invalid={invalid("replicas")}>
-                        <FieldLabel htmlFor="app-replicas">Replika</FieldLabel>
+                        <FieldLabel htmlFor="app-replicas">
+                          {t("form.advanced.replicas")}
+                        </FieldLabel>
                         <Input
                           id="app-replicas"
                           name="replicas"
@@ -1015,7 +989,7 @@ export function ApplicationForm({
                             data-invalid={invalid("swarmConstraint")}
                           >
                             <FieldLabel htmlFor="app-swarm-constraint">
-                              Constraint tambahan
+                              {t("form.advanced.constraint")}
                             </FieldLabel>
                             <Input
                               id="app-swarm-constraint"
@@ -1025,45 +999,50 @@ export function ApplicationForm({
                               className="font-mono"
                             />
                             <FieldDescription>
-                              Label node diatur di Settings
-                              <PathArrow />
-                              Docker Swarm. Digabung dengan penempatan di bawah
-                              (semua harus terpenuhi).
+                              {t.rich("form.advanced.constraintHelp", {
+                                arrow: () => <PathArrow />,
+                              })}
                             </FieldDescription>
                             <FieldError errors={errs("swarmConstraint")} />
                           </Field>
                           <Field data-invalid={invalid("updateParallelism")}>
                             <FieldLabel htmlFor="app-upd-par">
-                              Rolling update
+                              {t("form.advanced.rollingUpdate")}
                             </FieldLabel>
                             <div className="flex flex-wrap items-center gap-2 text-xs">
-                              <Input
-                                id="app-upd-par"
-                                name="updateParallelism"
-                                type="number"
-                                min={1}
-                                max={20}
-                                defaultValue={v.updateParallelism}
-                                className="w-20"
-                                aria-label="Task per batch"
-                              />
-                              task/batch, jeda
-                              <Input
-                                name="updateDelaySeconds"
-                                type="number"
-                                min={0}
-                                max={600}
-                                defaultValue={v.updateDelaySeconds}
-                                className="w-20"
-                                aria-label="Jeda antar batch (detik)"
-                              />
-                              detik
+                              {t.rich("form.advanced.rollingUpdateRow", {
+                                parallelism: () => (
+                                  <Input
+                                    id="app-upd-par"
+                                    name="updateParallelism"
+                                    type="number"
+                                    min={1}
+                                    max={20}
+                                    defaultValue={v.updateParallelism}
+                                    className="w-20"
+                                    aria-label={t(
+                                      "form.advanced.parallelismAria"
+                                    )}
+                                  />
+                                ),
+                                delay: () => (
+                                  <Input
+                                    name="updateDelaySeconds"
+                                    type="number"
+                                    min={0}
+                                    max={600}
+                                    defaultValue={v.updateDelaySeconds}
+                                    className="w-20"
+                                    aria-label={t("form.advanced.delayAria")}
+                                  />
+                                ),
+                              })}
                             </div>
                             <FieldError errors={errs("updateParallelism")} />
                           </Field>
                           <Field>
                             <FieldLabel htmlFor="app-upd-order">
-                              Urutan
+                              {t("form.advanced.order")}
                             </FieldLabel>
                             <Select
                               name="updateOrder"
@@ -1074,14 +1053,13 @@ export function ApplicationForm({
                               </SelectTrigger>
                               <SelectContent>
                                 <SelectItem value="auto">
-                                  Otomatis (start-first; stop-first bila ada
-                                  port host)
+                                  {t("form.advanced.orderAuto")}
                                 </SelectItem>
                                 <SelectItem value="start-first">
-                                  start-first (task baru dulu)
+                                  {t("form.advanced.orderStartFirst")}
                                 </SelectItem>
                                 <SelectItem value="stop-first">
-                                  stop-first (hentikan yang lama dulu)
+                                  {t("form.advanced.orderStopFirst")}
                                 </SelectItem>
                               </SelectContent>
                             </Select>
@@ -1091,7 +1069,7 @@ export function ApplicationForm({
                       {deployMode === "service" && swarmNodes.length > 1 && (
                         <Field className="sm:col-span-2">
                           <FieldLabel htmlFor="app-swarm-node">
-                            Penempatan
+                            {t("form.advanced.placement")}
                           </FieldLabel>
                           <Select
                             name="swarmNodeId"
@@ -1102,7 +1080,7 @@ export function ApplicationForm({
                             </SelectTrigger>
                             <SelectContent>
                               <SelectItem value="any">
-                                Node mana saja (otomatis)
+                                {t("form.advanced.placementAny")}
                               </SelectItem>
                               {swarmNodes.map((n) => (
                                 <SelectItem key={n.id} value={n.id}>
@@ -1113,10 +1091,7 @@ export function ApplicationForm({
                             </SelectContent>
                           </Select>
                           <FieldDescription>
-                            Aplikasi dengan mount selalu ditempatkan di host
-                            aoox (volume-nya di sana). Task di node lain: log
-                            tetap tampil, tetapi exec job & metrik hanya untuk
-                            task di host.
+                            {t("form.advanced.placementHelp")}
                           </FieldDescription>
                         </Field>
                       )}
@@ -1126,7 +1101,7 @@ export function ApplicationForm({
                   <div className="grid gap-4 sm:grid-cols-2">
                     <Field data-invalid={invalid("cpuMillicores")}>
                       <FieldLabel htmlFor="app-cpu">
-                        Batas CPU (millicore)
+                        {t("form.advanced.cpuLimit")}
                       </FieldLabel>
                       <Input
                         id="app-cpu"
@@ -1135,14 +1110,14 @@ export function ApplicationForm({
                         min={100}
                         max={64000}
                         step={100}
-                        placeholder="kosong = tanpa batas; 1000 = 1 core"
+                        placeholder={t("form.advanced.cpuPlaceholder")}
                         defaultValue={v.cpuMillicores}
                       />
                       <FieldError errors={errs("cpuMillicores")} />
                     </Field>
                     <Field data-invalid={invalid("memoryMb")}>
                       <FieldLabel htmlFor="app-mem">
-                        Batas memori (MiB)
+                        {t("form.advanced.memoryLimit")}
                       </FieldLabel>
                       <Input
                         id="app-mem"
@@ -1151,18 +1126,17 @@ export function ApplicationForm({
                         min={64}
                         max={1048576}
                         step={64}
-                        placeholder="kosong = tanpa batas"
+                        placeholder={t("form.advanced.memoryPlaceholder")}
                         defaultValue={v.memoryMb}
                       />
                       <FieldDescription>
-                        Berlaku langsung ke container yang sedang jalan
-                        (mencabut batas = container dibuat ulang).
+                        {t("form.advanced.memoryHelp")}
                       </FieldDescription>
                       <FieldError errors={errs("memoryMb")} />
                     </Field>
                     <Field data-invalid={invalid("deploymentKeep")}>
                       <FieldLabel htmlFor="app-keep">
-                        Riwayat deployment
+                        {t("form.advanced.deploymentKeep")}
                       </FieldLabel>
                       <Input
                         id="app-keep"
@@ -1173,9 +1147,7 @@ export function ApplicationForm({
                         defaultValue={v.deploymentKeep}
                       />
                       <FieldDescription>
-                        Jumlah deployment sukses (beserta image-nya) yang
-                        disimpan untuk rollback; lebih lama dihapus saat
-                        pembersihan malam.
+                        {t("form.advanced.deploymentKeepHelp")}
                       </FieldDescription>
                       <FieldError errors={errs("deploymentKeep")} />
                     </Field>
@@ -1188,45 +1160,45 @@ export function ApplicationForm({
                           name="ignoreErrorLogs"
                           defaultChecked={v.ignoreErrorLogs === "on"}
                         />
-                        Abaikan error di log
+                        {t("form.advanced.ignoreErrors")}
                       </label>
                       <FieldDescription>
-                        Lewati aplikasi ini dari pemindaian log otomatis
-                        (notifikasi <em>Error aplikasi</em>) — untuk aplikasi
-                        yang output normalnya memang terlihat seperti error.
+                        {t.rich("form.advanced.ignoreErrorsHelp", {
+                          em: (chunks) => <em>{chunks}</em>,
+                        })}
                       </FieldDescription>
                     </Field>
                   )}
 
                   <Field data-invalid={invalid("previewDomain")}>
-                    <FieldLabel>Preview pull request</FieldLabel>
+                    <FieldLabel>{t("form.previews.label")}</FieldLabel>
                     <label className="flex items-center gap-2 text-xs">
                       <Switch
                         name="previewsEnabled"
                         defaultChecked={v.previewsEnabled === "on"}
                       />
-                      Build & jalankan setiap PR yang dibuka (via webhook)
+                      {t("form.previews.switch")}
                     </label>
                     <Input
                       name="previewDomain"
-                      placeholder="preview.example.com (opsional; default PREVIEW_DOMAIN API)"
+                      placeholder={t("form.previews.domainPlaceholder")}
                       defaultValue={v.previewDomain}
                       className="mt-2"
-                      aria-label="Domain preview"
+                      aria-label={t("form.previews.domainAria")}
                     />
                     <FieldDescription>
-                      Preview dapat diakses di{" "}
-                      <code>{"<app>-pr<N>.<domain preview>"}</code> (butuh DNS
-                      wildcard ke host ini). PR dari fork selalu diabaikan —
-                      branch PR adalah kode arbitrer. Maks 5 preview terbuka per
-                      aplikasi. Aktifkan event <em>Pull requests</em> di webhook
-                      provider.
+                      {t.rich("form.previews.help", {
+                        code,
+                        em: (chunks) => <em>{chunks}</em>,
+                      })}
                     </FieldDescription>
                     <FieldError errors={errs("previewDomain")} />
                   </Field>
 
                   <Field data-invalid={invalid("buildArgs")}>
-                    <FieldLabel htmlFor="app-build-args">Build args</FieldLabel>
+                    <FieldLabel htmlFor="app-build-args">
+                      {t("form.advanced.buildArgs")}
+                    </FieldLabel>
                     <Textarea
                       id="app-build-args"
                       name="buildArgs"
@@ -1236,10 +1208,7 @@ export function ApplicationForm({
                       className="font-mono text-xs"
                     />
                     <FieldDescription>
-                      Satu <code>KEY=VALUE</code> per baris, diteruskan ke{" "}
-                      <code>ARG</code> di Dockerfile saat build. Ikut tersimpan
-                      di image — jangan untuk rahasia; tidak mendukung
-                      referensi.
+                      {t.rich("form.advanced.buildArgsHelp", { code })}
                     </FieldDescription>
                     <FieldError errors={errs("buildArgs")} />
                   </Field>
@@ -1255,13 +1224,13 @@ export function ApplicationForm({
           </FieldDescription>
         )}
         {state.saved && !state.error && (
-          <FieldDescription>Tersimpan.</FieldDescription>
+          <FieldDescription>{t("form.toast.saved")}</FieldDescription>
         )}
 
         <div className="flex justify-end gap-2">
           {cancelHref && (
             <Button asChild variant="outline">
-              <Link href={cancelHref}>Batal</Link>
+              <Link href={cancelHref}>{tc("actions.cancel")}</Link>
             </Button>
           )}
           <Button type="submit" disabled={domainMode ? domainPending : pending}>
@@ -1270,8 +1239,8 @@ export function ApplicationForm({
             )}
             {(domainMode ? domainPending : pending)
               ? mode === "create"
-                ? "Membuat…"
-                : "Menyimpan…"
+                ? tc("states.creating")
+                : tc("states.saving")
               : submitLabel}
           </Button>
         </div>

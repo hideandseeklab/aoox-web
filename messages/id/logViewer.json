@@ -1,0 +1,17 @@
+{
+  "defaultEmpty": "Menunggu output…",
+  "defaultLabel": "Log",
+  "searchPlaceholder": "Cari di log…",
+  "searchAria": "Cari di {label}",
+  "noResults": "0 hasil",
+  "previous": "Hasil sebelumnya",
+  "next": "Hasil berikutnya",
+  "follow": "Ikuti",
+  "followTitle": "Gulir otomatis ke baris terbaru",
+  "wrap": "Bungkus baris panjang",
+  "copyAllAria": "Salin semua {label}",
+  "copyAllTitle": "Salin semua",
+  "copied": "Log disalin",
+  "copyFailed": "Gagal menyalin log",
+  "olderHidden": "{count} baris sebelumnya disembunyikan — tampilkan lebih banyak"
+}

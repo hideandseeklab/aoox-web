@@ -1,6 +1,7 @@
 "use client"
 
 import { CircleArrowUp, RefreshCw } from "lucide-react"
+import { useTranslations } from "next-intl"
 import Link from "next/link"
 import { usePathname, useSearchParams } from "next/navigation"
 import {
@@ -36,6 +37,7 @@ export function AppSidebar({
   /** Owner only (from `/auth/me`): a newer aoox is published. */
   update?: { version: string; applying: boolean }
 }) {
+  const t = useTranslations("nav")
   const webVersion = process.env.NEXT_PUBLIC_WEB_VERSION
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -78,7 +80,7 @@ export function AppSidebar({
 
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Platform</SidebarGroupLabel>
+          <SidebarGroupLabel>{t("groups.platform")}</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {items.map((item) => {
@@ -90,11 +92,11 @@ export function AppSidebar({
                     <SidebarMenuButton
                       asChild
                       isActive={active}
-                      tooltip={item.title}
+                      tooltip={t(item.key)}
                     >
                       <Link href={item.href}>
                         <item.icon />
-                        <span>{item.title}</span>
+                        <span>{t(item.key)}</span>
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -105,7 +107,7 @@ export function AppSidebar({
         </SidebarGroup>
 
         <SidebarGroup>
-          <SidebarGroupLabel>Infrastruktur</SidebarGroupLabel>
+          <SidebarGroupLabel>{t("groups.infrastructure")}</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {infraItems.map((item) => (
@@ -113,11 +115,11 @@ export function AppSidebar({
                   <SidebarMenuButton
                     asChild
                     isActive={pathname.startsWith(item.href)}
-                    tooltip={item.title}
+                    tooltip={t(item.key)}
                   >
                     <Link href={item.href}>
                       <item.icon />
-                      <span>{item.title}</span>
+                      <span>{t(item.key)}</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -127,7 +129,7 @@ export function AppSidebar({
         </SidebarGroup>
 
         <SidebarGroup>
-          <SidebarGroupLabel>Settings</SidebarGroupLabel>
+          <SidebarGroupLabel>{t("groups.settings")}</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {settingsItems.map((item) => (
@@ -135,11 +137,11 @@ export function AppSidebar({
                   <SidebarMenuButton
                     asChild
                     isActive={currentTab === item.tab}
-                    tooltip={item.title}
+                    tooltip={t(item.key)}
                   >
                     <Link href={`/settings?tab=${item.tab}`}>
                       <item.icon />
-                      <span>{item.title}</span>
+                      <span>{t(item.key)}</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -149,11 +151,11 @@ export function AppSidebar({
                   <SidebarMenuButton
                     asChild
                     isActive={pathname.startsWith(AUDIT_LOG_NAV.href)}
-                    tooltip={AUDIT_LOG_NAV.title}
+                    tooltip={t(AUDIT_LOG_NAV.key)}
                   >
                     <Link href={AUDIT_LOG_NAV.href}>
                       <AUDIT_LOG_NAV.icon />
-                      <span>{AUDIT_LOG_NAV.title}</span>
+                      <span>{t(AUDIT_LOG_NAV.key)}</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -172,8 +174,8 @@ export function AppSidebar({
                 isActive={pathname.startsWith("/infra/update")}
                 tooltip={
                   update.applying
-                    ? "Sedang memperbarui…"
-                    : `Update tersedia: v${update.version}`
+                    ? t("updating")
+                    : t("updateAvailableVersion", { version: update.version })
                 }
               >
                 <Link href="/infra/update">
@@ -192,9 +194,7 @@ export function AppSidebar({
                   </span>
                   <div className="grid flex-1 text-left text-sm leading-tight">
                     <span className="truncate font-medium">
-                      {update.applying
-                        ? "Sedang memperbarui…"
-                        : "Update tersedia"}
+                      {update.applying ? t("updating") : t("updateAvailable")}
                     </span>
                     <span className="truncate font-mono text-xs text-muted-foreground">
                       v{update.version}

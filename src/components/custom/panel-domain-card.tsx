@@ -1,5 +1,6 @@
 "use client"
 
+import { useTranslations } from "next-intl"
 import { useState, useTransition } from "react"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
@@ -22,6 +23,8 @@ import type { PanelDomainStatus } from "@/features/panel-domain/panel-domain.ent
  * connection for a few seconds — that's expected, not an error.
  */
 export function PanelDomainCard({ status }: { status: PanelDomainStatus }) {
+  const t = useTranslations("infra.panelDomain")
+  const code = (c: React.ReactNode) => <code>{c}</code>
   const [pending, start] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const [applied, setApplied] = useState(false)
@@ -33,29 +36,22 @@ export function PanelDomainCard({ status }: { status: PanelDomainStatus }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Domain panel</CardTitle>
-        <CardDescription>
-          Akses dashboard dan API ini lewat domain sendiri, bukan{" "}
-          <code>{`IP:port`}</code>. Butuh dua DNS A record (dashboard dan API)
-          mengarah ke server ini, dan <code>INSTALL_DIR</code> sudah diisi di{" "}
-          <code>.env.dist</code>.
-        </CardDescription>
+        <CardTitle>{t("title")}</CardTitle>
+        <CardDescription>{t.rich("description", { code })}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {!status.installDirConfigured && (
           <Alert variant="destructive">
-            <AlertTitle>INSTALL_DIR belum diisi</AlertTitle>
+            <AlertTitle>{t("installDirTitle")}</AlertTitle>
             <AlertDescription>
-              Set <code>INSTALL_DIR</code> di <code>.env.dist</code> ke path
-              absolut folder yang berisi <code>docker-compose.dist.yml</code> di
-              server ini, lalu restart stack sebelum menyimpan domain di sini.
+              {t.rich("installDirBody", { code })}
             </AlertDescription>
           </Alert>
         )}
 
         <div className="grid gap-3 sm:grid-cols-2">
           <div className="space-y-1.5">
-            <Label htmlFor="pd-web">Domain dashboard</Label>
+            <Label htmlFor="pd-web">{t("webDomain")}</Label>
             <Input
               id="pd-web"
               value={webHost}
@@ -64,7 +60,7 @@ export function PanelDomainCard({ status }: { status: PanelDomainStatus }) {
             />
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="pd-api">Domain API</Label>
+            <Label htmlFor="pd-api">{t("apiDomain")}</Label>
             <Input
               id="pd-api"
               value={apiHost}
@@ -73,7 +69,7 @@ export function PanelDomainCard({ status }: { status: PanelDomainStatus }) {
             />
           </div>
           <div className="space-y-1.5 sm:col-span-2">
-            <Label htmlFor="pd-acme">Email ACME (Let&apos;s Encrypt)</Label>
+            <Label htmlFor="pd-acme">{t("acmeEmail")}</Label>
             <Input
               id="pd-acme"
               type="email"
@@ -85,9 +81,11 @@ export function PanelDomainCard({ status }: { status: PanelDomainStatus }) {
         </div>
 
         <p className="text-xs text-muted-foreground">
-          Saat ini terpasang:{" "}
-          <code>{status.applied.webOrigin ?? "http://localhost:3000"}</code> ·{" "}
-          <code>{status.applied.publicApiUrl ?? "http://localhost:3001"}</code>
+          {t.rich("current", {
+            web: status.applied.webOrigin ?? "http://localhost:3000",
+            api: status.applied.publicApiUrl ?? "http://localhost:3001",
+            code,
+          })}
         </p>
 
         <Button
@@ -112,7 +110,7 @@ export function PanelDomainCard({ status }: { status: PanelDomainStatus }) {
             })
           }
         >
-          {pending ? "Menyimpan…" : "Simpan & terapkan"}
+          {pending ? t("saving") : t("saveApply")}
         </Button>
 
         {error && (
@@ -122,43 +120,28 @@ export function PanelDomainCard({ status }: { status: PanelDomainStatus }) {
         )}
         {applied && (
           <Alert>
-            <AlertTitle>Diterapkan</AlertTitle>
+            <AlertTitle>{t("applied")}</AlertTitle>
             <AlertDescription>
-              Panel akan restart beberapa detik lagi untuk memasang domain baru
-              — koneksi ke dashboard ini akan sempat terputus, itu wajar. Muat
-              ulang halaman di <code>https://{webHost}</code> setelah itu.
+              {t.rich("appliedBody", { host: webHost, code })}
             </AlertDescription>
           </Alert>
         )}
         {applied && proxyAutoProvisioned && (
           <Alert variant="destructive">
-            <AlertTitle>
-              Reverse proxy belum aktif — sudah dinyalakan otomatis
-            </AlertTitle>
+            <AlertTitle>{t("proxy.title")}</AlertTitle>
             <AlertDescription>
-              <p>
-                Proxy (Traefik) belum jalan sebelum ini, jadi sudah diaktifkan
-                otomatis untuk kamu. Tapi domain baru bisa diakses kalau tiga
-                hal ini juga sudah benar — cek satu per satu kalau{" "}
-                <code>https://{webHost}</code> belum bisa dibuka setelah
-                beberapa menit:
-              </p>
+              <p>{t.rich("proxy.intro", { host: webHost, code })}</p>
               <ol className="ml-4 list-decimal space-y-1">
                 <li>
-                  DNS A record <code>{webHost}</code> dan <code>{apiHost}</code>{" "}
-                  sudah mengarah ke IP server ini (cek:{" "}
-                  <code>nslookup {webHost || "domain-kamu"}</code>).
+                  {t.rich("proxy.dns", {
+                    web: webHost,
+                    api: apiHost,
+                    lookup: webHost || t("proxy.domainFallback"),
+                    code,
+                  })}
                 </li>
-                <li>
-                  Port <code>80</code> dan <code>443</code> terbuka untuk publik
-                  — baik firewall OS (<code>ufw</code>) maupun firewall/security
-                  group dari provider VPS kamu.
-                </li>
-                <li>
-                  Tunggu beberapa saat: sertifikat HTTPS (Let&apos;s Encrypt)
-                  baru diterbitkan Traefik saat pertama kali domain diakses,
-                  butuh beberapa detik sampai semenit.
-                </li>
+                <li>{t.rich("proxy.ports", { code })}</li>
+                <li>{t("proxy.cert")}</li>
               </ol>
             </AlertDescription>
           </Alert>

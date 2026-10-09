@@ -1,5 +1,6 @@
 "use client"
 
+import { useTranslations } from "next-intl"
 import { useEffect, useState, useSyncExternalStore } from "react"
 import { AreaChart } from "@/components/custom/area-chart"
 import { Card, CardContent } from "@/components/ui/card"
@@ -23,6 +24,7 @@ const POINTS = 150
  * the tab is visible so an abandoned dashboard costs nothing.
  */
 export function HostLiveChart({ initial }: { initial: HostLiveMetrics }) {
+  const t = useTranslations("dashboard.live")
   const [data, setData] = useState(initial)
   const visible = useSyncExternalStore(
     (cb) => {
@@ -52,7 +54,7 @@ export function HostLiveChart({ initial }: { initial: HostLiveMetrics }) {
   if (!cur) {
     return (
       <p className="text-xs text-muted-foreground">
-        Sampel host pertama diambil dalam beberapa detik…
+        {t("waiting")}
       </p>
     )
   }
@@ -71,28 +73,41 @@ export function HostLiveChart({ initial }: { initial: HostLiveMetrics }) {
   return (
     <div className="grid gap-3 lg:grid-cols-3">
       <LiveTile
-        label="CPU host"
+        label={t("cpu")}
         value={cur.cpuPercent === null ? "–" : `${cur.cpuPercent.toFixed(0)}%`}
-        hint={`${data.cpus} core${cur.load1 ? ` · load ${cur.load1}` : ""} · container aoox ≈ ${managedCpuPct.toFixed(1)}%`}
+        hint={t(cur.load1 ? "cpuHintLoad" : "cpuHint", {
+          cpus: data.cpus,
+          load: cur.load1 ?? 0,
+          managed: managedCpuPct.toFixed(1),
+        })}
         series={history.map((p) => p.cpuPercent ?? 0)}
         history={history}
         format={(v) => `${v.toFixed(1)}%`}
       />
       <LiveTile
-        label="RAM host"
+        label={t("ram")}
         value={`${memPct(cur).toFixed(0)}%`}
-        hint={`${formatBytes(cur.memoryUsedBytes)} dari ${formatBytes(cur.memoryTotalBytes)} · container aoox ${formatBytes(data.managed.memoryBytes)} (${managedMemPct.toFixed(1)}%)`}
+        hint={t("ramHint", {
+          used: formatBytes(cur.memoryUsedBytes),
+          total: formatBytes(cur.memoryTotalBytes),
+          managed: formatBytes(data.managed.memoryBytes),
+          percent: managedMemPct.toFixed(1),
+        })}
         series={history.map(memPct)}
         history={history}
         format={(v) => `${v.toFixed(1)}%`}
       />
       <LiveTile
-        label="Storage host"
+        label={t("storage")}
         value={cur.diskTotalBytes > 0 ? `${diskPct(cur).toFixed(0)}%` : "–"}
         hint={
           cur.diskTotalBytes > 0
-            ? `${formatBytes(cur.diskUsedBytes)} dari ${formatBytes(cur.diskTotalBytes)} · sisa ${formatBytes(cur.diskTotalBytes - cur.diskUsedBytes)}`
-            : "Filesystem tidak terbaca"
+            ? t("storageHint", {
+                used: formatBytes(cur.diskUsedBytes),
+                total: formatBytes(cur.diskTotalBytes),
+                free: formatBytes(cur.diskTotalBytes - cur.diskUsedBytes),
+              })
+            : t("storageUnreadable")
         }
         series={history.map(diskPct)}
         history={history}
@@ -117,12 +132,13 @@ function LiveTile({
   history: HostSample[]
   format: (v: number) => string
 }) {
+  const t = useTranslations("dashboard.live")
   return (
     <Card size="sm">
       <CardContent className="space-y-1">
         <div className="flex items-baseline justify-between">
           <p className="text-xs text-muted-foreground">{label}</p>
-          <p className="text-[11px] text-muted-foreground">5 menit terakhir</p>
+          <p className="text-[11px] text-muted-foreground">{t("last5min")}</p>
         </div>
         <p className="text-2xl font-semibold tabular-nums">{value}</p>
         <p className="text-xs text-muted-foreground">{hint}</p>
@@ -136,7 +152,7 @@ function LiveTile({
             domain={[0, 100]}
             slots={POINTS}
             height={112}
-            ariaLabel={`Riwayat 5 menit, terakhir ${format(series[series.length - 1])}`}
+            ariaLabel={t("chartAria", { value: format(series[series.length - 1]) })}
           />
         )}
       </CardContent>

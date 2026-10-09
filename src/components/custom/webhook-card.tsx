@@ -2,6 +2,7 @@
 
 import { PathArrow } from "@/components/custom/arrows"
 import { Copy, RefreshCw, ShieldCheck, ShieldOff } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { useState, useTransition } from "react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
@@ -35,9 +36,10 @@ export function WebhookCard({
   webhook: WebhookInfo
   regenerate: () => WebhookResult
   setSecret: (enabled: boolean) => WebhookResult
-  /** Extra line under the description (e.g. "a template stack has no repo"). */
+  /** Extra line under the description (e.g. a template stack has no repo). */
   note?: React.ReactNode
 }) {
+  const t = useTranslations("applications")
   const [pending, start] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const [current, setCurrent] = useState(webhook)
@@ -53,11 +55,12 @@ export function WebhookCard({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Webhook auto-deploy</CardTitle>
+        <CardTitle>{t("webhook.title")}</CardTitle>
         <CardDescription className="max-w-3xl">
-          Setiap push ke branch <code>{current.branch}</code> memicu deploy.
-          Push ke branch lain diabaikan; kalau deploy sedang berjalan, event
-          dilewati.
+          {t.rich("webhook.description", {
+            code: (chunks) => <code>{chunks}</code>,
+            branch: current.branch,
+          })}
           {note}
         </CardDescription>
       </CardHeader>
@@ -69,12 +72,12 @@ export function WebhookCard({
           <Button
             variant="outline"
             size="icon-sm"
-            aria-label="Salin URL webhook"
+            aria-label={t("webhook.copyUrlAria")}
             onClick={() =>
               void copyToClipboard(current.url).then((ok) =>
                 ok
-                  ? toast.success("URL webhook disalin")
-                  : toast.error("Gagal menyalin URL webhook")
+                  ? toast.success(t("webhook.urlCopied"))
+                  : toast.error(t("webhook.urlCopyFailed"))
               )
             }
           >
@@ -84,33 +87,26 @@ export function WebhookCard({
 
         <ol className="list-decimal space-y-1 ps-5 text-muted-foreground">
           <li>
-            <span className="text-foreground">GitHub:</span> Settings
-            <PathArrow />
-            Webhooks
-            <PathArrow />
-            Add webhook. Payload URL = URL di atas, Content type{" "}
-            <code>application/json</code>, event <em>Just the push event</em>
-            {current.secret && (
-              <>
-                , <em>Secret</em> = secret di bawah
-              </>
-            )}
-            .
+            {t.rich("webhook.steps.github", {
+              p: (chunks) => <span className="text-foreground">{chunks}</span>,
+              code: (chunks) => <code>{chunks}</code>,
+              em: (chunks) => <em>{chunks}</em>,
+              arrow: () => <PathArrow />,
+              hasSecret: String(!!current.secret),
+            })}
           </li>
           <li>
-            <span className="text-foreground">GitLab:</span> Settings
-            <PathArrow />
-            Webhooks. URL = URL di atas, trigger <em>Push events</em>
-            {current.secret && (
-              <>
-                , <em>Secret token</em> = secret di bawah
-              </>
-            )}
-            .
+            {t.rich("webhook.steps.gitlab", {
+              p: (chunks) => <span className="text-foreground">{chunks}</span>,
+              em: (chunks) => <em>{chunks}</em>,
+              arrow: () => <PathArrow />,
+              hasSecret: String(!!current.secret),
+            })}
           </li>
           <li>
-            Pastikan API ini bisa dijangkau dari internet (
-            <code>PUBLIC_API_URL</code>).
+            {t.rich("webhook.steps.reachable", {
+              code: (chunks) => <code>{chunks}</code>,
+            })}
           </li>
         </ol>
 
@@ -121,11 +117,11 @@ export function WebhookCard({
             ) : (
               <ShieldOff className="size-4 text-muted-foreground" />
             )}
-            <span className="font-medium">Secret (tanda tangan)</span>
+            <span className="font-medium">{t("webhook.secret.title")}</span>
             <span className="text-xs text-muted-foreground">
               {current.secret
-                ? "Aktif — request tanpa X-Hub-Signature-256 / X-Gitlab-Token yang cocok ditolak (401)."
-                : "Nonaktif — siapa pun yang tahu URL bisa memicu deploy."}
+                ? t("webhook.secret.activeNote")
+                : t("webhook.secret.inactiveNote")}
             </span>
           </div>
           {current.secret && (
@@ -136,12 +132,12 @@ export function WebhookCard({
               <Button
                 variant="outline"
                 size="icon-sm"
-                aria-label="Salin secret"
+                aria-label={t("webhook.secret.copyAria")}
                 onClick={() =>
                   void copyToClipboard(current.secret ?? "").then((ok) =>
                     ok
-                      ? toast.success("Secret disalin")
-                      : toast.error("Gagal menyalin secret")
+                      ? toast.success(t("webhook.secret.copied"))
+                      : toast.error(t("webhook.secret.copyFailed"))
                   )
                 }
               >
@@ -156,7 +152,7 @@ export function WebhookCard({
               disabled={pending}
               onClick={() => run(() => setSecret(true))}
             >
-              {current.secret ? "Rotasi secret" : "Aktifkan secret"}
+              {current.secret ? t("webhook.secret.rotate") : t("webhook.secret.enable")}
             </Button>
             {current.secret && (
               <Button
@@ -165,7 +161,7 @@ export function WebhookCard({
                 disabled={pending}
                 onClick={() => run(() => setSecret(false))}
               >
-                Nonaktifkan
+                {t("webhook.secret.disable")}
               </Button>
             )}
           </div>
@@ -179,10 +175,10 @@ export function WebhookCard({
             onClick={() => run(() => regenerate())}
           >
             <RefreshCw data-icon="inline-start" />
-            Buat URL baru
+            {t("webhook.regenerate")}
           </Button>
           <span className="text-xs text-muted-foreground">
-            URL lama langsung tidak berlaku.
+            {t("webhook.regenerateNote")}
           </span>
         </div>
         {error && (

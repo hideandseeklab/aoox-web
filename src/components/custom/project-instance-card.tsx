@@ -1,6 +1,7 @@
 "use client"
 
 import { Copy, ExternalLink } from "lucide-react"
+import { useTranslations } from "next-intl"
 import Link from "next/link"
 import { toast } from "sonner"
 import {
@@ -101,8 +102,11 @@ function AccessLinks({
   /** One address per line — for stacks, whose entries carry a service name. */
   stacked?: boolean
 }) {
+  const t = useTranslations("projects")
   if (targets.length === 0) {
-    return <p className="text-xs text-muted-foreground">Belum ada akses</p>
+    return (
+      <p className="text-xs text-muted-foreground">{t("instance.noAccess")}</p>
+    )
   }
   const shown = targets.slice(0, MAX_TARGETS)
   const rest = targets.slice(MAX_TARGETS)
@@ -113,24 +117,24 @@ function AccessLinks({
         stacked ? "flex-col items-start" : "flex-wrap items-center"
       )}
     >
-      {shown.map((t) => {
+      {shown.map((target) => {
         const text = (
           <>
-            {t.service && (
+            {target.service && (
               <span className="shrink-0 whitespace-nowrap text-muted-foreground">
-                {t.service} ·
+                {target.service} ·
               </span>
             )}
-            <span className="min-w-0 truncate">{t.label}</span>
+            <span className="min-w-0 truncate">{target.label}</span>
           </>
         )
-        return live && t.url ? (
+        return live && target.url ? (
           <a
-            key={t.key}
-            href={t.url}
+            key={target.key}
+            href={target.url}
             target="_blank"
             rel="noopener noreferrer"
-            aria-label={`Buka ${t.label} di tab baru`}
+            aria-label={t("instance.openInNewTab", { label: target.label })}
             className={cn(accessClass, "text-foreground")}
           >
             {text}
@@ -138,7 +142,7 @@ function AccessLinks({
           </a>
         ) : (
           <span
-            key={t.key}
+            key={target.key}
             className="inline-flex max-w-full items-center gap-1 font-mono text-xs text-muted-foreground"
           >
             {text}
@@ -148,7 +152,7 @@ function AccessLinks({
       {rest.length > 0 && (
         <span
           className="font-mono text-xs text-muted-foreground"
-          title={rest.map((t) => t.label).join(", ")}
+          title={rest.map((r) => r.label).join(", ")}
         >
           +{rest.length}
         </span>
@@ -164,6 +168,7 @@ export function ApplicationInstanceCard({
   app: ApplicationWithDomains
   proxy: ProxyPorts
 }) {
+  const t = useTranslations("projects")
   const browserHost = useBrowserHost()
   // A remote server runs its own proxy and its ports live on that machine, not
   // on the one the panel is open on.
@@ -176,7 +181,7 @@ export function ApplicationInstanceCard({
       ? [
           {
             key: `p:${app.hostPort}`,
-            label: `:${app.hostPort} (server remote)`,
+            label: `:${app.hostPort} (${t("instance.remoteServer")})`,
             url: "",
           },
         ]
@@ -213,6 +218,7 @@ export function ComposeInstanceCard({
   stack: ComposeApp
   proxy: ProxyPorts
 }) {
+  const t = useTranslations("projects")
   const browserHost = useBrowserHost()
   const targets = [
     ...stack.serviceDomains.map((d) =>
@@ -230,7 +236,11 @@ export function ComposeInstanceCard({
       badge={
         <StatusDot
           status={stack.status}
-          label={stack.status === "deploying" ? "berjalan…" : undefined}
+          label={
+            stack.status === "deploying"
+              ? t("instance.composeDeploying")
+              : undefined
+          }
           showLabel
         />
       }
@@ -250,13 +260,14 @@ export function ComposeInstanceCard({
 }
 
 export function DatabaseInstanceCard({ db }: { db: ManagedDatabase }) {
+  const t = useTranslations("projects")
   const browserHost = useBrowserHost()
   const address = db.hostPort ? `${browserHost ?? ""}:${db.hostPort}` : null
   async function copy() {
     if (!address) return
     const ok = await copyToClipboard(address)
-    if (ok) toast.success(`${address} disalin`)
-    else toast.error("Gagal menyalin alamat")
+    if (ok) toast.success(t("instance.copied", { address }))
+    else toast.error(t("instance.copyFailed"))
   }
   return (
     <InstanceCardShell
@@ -270,14 +281,16 @@ export function DatabaseInstanceCard({ db }: { db: ManagedDatabase }) {
         <button
           type="button"
           onClick={copy}
-          aria-label={`Salin ${address}`}
+          aria-label={t("instance.copyAria", { address })}
           className={cn(accessClass, "cursor-pointer text-foreground")}
         >
           <span className="truncate">{address}</span>
           <Copy aria-hidden="true" className="size-3 shrink-0" />
         </button>
       ) : (
-        <p className="text-xs text-muted-foreground">internal</p>
+        <p className="text-xs text-muted-foreground">
+          {t("instance.internal")}
+        </p>
       )}
     </InstanceCardShell>
   )

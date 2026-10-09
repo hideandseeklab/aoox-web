@@ -1,10 +1,11 @@
 "use client"
 
 import { HardDrive } from "lucide-react"
+import { useTranslations } from "next-intl"
 import {
   DockerEmpty,
+  useAgo,
   useDockerQuery,
-  ago,
   matches,
 } from "@/components/custom/docker-ui"
 import { Badge } from "@/components/ui/badge"
@@ -21,6 +22,8 @@ import { formatBytes } from "@/features/monitoring/monitoring.entity"
 
 /** Volumes of the chosen server, read only (removal stays in Disk Docker for aoox's orphans). */
 export function DockerVolumes({ volumes }: { volumes: DockerVolume[] }) {
+  const t = useTranslations("docker")
+  const ago = useAgo()
   const query = useDockerQuery()
   const rows = volumes.filter((v) =>
     matches(query, v.name, v.driver, ...v.usedByNames)
@@ -29,20 +32,18 @@ export function DockerVolumes({ volumes }: { volumes: DockerVolume[] }) {
     <div className="space-y-3">
       {rows.length === 0 ? (
         <DockerEmpty icon={HardDrive}>
-          {volumes.length === 0
-            ? "Belum ada volume di server ini."
-            : "Tidak ada volume yang cocok."}
+          {volumes.length === 0 ? t("volumes.empty") : t("volumes.noMatch")}
         </DockerEmpty>
       ) : (
         <div className="rounded-lg border">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Volume</TableHead>
-                <TableHead>Driver</TableHead>
-                <TableHead>Ukuran</TableHead>
-                <TableHead>Dibuat</TableHead>
-                <TableHead>Dipakai oleh</TableHead>
+                <TableHead>{t("volumes.volume")}</TableHead>
+                <TableHead>{t("driver")}</TableHead>
+                <TableHead>{t("volumes.size")}</TableHead>
+                <TableHead>{t("volumes.created")}</TableHead>
+                <TableHead>{t("usedByHeader")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -54,7 +55,7 @@ export function DockerVolumes({ volumes }: { volumes: DockerVolume[] }) {
                         {v.name}
                       </span>
                       {v.managed && <Badge variant="outline">aoox</Badge>}
-                      {v.orphan && <Badge variant="destructive">yatim</Badge>}
+                      {v.orphan && <Badge variant="destructive">{t("volumes.orphan")}</Badge>}
                     </div>
                   </TableCell>
                   <TableCell>{v.driver}</TableCell>
@@ -67,7 +68,7 @@ export function DockerVolumes({ volumes }: { volumes: DockerVolume[] }) {
                   <TableCell className="max-w-64 whitespace-normal">
                     {v.usedByNames.length === 0 ? (
                       <span className="text-muted-foreground">
-                        tidak dipakai
+                        {t("unused")}
                       </span>
                     ) : (
                       <span className="font-mono">

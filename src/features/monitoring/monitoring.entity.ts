@@ -23,13 +23,6 @@ export interface MetricsResponse {
 export const METRIC_RANGES = ["1h", "24h", "7d", "30d"] as const
 export type MetricRange = (typeof METRIC_RANGES)[number]
 
-export const METRIC_RANGE_LABEL: Record<MetricRange, string> = {
-  "1h": "1 jam",
-  "24h": "24 jam",
-  "7d": "7 hari",
-  "30d": "30 hari",
-}
-
 export interface HostOverview {
   cpus: number
   memoryTotalBytes: number

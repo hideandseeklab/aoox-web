@@ -1,4 +1,5 @@
 import { Activity, FolderKanban, PowerOff } from "lucide-react"
+import { getTranslations } from "next-intl/server"
 import Link from "next/link"
 import { Suspense } from "react"
 import { HostLiveChart } from "@/components/custom/host-live-chart"
@@ -21,9 +22,13 @@ import {
   listProjects,
 } from "@/features/project/project.queries"
 
-export const metadata = { title: "Dashboard · aoox" }
+export async function generateMetadata() {
+  const t = await getTranslations("dashboard")
+  return { title: t("metaTitle") }
+}
 
 export default async function DashboardPage() {
+  const t = await getTranslations("dashboard")
   const [session, projects, summary] = await Promise.all([
     getVerifiedSession(),
     listProjects(),
@@ -49,10 +54,10 @@ export default async function DashboardPage() {
       <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="text-lg font-semibold">
-            Halo, {user.name ?? user.email}
+            {t("greeting", { name: user.name ?? user.email })}
           </h1>
           <p className="text-xs text-muted-foreground">
-            Ringkasan platform kamu.
+            {t("subtitle")}
           </p>
         </div>
         <LiveClock />
@@ -63,11 +68,11 @@ export default async function DashboardPage() {
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <StatCard
           icon={FolderKanban}
-          label="Total project"
+          label={t("stats.totalProjects")}
           value={total}
           action={
             <Button asChild variant="outline" size="sm">
-              <Link href="/projects">Lihat semua</Link>
+              <Link href="/projects">{t("stats.viewAll")}</Link>
             </Button>
           }
         />
@@ -76,16 +81,16 @@ export default async function DashboardPage() {
         <StatCard
           tone="success"
           icon={Activity}
-          label="Project aktif"
+          label={t("stats.activeProjects")}
           value={active}
-          hint="Ada aplikasi, database, atau stack compose yang berjalan."
+          hint={t("stats.activeHint")}
         />
         <StatCard
           tone="danger"
           icon={PowerOff}
-          label="Project tidak aktif"
+          label={t("stats.inactiveProjects")}
           value={total - active}
-          hint="Semua berhenti/error, atau belum ada yang di-deploy."
+          hint={t("stats.inactiveHint")}
         />
         {host && <HostOverviewCard host={host} />}
       </div>

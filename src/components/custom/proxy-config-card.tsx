@@ -1,6 +1,7 @@
 "use client"
 
 import { FileCode2, Pencil, Plus, RefreshCw, Trash2 } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { usePathname } from "next/navigation"
 import { useState, useTransition } from "react"
 import { toast } from "sonner"
@@ -61,6 +62,7 @@ export function ProxyConfigCard({
   serverId: string | null
   isOwner: boolean
 }) {
+  const t = useTranslations("infra.proxyConfigCard")
   const router = useRouter()
   const pathname = usePathname()
   const [target, setTarget] = useState<EditorTarget | null>(null)
@@ -101,7 +103,7 @@ export function ProxyConfigCard({
       if (!r.ok) return void toast.error(r.error)
       if (r.data.notice) toast.info(r.data.notice)
       toast.success(
-        r.data.warning ?? `${r.data.files} berkas ditulis ulang ke proxy`
+        r.data.warning ?? t("resynced", { count: r.data.files })
       )
     })
 
@@ -116,14 +118,8 @@ export function ProxyConfigCard({
       <CardHeader>
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <CardTitle>Konfigurasi dinamis</CardTitle>
-            <CardDescription>
-              Middleware, router, dan service Traefik buatan sendiri (basic
-              auth, header keamanan, rate limit, allowlist IP, redirect www).
-              Middleware dipasang per domain di tab Domain aplikasi. Hanya
-              konfigurasi dinamis; konfigurasi statis dan sertifikat tidak
-              diubah di sini.
-            </CardDescription>
+            <CardTitle>{t("title")}</CardTitle>
+            <CardDescription>{t("description")}</CardDescription>
           </div>
           {isOwner && (
             <div className="flex flex-wrap gap-2">
@@ -135,7 +131,7 @@ export function ProxyConfigCard({
               />
               <Button size="sm" onClick={() => setTarget({ mode: "new" })}>
                 <Plus data-icon="inline-start" />
-                Berkas baru
+                {t("newFile")}
               </Button>
             </div>
           )}
@@ -143,13 +139,13 @@ export function ProxyConfigCard({
       </CardHeader>
       <CardContent className="space-y-3 text-xs">
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-muted-foreground">Proxy di</span>
+          <span className="text-muted-foreground">{t("proxyOn")}</span>
           <Select value={serverId ?? HOST} onValueChange={go}>
-            <SelectTrigger size="sm" className="w-56" aria-label="Pilih proxy">
+            <SelectTrigger size="sm" className="w-56" aria-label={t("selectProxy")}>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value={HOST}>Host aoox</SelectItem>
+              <SelectItem value={HOST}>{t("hostOption")}</SelectItem>
               {servers.map((s) => (
                 <SelectItem key={s.id} value={s.id}>
                   {s.name} · {s.host}
@@ -164,31 +160,24 @@ export function ProxyConfigCard({
               className="ms-auto"
               disabled={pending}
               onClick={resync}
-              title="Tulis ulang semua berkas aktif ke proxy (mis. setelah restore atau proxy dibuat ulang)"
+              title={t("resyncHint")}
             >
               <RefreshCw data-icon="inline-start" />
-              Terapkan ulang
+              {t("resync")}
             </Button>
           )}
         </div>
         {remote && (
           <p className="text-muted-foreground">
-            Server remote: fitur ini ditulis untuk server remote tetapi belum
-            diuji di sana. Pastikan proxy-nya terpasang di Infrastruktur →
-            Server remote.
+            {t("remoteNote")}
           </p>
         )}
         <p className="text-muted-foreground">
-          Berkas yang salah ditolak Traefik dan dikembalikan otomatis, tetapi
-          konfigurasi yang valid dapat mengubah perutean semua domain di proxy
-          ini. Nama middleware, router, dan service harus unik per proxy.
-          Traefik tidak melaporkan semua nilai yang keliru (mis. URL service
-          yang tidak valid), jadi cek hasilnya setelah menyimpan.
+          {t("warning")}
         </p>
         {files.length === 0 ? (
           <EmptyState icon={FileCode2} compact>
-            Belum ada berkas konfigurasi
-            {isOwner ? " — buat dari preset atau tulis sendiri." : "."}
+            {isOwner ? t("emptyOwner") : t("empty")}
           </EmptyState>
         ) : (
           <ul className="divide-y rounded-md border">
@@ -202,7 +191,7 @@ export function ProxyConfigCard({
                   </code>
                   {f.usedByDomains > 0 && (
                     <Badge variant="outline">
-                      dipakai {f.usedByDomains} domain
+                      {t("usedBy", { count: f.usedByDomains })}
                     </Badge>
                   )}
                   <span className="ms-auto" />
@@ -210,12 +199,12 @@ export function ProxyConfigCard({
                     checked={f.enabled}
                     disabled={!isOwner || pending}
                     onCheckedChange={(v) => toggle(f, v)}
-                    aria-label={`Aktifkan ${f.name}`}
+                    aria-label={t("enableFile", { name: f.name })}
                   />
                   <Button
                     variant="ghost"
                     size="icon-sm"
-                    aria-label={`${isOwner ? "Ubah" : "Lihat"} ${f.name}`}
+                    aria-label={t(isOwner ? "editFile" : "viewFile", { name: f.name })}
                     onClick={() => setTarget({ mode: "edit", file: f })}
                   >
                     <Pencil />
@@ -226,18 +215,18 @@ export function ProxyConfigCard({
                         <Button
                           variant="ghost"
                           size="icon-sm"
-                          aria-label={`Hapus ${f.name}`}
+                          aria-label={t("deleteFile", { name: f.name })}
                         >
                           <Trash2 />
                         </Button>
                       }
-                      title={`Hapus ${f.fileName}?`}
+                      title={t("deleteTitle", { fileName: f.fileName })}
                       description={
                         f.usedByDomains > 0
-                          ? `Middleware dari berkas ini masih dipakai ${f.usedByDomains} domain, jadi tidak bisa dihapus. Lepas dari domain-nya dulu.`
-                          : "Berkas dihapus dari aoox dan dari proxy. Ini tidak bisa dibatalkan."
+                          ? t("deleteInUse", { count: f.usedByDomains })
+                          : t("deleteDescription")
                       }
-                      confirmLabel="Hapus"
+                      confirmLabel={t("delete")}
                       onConfirm={async () => {
                         const r = await deleteProxyConfigAction(f.id)
                         if (r.ok) router.refresh()
@@ -249,11 +238,14 @@ export function ProxyConfigCard({
                 <p className="truncate text-muted-foreground">
                   {[
                     f.middlewares.length > 0 &&
-                      `middleware: ${f.middlewares.map((m) => `${m}@file`).join(", ")}`,
-                    f.routers.length > 0 && `router: ${f.routers.join(", ")}`,
+                      t("summaryMiddleware", {
+                        list: f.middlewares.map((m) => `${m}@file`).join(", "),
+                      }),
+                    f.routers.length > 0 &&
+                      t("summaryRouter", { list: f.routers.join(", ") }),
                     f.services.length > 0 &&
-                      `service: ${f.services.join(", ")}`,
-                    !f.enabled && "nonaktif",
+                      t("summaryService", { list: f.services.join(", ") }),
+                    !f.enabled && t("disabled"),
                   ]
                     .filter(Boolean)
                     .join(" · ") || "—"}
@@ -279,9 +271,9 @@ export function ProxyConfigCard({
           }
         }}
         tone="neutral"
-        title="Proxy akan dibuat ulang sekali?"
-        description="Proxy di server ini dibuat oleh aoox versi lama, jadi harus dibuat ulang satu kali agar bisa memuat konfigurasi dinamis: beberapa detik tanpa layanan untuk semua domain di proxy ini. Sertifikat dan rute lain tetap. Peringatan ini hanya muncul sekali."
-        confirmLabel="Buat ulang proxy dan simpan"
+        title={t("recreateTitle")}
+        description={t("recreateDescription")}
+        confirmLabel={t("recreateConfirm")}
         onConfirm={async () => {
           ask?.resolve(true)
           setAsk(null)

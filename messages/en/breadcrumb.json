@@ -1,0 +1,13 @@
+{
+  "dashboard": "Dashboard",
+  "projects": "Projects",
+  "templates": "Templates",
+  "registry": "Registry",
+  "terminal": "Terminal",
+  "settings": "Settings",
+  "auditLog": "Audit log",
+  "infrastructure": "Infrastructure",
+  "applications": "Applications",
+  "databases": "Databases",
+  "compose": "Compose stacks"
+}

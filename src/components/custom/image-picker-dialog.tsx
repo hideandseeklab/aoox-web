@@ -1,5 +1,6 @@
 "use client"
 
+import { useTranslations } from "next-intl"
 import { useState, useTransition } from "react"
 import { Button } from "@/components/ui/button"
 import {
@@ -42,6 +43,8 @@ export function ImagePickerDialog({
   registries: Registry[]
   onPick: (imageRef: string, registryId: string) => void
 }) {
+  const t = useTranslations("applications")
+  const tc = useTranslations("common")
   const [open, setOpen] = useState(false)
   const [pending, start] = useTransition()
   const [error, setError] = useState<string | null>(null)
@@ -101,24 +104,27 @@ export function ImagePickerDialog({
     >
       <DialogTrigger asChild>
         <Button type="button" variant="outline">
-          Pilih dari registry
+          {t("imagePicker.trigger")}
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Pilih image dari registry</DialogTitle>
+          <DialogTitle>{t("imagePicker.title")}</DialogTitle>
           <DialogDescription>
-            Cuma menampilkan repository/tag yang sudah pernah di-push —{" "}
-            <code>docker push</code> dulu kalau belum ada.
+            {t.rich("imagePicker.description", {
+              code: (chunks) => <code>{chunks}</code>,
+            })}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-3">
           <div className="space-y-1.5">
-            <label className="text-xs font-medium">Registry</label>
+            <label className="text-xs font-medium">
+              {t("imagePicker.registry")}
+            </label>
             <Select value={registryId} onValueChange={pickRegistry}>
               <SelectTrigger className="w-full">
-                <SelectValue placeholder="Pilih registry" />
+                <SelectValue placeholder={t("imagePicker.pickRegistry")} />
               </SelectTrigger>
               <SelectContent>
                 {registries.map((r) => (
@@ -132,7 +138,9 @@ export function ImagePickerDialog({
 
           {registryId && (
             <div className="space-y-1.5">
-              <label className="text-xs font-medium">Repository</label>
+              <label className="text-xs font-medium">
+                {t("imagePicker.repository")}
+              </label>
               <Select
                 value={repository}
                 onValueChange={pickRepository}
@@ -142,10 +150,10 @@ export function ImagePickerDialog({
                   <SelectValue
                     placeholder={
                       pending && repositories === null
-                        ? "Memuat…"
+                        ? tc("states.loading")
                         : repositories?.length === 0
-                          ? "Belum ada image di registry ini"
-                          : "Pilih repository"
+                          ? t("imagePicker.noImages")
+                          : t("imagePicker.pickRepository")
                     }
                   />
                 </SelectTrigger>
@@ -154,7 +162,7 @@ export function ImagePickerDialog({
                     <SelectItem key={repo.name} value={repo.name}>
                       {repo.name}{" "}
                       <span className="text-muted-foreground">
-                        ({repo.tagCount} tag)
+                        ({t("imagePicker.tagCount", { count: repo.tagCount })})
                       </span>
                     </SelectItem>
                   ))}
@@ -165,7 +173,9 @@ export function ImagePickerDialog({
 
           {repository && (
             <div className="space-y-1.5">
-              <label className="text-xs font-medium">Tag</label>
+              <label className="text-xs font-medium">
+                {t("imagePicker.tag")}
+              </label>
               <Select
                 value={tag}
                 onValueChange={setTag}
@@ -175,19 +185,19 @@ export function ImagePickerDialog({
                   <SelectValue
                     placeholder={
                       tags === null
-                        ? "Memuat…"
+                        ? tc("states.loading")
                         : tags.length === 0
-                          ? "Tidak ada tag"
-                          : "Pilih tag"
+                          ? t("imagePicker.noTags")
+                          : t("imagePicker.pickTag")
                     }
                   />
                 </SelectTrigger>
                 <SelectContent>
-                  {(tags ?? []).map((t) => (
-                    <SelectItem key={t.name} value={t.name}>
-                      {t.name}{" "}
+                  {(tags ?? []).map((tg) => (
+                    <SelectItem key={tg.name} value={tg.name}>
+                      {tg.name}{" "}
                       <span className="font-mono text-xs text-muted-foreground">
-                        {t.digest.replace("sha256:", "").slice(0, 12)}
+                        {tg.digest.replace("sha256:", "").slice(0, 12)}
                       </span>
                     </SelectItem>
                   ))}
@@ -209,7 +219,7 @@ export function ImagePickerDialog({
             variant="outline"
             onClick={() => setOpen(false)}
           >
-            Batal
+            {tc("actions.cancel")}
           </Button>
           <Button
             type="button"
@@ -220,7 +230,7 @@ export function ImagePickerDialog({
               setOpen(false)
             }}
           >
-            Pakai
+            {t("imagePicker.use")}
           </Button>
         </DialogFooter>
       </DialogContent>

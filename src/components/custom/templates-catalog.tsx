@@ -1,6 +1,7 @@
 "use client"
 
 import { BookOpen, ExternalLink, Rocket } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { useState } from "react"
 import { DeployTemplateDialog } from "@/components/custom/deploy-template-dialog"
 import { Badge } from "@/components/ui/badge"
@@ -29,6 +30,7 @@ export function TemplatesCatalog({
   proxy: ProxyStatus
   defaultProjectId?: string
 }) {
+  const tr = useTranslations("templates.catalog")
   const [query, setQuery] = useState("")
   const [selected, setSelected] = useState<Template | null>(null)
   const q = query.trim().toLowerCase()
@@ -46,13 +48,13 @@ export function TemplatesCatalog({
       <Input
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        placeholder="Cari template…"
+        placeholder={tr("searchPlaceholder")}
         className="max-w-sm"
-        aria-label="Cari template"
+        aria-label={tr("searchLabel")}
       />
       {projects.length === 0 && (
         <p className="text-xs text-muted-foreground">
-          Buat project dulu — template di-deploy ke dalam sebuah project.
+          {tr("needProject")}
         </p>
       )}
       <div className="grid auto-rows-fr gap-4 sm:grid-cols-2 xl:grid-cols-3">
@@ -112,7 +114,7 @@ export function TemplatesCatalog({
                   asChild
                   size="icon-sm"
                   variant="ghost"
-                  aria-label="Situs"
+                  aria-label={tr("website")}
                 >
                   <a href={t.links.website} target="_blank" rel="noreferrer">
                     <ExternalLink />
@@ -123,7 +125,7 @@ export function TemplatesCatalog({
           </Card>
         ))}
         {shown.length === 0 && (
-          <p className="text-xs text-muted-foreground">Tidak ada yang cocok.</p>
+          <p className="text-xs text-muted-foreground">{tr("noMatch")}</p>
         )}
       </div>
       <DeployTemplateDialog

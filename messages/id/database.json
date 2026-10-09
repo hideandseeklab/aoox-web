@@ -1,0 +1,328 @@
+{
+  "page": {
+    "projectFallback": "Project",
+    "backToProject": "Kembali ke project",
+    "newTitle": "Database baru",
+    "newDescription": "Dijalankan sebagai container dengan volume persisten di network aoox; aplikasi di project ini bisa mengaksesnya lewat nama host internal.",
+    "createSubmit": "Buat database",
+    "tabs": {
+      "overview": "Ringkasan",
+      "data": "Data",
+      "backups": "Backup ({count})",
+      "mounts": "Mount ({count})",
+      "jobs": "Jobs ({count})"
+    }
+  },
+  "form": {
+    "fields": {
+      "engine": "Engine",
+      "variant": "Varian (opsional)",
+      "imageTag": "Versi (tag image)",
+      "hostPort": "Port host",
+      "hostPortPlaceholder": "kosong = internal saja"
+    },
+    "variants": {
+      "none": "PostgreSQL polos",
+      "noneDescription": "Image postgres standar, tanpa ekstensi tambahan.",
+      "pgvector": "Vector similarity search for embeddings (AI/ML workloads).",
+      "postgis": "Geographic/spatial data types, indexes and queries.",
+      "timescaledb": "Time-series data: hypertables, continuous aggregates."
+    },
+    "hostPortHint": "Publikasikan port host hanya kalau perlu diakses dari luar (mis. dari laptop kamu).",
+    "toast": {
+      "created": "Database \"{name}\" dibuat — sedang disiapkan (pull image bisa beberapa menit).",
+      "checkForm": "Periksa isian form",
+      "creating": "Membuat database {name}…",
+      "creatingNoName": "Membuat database baru…"
+    }
+  },
+  "panel": {
+    "showPassword": "Tampilkan password",
+    "hidePassword": "Sembunyikan password",
+    "createFailed": "Pembuatan database gagal: {error}",
+    "connectionFor": "Koneksi untuk database",
+    "primary": "utama",
+    "internal": {
+      "title": "Koneksi internal",
+      "description": "Dari aplikasi di project ini (network <code>aoox</code>). Tempel ke env aplikasi, mis. <code>DATABASE_URL</code>."
+    },
+    "external": {
+      "title": "Koneksi eksternal",
+      "published": "Dipublikasikan di port host {port}.",
+      "notPublished": "Tidak dipublikasikan — hanya bisa diakses dari network aoox.",
+      "recreateHint": "Buat ulang database dengan port host bila perlu akses dari luar."
+    },
+    "fields": {
+      "database": "Database",
+      "user": "User"
+    },
+    "delete": {
+      "trigger": "Hapus database",
+      "title": "Hapus {name}?",
+      "description": "Container dihentikan dan dihapus. Pilih apakah data (volume) ikut dihapus — ini tidak bisa dibatalkan.",
+      "keepData": "Hapus, simpan data",
+      "withData": "Hapus beserta data"
+    },
+    "add": {
+      "trigger": "Tambah database",
+      "title": "Tambah database",
+      "description": "Membuat database lain di server ini. Host, user, dan password sama; hanya nama database di URL koneksi yang berbeda.",
+      "placeholder": "nama database",
+      "ariaLabel": "Nama database baru"
+    },
+    "drop": {
+      "ariaLabel": "Hapus database {name}",
+      "title": "Hapus database {name}?",
+      "description": "Database <code>{name}</code> beserta seluruh tabel dan datanya dihapus permanen dan tidak bisa dibatalkan. Aplikasi yang masih memakainya akan gagal terhubung."
+    }
+  },
+  "resources": {
+    "title": "Batas sumber daya",
+    "description": "Kosong = tanpa batas. Menaikkan/menurunkan batas berlaku langsung; mencabut batas membuat container dibuat ulang (restart singkat, data aman di volume).",
+    "cpu": "CPU (millicore)",
+    "cpuPlaceholder": "1000 = 1 core",
+    "memory": "Memori (MiB)",
+    "memoryPlaceholder": "mis. 512"
+  },
+  "backups": {
+    "title": "Backup",
+    "description": "Dump disimpan di volume <code>aoox_backups</code> di server ini. Restore menimpa data yang ada.",
+    "descriptionWithDestination": "Dump disimpan di volume <code>aoox_backups</code> di server ini dan disalin ke {destination}. Restore menimpa data yang ada.",
+    "s3Destination": "tujuan S3",
+    "backupNow": "Backup sekarang",
+    "empty": "Belum ada backup.",
+    "trigger": {
+      "scheduled": "terjadwal",
+      "manual": "manual"
+    },
+    "s3": "S3",
+    "s3Only": "hanya di S3",
+    "allDatabases": "semua database",
+    "copiedTo": "Tersalin ke {destination}",
+    "restore": "Restore",
+    "deleteAria": "Hapus backup",
+    "presets": {
+      "off": "Nonaktif",
+      "hourly": "Setiap jam",
+      "daily": "Setiap hari 02:00",
+      "weekly": "Setiap minggu (Minggu 03:00)",
+      "custom": "Kustom"
+    },
+    "schedule": {
+      "title": "Jadwal & tujuan backup",
+      "description": "Backup terjadwal lama dihapus otomatis melebihi jumlah yang disimpan (juga dari S3). Tujuan S3 ditambahkan di Settings.",
+      "frequency": "Frekuensi",
+      "cron": "Cron (5 kolom)",
+      "keep": "Simpan",
+      "destination": "Tujuan S3",
+      "localOnly": "Hanya lokal",
+      "allDatabases": "Semua database di server",
+      "current": "Sekarang:",
+      "currentOff": "nonaktif"
+    },
+    "restoreDialog": {
+      "title": "Restore backup?",
+      "description": "Data <b>{name}</b> saat ini akan ditimpa dengan isi <code>{file}</code>. Tidak bisa dibatalkan — buat backup dulu kalau ragu.",
+      "restoring": "Me-restore…"
+    }
+  },
+  "validation": {
+    "nameRequired": "Nama wajib diisi",
+    "invalidImageTag": "Tag image tidak valid"
+  },
+  "status": {
+    "creating": "creating…",
+    "running": "running",
+    "stopped": "stopped",
+    "error": "error",
+    "exited": "exited",
+    "paused": "paused",
+    "restarting": "restarting",
+    "dead": "dead",
+    "created": "created",
+    "backup": {
+      "running": "running",
+      "success": "success",
+      "failed": "failed"
+    }
+  },
+  "companion": {
+    "title": "Admin UI",
+    "description": "Antarmuka web untuk mengelola database ini, berjalan di container terpisah.",
+    "empty": "Belum ada Admin UI. Pasang dengan satu klik, lalu buka dari domain atau IP dan port.",
+    "install": "Pasang Admin UI",
+    "startDatabaseFirst": "Jalankan database terlebih dahulu.",
+    "developerOnly": "Hanya developer ke atas yang bisa memasang Admin UI.",
+    "remove": "Hapus Admin UI",
+    "openInNewTab": "Buka {tool} di tab baru",
+    "databaseLoginHint": "Masuk dengan username dan password database (lihat kartu Koneksi internal, tombol Tampilkan password).",
+    "status": {
+      "creating": "creating",
+      "running": "running",
+      "stopped": "stopped",
+      "error": "error"
+    },
+    "credentials": {
+      "user": "User",
+      "show": "Tampilkan kredensial",
+      "hide": "Sembunyikan kredensial",
+      "copyAria": "Salin {label}",
+      "copied": {
+        "username": "User disalin",
+        "password": "Password disalin"
+      },
+      "copyFailed": {
+        "username": "Gagal menyalin user",
+        "password": "Gagal menyalin password"
+      }
+    },
+    "toast": {
+      "removed": "Admin UI dihapus",
+      "installing": "Memasang Admin UI…",
+      "installed": "Admin UI sedang disiapkan, pull image bisa beberapa menit"
+    },
+    "removeDialog": {
+      "title": "Hapus Admin UI?",
+      "description": "Container {tool} dihentikan dan dihapus. Data database tidak terpengaruh."
+    },
+    "installDialog": {
+      "title": "Pasang Admin UI",
+      "description": "Pilih alat dan cara membukanya.",
+      "tool": "Alat",
+      "noteDatabaseLogin": "Masuk dengan login database",
+      "noteGeneratedPassword": "Password dibuat otomatis",
+      "access": "Akses",
+      "domain": {
+        "title": "Domain",
+        "description": "Lewat reverse proxy dengan hostname sendiri."
+      },
+      "port": {
+        "title": "IP & port",
+        "description": "Dipublikasikan di port host server ini."
+      },
+      "hostname": "Hostname",
+      "domainHint": "Reverse proxy harus aktif dan DNS hostname sudah mengarah ke IP server ini.",
+      "hostPort": "Port host",
+      "installing": "Memasang…",
+      "submit": "Pasang"
+    },
+    "validation": {
+      "toolRequired": "Pilih alat",
+      "hostRequired": "Host wajib diisi",
+      "hostInvalid": "Hostname tidak valid, contoh: db.example.com",
+      "portRequired": "Port host wajib diisi",
+      "portRange": "Port harus 1 sampai 65535",
+      "invalidInput": "Input tidak valid"
+    }
+  },
+  "browser": {
+    "notRunning": "Database harus berjalan untuk menjelajahi data.",
+    "databaseAria": "Database",
+    "primary": "utama",
+    "reloadList": "Muat ulang daftar",
+    "list": {
+      "keys": "Key",
+      "collections": "Koleksi",
+      "tables": "Tabel"
+    },
+    "empty": {
+      "keys": "Belum ada key.",
+      "collections": "Belum ada koleksi.",
+      "tables": "Belum ada tabel."
+    },
+    "deleteRow": {
+      "title": "Hapus baris ini?",
+      "description": "Baris <code>{pk}</code> dihapus permanen dari <code>{table}</code>. Ini tidak bisa dibatalkan.",
+      "descriptionFallback": "Baris dihapus permanen. Ini tidak bisa dibatalkan.",
+      "confirm": "Hapus baris",
+      "aria": "Hapus baris"
+    },
+    "import": {
+      "title": "Jalankan {name}?",
+      "titleFallback": "Jalankan berkas SQL?",
+      "description": "Berkas <code>{name}</code> ({size} KB) dijalankan di database <code>{db}</code>. Statement di dalamnya dieksekusi apa adanya, termasuk yang mengubah atau menghapus data.",
+      "confirm": "Jalankan"
+    },
+    "query": {
+      "titleKv": "Perintah {engine}",
+      "titleMongo": "Query MongoDB",
+      "titleSql": "SQL",
+      "hintKv": "Satu perintah, mis. HGETALL user:1 atau SCAN 0 MATCH sess:* COUNT 100.",
+      "hintMongo": "Satu query, mis. users.find('{'\"age\":'{'\"$gt\":18'}''}') — hanya find(), read-only untuk saat ini.",
+      "hintSql": "Satu statement per eksekusi; SELECT tanpa LIMIT dibatasi 500 baris, timeout 15 detik.",
+      "writeHint": "Kamu bisa menulis (INSERT/UPDATE/DELETE/DDL) — hati-hati, tidak ada undo.",
+      "readOnlyHint": "Sesi ini read-only; hanya owner/admin yang bisa mengubah data.",
+      "run": "Jalankan",
+      "summary": "{count} baris · {ms} ms",
+      "truncated": "dipotong 500"
+    },
+    "exportSql": "Ekspor SQL",
+    "importSql": "Impor SQL",
+    "exportCsv": "Ekspor CSV",
+    "resultTitle": "Hasil query",
+    "tabs": {
+      "data": "Data",
+      "structure": "Struktur"
+    },
+    "pager": {
+      "empty": "kosong",
+      "previous": "Sebelumnya",
+      "next": "Berikutnya"
+    },
+    "structure": {
+      "column": "Kolom",
+      "nullable": "Nullable",
+      "default": "Default"
+    },
+    "emptyValue": "(kosong)",
+    "importDone": "Import selesai",
+    "errors": {
+      "pickSqlFile": "Pilih file .sql dulu"
+    }
+  },
+  "rowEdit": {
+    "trigger": "Ubah baris",
+    "title": "Ubah baris",
+    "description": "{table} — dicari lewat primary key ({keys}); kolom itu sendiri tidak bisa diubah di sini.",
+    "missingPk": "Nilai kolom \"{name}\" tidak ditemukan di baris ini"
+  },
+  "createTable": {
+    "trigger": "Buat tabel",
+    "title": "Buat tabel",
+    "description": "Kolom dasar saja; index, foreign key, dan tipe khusus bisa ditambahkan lewat kotak SQL setelah tabel ada.",
+    "tableName": "Nama tabel",
+    "columns": {
+      "column": "Kolom",
+      "length": "Panjang",
+      "null": "Null",
+      "pk": "PK",
+      "default": "Default",
+      "namePlaceholder": "nama",
+      "defaultPlaceholder": "mis. 0, 'x', now()",
+      "nameAria": "Nama kolom {n}",
+      "typeAria": "Tipe kolom {n}",
+      "lengthAria": "Panjang kolom {n}",
+      "nullAria": "Kolom {n} boleh NULL",
+      "pkAria": "Kolom {n} primary key",
+      "defaultAria": "Default kolom {n}",
+      "removeAria": "Hapus kolom {n}"
+    },
+    "addColumn": "Tambah kolom",
+    "sqlPreview": "SQL yang akan dijalankan",
+    "submit": "Buat tabel",
+    "errors": {
+      "invalidTable": "Nama tabel tidak valid (huruf/angka/_)",
+      "noColumns": "Tambahkan minimal satu kolom",
+      "invalidColumn": "Nama kolom tidak valid: \"{name}\"",
+      "duplicateColumn": "Kolom \"{name}\" ditulis dua kali",
+      "unknownType": "Tipe tidak dikenal untuk kolom \"{name}\"",
+      "invalidLength": "Panjang varchar tidak valid untuk \"{name}\""
+    }
+  },
+  "queryHistory": {
+    "trigger": "Riwayat",
+    "title": "Query terakhir",
+    "clear": "Bersihkan riwayat",
+    "empty": "Belum ada riwayat."
+  }
+}

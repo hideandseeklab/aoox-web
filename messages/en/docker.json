@@ -1,0 +1,126 @@
+{
+  "ago": {
+    "justNow": "just now",
+    "minutes": "{count, plural, one {# minute} other {# minutes}}",
+    "hours": "{count, plural, one {# hour} other {# hours}}",
+    "days": "{count, plural, one {# day} other {# days}}",
+    "months": "{count, plural, one {# month} other {# months}}"
+  },
+  "managedBy": "Managed by aoox",
+  "actions": "Actions",
+  "driver": "Driver",
+  "usedByHeader": "Used by",
+  "unused": "not in use",
+  "remove": "Delete",
+  "managed": {
+    "hint": "This container is managed by aoox ({kind}). It cannot be stopped or deleted from this page; manage it from its own page.",
+    "hintPanel": "This container is part of the aoox panel (postgres, api, web). It cannot be stopped or deleted from this page; manage it from its own page.",
+    "kinds": {
+      "panel": "aoox panel",
+      "application": "Application",
+      "database": "Database",
+      "compose": "Stack",
+      "companion": "Database admin",
+      "stack": "Stack",
+      "proxy": "Proxy",
+      "registry": "Registry",
+      "build": "Build",
+      "job": "Job",
+      "backup": "Backup",
+      "component": "aoox component",
+      "aoox": "aoox component"
+    }
+  },
+  "containers": {
+    "actionDone": "{name}: {action} succeeded",
+    "empty": "There are no containers on this server yet.",
+    "noMatch": "No matching containers.",
+    "state": "State",
+    "container": "Container",
+    "status": "Status",
+    "port": "Port",
+    "age": "Age",
+    "logs": "Logs",
+    "openPage": "Open its page",
+    "stop": "Stop",
+    "start": "Start",
+    "restart": "Restart",
+    "removeTitle": "Delete container {name}?",
+    "removeDescription": "The container is removed from this server. Named volumes are not deleted.",
+    "force": "Force: stop it first, then delete (the container is running)",
+    "removed": "{name} deleted"
+  },
+  "images": {
+    "prune": "Clean up dangling ({count})",
+    "pruneTitle": "Clean up dangling images?",
+    "pruneDescription": "This deletes <b>all</b> dangling images (untagged and not used by any container) on this server, not only aoox's own — about {count, plural, one {# image} other {# images}}, {size}. The actual number may be lower if some images are still the parent of other images.",
+    "pruneConfirm": "Clean up",
+    "pruned": "{count, plural, one {# dangling image} other {# dangling images}} deleted, {size} freed",
+    "empty": "There are no images on this server yet.",
+    "noMatch": "No matching images.",
+    "size": "Size",
+    "created": "Created",
+    "usedBy": "Used by",
+    "untagged": "(untagged, dangling)",
+    "unused": "not in use",
+    "containers": "{count, plural, one {# container} other {# containers}}",
+    "aooxHint": "An aoox image (helper, panel, or rollback). Clean it up from Docker Disk.",
+    "aooxImage": "aoox image",
+    "protected": "protected",
+    "removeTitle": "Delete image {name}?",
+    "removeDescription": "Deletion applies per image ID (<code>{id}</code>), so <b>all tags</b> of this image are removed from this server. Pull it again from the registry if needed.",
+    "removeNoTag": "This image has no tag (<code>{id}</code>).",
+    "removed": "{name} deleted"
+  },
+  "logs": {
+    "title": "Logs {name}",
+    "description": "The last lines, fetched once, not a stream. At most 500 lines.",
+    "lineCount": "Number of lines",
+    "lines": "{count} lines",
+    "reload": "Reload",
+    "truncated": "The older part was cut off.",
+    "label": "Container logs",
+    "loading": "Loading…",
+    "empty": "(no log output)"
+  },
+  "networks": {
+    "empty": "There are no networks on this server yet.",
+    "noMatch": "No matching networks.",
+    "network": "Network",
+    "subnet": "Subnet",
+    "builtin": "built-in",
+    "internal": "internal"
+  },
+  "volumes": {
+    "empty": "There are no volumes on this server yet.",
+    "noMatch": "No matching volumes.",
+    "volume": "Volume",
+    "size": "Size",
+    "created": "Created",
+    "orphan": "orphaned"
+  },
+  "toolbar": {
+    "pickServer": "Choose Docker server",
+    "host": "Host (aoox machine)",
+    "tabs": {
+      "containers": "Container",
+      "images": "Image",
+      "volumes": "Volume",
+      "networks": "Network"
+    },
+    "search": {
+      "containers": "Search name, image, or id",
+      "images": "Search tag, id, or container",
+      "volumes": "Search volume name or container",
+      "networks": "Search network name or container"
+    }
+  },
+  "page": {
+    "loadError": "Cannot read Docker on this server",
+    "description": "Containers, images, volumes, and networks on the host or a remote server. Things managed by aoox are only displayed; change them from their resource page.",
+    "diskNote": "Disk usage and automatic cleanup are in <link>Docker Disk</link>."
+  },
+  "errors": {
+    "serverUnreachable": "Cannot connect to the server"
+  }
+}

@@ -1,0 +1,328 @@
+{
+  "page": {
+    "projectFallback": "Project",
+    "backToProject": "Back to project",
+    "newTitle": "New database",
+    "newDescription": "Runs as a container with a persistent volume on the aoox network; applications in this project can reach it through the internal host name.",
+    "createSubmit": "Create database",
+    "tabs": {
+      "overview": "Overview",
+      "data": "Data",
+      "backups": "Backups ({count})",
+      "mounts": "Mounts ({count})",
+      "jobs": "Jobs ({count})"
+    }
+  },
+  "form": {
+    "fields": {
+      "engine": "Engine",
+      "variant": "Variant (optional)",
+      "imageTag": "Version (image tag)",
+      "hostPort": "Host port",
+      "hostPortPlaceholder": "empty = internal only"
+    },
+    "variants": {
+      "none": "Plain PostgreSQL",
+      "noneDescription": "Standard postgres image, no extra extensions.",
+      "pgvector": "Vector similarity search for embeddings (AI/ML workloads).",
+      "postgis": "Geographic/spatial data types, indexes and queries.",
+      "timescaledb": "Time-series data: hypertables, continuous aggregates."
+    },
+    "hostPortHint": "Publish a host port only if the database must be reachable from outside (e.g. from your laptop).",
+    "toast": {
+      "created": "Database \"{name}\" created. It is being set up (pulling the image can take a few minutes).",
+      "checkForm": "Check the form fields",
+      "creating": "Creating database {name}…",
+      "creatingNoName": "Creating new database…"
+    }
+  },
+  "panel": {
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
+    "createFailed": "Database creation failed: {error}",
+    "connectionFor": "Connection for database",
+    "primary": "primary",
+    "internal": {
+      "title": "Internal connection",
+      "description": "From applications in this project (<code>aoox</code> network). Paste into the application env, e.g. <code>DATABASE_URL</code>."
+    },
+    "external": {
+      "title": "External connection",
+      "published": "Published on host port {port}.",
+      "notPublished": "Not published; only reachable from the aoox network.",
+      "recreateHint": "Recreate the database with a host port if you need access from outside."
+    },
+    "fields": {
+      "database": "Database",
+      "user": "User"
+    },
+    "delete": {
+      "trigger": "Delete database",
+      "title": "Delete {name}?",
+      "description": "The container is stopped and removed. Choose whether the data (volume) is deleted too. This cannot be undone.",
+      "keepData": "Delete, keep data",
+      "withData": "Delete with data"
+    },
+    "add": {
+      "trigger": "Add database",
+      "title": "Add database",
+      "description": "Creates another database on this server. Host, user and password stay the same; only the database name in the connection URL differs.",
+      "placeholder": "database name",
+      "ariaLabel": "New database name"
+    },
+    "drop": {
+      "ariaLabel": "Delete database {name}",
+      "title": "Delete database {name}?",
+      "description": "Database <code>{name}</code> and all its tables and data are deleted permanently and this cannot be undone. Applications still using it will fail to connect."
+    }
+  },
+  "resources": {
+    "title": "Resource limits",
+    "description": "Empty = no limit. Raising or lowering a limit applies immediately; removing a limit recreates the container (brief restart, data stays safe in the volume).",
+    "cpu": "CPU (millicores)",
+    "cpuPlaceholder": "1000 = 1 core",
+    "memory": "Memory (MiB)",
+    "memoryPlaceholder": "e.g. 512"
+  },
+  "backups": {
+    "title": "Backups",
+    "description": "Dumps are stored in the <code>aoox_backups</code> volume on this server. Restore overwrites existing data.",
+    "descriptionWithDestination": "Dumps are stored in the <code>aoox_backups</code> volume on this server and copied to {destination}. Restore overwrites existing data.",
+    "s3Destination": "the S3 destination",
+    "backupNow": "Back up now",
+    "empty": "No backups yet.",
+    "trigger": {
+      "scheduled": "scheduled",
+      "manual": "manual"
+    },
+    "s3": "S3",
+    "s3Only": "S3 only",
+    "allDatabases": "all databases",
+    "copiedTo": "Copied to {destination}",
+    "restore": "Restore",
+    "deleteAria": "Delete backup",
+    "presets": {
+      "off": "Off",
+      "hourly": "Every hour",
+      "daily": "Every day 02:00",
+      "weekly": "Every week (Sunday 03:00)",
+      "custom": "Custom"
+    },
+    "schedule": {
+      "title": "Backup schedule & destination",
+      "description": "Old scheduled backups are deleted automatically beyond the number kept (also from S3). S3 destinations are added in Settings.",
+      "frequency": "Frequency",
+      "cron": "Cron (5 fields)",
+      "keep": "Keep",
+      "destination": "S3 destination",
+      "localOnly": "Local only",
+      "allDatabases": "All databases on the server",
+      "current": "Current:",
+      "currentOff": "off"
+    },
+    "restoreDialog": {
+      "title": "Restore backup?",
+      "description": "The current data of <b>{name}</b> will be overwritten with the contents of <code>{file}</code>. This cannot be undone; create a backup first if unsure.",
+      "restoring": "Restoring…"
+    }
+  },
+  "validation": {
+    "nameRequired": "Name is required",
+    "invalidImageTag": "Invalid image tag"
+  },
+  "status": {
+    "creating": "creating…",
+    "running": "running",
+    "stopped": "stopped",
+    "error": "error",
+    "exited": "exited",
+    "paused": "paused",
+    "restarting": "restarting",
+    "dead": "dead",
+    "created": "created",
+    "backup": {
+      "running": "running",
+      "success": "success",
+      "failed": "failed"
+    }
+  },
+  "companion": {
+    "title": "Admin UI",
+    "description": "A web interface for managing this database, running in a separate container.",
+    "empty": "No Admin UI yet. Install it with one click, then open it from a domain or an IP and port.",
+    "install": "Install Admin UI",
+    "startDatabaseFirst": "Start the database first.",
+    "developerOnly": "Only developers and above can install an Admin UI.",
+    "remove": "Remove Admin UI",
+    "openInNewTab": "Open {tool} in a new tab",
+    "databaseLoginHint": "Sign in with the database username and password (see the Internal connection card, Show password button).",
+    "status": {
+      "creating": "creating",
+      "running": "running",
+      "stopped": "stopped",
+      "error": "error"
+    },
+    "credentials": {
+      "user": "User",
+      "show": "Show credentials",
+      "hide": "Hide credentials",
+      "copyAria": "Copy {label}",
+      "copied": {
+        "username": "User copied",
+        "password": "Password copied"
+      },
+      "copyFailed": {
+        "username": "Could not copy user",
+        "password": "Could not copy password"
+      }
+    },
+    "toast": {
+      "removed": "Admin UI removed",
+      "installing": "Installing Admin UI…",
+      "installed": "The Admin UI is being set up; pulling the image can take a few minutes"
+    },
+    "removeDialog": {
+      "title": "Remove Admin UI?",
+      "description": "The {tool} container is stopped and removed. Database data is not affected."
+    },
+    "installDialog": {
+      "title": "Install Admin UI",
+      "description": "Choose a tool and how to open it.",
+      "tool": "Tool",
+      "noteDatabaseLogin": "Sign in with the database login",
+      "noteGeneratedPassword": "Password is generated automatically",
+      "access": "Access",
+      "domain": {
+        "title": "Domain",
+        "description": "Through the reverse proxy with its own hostname."
+      },
+      "port": {
+        "title": "IP & port",
+        "description": "Published on a host port of this server."
+      },
+      "hostname": "Hostname",
+      "domainHint": "The reverse proxy must be running and the hostname's DNS must point to this server's IP.",
+      "hostPort": "Host port",
+      "installing": "Installing…",
+      "submit": "Install"
+    },
+    "validation": {
+      "toolRequired": "Choose a tool",
+      "hostRequired": "Host is required",
+      "hostInvalid": "Invalid hostname, for example: db.example.com",
+      "portRequired": "Host port is required",
+      "portRange": "Port must be between 1 and 65535",
+      "invalidInput": "Invalid input"
+    }
+  },
+  "browser": {
+    "notRunning": "The database must be running to browse its data.",
+    "databaseAria": "Database",
+    "primary": "primary",
+    "reloadList": "Reload list",
+    "list": {
+      "keys": "Keys",
+      "collections": "Collections",
+      "tables": "Tables"
+    },
+    "empty": {
+      "keys": "No keys yet.",
+      "collections": "No collections yet.",
+      "tables": "No tables yet."
+    },
+    "deleteRow": {
+      "title": "Delete this row?",
+      "description": "Row <code>{pk}</code> will be permanently deleted from <code>{table}</code>. This cannot be undone.",
+      "descriptionFallback": "The row will be permanently deleted. This cannot be undone.",
+      "confirm": "Delete row",
+      "aria": "Delete row"
+    },
+    "import": {
+      "title": "Run {name}?",
+      "titleFallback": "Run SQL file?",
+      "description": "The file <code>{name}</code> ({size} KB) will be run on database <code>{db}</code>. Its statements are executed as-is, including any that change or delete data.",
+      "confirm": "Run"
+    },
+    "query": {
+      "titleKv": "{engine} command",
+      "titleMongo": "MongoDB query",
+      "titleSql": "SQL",
+      "hintKv": "One command, e.g. HGETALL user:1 or SCAN 0 MATCH sess:* COUNT 100.",
+      "hintMongo": "One query, e.g. users.find('{'\"age\":'{'\"$gt\":18'}''}'). Only find(), read-only for now.",
+      "hintSql": "One statement per run; SELECT without LIMIT is capped at 500 rows, 15 second timeout.",
+      "writeHint": "You can write (INSERT/UPDATE/DELETE/DDL). Be careful, there is no undo.",
+      "readOnlyHint": "This session is read-only; only owners and admins can change data.",
+      "run": "Run",
+      "summary": "{count, plural, one {# row} other {# rows}} · {ms} ms",
+      "truncated": "truncated at 500"
+    },
+    "exportSql": "Export SQL",
+    "importSql": "Import SQL",
+    "exportCsv": "Export CSV",
+    "resultTitle": "Query result",
+    "tabs": {
+      "data": "Data",
+      "structure": "Structure"
+    },
+    "pager": {
+      "empty": "empty",
+      "previous": "Previous",
+      "next": "Next"
+    },
+    "structure": {
+      "column": "Column",
+      "nullable": "Nullable",
+      "default": "Default"
+    },
+    "emptyValue": "(empty)",
+    "importDone": "Import finished",
+    "errors": {
+      "pickSqlFile": "Choose a .sql file first"
+    }
+  },
+  "rowEdit": {
+    "trigger": "Edit row",
+    "title": "Edit row",
+    "description": "{table}: located by its primary key ({keys}); those columns cannot be changed here.",
+    "missingPk": "The value of column \"{name}\" was not found in this row"
+  },
+  "createTable": {
+    "trigger": "Create table",
+    "title": "Create table",
+    "description": "Basic columns only; indexes, foreign keys and special types can be added from the SQL box once the table exists.",
+    "tableName": "Table name",
+    "columns": {
+      "column": "Column",
+      "length": "Length",
+      "null": "Null",
+      "pk": "PK",
+      "default": "Default",
+      "namePlaceholder": "name",
+      "defaultPlaceholder": "e.g. 0, 'x', now()",
+      "nameAria": "Name of column {n}",
+      "typeAria": "Type of column {n}",
+      "lengthAria": "Length of column {n}",
+      "nullAria": "Column {n} allows NULL",
+      "pkAria": "Column {n} is a primary key",
+      "defaultAria": "Default of column {n}",
+      "removeAria": "Remove column {n}"
+    },
+    "addColumn": "Add column",
+    "sqlPreview": "SQL that will run",
+    "submit": "Create table",
+    "errors": {
+      "invalidTable": "Invalid table name (letters, digits and _ only)",
+      "noColumns": "Add at least one column",
+      "invalidColumn": "Invalid column name: \"{name}\"",
+      "duplicateColumn": "Column \"{name}\" is listed twice",
+      "unknownType": "Unknown type for column \"{name}\"",
+      "invalidLength": "Invalid varchar length for \"{name}\""
+    }
+  },
+  "queryHistory": {
+    "trigger": "History",
+    "title": "Recent queries",
+    "clear": "Clear history",
+    "empty": "No history yet."
+  }
+}

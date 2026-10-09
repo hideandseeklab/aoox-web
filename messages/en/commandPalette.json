@@ -1,0 +1,36 @@
+{
+  "trigger": "Search…",
+  "triggerLabel": "Search (Ctrl K)",
+  "title": "Search",
+  "description": "Jump to a page, project or resource, or switch the theme.",
+  "inputLabel": "Search pages, projects or resources",
+  "placeholder": "Search pages, projects, applications…",
+  "results": "Results",
+  "loading": "Loading…",
+  "loadingProjects": "Loading projects…",
+  "noResults": "No results.",
+  "hintSelect": "↑↓ select",
+  "hintOpen": "Enter open",
+  "hintClose": "Esc close",
+  "groups": {
+    "pages": "Pages",
+    "resources": "Projects & resources",
+    "appearance": "Appearance"
+  },
+  "hints": {
+    "project": "project",
+    "infrastructure": "infrastructure",
+    "settings": "settings"
+  },
+  "kinds": {
+    "application": "application",
+    "database": "database",
+    "compose": "compose stack"
+  },
+  "theme": {
+    "light": "Light theme",
+    "dark": "Dark theme",
+    "system": "System theme"
+  },
+  "themeKeywords": "theme color mode appearance"
+}

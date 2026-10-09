@@ -1,5 +1,6 @@
 "use server"
 
+import { getTranslations } from "next-intl/server"
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
 import { requireToken } from "@/features/auth/auth.session"
@@ -14,27 +15,37 @@ import type {
 export type ActionResult<T = undefined> =
   { ok: true; data: T } | { ok: false; error: string }
 
-function fail(err: unknown): { ok: false; error: string } {
+async function fail(err: unknown): Promise<{ ok: false; error: string }> {
+  const t = await getTranslations("settings")
   return {
     ok: false,
-    error:
-      err instanceof ApiError ? err.message : "Tidak dapat terhubung ke server",
+    error: err instanceof ApiError ? err.message : t("errors.unreachable"),
   }
 }
 
-const schema = z.object({
-  name: z.string().trim().min(1, "Nama wajib diisi").max(100),
-  url: z
-    .string()
-    .trim()
-    .max(300)
-    .refine(
-      (v) => v === "" || /^https?:\/\/.+/i.test(v),
-      "URL harus diawali http:// atau https://"
-    ),
-  clientId: z.string().trim().min(1, "Client ID wajib diisi").max(255),
-  clientSecret: z.string().min(1, "Client secret wajib diisi").max(4096),
-})
+type Translate = (key: string) => string
+
+const schema = (t: Translate) =>
+  z.object({
+    name: z.string().trim().min(1, t("validation.nameRequired")).max(100),
+    url: z
+      .string()
+      .trim()
+      .max(300)
+      .refine(
+        (v) => v === "" || /^https?:\/\/.+/i.test(v),
+        t("validation.urlHttp")
+      ),
+    clientId: z
+      .string()
+      .trim()
+      .min(1, t("validation.clientIdRequired"))
+      .max(255),
+    clientSecret: z
+      .string()
+      .min(1, t("validation.clientSecretRequired"))
+      .max(4096),
+  })
 
 type Field = "name" | "url" | "clientId" | "clientSecret"
 
@@ -54,7 +65,8 @@ export async function createSecretConnectionAction(
     url: String(formData.get("url") ?? ""),
     clientId: String(formData.get("clientId") ?? ""),
   }
-  const parsed = schema.safeParse({
+  const t = await getTranslations("settings")
+  const parsed = schema(t).safeParse({
     ...values,
     clientSecret: formData.get("clientSecret"),
   })
@@ -74,7 +86,7 @@ export async function createSecretConnectionAction(
       token: await requireToken(),
     })
   } catch (err) {
-    return { error: fail(err).error, values }
+    return { error: (await fail(err)).error, values }
   }
   revalidatePath("/settings")
   return { created: true }
@@ -109,18 +121,27 @@ export async function testSecretConnectionAction(
   }
 }
 
-const sourceSchema = z.object({
-  connectionId: z.string().uuid().nullable(),
-  projectId: z.string().trim().min(1, "Project ID wajib diisi").max(200),
-  environment: z.string().trim().min(1, "Environment wajib diisi").max(100),
-  path: z
-    .string()
-    .trim()
-    .min(1)
-    .max(300)
-    .refine((v) => v.startsWith("/"), "Path harus diawali /"),
-  sync: z.boolean(),
-})
+const sourceSchema = (t: Translate) =>
+  z.object({
+    connectionId: z.string().uuid().nullable(),
+    projectId: z
+      .string()
+      .trim()
+      .min(1, t("validation.projectIdRequired"))
+      .max(200),
+    environment: z
+      .string()
+      .trim()
+      .min(1, t("validation.environmentRequired"))
+      .max(100),
+    path: z
+      .string()
+      .trim()
+      .min(1)
+      .max(300)
+      .refine((v) => v.startsWith("/"), t("validation.pathSlash")),
+    sync: z.boolean(),
+  })
 
 export async function saveSecretSourceAction(
   applicationId: string,
@@ -128,11 +149,12 @@ export async function saveSecretSourceAction(
 ): Promise<ActionResult<SecretSource | null>> {
   // Removing the source needs no project/environment: send them as-is, the API ignores them.
   if (input.connectionId !== null) {
-    const parsed = sourceSchema.safeParse(input)
+    const t = await getTranslations("settings")
+    const parsed = sourceSchema(t).safeParse(input)
     if (!parsed.success) {
       return {
         ok: false,
-        error: parsed.error.issues[0]?.message ?? "Tidak valid",
+        error: parsed.error.issues[0]?.message ?? t("errors.invalid"),
       }
     }
   }

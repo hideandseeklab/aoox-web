@@ -22,24 +22,21 @@ export const ENGINE_DEFAULT_TAG: Record<DatabaseEngine, string> = {
   mongodb: "7",
 }
 
-/** Postgres variant -> label + one-line description, shown in the create dialog. */
+/** Postgres variant -> label + default tag; the description is a message key (`form.variants.<variant>`). */
 export const POSTGRES_VARIANT_INFO: Record<
   Exclude<PostgresVariant, null>,
-  { label: string; description: string; defaultTag: string }
+  { label: string; defaultTag: string }
 > = {
   pgvector: {
     label: "pgvector",
-    description: "Vector similarity search for embeddings (AI/ML workloads).",
     defaultTag: "pg16",
   },
   postgis: {
     label: "PostGIS",
-    description: "Geographic/spatial data types, indexes and queries.",
     defaultTag: "16-3.4",
   },
   timescaledb: {
     label: "TimescaleDB",
-    description: "Time-series data: hypertables, continuous aggregates.",
     defaultTag: "latest-pg16",
   },
 }

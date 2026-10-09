@@ -1,5 +1,6 @@
 "use server"
 
+import { getTranslations } from "next-intl/server"
 import { revalidatePath } from "next/cache"
 import { requireToken } from "@/features/auth/auth.session"
 import type {
@@ -39,7 +40,7 @@ export async function deployTemplateAction(
       error:
         err instanceof ApiError
           ? err.message
-          : "Tidak dapat terhubung ke server",
+          : (await getTranslations("templates"))("errors.serverUnreachable"),
     }
   }
 }

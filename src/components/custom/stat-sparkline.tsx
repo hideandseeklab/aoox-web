@@ -1,5 +1,6 @@
 "use client"
 
+import { useTranslations } from "next-intl"
 import { AreaChart } from "@/components/custom/area-chart"
 
 /**
@@ -17,6 +18,7 @@ export function StatSparkline({
   format: (v: number) => string
   history: { at: string }[]
 }) {
+  const t = useTranslations("dashboard.sparkline")
   const last = series.length - 1
   return (
     <AreaChart
@@ -26,7 +28,7 @@ export function StatSparkline({
       }))}
       format={format}
       height={64}
-      ariaLabel={`Riwayat 1 jam, terakhir ${format(series[last])}`}
+      ariaLabel={t("ariaLabel", { value: format(series[last]) })}
     />
   )
 }

@@ -1,6 +1,7 @@
 "use client"
 
 import { Container, FileText, Play, RotateCw, Square, Trash2 } from "lucide-react"
+import { useTranslations } from "next-intl"
 import Link from "next/link"
 import { useState, useTransition } from "react"
 import { toast } from "sonner"
@@ -8,8 +9,8 @@ import { LinkArrow } from "@/components/custom/arrows"
 import { ConfirmDialog } from "@/components/custom/confirm-dialog"
 import {
   DockerEmpty,
+  useAgo,
   useDockerQuery,
-  ago,
   matches,
 } from "@/components/custom/docker-ui"
 import { DockerLogsDialog } from "@/components/custom/docker-logs-dialog"
@@ -30,8 +31,6 @@ import {
   removeContainerAction,
 } from "@/features/docker/docker.actions"
 import {
-  MANAGED_LABEL,
-  managedHint,
   type DockerContainer,
 } from "@/features/docker/docker.entity"
 
@@ -69,6 +68,8 @@ export function DockerContainers({
   serverId: string | null
   isOwner: boolean
 }) {
+  const t = useTranslations("docker")
+  const ago = useAgo()
   const query = useDockerQuery()
   const [pending, start] = useTransition()
   const [logsFor, setLogsFor] = useState<DockerContainer | null>(null)
@@ -77,7 +78,7 @@ export function DockerContainers({
   const run = (c: DockerContainer, action: "start" | "stop" | "restart") =>
     start(async () => {
       const r = await containerAction(c.id, action, serverId)
-      if (r.ok) toast.success(`${c.name}: ${action} berhasil`)
+      if (r.ok) toast.success(t("containers.actionDone", { name: c.name, action }))
       else toast.error(r.error)
     })
 
@@ -86,8 +87,8 @@ export function DockerContainers({
       {rows.length === 0 ? (
         <DockerEmpty icon={Container}>
           {containers.length === 0
-            ? "Belum ada container di server ini."
-            : "Tidak ada container yang cocok."}
+            ? t("containers.empty")
+            : t("containers.noMatch")}
         </DockerEmpty>
       ) : (
         <div className="rounded-lg border">
@@ -96,14 +97,14 @@ export function DockerContainers({
               <TableRow>
                 {/* Fixed-width, centered dot column; the Container column drops its left padding so the gap is equal on both sides of the dot. */}
                 <TableHead className="w-10 min-w-10 px-0 text-center">
-                  <span className="sr-only">State</span>
+                  <span className="sr-only">{t("containers.state")}</span>
                 </TableHead>
-                <TableHead className="ps-0">Container</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Managed by aoox</TableHead>
-                <TableHead>Port</TableHead>
-                <TableHead>Umur</TableHead>
-                <TableHead className="text-end">Aksi</TableHead>
+                <TableHead className="ps-0">{t("containers.container")}</TableHead>
+                <TableHead>{t("containers.status")}</TableHead>
+                <TableHead>{t("managedBy")}</TableHead>
+                <TableHead>{t("containers.port")}</TableHead>
+                <TableHead>{t("containers.age")}</TableHead>
+                <TableHead className="text-end">{t("actions")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -135,9 +136,15 @@ export function DockerContainers({
                       {c.managed ? (
                         <Badge
                           variant="outline"
-                          title={managedHint(c.managed.kind)}
+                          title={
+                            c.managed.kind === "panel"
+                              ? t("managed.hintPanel")
+                              : t("managed.hint", {
+                                  kind: t(`managed.kinds.${c.managed.kind}`).toLowerCase(),
+                                })
+                          }
                         >
-                          {MANAGED_LABEL[c.managed.kind]}
+                          {t(`managed.kinds.${c.managed.kind}`)}
                         </Badge>
                       ) : (
                         <span className="text-muted-foreground">-</span>
@@ -158,13 +165,13 @@ export function DockerContainers({
                           onClick={() => setLogsFor(c)}
                         >
                           <FileText data-icon="inline-start" />
-                          Log
+                          {t("containers.logs")}
                         </Button>
                         {c.managed ? (
                           href && (
                             <Button asChild variant="outline" size="sm">
                               <Link href={href}>
-                                Buka halamannya
+                                {t("containers.openPage")}
                                 <LinkArrow />
                               </Link>
                             </Button>
@@ -180,7 +187,7 @@ export function DockerContainers({
                                 onClick={() => run(c, "stop")}
                               >
                                 <Square data-icon="inline-start" />
-                                Stop
+                                {t("containers.stop")}
                               </Button>
                             ) : (
                               <Button
@@ -191,7 +198,7 @@ export function DockerContainers({
                                 onClick={() => run(c, "start")}
                               >
                                 <Play data-icon="inline-start" />
-                                Start
+                                {t("containers.start")}
                               </Button>
                             )}
                             <Button
@@ -202,7 +209,7 @@ export function DockerContainers({
                               onClick={() => run(c, "restart")}
                             >
                               <RotateCw data-icon="inline-start" />
-                              Restart
+                              {t("containers.restart")}
                             </Button>
                             <RemoveContainerButton
                               container={c}
@@ -235,6 +242,7 @@ function RemoveContainerButton({
   container: DockerContainer
   serverId: string | null
 }) {
+  const t = useTranslations("docker")
   const [force, setForce] = useState(false)
   const running = container.state === "running"
   return (
@@ -242,29 +250,28 @@ function RemoveContainerButton({
       trigger={
         <Button type="button" variant="outline" size="sm">
           <Trash2 data-icon="inline-start" />
-          Hapus
+          {t("remove")}
         </Button>
       }
-      title={`Hapus container ${container.name}?`}
+      title={t("containers.removeTitle", { name: container.name })}
       description={
         <span className="space-y-2">
           <span className="block">
-            Container dihapus dari server ini. Volume bernama tidak ikut
-            terhapus.
+            {t("containers.removeDescription")}
           </span>
           {running && (
             <label className="flex items-center gap-2">
               <Switch checked={force} onCheckedChange={setForce} />
-              Paksa: hentikan dulu lalu hapus (container sedang berjalan)
+              {t("containers.force")}
             </label>
           )}
         </span>
       }
-      confirmLabel="Hapus"
+      confirmLabel={t("remove")}
       onConfirm={async () => {
         const r = await removeContainerAction(container.id, force, serverId)
         if (!r.ok) return { ok: false, error: r.error }
-        toast.success(`${container.name} dihapus`)
+        toast.success(t("containers.removed", { name: container.name }))
       }}
     />
   )

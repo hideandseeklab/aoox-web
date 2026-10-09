@@ -1,6 +1,7 @@
 "use client"
 
 import { Loader2 } from "lucide-react"
+import { useTranslations } from "next-intl"
 import Link from "next/link"
 import { useId, useRef, useState } from "react"
 import { toast } from "sonner"
@@ -51,7 +52,7 @@ const fromSource = (s: SecretSource | null): Form => ({
 })
 
 /**
- * "Sumber secret" in the Environment tab: pull secrets from a secret manager
+ * "Secret source" in the Environment tab: pull secrets from a secret manager
  * connection when the container is created. Anyone with write access to the
  * project can pick a connection (they only see names); creating connections is
  * owner/admin territory in Settings.
@@ -69,6 +70,8 @@ export function ApplicationSecretSource({
   canEdit: boolean
   canManageConnections: boolean
 }) {
+  const t = useTranslations("applications")
+  const tc = useTranslations("common")
   const [saved, setSaved] = useState<SecretSource | null>(source)
   const [form, setForm] = useState<Form>(fromSource(source))
   const [busy, setBusy] = useState<"save" | "preview" | null>(null)
@@ -82,13 +85,20 @@ export function ApplicationSecretSource({
     sync: useId(),
   }
 
+  const section = () => (
+    <>
+      {t("secretSource.settings")}
+      <PathArrow />
+      {t("secretSource.integrations")}
+    </>
+  )
   const dirty =
     JSON.stringify(form) !== JSON.stringify(fromSource(saved)) && canEdit
   const active = form.connectionId !== NONE
 
   async function save() {
     setBusy("save")
-    toastId.current = toast.loading("Menyimpan sumber secret…")
+    toastId.current = toast.loading(t("secretSource.toast.saving"))
     const r = await saveSecretSourceAction(applicationId, {
       connectionId: active ? form.connectionId : null,
       projectId: form.projectId,
@@ -101,7 +111,9 @@ export function ApplicationSecretSource({
       setForm(fromSource(r.data))
       setKeys(null)
       toast.success(
-        r.data ? "Sumber secret disimpan" : "Sumber secret dihapus",
+        r.data
+          ? t("secretSource.toast.saved")
+          : t("secretSource.toast.removed"),
         {
           id: toastId.current,
         }
@@ -114,11 +126,11 @@ export function ApplicationSecretSource({
 
   async function preview() {
     setBusy("preview")
-    toastId.current = toast.loading("Mengambil daftar key…")
+    toastId.current = toast.loading(t("secretSource.toast.fetchingKeys"))
     const r = await previewSecretSourceAction(applicationId)
     if (r.ok) {
       setKeys(r.data.keys)
-      toast.success(`${r.data.keys.length} key`, { id: toastId.current })
+      toast.success(t("secretSource.toast.keyCount", { count: r.data.keys.length }), { id: toastId.current })
     } else {
       setKeys(null)
       toast.error(r.error, { id: toastId.current })
@@ -129,47 +141,38 @@ export function ApplicationSecretSource({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Sumber secret</CardTitle>
+        <CardTitle>{t("secretSource.title")}</CardTitle>
         <CardDescription className="max-w-3xl">
-          Ambil secret dari secret manager (Infisical) alih-alih menyalinnya ke
-          env. Nilai diambil saat container dibuat (deploy, apply config,
-          rollback); rujuk satu secret dengan <code>{"${{secret.KEY}}"}</code>{" "}
-          di env, atau nyalakan <em>Sync</em> untuk meneruskan semuanya. Env
-          aplikasi menang atas secret bila key sama. Preview PR tidak
-          mewarisinya. Bila secret manager tidak bisa dijangkau saat deploy,
-          deployment gagal dan container lama tetap berjalan.
+          {t.rich("secretSource.description", {
+            code: (chunks) => <code>{chunks}</code>,
+            em: (chunks) => <em>{chunks}</em>,
+            ref: "${{secret.KEY}}",
+          })}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {connections.length === 0 ? (
           <p className="text-xs text-muted-foreground">
-            Belum ada koneksi secret manager.{" "}
-            {canManageConnections ? (
-              <>
-                Tambahkan di{" "}
-                <Link
-                  href="/settings?tab=integrations"
-                  className="font-medium text-foreground underline underline-offset-4"
-                >
-                  Settings
-                  <PathArrow />
-                  Integrasi
-                </Link>
-                .
-              </>
-            ) : (
-              <>
-                Minta owner/admin menambahkannya di Settings
-                <PathArrow />
-                Integrasi.
-              </>
-            )}
+            {t("secretSource.noConnections")}{" "}
+            {canManageConnections
+              ? t.rich("secretSource.addAt", {
+                  link: (chunks) => (
+                    <Link
+                      href="/settings?tab=integrations"
+                      className="font-medium text-foreground underline underline-offset-4"
+                    >
+                      {chunks}
+                    </Link>
+                  ),
+                  section,
+                })
+              : t.rich("secretSource.askAdmin", { section })}
           </p>
         ) : (
           <>
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               <div className="space-y-1 sm:col-span-2 lg:col-span-1">
-                <Label htmlFor={ids.connection}>Koneksi</Label>
+                <Label htmlFor={ids.connection}>{t("secretSource.connection")}</Label>
                 <Select
                   value={form.connectionId}
                   disabled={!canEdit}
@@ -179,7 +182,7 @@ export function ApplicationSecretSource({
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value={NONE}>Tidak dipakai</SelectItem>
+                    <SelectItem value={NONE}>{t("secretSource.notUsed")}</SelectItem>
                     {connections.map((c) => (
                       <SelectItem key={c.id} value={c.id}>
                         {c.name}
@@ -191,7 +194,7 @@ export function ApplicationSecretSource({
               {active && (
                 <>
                   <div className="space-y-1 sm:col-span-2 lg:col-span-1">
-                    <Label htmlFor={ids.project}>Project ID</Label>
+                    <Label htmlFor={ids.project}>{t("secretSource.projectId")}</Label>
                     <Input
                       id={ids.project}
                       value={form.projectId}
@@ -205,7 +208,7 @@ export function ApplicationSecretSource({
                     />
                   </div>
                   <div className="space-y-1">
-                    <Label htmlFor={ids.environment}>Environment</Label>
+                    <Label htmlFor={ids.environment}>{t("secretSource.environment")}</Label>
                     <Input
                       id={ids.environment}
                       value={form.environment}
@@ -220,7 +223,7 @@ export function ApplicationSecretSource({
                     />
                   </div>
                   <div className="space-y-1">
-                    <Label htmlFor={ids.path}>Path</Label>
+                    <Label htmlFor={ids.path}>{t("secretSource.path")}</Label>
                     <Input
                       id={ids.path}
                       value={form.path}
@@ -242,7 +245,7 @@ export function ApplicationSecretSource({
                       onCheckedChange={(v) => setForm({ ...form, sync: v })}
                     />
                     <Label htmlFor={ids.sync} className="text-xs">
-                      Sync semua secret ke container
+                      {t("secretSource.syncAll")}
                     </Label>
                   </div>
                 </>
@@ -261,14 +264,14 @@ export function ApplicationSecretSource({
                       className="animate-spin"
                     />
                   )}
-                  Simpan
+                  {tc("actions.save")}
                 </Button>
                 {saved && (
                   <Button
                     variant="outline"
                     onClick={() => void preview()}
                     disabled={busy !== null || dirty}
-                    title={dirty ? "Simpan perubahan dulu" : undefined}
+                    title={dirty ? t("secretSource.saveFirst") : undefined}
                   >
                     {busy === "preview" && (
                       <Loader2
@@ -276,7 +279,7 @@ export function ApplicationSecretSource({
                         className="animate-spin"
                       />
                     )}
-                    Lihat key
+                    {t("secretSource.viewKeys")}
                   </Button>
                 )}
               </div>
@@ -286,8 +289,8 @@ export function ApplicationSecretSource({
               <div className="space-y-1.5">
                 <p className="text-xs text-muted-foreground">
                   {keys.length === 0
-                    ? "Tidak ada secret di path ini."
-                    : `${keys.length} key (hanya nama, nilai tidak ditampilkan):`}
+                    ? t("secretSource.noKeys")
+                    : t("secretSource.keysShown", { count: keys.length })}
                 </p>
                 {keys.length > 0 && (
                   <ul className="flex flex-wrap gap-1.5">

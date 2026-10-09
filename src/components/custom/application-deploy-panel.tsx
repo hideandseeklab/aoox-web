@@ -36,6 +36,8 @@ import { useLogsSocket } from "@/features/application/use-logs-socket"
 import { DEPLOYMENT_QUEUED_EVENT } from "./application-actions"
 import { DeployStepper } from "./deploy-stepper"
 import { useBrowserOrigin } from "./use-browser-host"
+import { formatDateTime, formatTime } from "@/i18n/format"
+import { useLocale, useTranslations } from "next-intl"
 
 const STATUS_VARIANT: Record<
   DeploymentSummary["status"],
@@ -54,25 +56,32 @@ const isActive = (s: string) =>
 
 /** Short, human line naming who/what queued a deployment — used for both the
  * toast on `deployment:created` and the tooltip on a history row. */
-function triggerLabel(d: {
-  trigger: string
-  commitSha: string | null
-  commitMessage: string | null
-  triggeredBy: string | null
-}): string {
+function triggerLabel(
+  d: {
+    trigger: string
+    commitSha: string | null
+    commitMessage: string | null
+    triggeredBy: string | null
+  },
+  t: (key: string, values?: Record<string, string>) => string
+): string {
   const sha = d.commitSha ? d.commitSha.slice(0, 7) : null
   if (d.trigger === "webhook") {
     const parts = [
       sha,
       d.commitMessage,
-      d.triggeredBy && `oleh ${d.triggeredBy}`,
+      d.triggeredBy && t("deploy.trigger.by", { name: d.triggeredBy }),
     ]
       .filter(Boolean)
       .join(" · ")
-    return `Webhook${parts ? ` — ${parts}` : ""}`
+    return parts
+      ? t("deploy.trigger.webhookDetail", { detail: parts })
+      : t("deploy.trigger.webhook")
   }
-  if (d.trigger === "auto-update") return "Update otomatis (image berubah)"
-  return d.triggeredBy ? `Manual oleh ${d.triggeredBy}` : "Manual"
+  if (d.trigger === "auto-update") return t("deploy.trigger.autoUpdate")
+  return d.triggeredBy
+    ? t("deploy.trigger.manualBy", { name: d.triggeredBy })
+    : t("deploy.trigger.manual")
 }
 
 export function ApplicationDeployPanel({
@@ -96,6 +105,9 @@ export function ApplicationDeployPanel({
   /** Lets the post-deploy nudge jump to the Pengaturan/Domain tab. */
   onNavigateTab?: (tab: "settings" | "domains") => void
 }) {
+  const t = useTranslations("applications")
+  const tc = useTranslations("common")
+  const locale = useLocale()
   const router = useRouter()
   const browserOrigin = useBrowserOrigin()
   // `null` until hydration — don't flash the warning before we know.
@@ -200,7 +212,9 @@ export function ApplicationDeployPanel({
       commitMessage: string | null
       triggeredBy: string | null
     }) => {
-      toast.info(`Deploy dimulai — ${triggerLabel(payload)}`)
+      toast.info(
+        t("deploy.toast.started", { trigger: triggerLabel(payload, t) })
+      )
       setFollowing(false)
       setLogText("")
       setLiveStatus(null)
@@ -211,7 +225,7 @@ export function ApplicationDeployPanel({
     return () => {
       socket.off("deployment:created", onCreated)
     }
-  }, [socket, router])
+  }, [socket, router, t])
 
   // Follow container stdout/stderr live while toggled on.
   useEffect(() => {
@@ -253,7 +267,7 @@ export function ApplicationDeployPanel({
     start(async () => {
       setError(null)
       const r = await fn()
-      if (!r.ok) setError(r.error ?? "Gagal")
+      if (!r.ok) setError(r.error ?? t("deploy.failed"))
       else router.refresh()
     })
 
@@ -264,32 +278,24 @@ export function ApplicationDeployPanel({
     <div className="space-y-4">
       {domainProxyAutoProvisioned && !proxyWarningDismissed && (
         <Alert variant="destructive">
-          <AlertTitle>
-            Reverse proxy belum aktif — sudah dinyalakan otomatis
-          </AlertTitle>
+          <AlertTitle>{t("deploy.proxyWarning.title")}</AlertTitle>
           <AlertDescription className="space-y-2">
-            <p>
-              Proxy (Traefik) belum jalan sebelum domain ini disimpan, jadi
-              sudah diaktifkan otomatis. Domain baru bisa diakses kalau tiga hal
-              ini juga sudah benar:
-            </p>
+            <p>{t("deploy.proxyWarning.intro")}</p>
             <ol className="ms-4 list-decimal space-y-1">
-              <li>DNS domain sudah mengarah ke IP server ini.</li>
+              <li>{t("deploy.proxyWarning.dns")}</li>
               <li>
-                Port <code>80</code> dan <code>443</code> terbuka untuk publik
-                (firewall OS maupun provider VPS).
+                {t.rich("deploy.proxyWarning.ports", {
+                  code: (chunks) => <code>{chunks}</code>,
+                })}
               </li>
-              <li>
-                Sertifikat HTTPS (Let&apos;s Encrypt) baru diterbitkan saat
-                domain pertama kali diakses — tunggu semenit.
-              </li>
+              <li>{t("deploy.proxyWarning.cert")}</li>
             </ol>
             <Button
               variant="outline"
               size="sm"
               onClick={() => setProxyWarningDismissed(true)}
             >
-              Tutup
+              {tc("actions.close")}
             </Button>
           </AlertDescription>
         </Alert>
@@ -298,26 +304,23 @@ export function ApplicationDeployPanel({
       {!!app.currentImage && !hasAccess && (
         <Alert>
           <Globe />
-          <AlertTitle>Aplikasi belum punya alamat akses</AlertTitle>
+          <AlertTitle>{t("deploy.noAccess.title")}</AlertTitle>
           <AlertDescription className="space-y-2">
-            <p>
-              Tanpa port host atau domain, aplikasi ini hanya bisa dijangkau di
-              dalam network Docker.
-            </p>
+            <p>{t("deploy.noAccess.body")}</p>
             <div className="flex gap-2">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => onNavigateTab?.("settings")}
               >
-                Atur port host
+                {t("deploy.noAccess.setPort")}
               </Button>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => onNavigateTab?.("domains")}
               >
-                Tambah domain
+                {t("deploy.noAccess.addDomain")}
               </Button>
             </div>
           </AlertDescription>
@@ -327,7 +330,7 @@ export function ApplicationDeployPanel({
       {app.service && (
         <div className="rounded-md border text-xs">
           <div className="flex items-center gap-2 border-b px-3 py-1.5">
-            <span className="font-medium">Swarm service</span>
+            <span className="font-medium">{t("deploy.swarm.title")}</span>
             <Badge
               variant={
                 app.service.running >= app.service.desired
@@ -335,12 +338,15 @@ export function ApplicationDeployPanel({
                   : "destructive"
               }
             >
-              {app.service.running}/{app.service.desired} task
+              {t("deploy.swarm.tasks", {
+                running: app.service.running,
+                desired: app.service.desired,
+              })}
             </Badge>
             {app.service.updateState &&
               app.service.updateState !== "completed" && (
                 <span className="text-muted-foreground">
-                  update {app.service.updateState}
+                  {t("deploy.swarm.update", { state: app.service.updateState })}
                   {app.service.updateMessage &&
                     ` · ${app.service.updateMessage}`}
                 </span>
@@ -348,28 +354,30 @@ export function ApplicationDeployPanel({
           </div>
           <ul className="divide-y">
             {app.service.tasks
-              .filter((t) => t.desiredState === "running")
+              .filter((task) => task.desiredState === "running")
               .sort((a, b) => (a.slot ?? 0) - (b.slot ?? 0))
-              .map((t) => (
+              .map((task) => (
                 <li
-                  key={t.id}
+                  key={task.id}
                   className="flex flex-wrap items-center gap-2 px-3 py-1.5"
                 >
-                  <span className="font-mono">#{t.slot ?? "?"}</span>
-                  <span>{t.node ?? "?"}</span>
-                  {!t.local && (
-                    <span className="text-muted-foreground">(node lain)</span>
+                  <span className="font-mono">#{task.slot ?? "?"}</span>
+                  <span>{task.node ?? "?"}</span>
+                  {!task.local && (
+                    <span className="text-muted-foreground">
+                      {t("deploy.swarm.otherNode")}
+                    </span>
                   )}
                   <Badge
-                    variant={t.state === "running" ? "secondary" : "outline"}
+                    variant={task.state === "running" ? "secondary" : "outline"}
                   >
-                    {t.state}
+                    {task.state}
                   </Badge>
                   <span className="text-muted-foreground">
-                    {new Date(t.since).toLocaleTimeString("id-ID")}
+                    {formatTime(task.since, locale)}
                   </span>
-                  {t.error && (
-                    <span className="text-destructive">{t.error}</span>
+                  {task.error && (
+                    <span className="text-destructive">{task.error}</span>
                   )}
                 </li>
               ))}
@@ -389,12 +397,21 @@ export function ApplicationDeployPanel({
                   const d = r.data
                   setImageNote(
                     d.remoteDigest === null
-                      ? "Referensi memakai digest tetap — tidak ada yang berubah."
+                      ? t("deploy.image.pinned")
                       : d.baseline
-                        ? `Digest dicatat (${d.remoteDigest.slice(7, 19)}); belum ada pembanding.`
+                        ? t("deploy.image.baseline", {
+                            digest: d.remoteDigest.slice(7, 19),
+                          })
                         : d.changed
-                          ? `Image berubah (${d.remoteDigest.slice(7, 19)}) — ${d.deploymentId ? "deploy dimulai." : "deployment lain sedang berjalan."}`
-                          : `Sudah yang terbaru (${d.remoteDigest.slice(7, 19)}).`
+                          ? t(
+                              d.deploymentId
+                                ? "deploy.image.changedStarted"
+                                : "deploy.image.changedBusy",
+                              { digest: d.remoteDigest.slice(7, 19) }
+                            )
+                          : t("deploy.image.upToDate", {
+                              digest: d.remoteDigest.slice(7, 19),
+                            })
                   )
                   if (d.deploymentId) selectDeployment(d.deploymentId)
                 }
@@ -403,7 +420,7 @@ export function ApplicationDeployPanel({
             }
           >
             <RefreshCw data-icon="inline-start" />
-            Cek update image
+            {t("deploy.image.check")}
           </Button>
         )}
         <Button
@@ -416,7 +433,7 @@ export function ApplicationDeployPanel({
           }}
         >
           <Radio data-icon="inline-start" />
-          {following ? "Berhenti mengikuti log" : "Log container (live)"}
+          {following ? t("deploy.logs.stopFollow") : t("deploy.logs.follow")}
         </Button>
         {imageNote && !shownError && (
           <span className="text-xs text-muted-foreground">{imageNote}</span>
@@ -429,7 +446,7 @@ export function ApplicationDeployPanel({
             {shownError}
             {socketError && (
               <Button variant="link" size="sm" onClick={reconnect}>
-                sambung ulang
+                {t("deploy.reconnect")}
               </Button>
             )}
           </span>
@@ -438,12 +455,14 @@ export function ApplicationDeployPanel({
 
       {originMismatch && (
         <Alert variant="destructive">
-          <AlertTitle>Log realtime tidak tersedia lewat alamat ini</AlertTitle>
+          <AlertTitle>{t("deploy.origin.title")}</AlertTitle>
           <AlertDescription className="space-y-2">
             <p>
-              Panel ini punya domain kustom (<code>{webOrigin}</code>), dan log
-              realtime hanya menerima koneksi dari domain itu — bukan dari{" "}
-              <code>{browserOrigin}</code> yang sedang kamu pakai.
+              {t.rich("deploy.origin.body", {
+                code: (chunks) => <code>{chunks}</code>,
+                webOrigin,
+                browserOrigin: browserOrigin ?? "",
+              })}
             </p>
             <Button size="sm" asChild>
               <a
@@ -452,7 +471,7 @@ export function ApplicationDeployPanel({
                 }
               >
                 <ExternalLink data-icon="inline-start" />
-                Buka halaman ini di {webOrigin}
+                {t("deploy.origin.open", { origin: webOrigin })}
               </a>
             </Button>
           </AlertDescription>
@@ -462,17 +481,17 @@ export function ApplicationDeployPanel({
       {following && (
         <LogViewer
           text={containerLogs ?? ""}
-          label="Log container"
+          label={t("deploy.logs.containerLabel")}
           className="h-64"
         />
       )}
 
       <div className="grid gap-4 lg:grid-cols-[16rem_1fr]">
         <div className="space-y-1">
-          <h3 className="text-sm font-medium">Deployment</h3>
+          <h3 className="text-sm font-medium">{t("deploy.history.title")}</h3>
           {deployments.length === 0 && (
             <EmptyState icon={Rocket} compact>
-              Belum pernah deploy.
+              {t("deploy.history.empty")}
             </EmptyState>
           )}
           <ul className="divide-y rounded-md border">
@@ -497,7 +516,7 @@ export function ApplicationDeployPanel({
                         {d.kind === "config" && (
                           <span
                             className="ms-1 text-muted-foreground"
-                            title="Terapkan konfigurasi (tanpa build)"
+                            title={t("deploy.kind.configTitle")}
                           >
                             ⚙
                           </span>
@@ -505,7 +524,7 @@ export function ApplicationDeployPanel({
                         {d.kind === "auto-update" && (
                           <span
                             className="ms-1 text-muted-foreground"
-                            title="Update otomatis dari registry"
+                            title={t("deploy.kind.autoUpdateTitle")}
                           >
                             ⟳
                           </span>
@@ -513,7 +532,7 @@ export function ApplicationDeployPanel({
                         {d.trigger === "webhook" && (
                           <span
                             className="ms-1 inline-flex align-middle text-muted-foreground"
-                            title={triggerLabel(d)}
+                            title={triggerLabel(d, t)}
                           >
                             <Webhook className="size-3" />
                           </span>
@@ -521,15 +540,15 @@ export function ApplicationDeployPanel({
                       </span>
                       <span
                         className="block truncate text-muted-foreground"
-                        title={triggerLabel(d)}
+                        title={triggerLabel(d, t)}
                       >
-                        {new Date(d.createdAt).toLocaleString("id-ID", {
+                        {formatDateTime(d.createdAt, locale, {
                           dateStyle: "short",
                           timeStyle: "short",
                         })}
                         {d.commitSha && ` · ${d.commitSha.slice(0, 7)}`}
                         {totalDuration(d) !== null &&
-                          ` · ${formatDuration(totalDuration(d)!)}`}
+                          ` · ${formatDuration(totalDuration(d)!, locale, t)}`}
                       </span>
                     </span>
                     <Badge variant={STATUS_VARIANT[status as DeploymentStatus]}>
@@ -544,22 +563,16 @@ export function ApplicationDeployPanel({
         <div className="min-w-0 space-y-1">
           <div className="flex items-center justify-between gap-2">
             <h3 className="min-w-0 truncate text-sm font-medium">
-              Log deployment{" "}
+              {t("deploy.log.title")}{" "}
               {selected && (
                 <span className="font-normal text-muted-foreground">
                   ·{" "}
-                  {selected.kind === "rollback"
-                    ? "rollback"
-                    : selected.kind === "auto-update"
-                      ? "auto-update"
-                      : selected.kind === "config"
-                        ? "konfigurasi"
-                        : "build"}{" "}
+                  {t(`deploy.kind.${selected.kind}`)}{" "}
                   · {shownStatus}
                   {selected.imageRef && ` · ${selected.imageRef}`}
                   {" · "}
-                  <span title={triggerLabel(selected)}>
-                    {triggerLabel(selected)}
+                  <span title={triggerLabel(selected, t)}>
+                    {triggerLabel(selected, t)}
                   </span>
                 </span>
               )}
@@ -583,7 +596,7 @@ export function ApplicationDeployPanel({
                   }
                 >
                   <History data-icon="inline-start" />
-                  Rollback ke sini
+                  {t("deploy.rollbackHere")}
                 </Button>
               )}
           </div>
@@ -599,8 +612,8 @@ export function ApplicationDeployPanel({
           <LogViewer
             key={selectedId ?? "none"}
             text={logText}
-            label="Log deployment"
-            empty={selectedId ? "Memuat…" : "Pilih deployment."}
+            label={t("deploy.log.label")}
+            empty={selectedId ? tc("states.loading") : t("deploy.log.select")}
           />
         </div>
       </div>

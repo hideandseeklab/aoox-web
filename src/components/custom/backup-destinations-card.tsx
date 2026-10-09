@@ -1,6 +1,7 @@
 "use client"
 
 import { CloudUpload, Plus, RadioTower, Trash2 } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { useActionState, useState, useTransition } from "react"
 import { EmptyState } from "@/components/custom/empty-state"
 import { Button } from "@/components/ui/button"
@@ -45,6 +46,7 @@ export function BackupDestinationsCard({
 }: {
   destinations: BackupDestination[]
 }) {
+  const t = useTranslations("settings")
   const [pending, start] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const [tests, setTests] = useState<
@@ -55,7 +57,7 @@ export function BackupDestinationsCard({
     start(async () => {
       setError(null)
       const r = await testBackupDestinationAction(id)
-      if (r.ok) setTests((t) => ({ ...t, [id]: r.data }))
+      if (r.ok) setTests((prev) => ({ ...prev, [id]: r.data }))
       else setError(r.error)
     })
 
@@ -71,10 +73,9 @@ export function BackupDestinationsCard({
       <CardHeader>
         <div className="flex items-start justify-between gap-4">
           <div>
-            <CardTitle>Tujuan backup (S3)</CardTitle>
+            <CardTitle>{t("backupDestinations.title")}</CardTitle>
             <CardDescription>
-              Bucket S3-compatible (AWS, MinIO, R2, Backblaze, …) tempat salinan
-              backup database dikirim. Pilih per database di tab Backup-nya.
+              {t("backupDestinations.description")}
             </CardDescription>
           </div>
           <AddDestinationDialog />
@@ -83,7 +84,7 @@ export function BackupDestinationsCard({
       <CardContent className="space-y-3 text-xs">
         {destinations.length === 0 ? (
           <EmptyState icon={CloudUpload} compact>
-            Belum ada tujuan — backup hanya tersimpan di volume server ini.
+            {t("backupDestinations.empty")}
           </EmptyState>
         ) : (
           <ul className="divide-y rounded-md border">
@@ -99,13 +100,15 @@ export function BackupDestinationsCard({
                       {d.prefix ? `/${d.prefix}` : ""} ·{" "}
                       {d.endpoint
                         ? d.endpoint.replace(/^https?:\/\//, "")
-                        : `AWS ${d.region || "(region?)"}`}
+                        : `AWS ${d.region || t("backupDestinations.regionUnknown")}`}
                     </span>
                     <span className="ms-auto" />
                     <Button
                       variant="ghost"
                       size="icon-sm"
-                      aria-label={`Tes koneksi ${d.name}`}
+                      aria-label={t("backupDestinations.testAria", {
+                        name: d.name,
+                      })}
                       disabled={pending}
                       onClick={() => test(d.id)}
                     >
@@ -114,7 +117,9 @@ export function BackupDestinationsCard({
                     <Button
                       variant="ghost"
                       size="icon-sm"
-                      aria-label={`Hapus ${d.name}`}
+                      aria-label={t("backupDestinations.deleteAria", {
+                        name: d.name,
+                      })}
                       disabled={pending}
                       onClick={() => remove(d.id)}
                     >
@@ -146,6 +151,8 @@ export function BackupDestinationsCard({
 const initialState: BackupDestinationFormState = {}
 
 function AddDestinationDialog() {
+  const t = useTranslations("settings")
+  const c = useTranslations("common")
   const [open, setOpen] = useState(false)
   const [state, action, pending] = useActionState(
     async (prev: BackupDestinationFormState, formData: FormData) => {
@@ -167,21 +174,20 @@ function AddDestinationDialog() {
       <DialogTrigger asChild>
         <Button size="sm">
           <Plus data-icon="inline-start" />
-          Tambah
+          {c("actions.add")}
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Tujuan backup baru</DialogTitle>
+          <DialogTitle>{t("backupDestinations.dialogTitle")}</DialogTitle>
           <DialogDescription>
-            Kredensial disimpan terenkripsi dan hanya dipakai container
-            pengunggah (rclone). Bucket harus sudah ada.
+            {t("backupDestinations.dialogDescription")}
           </DialogDescription>
         </DialogHeader>
         <form action={action} noValidate>
           <FieldGroup>
             <Field data-invalid={invalid("name")}>
-              <FieldLabel htmlFor="bd-name">Nama</FieldLabel>
+              <FieldLabel htmlFor="bd-name">{c("labels.name")}</FieldLabel>
               <Input
                 id="bd-name"
                 name="name"
@@ -195,7 +201,7 @@ function AddDestinationDialog() {
               <Input
                 id="bd-endpoint"
                 name="endpoint"
-                placeholder="https://minio.example.com (kosongkan untuk AWS S3)"
+                placeholder={t("backupDestinations.endpointPlaceholder")}
                 defaultValue={state.values?.endpoint}
               />
               <FieldError errors={errs("endpoint")} />
@@ -216,7 +222,7 @@ function AddDestinationDialog() {
                 <Input
                   id="bd-region"
                   name="region"
-                  placeholder="us-east-1 (wajib untuk AWS)"
+                  placeholder={t("backupDestinations.regionPlaceholder")}
                   defaultValue={state.values?.region}
                 />
                 <FieldError errors={errs("region")} />
@@ -227,13 +233,15 @@ function AddDestinationDialog() {
               <Input
                 id="bd-prefix"
                 name="prefix"
-                placeholder="aoox/prod (opsional)"
+                placeholder={t("backupDestinations.prefixPlaceholder")}
                 defaultValue={state.values?.prefix}
               />
               <FieldError errors={errs("prefix")} />
             </Field>
             <Field data-invalid={invalid("accessKeyId")}>
-              <FieldLabel htmlFor="bd-ak">Access key ID</FieldLabel>
+              <FieldLabel htmlFor="bd-ak">
+                {t("backupDestinations.accessKeyId")}
+              </FieldLabel>
               <Input
                 id="bd-ak"
                 name="accessKeyId"
@@ -244,7 +252,9 @@ function AddDestinationDialog() {
               <FieldError errors={errs("accessKeyId")} />
             </Field>
             <Field data-invalid={invalid("secretAccessKey")}>
-              <FieldLabel htmlFor="bd-sk">Secret access key</FieldLabel>
+              <FieldLabel htmlFor="bd-sk">
+                {t("backupDestinations.secretAccessKey")}
+              </FieldLabel>
               <Input
                 id="bd-sk"
                 name="secretAccessKey"
@@ -253,15 +263,16 @@ function AddDestinationDialog() {
                 required
               />
               <FieldDescription>
-                Tidak bisa dilihat lagi setelah disimpan.
+                {t("backupDestinations.secretHelp")}
               </FieldDescription>
               <FieldError errors={errs("secretAccessKey")} />
             </Field>
             <Field>
               <label className="flex items-center gap-2 text-xs">
                 <Switch name="forcePathStyle" defaultChecked />
-                Path-style (<code>host/bucket</code>) — wajib untuk MinIO, aman
-                untuk yang lain
+                {t.rich("backupDestinations.pathStyle", {
+                  code: (chunks) => <code>{chunks}</code>,
+                })}
               </label>
             </Field>
             {state.error && (
@@ -271,7 +282,7 @@ function AddDestinationDialog() {
             )}
             <div className="flex justify-end">
               <Button type="submit" disabled={pending}>
-                {pending ? "Menyimpan…" : "Simpan"}
+                {pending ? c("states.saving") : c("actions.save")}
               </Button>
             </div>
           </FieldGroup>

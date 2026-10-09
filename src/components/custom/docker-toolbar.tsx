@@ -1,5 +1,6 @@
 "use client"
 
+import { useTranslations } from "next-intl"
 import { usePathname } from "next/navigation"
 import { useState } from "react"
 import { DockerQueryContext, DockerSearch } from "@/components/custom/docker-ui"
@@ -15,20 +16,6 @@ import { Tabs, TabsTrigger } from "@/components/ui/tabs"
 import { DOCKER_TABS, type DockerTab } from "@/features/docker/docker.entity"
 import type { Server } from "@/features/server/server.entity"
 import { useRouter } from "@/lib/use-router"
-
-const TAB_LABEL: Record<DockerTab, string> = {
-  containers: "Container",
-  images: "Image",
-  volumes: "Volume",
-  networks: "Network",
-}
-
-const SEARCH_PLACEHOLDER: Record<DockerTab, string> = {
-  containers: "Cari nama, image, atau id",
-  images: "Cari tag, id, atau container",
-  volumes: "Cari nama volume atau container",
-  networks: "Cari nama network atau container",
-}
 
 const HOST = "host"
 
@@ -51,6 +38,7 @@ export function DockerToolbar({
   tab: DockerTab
   children: React.ReactNode
 }) {
+  const t = useTranslations("docker.toolbar")
   const router = useRouter()
   const pathname = usePathname()
   // Remember which tab the text was typed on, so switching tab starts empty.
@@ -71,11 +59,11 @@ export function DockerToolbar({
           value={serverId ?? HOST}
           onValueChange={(v) => go(v === HOST ? null : v, tab)}
         >
-          <SelectTrigger className="w-44" aria-label="Pilih server Docker">
+          <SelectTrigger className="w-44" aria-label={t("pickServer")}>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value={HOST}>Host (mesin aoox)</SelectItem>
+            <SelectItem value={HOST}>{t("host")}</SelectItem>
             {servers.map((s) => (
               <SelectItem key={s.id} value={s.id}>
                 {s.name} · {s.host}
@@ -89,9 +77,9 @@ export function DockerToolbar({
           className="max-w-full"
         >
           <ScrollableTabsList className="group-data-horizontal/tabs:h-7">
-            {DOCKER_TABS.map((t) => (
-              <TabsTrigger key={t} value={t}>
-                {TAB_LABEL[t]}
+            {DOCKER_TABS.map((name) => (
+              <TabsTrigger key={name} value={name}>
+                {t(`tabs.${name}`)}
               </TabsTrigger>
             ))}
           </ScrollableTabsList>
@@ -100,7 +88,7 @@ export function DockerToolbar({
           <DockerSearch
             value={query}
             onChange={(text) => setTyped({ tab, text })}
-            placeholder={SEARCH_PLACEHOLDER[tab]}
+            placeholder={t(`search.${tab}`)}
           />
         </div>
       </div>

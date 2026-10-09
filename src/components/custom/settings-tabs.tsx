@@ -1,5 +1,6 @@
 "use client"
 
+import { useTranslations } from "next-intl"
 import { usePathname, useSearchParams } from "next/navigation"
 import { useRouter } from "@/lib/use-router"
 import { Tabs, TabsTrigger } from "@/components/ui/tabs"
@@ -20,6 +21,7 @@ export function SettingsTabs({
   tabs: { value: SettingsTab; label: string }[]
   children: React.ReactNode
 }) {
+  const t = useTranslations("settings")
   const router = useRouter()
   const pathname = usePathname()
   const params = useSearchParams()
@@ -28,19 +30,19 @@ export function SettingsTabs({
     ? (raw as SettingsTab)
     : "account"
 
-  const label = tabs.find((t) => t.value === value)?.label ?? value
+  const label = tabs.find((tab) => tab.value === value)?.label ?? value
   return (
     <Tabs
       value={value}
       onValueChange={(v) => router.replace(`${pathname}?tab=${v}`)}
     >
       <SetBreadcrumb
-        items={[{ label: "Settings", href: "/settings" }, { label }]}
+        items={[{ label: t("title"), href: "/settings" }, { label }]}
       />
       <ScrollableTabsList>
-        {tabs.map((t) => (
-          <TabsTrigger key={t.value} value={t.value}>
-            {t.label}
+        {tabs.map((tab) => (
+          <TabsTrigger key={tab.value} value={tab.value}>
+            {tab.label}
           </TabsTrigger>
         ))}
       </ScrollableTabsList>

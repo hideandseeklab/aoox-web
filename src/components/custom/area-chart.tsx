@@ -7,6 +7,8 @@ import {
   useState,
   useSyncExternalStore,
 } from "react"
+import { useLocale } from "next-intl"
+import { formatTime } from "@/i18n/format"
 import { cn } from "@/lib/utils"
 
 export interface ChartPoint {
@@ -95,6 +97,7 @@ export function AreaChart({
   const [width, setWidth] = useState(0)
   const [hover, setHover] = useState<number | null>(null)
   const gradId = useId()
+  const locale = useLocale()
   const mounted = useSyncExternalStore(
     () => () => undefined,
     () => true,
@@ -147,7 +150,7 @@ export function AreaChart({
     setHover(Math.min(n - 1, Math.max(0, Math.round(rel))))
   }
 
-  const time = (iso: string) => (mounted ? new Date(iso).toLocaleTimeString() : "")
+  const time = (iso: string) => (mounted ? formatTime(iso, locale) : "")
 
   return (
     <div className={cn("space-y-0.5", className)}>

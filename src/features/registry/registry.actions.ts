@@ -1,5 +1,6 @@
 "use server"
 
+import { getTranslations } from "next-intl/server"
 import { revalidatePath } from "next/cache"
 import { requireToken } from "@/features/auth/auth.session"
 import { api, ApiError } from "@/lib/api"
@@ -17,12 +18,10 @@ import { externalRegistrySchema } from "./registry.schema"
 export type ActionResult<T = undefined> =
   { ok: true; data: T } | { ok: false; error: string }
 
-function fail(err: unknown): { ok: false; error: string } {
-  return {
-    ok: false,
-    error:
-      err instanceof ApiError ? err.message : "Tidak dapat terhubung ke server",
-  }
+async function fail(err: unknown): Promise<{ ok: false; error: string }> {
+  if (err instanceof ApiError) return { ok: false, error: err.message }
+  const t = await getTranslations("registry")
+  return { ok: false, error: t("errors.serverUnreachable") }
 }
 
 export async function provisionSelfHostedAction(
@@ -37,7 +36,7 @@ export async function provisionSelfHostedAction(
     revalidatePath("/registry")
     return { ok: true, data }
   } catch (err) {
-    return fail(err)
+    return await fail(err)
   }
 }
 
@@ -52,7 +51,7 @@ export async function removeSelfHostedAction(
     revalidatePath("/registry")
     return { ok: true, data: undefined }
   } catch (err) {
-    return fail(err)
+    return await fail(err)
   }
 }
 
@@ -69,7 +68,7 @@ export async function setRegistryDomainAction(
     revalidatePath("/registry")
     return { ok: true, data }
   } catch (err) {
-    return fail(err)
+    return await fail(err)
   }
 }
 
@@ -84,7 +83,7 @@ export async function garbageCollectAction(
     revalidatePath("/registry")
     return { ok: true, data }
   } catch (err) {
-    return fail(err)
+    return await fail(err)
   }
 }
 
@@ -101,7 +100,7 @@ export async function deleteTagAction(
     revalidatePath("/registry")
     return { ok: true, data: undefined }
   } catch (err) {
-    return fail(err)
+    return await fail(err)
   }
 }
 
@@ -134,7 +133,7 @@ export async function deleteRepositoryAction(
         ?.usage
       return { ok: false, error: err.message, usage }
     }
-    return fail(err)
+    return await fail(err)
   }
 }
 
@@ -149,7 +148,7 @@ export async function fetchRepositoryUsageAction(
     )
     return { ok: true, data }
   } catch (err) {
-    return fail(err)
+    return await fail(err)
   }
 }
 
@@ -163,7 +162,7 @@ export async function fetchRepositoriesAction(
     )
     return { ok: true, data }
   } catch (err) {
-    return fail(err)
+    return await fail(err)
   }
 }
 
@@ -178,7 +177,7 @@ export async function fetchTagsAction(
     )
     return { ok: true, data }
   } catch (err) {
-    return fail(err)
+    return await fail(err)
   }
 }
 
@@ -192,7 +191,7 @@ export async function testRegistryAction(
     )
     return { ok: true, data }
   } catch (err) {
-    return fail(err)
+    return await fail(err)
   }
 }
 
@@ -207,7 +206,7 @@ export async function deleteRegistryAction(
     revalidatePath("/registry")
     return { ok: true, data: undefined }
   } catch (err) {
-    return fail(err)
+    return await fail(err)
   }
 }
 
@@ -230,7 +229,8 @@ export async function createExternalRegistryAction(
     username: String(formData.get("username") ?? ""),
     imagePrefix: String(formData.get("imagePrefix") ?? ""),
   }
-  const parsed = externalRegistrySchema.safeParse({
+  const t = await getTranslations("registry")
+  const parsed = externalRegistrySchema((key) => t(key)).safeParse({
     ...values,
     password: String(formData.get("password") ?? ""),
   })
@@ -249,7 +249,7 @@ export async function createExternalRegistryAction(
       token: await requireToken(),
     })
   } catch (err) {
-    return { ...fail(err), values }
+    return { ...(await fail(err)), values }
   }
   revalidatePath("/registry")
   return { created: true }

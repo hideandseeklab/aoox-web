@@ -15,9 +15,3 @@ export interface ProjectMembers {
   myRole: ProjectRole
   members: ProjectMember[]
 }
-
-export const PROJECT_ROLE_LABEL: Record<ProjectRole, string> = {
-  admin: "Admin",
-  developer: "Developer",
-  viewer: "Viewer",
-}

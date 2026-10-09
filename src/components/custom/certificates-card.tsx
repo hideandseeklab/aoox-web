@@ -40,21 +40,24 @@ import {
   EXPIRY_CLASS,
   expiryLabel,
   expiryState,
-  formatDate,
 } from "@/features/certificate/certificate.format"
+import { useLocale, useTranslations } from "next-intl"
+import { formatDate } from "@/i18n/format"
 
 const CERT_RE = /-----BEGIN CERTIFICATE-----[\s\S]+-----END CERTIFICATE-----/
 const KEY_RE =
   /-----BEGIN (?:RSA |EC |ENCRYPTED )?PRIVATE KEY-----[\s\S]+-----END (?:RSA |EC |ENCRYPTED )?PRIVATE KEY-----/
 
 /** Quick client-side shape check; the API does the real validation (key match, expiry, ...). */
-function checkPem(certificate: string, privateKey: string): string | null {
-  if (!CERT_RE.test(certificate))
-    return "Sertifikat harus berupa blok PEM yang diawali -----BEGIN CERTIFICATE-----."
+function checkPem(
+  certificate: string,
+  privateKey: string,
+  t: (key: string) => string
+): string | null {
+  if (!CERT_RE.test(certificate)) return t("certificates.pem.certificate")
   if (/ENCRYPTED PRIVATE KEY/.test(privateKey))
-    return "Kunci privat terenkripsi (dilindungi passphrase) tidak didukung. Lepas passphrase-nya dulu."
-  if (!KEY_RE.test(privateKey))
-    return "Kunci privat harus berupa blok PEM yang diawali -----BEGIN PRIVATE KEY----- (atau RSA/EC PRIVATE KEY)."
+    return t("certificates.pem.encryptedKey")
+  if (!KEY_RE.test(privateKey)) return t("certificates.pem.key")
   return null
 }
 
@@ -67,24 +70,22 @@ export function CertificatesCard({
 }: {
   certificates: Certificate[]
 }) {
+  const t = useTranslations("settings")
+  const tc = useTranslations("common")
+  const locale = useLocale()
   return (
     <Card>
       <CardHeader>
         <div className="flex items-start justify-between gap-4">
           <div>
-            <CardTitle>Sertifikat SSL</CardTitle>
-            <CardDescription>
-              Sertifikat sendiri (CA perusahaan, wildcard beli, Cloudflare
-              Origin CA) untuk domain aplikasi, sebagai ganti Let&apos;s
-              Encrypt. Kunci privat disimpan terenkripsi dan tidak bisa dilihat
-              lagi.
-            </CardDescription>
+            <CardTitle>{t("certificates.title")}</CardTitle>
+            <CardDescription>{t("certificates.description")}</CardDescription>
           </div>
           <CertificateDialog
             trigger={
               <Button size="sm">
                 <Plus data-icon="inline-start" />
-                Unggah
+                {t("certificates.upload")}
               </Button>
             }
           />
@@ -93,8 +94,7 @@ export function CertificatesCard({
       <CardContent>
         {certificates.length === 0 ? (
           <EmptyState icon={ShieldCheck} compact>
-            Belum ada sertifikat — domain HTTPS memakai Let&apos;s Encrypt
-            otomatis.
+            {t("certificates.empty")}
           </EmptyState>
         ) : (
           <ul className="divide-y rounded-md border">
@@ -110,9 +110,11 @@ export function CertificatesCard({
                     <Badge
                       variant="outline"
                       className={EXPIRY_CLASS[state]}
-                      title={`Berlaku sampai ${formatDate(c.notAfter)}`}
+                      title={t("certificates.validUntil", {
+                        date: formatDate(c.notAfter, locale),
+                      })}
                     >
-                      {expiryLabel(c.notAfter)}
+                      {expiryLabel(c.notAfter, t)}
                     </Badge>
                     <span className="ms-auto" />
                     <CertificateDialog
@@ -121,8 +123,10 @@ export function CertificatesCard({
                         <Button
                           variant="ghost"
                           size="icon-sm"
-                          aria-label={`Perbarui ${c.name}`}
-                          title="Perbarui (ganti isi sertifikat)"
+                          aria-label={t("certificates.updateAria", {
+                            name: c.name,
+                          })}
+                          title={t("certificates.updateTitle")}
                         >
                           <RefreshCw />
                         </Button>
@@ -133,18 +137,20 @@ export function CertificatesCard({
                         <Button
                           variant="ghost"
                           size="icon-sm"
-                          aria-label={`Hapus ${c.name}`}
+                          aria-label={t("certificates.deleteAria", {
+                            name: c.name,
+                          })}
                         >
                           <Trash2 />
                         </Button>
                       }
-                      title={`Hapus sertifikat ${c.name}?`}
+                      title={t("certificates.deleteTitle", { name: c.name })}
                       description={
                         c.usedBy > 0
-                          ? `Sertifikat ini masih dipakai ${c.usedBy} domain, jadi tidak bisa dihapus. Pindahkan domain-nya ke sertifikat lain atau Let's Encrypt dulu.`
-                          : "Sertifikat dan kunci privatnya dihapus permanen dari aoox. Ini tidak bisa dibatalkan."
+                          ? t("certificates.deleteInUse", { count: c.usedBy })
+                          : t("certificates.deleteDescription")
                       }
-                      confirmLabel="Hapus"
+                      confirmLabel={tc("actions.delete")}
                       onConfirm={() => deleteCertificateAction(c.id)}
                     />
                   </div>
@@ -152,11 +158,14 @@ export function CertificatesCard({
                     {c.domains.join(", ") || c.commonName || "—"}
                   </p>
                   <p className="truncate text-muted-foreground">
-                    {c.issuer ?? "Penerbit tidak diketahui"} · sampai{" "}
-                    {formatDate(c.notAfter)} ·{" "}
-                    {c.usedBy > 0
-                      ? `dipakai ${c.usedBy} domain`
-                      : "belum dipakai"}
+                    {t("certificates.meta", {
+                      issuer: c.issuer ?? t("certificates.unknownIssuer"),
+                      date: formatDate(c.notAfter, locale),
+                      usage:
+                        c.usedBy > 0
+                          ? t("certificates.usedBy", { count: c.usedBy })
+                          : t("certificates.unused"),
+                    })}
                   </p>
                 </li>
               )
@@ -176,6 +185,8 @@ function CertificateDialog({
   trigger: React.ReactNode
   existing?: Certificate
 }) {
+  const t = useTranslations("settings")
+  const c = useTranslations("common")
   const [open, setOpen] = useState(false)
   const [name, setName] = useState("")
   const [certificate, setCertificate] = useState("")
@@ -198,14 +209,14 @@ function CertificateDialog({
     set: (text: string) => void
   ) => {
     if (!file) return
-    if (file.size > 100_000) return setError("Berkas terlalu besar.")
+    if (file.size > 100_000) return setError(t("certificates.fileTooLarge"))
     set(await file.text())
   }
 
   const submit = () =>
     start(async () => {
       setError(null)
-      const problem = checkPem(certificate, privateKey)
+      const problem = checkPem(certificate, privateKey, t)
       if (problem) return setError(problem)
       const r = existing
         ? await replaceCertificateAction(existing.id, {
@@ -231,12 +242,14 @@ function CertificateDialog({
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>
-            {existing ? `Perbarui ${existing.name}` : "Unggah sertifikat SSL"}
+            {existing
+              ? t("certificates.dialogReplaceTitle", { name: existing.name })
+              : t("certificates.dialogUploadTitle")}
           </DialogTitle>
           <DialogDescription>
             {existing
-              ? "Ganti isi sertifikat dengan yang baru (mis. hasil perpanjangan). Nama tetap, dan semua domain yang memakainya harus tetap tercakup."
-              : "Tempel atau pilih berkas PEM. Sertifikat boleh berisi rantai (leaf lalu intermediate); kunci privat tidak boleh dilindungi passphrase."}
+              ? t("certificates.dialogReplaceDescription")
+              : t("certificates.dialogUploadDescription")}
           </DialogDescription>
         </DialogHeader>
         <form
@@ -249,19 +262,21 @@ function CertificateDialog({
           <FieldGroup>
             {!existing && (
               <Field>
-                <FieldLabel htmlFor="cert-name">Nama</FieldLabel>
+                <FieldLabel htmlFor="cert-name">{c("labels.name")}</FieldLabel>
                 <Input
                   id="cert-name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="wildcard-example-com"
+                  placeholder={t("certificates.namePlaceholder")}
                   autoComplete="off"
                 />
               </Field>
             )}
             <Field>
               <div className="flex items-center justify-between gap-2">
-                <FieldLabel htmlFor="cert-pem">Sertifikat (PEM)</FieldLabel>
+                <FieldLabel htmlFor="cert-pem">
+                  {t("certificates.certificateLabel")}
+                </FieldLabel>
                 <Button
                   type="button"
                   variant="outline"
@@ -269,7 +284,7 @@ function CertificateDialog({
                   onClick={() => certFile.current?.click()}
                 >
                   <FileUp data-icon="inline-start" />
-                  Pilih berkas
+                  {t("certificates.chooseFile")}
                 </Button>
                 <input
                   ref={certFile}
@@ -294,7 +309,9 @@ function CertificateDialog({
             </Field>
             <Field>
               <div className="flex items-center justify-between gap-2">
-                <FieldLabel htmlFor="cert-key">Kunci privat (PEM)</FieldLabel>
+                <FieldLabel htmlFor="cert-key">
+                  {t("certificates.privateKeyLabel")}
+                </FieldLabel>
                 <Button
                   type="button"
                   variant="outline"
@@ -302,7 +319,7 @@ function CertificateDialog({
                   onClick={() => keyFile.current?.click()}
                 >
                   <FileUp data-icon="inline-start" />
-                  Pilih berkas
+                  {t("certificates.chooseFile")}
                 </Button>
                 <input
                   ref={keyFile}
@@ -325,9 +342,7 @@ function CertificateDialog({
                 placeholder="-----BEGIN PRIVATE KEY-----"
                 className="font-mono"
               />
-              <FieldDescription>
-                Tidak bisa dilihat lagi setelah disimpan.
-              </FieldDescription>
+              <FieldDescription>{t("certificates.keyHelp")}</FieldDescription>
             </Field>
             {error && (
               <p className="text-xs text-destructive" role="alert">
@@ -345,7 +360,7 @@ function CertificateDialog({
                 reset()
               }}
             >
-              Batal
+              {c("actions.cancel")}
             </Button>
             <Button
               type="submit"
@@ -356,7 +371,11 @@ function CertificateDialog({
                 (!existing && !name.trim())
               }
             >
-              {pending ? "Menyimpan…" : existing ? "Perbarui" : "Unggah"}
+              {pending
+                ? c("states.saving")
+                : existing
+                  ? t("certificates.update")
+                  : t("certificates.upload")}
             </Button>
           </DialogFooter>
         </form>

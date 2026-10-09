@@ -20,35 +20,35 @@ import {
   type RecentActivity,
 } from "@/features/audit-log/audit-log.actions"
 import type { AuditLog } from "@/features/audit-log/audit-log.entity"
-import {
-  describeAction,
-  VIA_LABEL,
-} from "@/features/audit-log/audit-log.format"
+import { describeAction } from "@/features/audit-log/audit-log.format"
+import { formatDateTime } from "@/i18n/format"
+import { useLocale, useTranslations } from "next-intl"
 
 const POLL_MS = 30_000
+const VIA_KEYS = { session: 1, token: 1, webhook: 1, anonymous: 1 } as const
 
 function statusBadge(status: number) {
   if (status >= 500)
     return {
-      label: "Gagal",
+      key: "failed" as const,
       className:
         "border-red-500/40 bg-red-500/10 text-red-700 dark:text-red-400",
     }
   if (status >= 400)
     return {
-      label: "Ditolak",
+      key: "denied" as const,
       className:
         "border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-400",
     }
   return {
-    label: "Sukses",
+    key: "success" as const,
     className:
       "border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400",
   }
 }
 
-function formatTime(iso: string) {
-  return new Date(iso).toLocaleString("id-ID", {
+function formatTime(iso: string, locale: string) {
+  return formatDateTime(iso, locale, {
     day: "numeric",
     month: "short",
     hour: "2-digit",
@@ -62,6 +62,9 @@ function formatTime(iso: string) {
  * bodies and params are never shown here; the full Audit log page has them.
  */
 export function RecentActivityCard({ initial }: { initial: RecentActivity }) {
+  const locale = useLocale()
+  const t = useTranslations("dashboard.activity")
+  const ts = useTranslations("settings")
   const [data, setData] = useState(initial)
   const visible = useSyncExternalStore(
     (cb) => {
@@ -87,16 +90,18 @@ export function RecentActivityCard({ initial }: { initial: RecentActivity }) {
     }
   }, [visible, data.ok])
 
+  const via = (v: string) =>
+    v in VIA_KEYS ? t(`via.${v as keyof typeof VIA_KEYS}`) : v
   const rows: AuditLog[] = data.ok ? data.rows : []
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Aktivitas terakhir</CardTitle>
+        <CardTitle>{t("title")}</CardTitle>
         <CardAction>
           <Button asChild variant="ghost" size="sm">
             <Link href="/settings/audit-log">
-              Lihat semua
+              {t("viewAll")}
               <LinkArrow />
             </Link>
           </Button>
@@ -109,7 +114,7 @@ export function RecentActivityCard({ initial }: { initial: RecentActivity }) {
           </p>
         ) : rows.length === 0 ? (
           <EmptyState icon={Activity} compact>
-            Belum ada aktivitas.
+            {t("empty")}
           </EmptyState>
         ) : (
           <ActivityList
@@ -117,17 +122,17 @@ export function RecentActivityCard({ initial }: { initial: RecentActivity }) {
               const st = statusBadge(r.status)
               return {
                 id: r.id,
-                time: formatTime(r.createdAt),
-                title: describeAction(r.action),
+                time: formatTime(r.createdAt, locale),
+                title: describeAction(r.action, ts),
                 titleHint: r.action,
-                detail: `${r.actorEmail ?? "—"} · ${VIA_LABEL[r.via] ?? r.via}`,
+                detail: `${r.actorEmail ?? "—"} · ${via(r.via)}`,
                 trailing: (
                   <Badge
                     variant="outline"
                     className={st.className}
                     title={String(r.status)}
                   >
-                    {st.label}
+                    {t(`status.${st.key}`)}
                   </Badge>
                 ),
               }

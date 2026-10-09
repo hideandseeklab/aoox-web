@@ -1,6 +1,7 @@
 "use client"
 
 import { Play, Trash2 } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { useState, useTransition } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -25,6 +26,7 @@ export function ProxyCard({
   status: ProxyStatus
   canManage: boolean
 }) {
+  const t = useTranslations("infra.proxyCard")
   const [pending, start] = useTransition()
   const [error, setError] = useState<string | null>(null)
 
@@ -32,7 +34,7 @@ export function ProxyCard({
     start(async () => {
       setError(null)
       const r = await fn()
-      if (!r.ok) setError(r.error ?? "Gagal")
+      if (!r.ok) setError(r.error ?? t("failed"))
     })
 
   return (
@@ -40,17 +42,19 @@ export function ProxyCard({
       <CardHeader>
         <div className="flex items-start justify-between gap-4">
           <div>
-            <CardTitle>Reverse proxy (Traefik)</CardTitle>
+            <CardTitle>{t("title")}</CardTitle>
             <CardDescription>
-              Mengarahkan domain ke container aplikasi lewat label Docker. Port{" "}
-              <code>{status.httpPort}</code> (HTTP) dan{" "}
-              <code>{status.httpsPort}</code> (HTTPS).
+              {t.rich("description", {
+                httpPort: status.httpPort,
+                httpsPort: status.httpsPort,
+                code: (c) => <code>{c}</code>,
+              })}
             </CardDescription>
           </div>
           {!status.installed ? (
-            <Badge variant="secondary">Belum ada</Badge>
+            <Badge variant="secondary">{t("notInstalled")}</Badge>
           ) : status.running ? (
-            <Badge>Running</Badge>
+            <Badge>{t("running")}</Badge>
           ) : (
             <Badge variant="destructive">{status.state}</Badge>
           )}
@@ -58,16 +62,16 @@ export function ProxyCard({
       </CardHeader>
       <CardContent className="space-y-2 text-xs">
         <p className="text-muted-foreground">
-          Sertifikat HTTPS otomatis (Let&apos;s Encrypt):{" "}
+          {t("acmeLabel")}{" "}
           {status.acmeEmail ? (
             <span className="text-foreground">
-              aktif untuk <code>{status.acmeEmail}</code>
+              {t.rich("acmeOn", {
+                email: status.acmeEmail,
+                code: (c) => <code>{c}</code>,
+              })}
             </span>
           ) : (
-            <span>
-              nonaktif — set <code>PROXY_ACME_EMAIL</code> di API lalu aktifkan
-              ulang.
-            </span>
+            <span>{t.rich("acmeOff", { code: (c) => <code>{c}</code> })}</span>
           )}
         </p>
         {error && (
@@ -84,7 +88,7 @@ export function ProxyCard({
               onClick={() => run(provisionProxyAction)}
             >
               <Play data-icon="inline-start" />
-              {pending ? "Menyiapkan…" : "Aktifkan proxy"}
+              {pending ? t("provisioning") : t("provision")}
             </Button>
           ) : (
             <Button
@@ -94,7 +98,7 @@ export function ProxyCard({
               onClick={() => run(() => removeProxyAction(false))}
             >
               <Trash2 data-icon="inline-start" />
-              Hapus proxy
+              {t("remove")}
             </Button>
           )}
         </CardFooter>

@@ -1,5 +1,6 @@
 "use client"
 
+import { useTranslations } from "next-intl"
 import { useActionState } from "react"
 import { Button } from "@/components/ui/button"
 import {
@@ -32,6 +33,8 @@ export function ProjectForm({
   submitLabel,
   showEnv,
 }: ProjectFormProps) {
+  const t = useTranslations("projects")
+  const tc = useTranslations("common")
   const [state, formAction, pending] = useActionState(action, {
     values: defaultValues,
   })
@@ -41,11 +44,11 @@ export function ProjectForm({
     <form action={formAction} noValidate>
       <FieldGroup>
         <Field data-invalid={!!state.fieldErrors?.name || undefined}>
-          <FieldLabel htmlFor="name">Nama</FieldLabel>
+          <FieldLabel htmlFor="name">{tc("labels.name")}</FieldLabel>
           <Input
             id="name"
             name="name"
-            placeholder="my-app"
+            placeholder={t("form.namePlaceholder")}
             defaultValue={values?.name ?? ""}
             aria-invalid={!!state.fieldErrors?.name || undefined}
             autoFocus
@@ -57,12 +60,12 @@ export function ProjectForm({
         </Field>
 
         <Field data-invalid={!!state.fieldErrors?.description || undefined}>
-          <FieldLabel htmlFor="description">Deskripsi</FieldLabel>
+          <FieldLabel htmlFor="description">{tc("labels.description")}</FieldLabel>
           <Textarea
             id="description"
             name="description"
             rows={3}
-            placeholder="Opsional"
+            placeholder={tc("states.optional")}
             defaultValue={values?.description ?? ""}
             aria-invalid={!!state.fieldErrors?.description || undefined}
           />
@@ -75,12 +78,13 @@ export function ProjectForm({
 
         {showEnv && (
           <Field data-invalid={!!state.fieldErrors?.env || undefined}>
-            <FieldLabel>Environment bersama</FieldLabel>
+            <FieldLabel>{t("form.envLabel")}</FieldLabel>
             <EnvEditor name="env" defaultValue={values?.env ?? ""} />
             <FieldDescription>
-              Diwarisi semua aplikasi di project ini (env aplikasi menang bila
-              key sama). Aplikasi bisa merujuknya sebagai{" "}
-              <code>{"${{project.KEY}}"}</code>. Berlaku pada deploy berikutnya.
+              {t.rich("form.envHint", {
+                ref: "${{project.KEY}}",
+                code: (chunks) => <code>{chunks}</code>,
+              })}
             </FieldDescription>
             <FieldError
               errors={state.fieldErrors?.env?.map((message) => ({ message }))}
@@ -96,7 +100,7 @@ export function ProjectForm({
 
         <div className="flex justify-end">
           <Button type="submit" disabled={pending}>
-            {pending ? "Menyimpan…" : submitLabel}
+            {pending ? tc("states.saving") : submitLabel}
           </Button>
         </div>
       </FieldGroup>

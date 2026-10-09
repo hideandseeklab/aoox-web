@@ -27,6 +27,8 @@ import {
   pingInstanceUpdateAction,
 } from "@/features/instance-update/instance-update.actions"
 import type { InstanceUpdateStatus } from "@/features/instance-update/instance-update.entity"
+import { formatDateTime } from "@/i18n/format"
+import { useLocale, useTranslations } from "next-intl"
 
 // Poll delay grows from 3s up to a 10s cap while waiting for the panel to
 // come back — frequent enough to feel responsive, gentle enough not to spam
@@ -53,6 +55,7 @@ export function InstanceUpdateCard({
 }: {
   status: InstanceUpdateStatus
 }) {
+  const t = useTranslations("infra.update")
   const [pending, start] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const [current, setCurrent] = useState(status)
@@ -107,10 +110,7 @@ export function InstanceUpdateCard({
         ) {
           setApplying(false)
           setTimedOut(true)
-          toast.error(
-            "Update belum selesai setelah 5 menit — panel mungkin butuh perhatian manual.",
-            { id: toastIdRef.current }
-          )
+          toast.error(t("timeoutToast"), { id: toastIdRef.current })
           return
         }
         let reachable = false
@@ -127,7 +127,7 @@ export function InstanceUpdateCard({
         if (cancelled) return
         if (done) {
           if (confirmedOnce) {
-            toast.success(`Update selesai — versi ${version}.`, {
+            toast.success(t("doneToast", { version }), {
               id: toastIdRef.current,
             })
             window.location.reload()
@@ -152,7 +152,7 @@ export function InstanceUpdateCard({
       cancelled = true
       if (pollTimerRef.current) clearTimeout(pollTimerRef.current)
     }
-  }, [applying])
+  }, [applying, t])
 
   const available =
     current.api.updateAvailable ||
@@ -165,7 +165,7 @@ export function InstanceUpdateCard({
     setTimedOut(false)
     startedAtRef.current = Date.now()
     setApplying(true)
-    toastIdRef.current = toast.loading("Mengirim perintah update…")
+    toastIdRef.current = toast.loading(t("sendingToast"))
     start(async () => {
       let result: Awaited<ReturnType<typeof applyInstanceUpdateAction>>
       try {
@@ -181,7 +181,7 @@ export function InstanceUpdateCard({
         toast.error(result.error, { id: toastIdRef.current })
         return
       }
-      toast.loading("Mengunduh image & me-restart panel…", {
+      toast.loading(t("restartingToast"), {
         id: toastIdRef.current,
       })
     })
@@ -190,20 +190,20 @@ export function InstanceUpdateCard({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Update aoox</CardTitle>
+        <CardTitle>{t("title")}</CardTitle>
         <CardDescription>
-          Cek dan terapkan update untuk panel ini sendiri — versi berjalan{" "}
-          <code>{current.currentVersion}</code>.
+          {t.rich("description", {
+            version: current.currentVersion,
+            code: (c) => <code>{c}</code>,
+          })}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {!current.installDirConfigured && !applying && (
           <Alert variant="destructive">
-            <AlertTitle>INSTALL_DIR belum diisi</AlertTitle>
+            <AlertTitle>{t("installDirTitle")}</AlertTitle>
             <AlertDescription>
-              Set <code>INSTALL_DIR</code> di <code>.env.dist</code> ke path
-              absolut folder <code>docker-compose.dist.yml</code> di server ini,
-              lalu restart stack sebelum menerapkan update dari sini.
+              {t.rich("installDirBody", { code: (c) => <code>{c}</code> })}
             </AlertDescription>
           </Alert>
         )}
@@ -232,14 +232,14 @@ export function InstanceUpdateCard({
                 })
               }
             >
-              {pending ? "Mengecek…" : "Cek update"}
+              {pending ? t("checking") : t("check")}
             </Button>
             <Button
               size="sm"
               disabled={pending || !available || !current.installDirConfigured}
               onClick={() => setConfirmOpen(true)}
             >
-              Terapkan update
+              {t("apply")}
             </Button>
           </div>
         )}
@@ -252,23 +252,19 @@ export function InstanceUpdateCard({
 
         {timedOut && (
           <Alert variant="destructive">
-            <AlertTitle>Belum kembali setelah 5 menit</AlertTitle>
+            <AlertTitle>{t("timedOut.title")}</AlertTitle>
             <AlertDescription className="space-y-2">
-              <p>
-                Panel mungkin masih memproses, atau butuh perhatian manual. Cek
-                lewat SSH ke server:
-              </p>
+              <p>{t("timedOut.intro")}</p>
               <pre className="overflow-x-auto rounded bg-muted p-2 font-mono text-xs">
                 {`docker ps -a\ndocker logs <container-api>`}
               </pre>
               <p>
-                Kalau container tidak kembali, jalankan perintah compose manual
-                dari <code>INSTALL_DIR</code>:
+                {t.rich("timedOut.manual", { code: (c) => <code>{c}</code> })}
               </p>
               <pre className="overflow-x-auto rounded bg-muted p-2 font-mono text-xs">
                 {`docker compose -f docker-compose.dist.yml \\\n  --env-file .env.dist up -d`}
               </pre>
-              <p>Lihat dokumentasi Instalasi untuk detail lengkap.</p>
+              <p>{t("timedOut.docs")}</p>
             </AlertDescription>
           </Alert>
         )}
@@ -277,18 +273,16 @@ export function InstanceUpdateCard({
       <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Terapkan update?</DialogTitle>
+            <DialogTitle>{t("confirm.title")}</DialogTitle>
             <DialogDescription>
-              Panel akan restart (biasanya 1–3 menit) — koneksi ke dashboard ini
-              akan sempat terputus, itu wajar. Halaman ini akan memuat ulang
-              sendiri begitu panel kembali dengan versi baru.
+              {t("confirm.description")}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setConfirmOpen(false)}>
-              Batal
+              {t("cancel")}
             </Button>
-            <Button onClick={confirmApply}>Terapkan update</Button>
+            <Button onClick={confirmApply}>{t("apply")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -302,9 +296,12 @@ function VersionSummary({
 }: {
   version: InstanceUpdateStatus["version"]
 }) {
+  const t = useTranslations("infra.update")
+  const code = (c: React.ReactNode) => <code>{c}</code>
+  const locale = useLocale()
   const checked = version.latestCheckedAt
     ? // Fixed zone: rendered on the server and again on the client.
-      new Date(version.latestCheckedAt).toLocaleString("id-ID", {
+      formatDateTime(version.latestCheckedAt, locale, {
         timeZone: "UTC",
         dateStyle: "medium",
         timeStyle: "short",
@@ -313,38 +310,29 @@ function VersionSummary({
 
   let message: React.ReactNode
   if (!version.latestVersion) {
-    message =
-      "Versi terbaru belum bisa dicek (server ini mungkin tidak punya akses ke registry). Dicoba lagi otomatis tiap beberapa jam."
+    message = t("version.unknown")
   } else if (version.tracking === "pinned") {
-    message = (
-      <>
-        Image dipasang dengan tag <code>{version.trackedTag}</code> (bukan{" "}
-        <code>:latest</code>), jadi update tidak dipantau otomatis. Versi
-        terbaru yang dipublikasikan: <code>v{version.latestVersion}</code>.
-      </>
-    )
+    message = t.rich("version.pinned", {
+      tag: version.trackedTag ?? "",
+      latest: version.latestVersion,
+      code,
+    })
   } else if (version.tracking === "unknown") {
-    message = (
-      <>
-        Tag image yang terpasang tidak bisa dipastikan, jadi tombol di sidebar
-        tidak ditampilkan. Versi terbaru yang dipublikasikan:{" "}
-        <code>v{version.latestVersion}</code>.
-      </>
-    )
+    message = t.rich("version.untracked", {
+      latest: version.latestVersion,
+      code,
+    })
   } else if (version.updateAvailable) {
-    message = (
-      <>
-        <Badge>Update tersedia</Badge> <code>v{version.latestVersion}</code>{" "}
-        sudah dipublikasikan.
-      </>
-    )
+    message = t.rich("version.available", {
+      latest: version.latestVersion,
+      code,
+      badge: (c) => <Badge>{c}</Badge>,
+    })
   } else {
-    message = (
-      <>
-        Sudah versi terbaru yang dipublikasikan (
-        <code>v{version.latestVersion}</code>).
-      </>
-    )
+    message = t.rich("version.upToDate", {
+      latest: version.latestVersion,
+      code,
+    })
   }
 
   return (
@@ -352,7 +340,7 @@ function VersionSummary({
       <p>{message}</p>
       {checked && (
         <p className="mt-1 text-xs text-muted-foreground">
-          Terakhir dicek {checked}
+          {t("version.lastChecked", { time: checked })}
         </p>
       )}
     </div>
@@ -360,13 +348,11 @@ function VersionSummary({
 }
 
 function ApplyingProgress() {
+  const t = useTranslations("infra.update")
   return (
     <ol className="space-y-2 rounded-md border p-3 text-xs">
-      <ProgressStep label="Mengirim perintah update" done />
-      <ProgressStep
-        label="Mengunduh image & me-restart panel, lalu menunggu panel kembali"
-        active
-      />
+      <ProgressStep label={t("progress.sending")} done />
+      <ProgressStep label={t("progress.restarting")} active />
     </ol>
   )
 }
@@ -403,6 +389,7 @@ function ImageRow({
   label: string
   image: InstanceUpdateStatus["api"]
 }) {
+  const t = useTranslations("infra.update")
   return (
     <li className="flex items-center justify-between gap-3 px-3 py-2">
       <div className="min-w-0">
@@ -412,11 +399,11 @@ function ImageRow({
         </p>
       </div>
       {image.currentDigest === null ? (
-        <Badge variant="outline">baseline baru</Badge>
+        <Badge variant="outline">{t("image.newBaseline")}</Badge>
       ) : image.updateAvailable ? (
-        <Badge>Update tersedia</Badge>
+        <Badge>{t("image.available")}</Badge>
       ) : (
-        <Badge variant="secondary">Terbaru</Badge>
+        <Badge variant="secondary">{t("image.latest")}</Badge>
       )}
     </li>
   )

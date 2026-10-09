@@ -1,5 +1,6 @@
 "use client"
 
+import { useTranslations } from "next-intl"
 import { useState } from "react"
 import { ApplicationDeployPanel } from "@/components/custom/application-deploy-panel"
 import { ApplicationDomains } from "@/components/custom/application-domains"
@@ -58,7 +59,7 @@ export type ApplicationTab =
   | "settings"
 
 /**
- * The Deploy tab's post-deploy nudge needs to switch to Pengaturan/Domain
+ * The Deploy tab's post-deploy nudge needs to switch to Settings/Domain
  * from a button click, so the tab value is lifted here (a client component)
  * instead of being an uncontrolled `<Tabs defaultValue>` in the server page.
  */
@@ -122,6 +123,8 @@ export function ApplicationTabs({
   /** Status line shown under the tab list on every tab (rendered by the page). */
   statusStrip?: React.ReactNode
 }) {
+  const t = useTranslations("applications")
+  const tc = useTranslations("common")
   const [tab, setTab] = useState<ApplicationTab>("deploy")
   const running = app.container?.state === "running"
   // Console is developer+ (see AGENTS.md "Console container") — the API
@@ -131,15 +134,25 @@ export function ApplicationTabs({
   return (
     <Tabs value={tab} onValueChange={(v) => setTab(v as ApplicationTab)}>
       <ScrollableTabsList>
-        <TabsTrigger value="deploy">Deploy</TabsTrigger>
-        <TabsTrigger value="domains">Domain ({domains.length})</TabsTrigger>
-        <TabsTrigger value="mounts">Mount ({mounts.length})</TabsTrigger>
-        <TabsTrigger value="environment">Environment</TabsTrigger>
-        <TabsTrigger value="jobs">Jobs ({jobs.length})</TabsTrigger>
-        {monitor && <TabsTrigger value="monitor">Monitor</TabsTrigger>}
-        <TabsTrigger value="webhook">Webhook</TabsTrigger>
-        {canUseConsole && <TabsTrigger value="console">Console</TabsTrigger>}
-        <TabsTrigger value="settings">Pengaturan</TabsTrigger>
+        <TabsTrigger value="deploy">{t("tabs.deploy")}</TabsTrigger>
+        <TabsTrigger value="domains">
+          {t("tabs.domains", { count: domains.length })}
+        </TabsTrigger>
+        <TabsTrigger value="mounts">
+          {t("tabs.mounts", { count: mounts.length })}
+        </TabsTrigger>
+        <TabsTrigger value="environment">{t("tabs.environment")}</TabsTrigger>
+        <TabsTrigger value="jobs">
+          {t("tabs.jobs", { count: jobs.length })}
+        </TabsTrigger>
+        {monitor && (
+          <TabsTrigger value="monitor">{t("tabs.monitor")}</TabsTrigger>
+        )}
+        <TabsTrigger value="webhook">{t("tabs.webhook")}</TabsTrigger>
+        {canUseConsole && (
+          <TabsTrigger value="console">{t("tabs.console")}</TabsTrigger>
+        )}
+        <TabsTrigger value="settings">{t("tabs.settings")}</TabsTrigger>
       </ScrollableTabsList>
       {statusStrip}
       <TabsContent value="deploy" className="space-y-4 pt-4">
@@ -237,11 +250,17 @@ export function ApplicationTabs({
                 webOrigin={webOrigin}
                 tasks={app.service?.tasks
                   .filter(
-                    (t) => t.local && t.state === "running" && t.containerId
+                    (task) =>
+                      task.local && task.state === "running" && task.containerId
                   )
-                  .map((t) => ({
-                    containerId: t.containerId as string,
-                    label: `Task ${t.slot ?? "?"}${t.node ? ` · ${t.node}` : ""}`,
+                  .map((task) => ({
+                    containerId: task.containerId as string,
+                    label: task.node
+                      ? t("tabs.taskLabelNode", {
+                          slot: task.slot ?? "?",
+                          node: task.node,
+                        })
+                      : t("tabs.taskLabel", { slot: task.slot ?? "?" }),
                   }))}
               />
             </CardContent>
@@ -251,11 +270,9 @@ export function ApplicationTabs({
       <TabsContent value="settings" className="pt-4">
         <Card>
           <CardHeader>
-            <CardTitle>Pengaturan</CardTitle>
+            <CardTitle>{t("tabs.settingsTitle")}</CardTitle>
             <CardDescription className="max-w-3xl">
-              Port host, domain, dan limit resource diterapkan langsung ke
-              aplikasi yang berjalan; pengaturan lain berlaku pada deploy
-              berikutnya.
+              {t("tabs.settingsDescription")}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -302,7 +319,7 @@ export function ApplicationTabs({
                 previewDomain: app.previewDomain ?? "",
                 ignoreErrorLogs: app.ignoreErrorLogs ? "on" : "",
               }}
-              submitLabel="Simpan"
+              submitLabel={tc("actions.save")}
               hostPortApply={
                 !app.currentImage
                   ? "next-deploy"

@@ -1,5 +1,6 @@
 "use server"
 
+import { getTranslations } from "next-intl/server"
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
 import { requireToken } from "@/features/auth/auth.session"
@@ -12,63 +13,80 @@ import type {
 export type ActionResult<T = undefined> =
   { ok: true; data: T } | { ok: false; error: string }
 
-const https = z
-  .string()
-  .trim()
-  .url("URL tidak valid")
-  .startsWith("https://", "Harus https://")
+async function fail(err: unknown): Promise<{ ok: false; error: string }> {
+  const t = await getTranslations("settings")
+  return {
+    ok: false,
+    error: err instanceof ApiError ? err.message : t("errors.unreachable"),
+  }
+}
 
-const schema = z.discriminatedUnion("type", [
-  z.object({
-    type: z.literal("telegram"),
-    botToken: z
-      .string()
-      .trim()
-      .regex(/^\d+:[A-Za-z0-9_-]{30,}$/, "Bot token tidak valid"),
-    chatId: z
-      .string()
-      .trim()
-      .regex(/^-?\d+$/, "Chat ID harus angka"),
-  }),
-  z.object({ type: z.literal("slack"), webhookUrl: https }),
-  z.object({ type: z.literal("discord"), webhookUrl: https }),
-  z.object({
-    type: z.literal("webhook"),
-    url: z.string().trim().url("URL tidak valid"),
-    // Empty = unsigned deliveries.
-    secret: z.string().trim().max(200).optional(),
-  }),
-  z.object({
-    type: z.literal("email"),
-    smtpHost: z.string().trim().min(1, "Host SMTP wajib diisi").max(255),
-    smtpPort: z.coerce.number().int().min(1).max(65535),
-    smtpSecure: z.boolean(),
-    smtpUsername: z.string().trim().max(255).optional(),
-    smtpPassword: z.string().max(1024).optional(),
-    from: z.string().trim().email("Alamat pengirim tidak valid"),
-    // Comma/newline separated in the form.
-    to: z
-      .array(z.string().trim().email("Alamat penerima tidak valid"))
-      .min(1, "Minimal satu penerima")
-      .max(20),
-  }),
-])
+type Translate = (key: string) => string
 
-const base = z.object({
-  name: z.string().trim().min(1, "Nama wajib diisi").max(100),
-  onDeploymentStarted: z.boolean(),
-  onDeploymentSuccess: z.boolean(),
-  onDeploymentFailure: z.boolean(),
-  onBackupFailure: z.boolean(),
-  onJobFailure: z.boolean(),
-  onDiskLow: z.boolean(),
-  onCertificateFailure: z.boolean(),
-  onContainerDown: z.boolean(),
-  onDnsIssue: z.boolean(),
-  onAppError: z.boolean(),
-  onServerDown: z.boolean(),
-  onHttpDown: z.boolean(),
-})
+const schema = (t: Translate) => {
+  const https = z
+    .string()
+    .trim()
+    .url(t("validation.invalidUrl"))
+    .startsWith("https://", t("validation.httpsRequired"))
+
+  return z.discriminatedUnion("type", [
+    z.object({
+      type: z.literal("telegram"),
+      botToken: z
+        .string()
+        .trim()
+        .regex(/^\d+:[A-Za-z0-9_-]{30,}$/, t("validation.botTokenInvalid")),
+      chatId: z
+        .string()
+        .trim()
+        .regex(/^-?\d+$/, t("validation.chatIdNumeric")),
+    }),
+    z.object({ type: z.literal("slack"), webhookUrl: https }),
+    z.object({ type: z.literal("discord"), webhookUrl: https }),
+    z.object({
+      type: z.literal("webhook"),
+      url: z.string().trim().url(t("validation.invalidUrl")),
+      // Empty = unsigned deliveries.
+      secret: z.string().trim().max(200).optional(),
+    }),
+    z.object({
+      type: z.literal("email"),
+      smtpHost: z
+        .string()
+        .trim()
+        .min(1, t("validation.smtpHostRequired"))
+        .max(255),
+      smtpPort: z.coerce.number().int().min(1).max(65535),
+      smtpSecure: z.boolean(),
+      smtpUsername: z.string().trim().max(255).optional(),
+      smtpPassword: z.string().max(1024).optional(),
+      from: z.string().trim().email(t("validation.senderInvalid")),
+      // Comma/newline separated in the form.
+      to: z
+        .array(z.string().trim().email(t("validation.recipientInvalid")))
+        .min(1, t("validation.recipientMin"))
+        .max(20),
+    }),
+  ])
+}
+
+const base = (t: Translate) =>
+  z.object({
+    name: z.string().trim().min(1, t("validation.nameRequired")).max(100),
+    onDeploymentStarted: z.boolean(),
+    onDeploymentSuccess: z.boolean(),
+    onDeploymentFailure: z.boolean(),
+    onBackupFailure: z.boolean(),
+    onJobFailure: z.boolean(),
+    onDiskLow: z.boolean(),
+    onCertificateFailure: z.boolean(),
+    onContainerDown: z.boolean(),
+    onDnsIssue: z.boolean(),
+    onAppError: z.boolean(),
+    onServerDown: z.boolean(),
+    onHttpDown: z.boolean(),
+  })
 
 type Fields =
   | "name"
@@ -110,7 +128,8 @@ export async function createNotificationAction(
     from: str("from"),
     to: str("to"),
   }
-  const parsedBase = base.safeParse({
+  const t = await getTranslations("settings")
+  const parsedBase = base(t).safeParse({
     name: values.name,
     onDeploymentStarted: formData.get("onDeploymentStarted") === "on",
     onDeploymentSuccess: formData.get("onDeploymentSuccess") === "on",
@@ -125,7 +144,7 @@ export async function createNotificationAction(
     onServerDown: formData.get("onServerDown") === "on",
     onHttpDown: formData.get("onHttpDown") === "on",
   })
-  const parsedType = schema.safeParse({
+  const parsedType = schema(t).safeParse({
     ...values,
     smtpSecure: formData.get("smtpSecure") === "on",
     smtpUsername: values.smtpUsername || undefined,
@@ -153,13 +172,7 @@ export async function createNotificationAction(
       token: await requireToken(),
     })
   } catch (err) {
-    return {
-      error:
-        err instanceof ApiError
-          ? err.message
-          : "Tidak dapat terhubung ke server",
-      values,
-    }
+    return { error: (await fail(err)).error, values }
   }
   revalidatePath("/settings")
   return { created: true }
@@ -176,13 +189,7 @@ export async function deleteNotificationAction(
     revalidatePath("/settings")
     return { ok: true, data: undefined }
   } catch (err) {
-    return {
-      ok: false,
-      error:
-        err instanceof ApiError
-          ? err.message
-          : "Tidak dapat terhubung ke server",
-    }
+    return fail(err)
   }
 }
 
@@ -196,12 +203,6 @@ export async function testNotificationAction(
     )
     return { ok: true, data }
   } catch (err) {
-    return {
-      ok: false,
-      error:
-        err instanceof ApiError
-          ? err.message
-          : "Tidak dapat terhubung ke server",
-    }
+    return fail(err)
   }
 }

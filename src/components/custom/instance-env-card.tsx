@@ -1,5 +1,6 @@
 "use client"
 
+import { useTranslations } from "next-intl"
 import { useState, useTransition } from "react"
 import { toast } from "sonner"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
@@ -23,6 +24,8 @@ import type { InstanceEnvStatus } from "@/features/instance-env/instance-env.ent
  * wired into), so the connection drops for a few seconds; that's expected.
  */
 export function InstanceEnvCard({ status }: { status: InstanceEnvStatus }) {
+  const t = useTranslations("infra.env")
+  const code = (c: React.ReactNode) => <code>{c}</code>
   const [pending, start] = useTransition()
   const [savedSection, setSavedSection] = useState<"terminal" | "misc" | null>(
     null
@@ -47,9 +50,7 @@ export function InstanceEnvCard({ status }: { status: InstanceEnvStatus }) {
       const r = await updateInstanceEnvAction(input)
       if (r.ok) {
         setSavedSection(section)
-        toast.success(
-          "Disimpan — API akan restart sebentar untuk menerapkannya"
-        )
+        toast.success(t("saved"))
       } else {
         toast.error(r.error)
       }
@@ -58,36 +59,29 @@ export function InstanceEnvCard({ status }: { status: InstanceEnvStatus }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Environment</CardTitle>
-        <CardDescription>
-          Sebagian env var instance yang bisa diubah dari sini, tanpa SSH ke{" "}
-          <code>.env.dist</code>. Menyimpan me-restart container API sebentar
-          untuk menerapkan nilai baru.
-        </CardDescription>
+        <CardTitle>{t("title")}</CardTitle>
+        <CardDescription>{t.rich("description", { code })}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         {!status.installDirConfigured && (
           <Alert variant="destructive">
-            <AlertTitle>INSTALL_DIR belum diisi</AlertTitle>
+            <AlertTitle>{t("installDirTitle")}</AlertTitle>
             <AlertDescription>
-              Set <code>INSTALL_DIR</code> di <code>.env.dist</code> ke path
-              absolut folder <code>docker-compose.dist.yml</code> di server ini,
-              lalu restart stack sebelum menyimpan dari sini.
+              {t.rich("installDirBody", { code })}
             </AlertDescription>
           </Alert>
         )}
 
         <section className="space-y-3">
           <div>
-            <h3 className="text-sm font-medium">SSH Terminal (ke host)</h3>
+            <h3 className="text-sm font-medium">{t("terminal.title")}</h3>
             <p className="text-xs text-muted-foreground">
-              Fitur Terminal web selalu masuk lewat SSH (container tidak bisa
-              membuka shell host langsung). Isi ini supaya bisa dipakai.
+              {t("terminal.description")}
             </p>
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="space-y-1.5">
-              <Label htmlFor="env-ssh-host">Host</Label>
+              <Label htmlFor="env-ssh-host">{t("terminal.host")}</Label>
               <Input
                 id="env-ssh-host"
                 value={sshHost}
@@ -96,7 +90,7 @@ export function InstanceEnvCard({ status }: { status: InstanceEnvStatus }) {
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="env-ssh-port">Port</Label>
+              <Label htmlFor="env-ssh-port">{t("terminal.port")}</Label>
               <Input
                 id="env-ssh-port"
                 type="number"
@@ -108,29 +102,34 @@ export function InstanceEnvCard({ status }: { status: InstanceEnvStatus }) {
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="env-ssh-user">User</Label>
+              <Label htmlFor="env-ssh-user">{t("terminal.user")}</Label>
               <Input
                 id="env-ssh-user"
                 value={sshUser}
                 onChange={(e) => setSshUser(e.target.value)}
-                placeholder={`${status.terminalSshUserDefault} (default)`}
+                placeholder={t("terminal.userPlaceholder", {
+                  user: status.terminalSshUserDefault,
+                })}
               />
               {status.terminalSshUser === null && (
                 <p className="text-xs text-muted-foreground">
-                  Belum diisi — terminal masuk sebagai{" "}
-                  <code>{status.terminalSshUserDefault}</code> (default).
+                  {t.rich("terminal.userEmpty", {
+                    user: status.terminalSshUserDefault,
+                    code,
+                  })}
                 </p>
               )}
               <p className="text-xs text-muted-foreground">
-                Di VPS Ubuntu biasanya <code>ubuntu</code>: login root sering
-                ditolak sshd, jadi isi dengan user login SSH-mu.
+                {t.rich("terminal.userHint", { code })}
               </p>
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="env-ssh-password">
-                Password{" "}
+                {t("terminal.password")}{" "}
                 {status.terminalSshPasswordSet && (
-                  <span className="text-muted-foreground">(sudah diisi)</span>
+                  <span className="text-muted-foreground">
+                    {t("terminal.passwordSet")}
+                  </span>
                 )}
               </Label>
               <Input
@@ -140,8 +139,8 @@ export function InstanceEnvCard({ status }: { status: InstanceEnvStatus }) {
                 onChange={(e) => setSshPassword(e.target.value)}
                 placeholder={
                   status.terminalSshPasswordSet
-                    ? "•••••••• (kosongkan agar tidak berubah)"
-                    : "opsional — bisa juga pakai SSH key platform"
+                    ? t("terminal.passwordKeep")
+                    : t("terminal.passwordOptional")
                 }
               />
             </div>
@@ -160,39 +159,36 @@ export function InstanceEnvCard({ status }: { status: InstanceEnvStatus }) {
               })
             }
           >
-            Simpan SSH Terminal
+            {t("terminal.save")}
           </Button>
           {savedSection === "terminal" && (
             <Alert>
-              <AlertTitle>Diterapkan</AlertTitle>
-              <AlertDescription>
-                Container API akan restart beberapa detik lagi — koneksi ke
-                dashboard ini bisa sempat terputus, itu wajar.
-              </AlertDescription>
+              <AlertTitle>{t("applied")}</AlertTitle>
+              <AlertDescription>{t("appliedBody")}</AlertDescription>
             </Alert>
           )}
         </section>
 
         <section className="space-y-3 border-t pt-4">
           <div>
-            <h3 className="text-sm font-medium">Jaringan</h3>
+            <h3 className="text-sm font-medium">{t("network.title")}</h3>
             <p className="text-xs text-muted-foreground">
-              Dipakai untuk cek DNS domain aplikasi dan alamat registry lokal.
+              {t("network.description")}
             </p>
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="space-y-1.5">
-              <Label htmlFor="env-public-ip">Public IP</Label>
+              <Label htmlFor="env-public-ip">{t("network.publicIp")}</Label>
               <Input
                 id="env-public-ip"
                 value={publicIp}
                 onChange={(e) => setPublicIp(e.target.value)}
-                placeholder="kosong = deteksi otomatis"
+                placeholder={t("network.publicIpPlaceholder")}
               />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="env-registry-public-host">
-                Registry public host
+                {t("network.registryHost")}
               </Label>
               <Input
                 id="env-registry-public-host"
@@ -212,15 +208,12 @@ export function InstanceEnvCard({ status }: { status: InstanceEnvStatus }) {
               })
             }
           >
-            Simpan Jaringan
+            {t("network.save")}
           </Button>
           {savedSection === "misc" && (
             <Alert>
-              <AlertTitle>Diterapkan</AlertTitle>
-              <AlertDescription>
-                Container API akan restart beberapa detik lagi — koneksi ke
-                dashboard ini bisa sempat terputus, itu wajar.
-              </AlertDescription>
+              <AlertTitle>{t("applied")}</AlertTitle>
+              <AlertDescription>{t("appliedBody")}</AlertDescription>
             </Alert>
           )}
         </section>

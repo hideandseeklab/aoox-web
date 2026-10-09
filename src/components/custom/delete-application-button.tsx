@@ -1,6 +1,7 @@
 "use client"
 
 import { Trash2 } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { useState, useTransition } from "react"
 import { Button } from "@/components/ui/button"
 import {
@@ -23,6 +24,8 @@ export function DeleteApplicationButton({
   projectId: string
   name: string
 }) {
+  const t = useTranslations("applications")
+  const tc = useTranslations("common")
   const [open, setOpen] = useState(false)
   const [pending, start] = useTransition()
 
@@ -31,28 +34,31 @@ export function DeleteApplicationButton({
       <DialogTrigger asChild>
         <Button variant="destructive" size="sm">
           <Trash2 data-icon="inline-start" />
-          Hapus
+          {tc("actions.delete")}
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-sm">
         <DialogHeader>
-          <DialogTitle>Hapus aplikasi?</DialogTitle>
+          <DialogTitle>{t("delete.title")}</DialogTitle>
           <DialogDescription>
-            Container{" "}
-            <span className="font-medium text-foreground">{name}</span> akan
-            dihentikan dan dihapus. Image di registry tidak dihapus.
+            {t.rich("delete.description", {
+              name,
+              strong: (chunks) => (
+                <span className="font-medium text-foreground">{chunks}</span>
+              ),
+            })}
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>
-            Batal
+            {tc("actions.cancel")}
           </Button>
           <Button
             variant="destructive"
             disabled={pending}
             onClick={() => start(() => deleteApplicationAction(id, projectId))}
           >
-            {pending ? "Menghapus…" : "Hapus"}
+            {pending ? tc("states.deleting") : tc("actions.delete")}
           </Button>
         </DialogFooter>
       </DialogContent>

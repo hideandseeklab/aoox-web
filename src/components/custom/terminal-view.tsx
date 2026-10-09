@@ -6,6 +6,7 @@ import "@xterm/xterm/css/xterm.css"
 import { ExternalLink, RotateCw } from "lucide-react"
 import type { ReactNode } from "react"
 import { useCallback, useEffect, useRef, useState } from "react"
+import { useTranslations } from "next-intl"
 import Link from "next/link"
 import { io, type Socket } from "socket.io-client"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
@@ -34,41 +35,22 @@ type TerminalSocket = Socket<TerminalServerEvents, TerminalClientEvents>
 
 type Status = "connecting" | "connected" | "closed" | "error"
 
-const STATUS_LABEL: Record<Status, string> = {
-  connecting: "Menghubungkan…",
-  connected: "Terhubung",
-  closed: "Terputus",
-  error: "Gagal",
-}
-
 /** Sentinel for the aoox host itself (no serverId in the ticket). */
 const LOCAL_TARGET = "local"
 
 /** Where each API error hint points; Environment is owner-only (the page 404s for admins). */
 const HINT_LINK: Record<
   TerminalErrorHint,
-  { href: string; label: ReactNode; ownerOnly: boolean }
+  { href: string; page: "environment" | "remoteServers"; ownerOnly: boolean }
 > = {
   environment: {
     href: "/infra/environment",
-    label: (
-      <>
-        Infrastruktur
-        <PathArrow />
-        Environment
-      </>
-    ),
+    page: "environment",
     ownerOnly: true,
   },
   servers: {
     href: "/infra/servers",
-    label: (
-      <>
-        Infrastruktur
-        <PathArrow />
-        Server remote
-      </>
-    ),
+    page: "remoteServers",
     ownerOnly: false,
   },
 }
@@ -85,9 +67,18 @@ export function TerminalView({
   webOrigin: string
   servers: Server[]
   isOwner: boolean
-  /** Host user for the "Otorisasi otomatis" button; null hides it (not owner, or the API says no). */
+  /** Host user for the auto-authorize button; null hides it (not owner, or the API says no). */
   autoAuthorizeUser?: string | null
 }) {
+  const t = useTranslations("terminal.view")
+  const tNav = useTranslations("nav")
+  const hintLabel = (hint: TerminalErrorHint): ReactNode => (
+    <>
+      {tNav("groups.infrastructure")}
+      <PathArrow />
+      {tNav(HINT_LINK[hint].page)}
+    </>
+  )
   const hostRef = useRef<HTMLDivElement>(null)
   const [status, setStatus] = useState<Status>("connecting")
   const [errorHint, setErrorHint] = useState<TerminalErrorHint | null>(null)
@@ -184,7 +175,7 @@ export function TerminalView({
         ;({ ticket } = await createTerminalTicket(serverId))
       } catch {
         if (!disposed) setStatus("error")
-        term.writeln("\x1b[31mTidak dapat membuat tiket terminal.\x1b[0m")
+        term.writeln(`\x1b[31m${t("ticketFailed")}\x1b[0m`)
         return
       }
       if (disposed) return
@@ -209,7 +200,7 @@ export function TerminalView({
       socket.on("exit", (code) =>
         term.writeln(`
 
-[33m[shell keluar dengan kode ${code}][0m`)
+[33m[${t("shellExited", { code })}][0m`)
       )
       socket.on("error", (message, hint) => {
         setStatus("error")
@@ -240,24 +231,25 @@ export function TerminalView({
       socket?.disconnect()
       cleanup?.()
     }
-  }, [attempt, publicApiUrl, serverId])
+  }, [attempt, publicApiUrl, serverId, t])
 
   if (originMismatch) {
     const target = webOrigin + window.location.pathname + window.location.search
     return (
       <Alert variant="destructive">
-        <AlertTitle>Terminal tidak bisa diakses lewat alamat ini</AlertTitle>
+        <AlertTitle>{t("origin.title")}</AlertTitle>
         <AlertDescription className="space-y-3">
           <p>
-            Panel ini sudah punya domain kustom (<code>{webOrigin}</code>), dan
-            fitur Terminal hanya menerima koneksi dari domain itu — bukan dari{" "}
-            <code>{browserOrigin}</code> yang sedang kamu pakai. Ini proteksi
-            keamanan bawaan, bukan bug.
+            {t.rich("origin.description", {
+              webOrigin,
+              browserOrigin: browserOrigin ?? "",
+              code: (c) => <code>{c}</code>,
+            })}
           </p>
           <Button size="sm" asChild>
             <a href={target}>
               <ExternalLink data-icon="inline-start" />
-              Buka Terminal di {webOrigin}
+              {t("origin.open", { webOrigin })}
             </a>
           </Button>
         </AlertDescription>
@@ -271,11 +263,11 @@ export function TerminalView({
         <div className="flex items-center gap-2">
           {servers.length > 0 && (
             <Select value={target} onValueChange={setTarget}>
-              <SelectTrigger size="sm" aria-label="Target terminal">
+              <SelectTrigger size="sm" aria-label={t("targetLabel")}>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value={LOCAL_TARGET}>Host aoox</SelectItem>
+                <SelectItem value={LOCAL_TARGET}>{t("hostAoox")}</SelectItem>
                 {servers.map((s) => (
                   <SelectItem key={s.id} value={s.id}>
                     {s.name}
@@ -289,7 +281,7 @@ export function TerminalView({
             </Select>
           )}
           <Badge variant={status === "connected" ? "default" : "secondary"}>
-            {STATUS_LABEL[status]}
+            {t(`status.${status}`)}
           </Badge>
         </div>
         <Button
@@ -299,39 +291,35 @@ export function TerminalView({
           disabled={status === "connecting"}
         >
           <RotateCw data-icon="inline-start" />
-          Sambung ulang
+          {t("reconnect")}
         </Button>
       </div>
       {status === "error" && errorHint && (
         <Alert variant="destructive">
-          <AlertTitle>Terminal belum bisa terhubung ke targetnya</AlertTitle>
+          <AlertTitle>{t("hint.title")}</AlertTitle>
           <AlertDescription>
             {HINT_LINK[errorHint].ownerOnly && !isOwner ? (
-              <>
-                Periksa pengaturan koneksinya di{" "}
-                <strong>{HINT_LINK[errorHint].label}</strong> — halaman itu
-                hanya bisa dibuka owner.
-              </>
+              t.rich("hint.ownerOnly", {
+                page: () => <strong>{hintLabel(errorHint)}</strong>,
+              })
             ) : (
-              <>
-                Periksa pengaturan koneksinya di{" "}
-                <Link
-                  href={HINT_LINK[errorHint].href}
-                  className="font-medium underline underline-offset-4"
-                >
-                  {HINT_LINK[errorHint].label}
-                </Link>
-                , lalu klik Sambung ulang.
-              </>
+              t.rich("hint.checkSettings", {
+                link: () => (
+                  <Link
+                    href={HINT_LINK[errorHint].href}
+                    className="font-medium underline underline-offset-4"
+                  >
+                    {hintLabel(errorHint)}
+                  </Link>
+                ),
+              })
             )}
             {errorHint === "environment" && (
               <p className="mt-2">
-                Kalau galatnya &quot;SSH authentication failed&quot;: perintah
-                otorisasi harus dijalankan di host sebagai user yang sama dengan
-                kolom <strong>User</strong> di Environment. Login root sering
-                ditolak sshd di VPS cloud, jadi di Ubuntu isi User dengan user
-                login kamu (biasanya <code>ubuntu</code>), simpan, lalu jalankan
-                perintah otorisasi sebagai user itu.
+                {t.rich("hint.sshAuthFailed", {
+                  b: (c) => <strong>{c}</strong>,
+                  code: (c) => <code>{c}</code>,
+                })}
               </p>
             )}
             {errorHint === "environment" && autoAuthorizeUser && (

@@ -1,6 +1,7 @@
 "use client"
 
 import { Loader2 } from "lucide-react"
+import { useTranslations } from "next-intl"
 import Link from "next/link"
 import { useRouter } from "@/lib/use-router"
 import { useActionState, useEffect, useRef, useState } from "react"
@@ -44,11 +45,13 @@ export function DatabaseForm({
     formData: FormData
   ) => Promise<DatabaseFormState>
   submitLabel: string
-  /** Renders a "Batal" link back to the project (standalone create page). */
+  /** Renders a "Cancel" link back to the project (standalone create page). */
   cancelHref?: string
   /** Lets a dialog lock its close button while submitting. */
   onPendingChange?: (pending: boolean) => void
 }) {
+  const t = useTranslations("database")
+  const tc = useTranslations("common")
   const [engine, setEngine] = useState<DatabaseEngine>("postgres")
   const [variant, setVariant] = useState<
     Exclude<PostgresVariant, null> | typeof NO_VARIANT
@@ -68,12 +71,12 @@ export function DatabaseForm({
     if (wasPendingRef.current && !pending) {
       if (state.createdId) {
         toast.success(
-          `Database "${state.values?.name ?? ""}" dibuat — sedang disiapkan (pull image bisa beberapa menit).`,
+          t("form.toast.created", { name: state.values?.name ?? "" }),
           { id: toastIdRef.current }
         )
         router.push(`/databases/${state.createdId}`)
       } else if (state.error || state.fieldErrors) {
-        toast.error(state.error ?? "Periksa isian form", {
+        toast.error(state.error ?? t("form.toast.checkForm"), {
           id: toastIdRef.current,
         })
       }
@@ -92,15 +95,18 @@ export function DatabaseForm({
       action={formAction}
       onSubmit={(e) => {
         const formData = new FormData(e.currentTarget)
+        const name = String(formData.get("name") || "").trim()
         toastIdRef.current = toast.loading(
-          `Membuat database ${String(formData.get("name") || "").trim() || "baru"}…`
+          name
+            ? t("form.toast.creating", { name })
+            : t("form.toast.creatingNoName")
         )
       }}
       noValidate
     >
       <FieldGroup>
         <Field data-invalid={!!state.fieldErrors?.name || undefined}>
-          <FieldLabel htmlFor="db-name">Nama</FieldLabel>
+          <FieldLabel htmlFor="db-name">{tc("labels.name")}</FieldLabel>
           <Input
             id="db-name"
             name="name"
@@ -111,7 +117,7 @@ export function DatabaseForm({
           <FieldError errors={errs("name")} />
         </Field>
         <Field>
-          <FieldLabel htmlFor="db-engine">Engine</FieldLabel>
+          <FieldLabel htmlFor="db-engine">{t("form.fields.engine")}</FieldLabel>
           <Select
             name="engine"
             value={engine}
@@ -134,7 +140,7 @@ export function DatabaseForm({
         </Field>
         {engine === "postgres" && (
           <Field>
-            <FieldLabel htmlFor="db-variant">Varian (opsional)</FieldLabel>
+            <FieldLabel htmlFor="db-variant">{t("form.fields.variant")}</FieldLabel>
             <Select
               name="variant"
               value={variant}
@@ -148,7 +154,7 @@ export function DatabaseForm({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value={NO_VARIANT}>PostgreSQL polos</SelectItem>
+                <SelectItem value={NO_VARIANT}>{t("form.variants.none")}</SelectItem>
                 {(
                   Object.keys(POSTGRES_VARIANT_INFO) as Array<
                     Exclude<PostgresVariant, null>
@@ -162,14 +168,14 @@ export function DatabaseForm({
             </Select>
             <FieldDescription>
               {variant === NO_VARIANT
-                ? "Image postgres standar, tanpa ekstensi tambahan."
-                : POSTGRES_VARIANT_INFO[variant].description}
+                ? t("form.variants.noneDescription")
+                : t(`form.variants.${variant}`)}
             </FieldDescription>
           </Field>
         )}
         <div className="grid gap-4 sm:grid-cols-2">
           <Field data-invalid={!!state.fieldErrors?.imageTag || undefined}>
-            <FieldLabel htmlFor="db-tag">Versi (tag image)</FieldLabel>
+            <FieldLabel htmlFor="db-tag">{t("form.fields.imageTag")}</FieldLabel>
             <Input
               id="db-tag"
               name="imageTag"
@@ -183,22 +189,21 @@ export function DatabaseForm({
             <FieldError errors={errs("imageTag")} />
           </Field>
           <Field data-invalid={!!state.fieldErrors?.hostPort || undefined}>
-            <FieldLabel htmlFor="db-port">Port host</FieldLabel>
+            <FieldLabel htmlFor="db-port">{t("form.fields.hostPort")}</FieldLabel>
             <Input
               id="db-port"
               name="hostPort"
               type="number"
               min={1}
               max={65535}
-              placeholder="kosong = internal saja"
+              placeholder={t("form.fields.hostPortPlaceholder")}
               defaultValue={state.values?.hostPort}
             />
             <FieldError errors={errs("hostPort")} />
           </Field>
         </div>
         <FieldDescription>
-          Publikasikan port host hanya kalau perlu diakses dari luar (mis. dari
-          laptop kamu).
+          {t("form.hostPortHint")}
         </FieldDescription>
         {state.error && (
           <FieldDescription className="text-destructive" role="alert">
@@ -208,14 +213,14 @@ export function DatabaseForm({
         <div className="flex justify-end gap-2">
           {cancelHref && (
             <Button asChild variant="outline">
-              <Link href={cancelHref}>Batal</Link>
+              <Link href={cancelHref}>{tc("actions.cancel")}</Link>
             </Button>
           )}
           <Button type="submit" disabled={pending}>
             {pending && (
               <Loader2 data-icon="inline-start" className="animate-spin" />
             )}
-            {pending ? "Membuat…" : submitLabel}
+            {pending ? tc("states.creating") : submitLabel}
           </Button>
         </div>
       </FieldGroup>

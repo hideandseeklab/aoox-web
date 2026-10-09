@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server"
 import { TemplatesCatalog } from "@/components/custom/templates-catalog"
 import { listProjects } from "@/features/project/project.queries"
 import { getProxyStatus } from "@/features/proxy/proxy.queries"
@@ -11,6 +12,7 @@ export default async function TemplatesPage({
   searchParams: Promise<{ project?: string }>
 }) {
   const { project } = await searchParams
+  const t = await getTranslations("templates.page")
   const [templates, projects, proxy] = await Promise.all([
     listTemplates(),
     listProjects(),
@@ -22,9 +24,7 @@ export default async function TemplatesPage({
       <div>
         <h1 className="text-lg font-semibold">Templates</h1>
         <p className="text-xs text-muted-foreground">
-          Aplikasi siap pakai (stack compose) — pilih project, isi domain, dan
-          deploy dalam satu klik. Setelah dibuat, stack bisa diubah seperti
-          compose app biasa.
+          {t("description")}
         </p>
       </div>
       <TemplatesCatalog

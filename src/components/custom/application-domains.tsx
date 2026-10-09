@@ -1,6 +1,7 @@
 "use client"
 
 import { ExternalLink, Globe, Plus, Radar, Trash2 } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { useState, useTransition } from "react"
 import { EmptyState } from "@/components/custom/empty-state"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
@@ -31,21 +32,14 @@ import type {
 import type { Certificate } from "@/features/certificate/certificate.entity"
 import {
   coversHost,
+  daysLeft,
   EXPIRY_CLASS,
-  expiryLabel,
   expiryState,
 } from "@/features/certificate/certificate.format"
 import type { ProxyStatus } from "@/features/proxy/proxy.entity"
 
 /** Select value for "no custom certificate": the proxy gets one from Let's Encrypt. */
 const AUTO = "auto"
-
-const DNS_LABEL: Record<DnsCheck["status"], string> = {
-  ok: "ok",
-  mismatch: "salah arah",
-  unresolved: "belum ada",
-  unknown: "?",
-}
 
 export function ApplicationDomains({
   applicationId,
@@ -65,6 +59,8 @@ export function ApplicationDomains({
   proxy: ProxyStatus
   deployed: boolean
 }) {
+  const t = useTranslations("applications")
+  const tc = useTranslations("common")
   const [host, setHost] = useState("")
   const [https, setHttps] = useState(false)
   const [certId, setCertId] = useState(AUTO)
@@ -104,46 +100,38 @@ export function ApplicationDomains({
     <div className="space-y-4">
       {!proxy.running && (
         <Alert className="max-w-3xl">
-          <AlertTitle>Proxy belum berjalan</AlertTitle>
-          <AlertDescription>
-            Domain baru berlaku setelah reverse proxy diaktifkan di halaman
-            Settings.
-          </AlertDescription>
+          <AlertTitle>{t("domains.proxyStopped.title")}</AlertTitle>
+          <AlertDescription>{t("domains.proxyStopped.body")}</AlertDescription>
         </Alert>
       )}
       {!deployed && (
         <p className="text-xs text-muted-foreground">
-          Domain dipasang ke container saat aplikasi di-deploy.
+          {t("domains.notDeployed")}
         </p>
       )}
       {justAutoProvisioned && (
         <Alert variant="destructive" className="max-w-3xl">
-          <AlertTitle>
-            Reverse proxy belum aktif — sudah dinyalakan otomatis
-          </AlertTitle>
+          <AlertTitle>{t("domains.autoProvisioned.title")}</AlertTitle>
           <AlertDescription>
             <p>
-              Proxy (Traefik) belum jalan sebelum ini, jadi sudah diaktifkan
-              otomatis untuk domain <code>{justAutoProvisioned}</code>. Cek satu
-              per satu kalau domain belum bisa diakses setelah beberapa menit:
+              {t.rich("domains.autoProvisioned.intro", {
+                code: (chunks) => <code>{chunks}</code>,
+                host: justAutoProvisioned,
+              })}
             </p>
             <ol className="ml-4 list-decimal space-y-1">
               <li>
-                DNS A record <code>{justAutoProvisioned}</code> sudah mengarah
-                ke IP server ini.
+                {t.rich("domains.autoProvisioned.dns", {
+                  code: (chunks) => <code>{chunks}</code>,
+                  host: justAutoProvisioned,
+                })}
               </li>
               <li>
-                Port <code>80</code> dan <code>443</code> terbuka untuk publik —
-                baik firewall OS (<code>ufw</code>) maupun firewall/security
-                group dari provider VPS/server kamu.
+                {t.rich("domains.autoProvisioned.ports", {
+                  code: (chunks) => <code>{chunks}</code>,
+                })}
               </li>
-              <li>
-                Kalau meminta HTTPS: sertifikat (Let&apos;s Encrypt) baru
-                diterbitkan Traefik saat pertama kali domain diakses, butuh
-                beberapa detik sampai semenit — dan hanya terbit kalau email
-                ACME sudah diisi (host: Domain panel; server remote: pengaturan
-                server).
-              </li>
+              <li>{t("domains.autoProvisioned.cert")}</li>
             </ol>
           </AlertDescription>
         </Alert>
@@ -169,7 +157,7 @@ export function ApplicationDomains({
         }}
       >
         <div className="min-w-64 flex-1 space-y-1">
-          <Label htmlFor="domain-host">Hostname</Label>
+          <Label htmlFor="domain-host">{t("domains.form.hostname")}</Label>
           <Input
             id="domain-host"
             value={host}
@@ -189,21 +177,19 @@ export function ApplicationDomains({
         </div>
         {https && certificates.length > 0 && (
           <div className="space-y-1">
-            <Label htmlFor="domain-cert">Sertifikat</Label>
+            <Label htmlFor="domain-cert">{t("domains.form.certificate")}</Label>
             <Select value={certId} onValueChange={setCertId}>
               <SelectTrigger id="domain-cert" className="w-56">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value={AUTO}>
-                  Otomatis (Let&apos;s Encrypt)
-                </SelectItem>
+                <SelectItem value={AUTO}>{t("domains.certAuto")}</SelectItem>
                 {certificates.map((c) => {
                   const covers = !host.trim() || coversHost(c, host.trim())
                   return (
                     <SelectItem key={c.id} value={c.id} disabled={!covers}>
                       {c.name}
-                      {!covers && " · tidak mencakup host"}
+                      {!covers && ` · ${t("domains.notCovered")}`}
                     </SelectItem>
                   )
                 })}
@@ -213,12 +199,14 @@ export function ApplicationDomains({
         )}
         <Button type="submit" disabled={pending || !host.trim()}>
           <Plus data-icon="inline-start" />
-          Tambah
+          {tc("actions.add")}
         </Button>
       </form>
       {!proxy.acmeEmail && (
         <p className="text-xs text-muted-foreground">
-          HTTPS memerlukan <code>PROXY_ACME_EMAIL</code> di API.
+          {t.rich("domains.httpsNeedsEmail", {
+            code: (chunks) => <code>{chunks}</code>,
+          })}
         </p>
       )}
       {error && (
@@ -229,7 +217,7 @@ export function ApplicationDomains({
 
       {domains.length === 0 ? (
         <EmptyState icon={Globe} compact>
-          Belum ada domain. Aplikasi hanya bisa diakses lewat port host.
+          {t("domains.empty")}
         </EmptyState>
       ) : (
         <ul className="divide-y rounded-lg border">
@@ -259,14 +247,14 @@ export function ApplicationDomains({
                             : "secondary"
                       }
                     >
-                      DNS {DNS_LABEL[check.status]}
+                      {t("domains.dns.badge", { status: t(`domains.dns.${check.status}`) })}
                     </Badge>
                   )}
                   <span className="ms-auto" />
                   <Button
                     variant="ghost"
                     size="icon-sm"
-                    aria-label={`Cek DNS ${d.host}`}
+                    aria-label={t("domains.dns.checkAria", { host: d.host })}
                     disabled={pending}
                     onClick={() => checkDns(d.id)}
                   >
@@ -275,7 +263,7 @@ export function ApplicationDomains({
                   <Button
                     variant="ghost"
                     size="icon-sm"
-                    aria-label={`Hapus ${d.host}`}
+                    aria-label={t("domains.deleteAria", { host: d.host })}
                     disabled={pending}
                     onClick={() =>
                       start(async () => {
@@ -298,9 +286,9 @@ export function ApplicationDomains({
                 )}
                 {(canEdit || (d.middlewares ?? []).length > 0) && (
                   <div className="flex flex-wrap items-center gap-2 text-muted-foreground">
-                    <span>Middleware</span>
+                    <span>{t("domains.middleware")}</span>
                     {(d.middlewares ?? []).length === 0 ? (
-                      <span>tidak ada</span>
+                      <span>{tc("states.none").toLowerCase()}</span>
                     ) : (
                       (d.middlewares ?? []).map((m) => (
                         <Badge key={m} variant="outline" className="font-mono">
@@ -321,7 +309,7 @@ export function ApplicationDomains({
                   <p className="text-xs text-muted-foreground">
                     {check.message}
                     {check.expectedSource === "detected" &&
-                      " · IP publik dideteksi otomatis; set PUBLIC_IP di API bila keliru."}
+                      ` · ${t("domains.dns.detected")}`}
                   </p>
                 )}
               </li>
@@ -347,13 +335,20 @@ function CertificateRow({
   pending: boolean
   onChange: (value: string) => void
 }) {
+  const t = useTranslations("applications")
   const current = certificates.find((c) => c.id === domain.certificateId)
   const state = current ? expiryState(current.notAfter) : null
+  const expiryWhen = (notAfter: string) => {
+    const days = daysLeft(notAfter)
+    return days === 0
+      ? t("domains.expiry.today")
+      : t("domains.expiry.daysLeft", { days })
+  }
   const label = domain.certificateName ?? current?.name ?? null
 
   return (
     <div className="flex flex-wrap items-center gap-2 text-muted-foreground">
-      <span>Sertifikat</span>
+      <span>{t("domains.form.certificate")}</span>
       {canEdit && (certificates.length > 0 || domain.certificateId) ? (
         <Select
           value={domain.certificateId ?? AUTO}
@@ -363,31 +358,31 @@ function CertificateRow({
           <SelectTrigger
             size="sm"
             className="w-56"
-            aria-label={`Sertifikat untuk ${domain.host}`}
+            aria-label={t("domains.certFor", { host: domain.host })}
           >
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value={AUTO}>Otomatis (Let&apos;s Encrypt)</SelectItem>
+            <SelectItem value={AUTO}>{t("domains.certAuto")}</SelectItem>
             {certificates.map((c) => {
               const covers = coversHost(c, domain.host)
               return (
                 <SelectItem key={c.id} value={c.id} disabled={!covers}>
                   {c.name}
-                  {!covers && " · tidak mencakup host"}
+                  {!covers && ` · ${t("domains.notCovered")}`}
                 </SelectItem>
               )
             })}
             {domain.certificateId && !current && (
               <SelectItem value={domain.certificateId} disabled>
-                {label ?? "sertifikat kustom"}
+                {label ?? t("domains.customCert")}
               </SelectItem>
             )}
           </SelectContent>
         </Select>
       ) : (
         <span className="text-foreground">
-          {label ?? "Otomatis (Let's Encrypt)"}
+          {label ?? t("domains.certAuto")}
         </span>
       )}
       {current && state && state !== "ok" && (
@@ -395,8 +390,10 @@ function CertificateRow({
           className={`rounded-full border px-2 py-0.5 ${EXPIRY_CLASS[state]}`}
         >
           {state === "expired"
-            ? "Sertifikat kedaluwarsa"
-            : `Sertifikat ${expiryLabel(current.notAfter)}`}
+            ? t("domains.expiry.expired")
+            : t("domains.expiry.warn", {
+                when: expiryWhen(current.notAfter),
+              })}
         </span>
       )}
     </div>

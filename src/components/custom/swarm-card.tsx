@@ -1,6 +1,7 @@
 "use client"
 
 import { Copy, Network, Trash2 } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { useState, useTransition } from "react"
 import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
@@ -40,6 +41,8 @@ export function SwarmCard({
   status: SwarmStatus
   isOwner: boolean
 }) {
+  const t = useTranslations("infra.swarm")
+  const code = (c: React.ReactNode) => <code>{c}</code>
   const [pending, start] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const [advertise, setAdvertise] = useState("")
@@ -49,7 +52,7 @@ export function SwarmCard({
     start(async () => {
       setError(null)
       const r = await fn()
-      if (!r.ok) setError(r.error ?? "Gagal")
+      if (!r.ok) setError(r.error ?? t("failed"))
     })
 
   const joinCmd = (token: string) =>
@@ -60,9 +63,9 @@ export function SwarmCard({
       if (ok) {
         setCopied(label)
         setTimeout(() => setCopied(null), 1500)
-        toast.success(`${label} disalin`)
+        toast.success(t("copied", { label }))
       } else {
-        toast.error(`Gagal menyalin ${label}`)
+        toast.error(t("copyFailed", { label }))
       }
     })
   }
@@ -74,16 +77,13 @@ export function SwarmCard({
           <div>
             <CardTitle>Docker Swarm</CardTitle>
             <CardDescription>
-              Menjalankan aplikasi sebagai <em>service</em> (replika, rolling
-              update oleh daemon) — dipilih per aplikasi lewat{" "}
-              <em>Mode deploy</em>. Database, stack compose, dan preview tetap
-              container biasa.
+              {t.rich("description", { em: (c) => <em>{c}</em> })}
             </CardDescription>
           </div>
           {status.state === "active" ? (
-            <Badge>{status.isManager ? "Manager" : "Worker"}</Badge>
+            <Badge>{status.isManager ? t("manager") : t("worker")}</Badge>
           ) : status.state === "inactive" ? (
-            <Badge variant="secondary">Nonaktif</Badge>
+            <Badge variant="secondary">{t("inactive")}</Badge>
           ) : (
             <Badge variant="destructive">{status.state}</Badge>
           )}
@@ -101,17 +101,17 @@ export function SwarmCard({
             }}
           >
             <div className="min-w-48 flex-1 space-y-1">
-              <Label htmlFor="swarm-adv">Advertise address (opsional)</Label>
+              <Label htmlFor="swarm-adv">{t("advertise")}</Label>
               <Input
                 id="swarm-adv"
                 value={advertise}
                 onChange={(e) => setAdvertise(e.target.value)}
-                placeholder="IP publik/privat host, untuk node lain"
+                placeholder={t("advertisePlaceholder")}
               />
             </div>
             <Button type="submit" disabled={pending}>
               <Network data-icon="inline-start" />
-              {status.state === "error" ? "Init ulang swarm" : "Init swarm"}
+              {status.state === "error" ? t("reinit") : t("init")}
             </Button>
           </form>
         )}
@@ -125,7 +125,7 @@ export function SwarmCard({
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="font-medium">{n.hostname}</span>
                       <Badge variant="outline">{n.role}</Badge>
-                      {n.leader && <Badge variant="outline">leader</Badge>}
+                      {n.leader && <Badge variant="outline">{t("leader")}</Badge>}
                       <Badge
                         variant={
                           n.state === "ready" && n.availability === "active"
@@ -138,8 +138,8 @@ export function SwarmCard({
                       </Badge>
                     </div>
                     <p className="truncate font-mono text-xs text-muted-foreground">
-                      {n.addr} · {n.cpus} CPU · {gb(n.memoryBytes)} · engine{" "}
-                      {n.engineVersion}
+                      {n.addr} · {n.cpus} CPU · {gb(n.memoryBytes)} ·{" "}
+                      {t("engine", { version: n.engineVersion })}
                       {n.message && ` · ${n.message}`}
                     </p>
                     {isOwner ? (
@@ -177,13 +177,13 @@ export function SwarmCard({
                           )
                         }
                       >
-                        {n.availability === "active" ? "Drain" : "Aktifkan"}
+                        {n.availability === "active" ? t("drain") : t("activate")}
                       </Button>
                       {n.id !== status.nodeId && (
                         <Button
                           variant="ghost"
                           size="icon-sm"
-                          aria-label="Hapus node"
+                          aria-label={t("removeNode")}
                           disabled={pending}
                           onClick={() =>
                             run(() =>
@@ -203,9 +203,7 @@ export function SwarmCard({
             {status.joinTokens && (
               <div className="space-y-1">
                 <p className="text-muted-foreground">
-                  Tambah node: jalankan di server lain (Docker terpasang). Node
-                  tambahan belum bisa menjalankan app aoox (registry & volume
-                  masih lokal) — tahap berikutnya.
+                  {t("addNode")}
                 </p>
                 {(["worker", "manager"] as const).map((kind) => (
                   <div key={kind} className="flex items-center gap-2">
@@ -220,7 +218,7 @@ export function SwarmCard({
                       }
                     >
                       <Copy data-icon="inline-start" />
-                      {copied === kind ? "Tersalin" : kind}
+                      {copied === kind ? t("copiedShort") : kind}
                     </Button>
                   </div>
                 ))}
@@ -229,18 +227,15 @@ export function SwarmCard({
 
             {status.nodes.length > 1 && !status.registry.reachableFromNodes && (
               <p className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-xs">
-                Registry lokal beralamat{" "}
-                <code>{status.registry.url ?? "?"}</code> — node lain tidak bisa
-                menarik image hasil build. Set <code>REGISTRY_PUBLIC_HOST</code>{" "}
-                ke alamat host yang dijangkau semua node (dan{" "}
-                <code>insecure-registries</code> atau TLS di tiap daemon), lalu
-                aktifkan ulang registry. Image publik (Docker Hub, GHCR) tidak
-                terpengaruh.
+                {t.rich("registryWarning", {
+                  url: status.registry.url ?? "?",
+                  code,
+                })}
               </p>
             )}
             <div className="flex flex-wrap items-center gap-3">
               <span className="text-muted-foreground">
-                {status.serviceApps} aplikasi berjalan sebagai service.
+                {t("serviceApps", { count: status.serviceApps })}
               </span>
               {isOwner && (
                 <ConfirmDialog
@@ -251,16 +246,16 @@ export function SwarmCard({
                       disabled={pending || status.serviceApps > 0}
                       title={
                         status.serviceApps > 0
-                          ? "Kembalikan aplikasi ke mode container dulu"
+                          ? t("leaveBlocked")
                           : undefined
                       }
                     >
-                      Keluar dari swarm
+                      {t("leave")}
                     </Button>
                   }
-                  title="Keluar dari swarm?"
-                  description="Node ini meninggalkan swarm: service yang berjalan di sana hilang, dan jaringan overlay swarm dihapus. Proxy akan dipasang ulang tanpa mode swarm."
-                  confirmLabel="Keluar dari swarm"
+                  title={t("leaveTitle")}
+                  description={t("leaveDescription")}
+                  confirmLabel={t("leave")}
                   onConfirm={leaveSwarmAction}
                 />
               )}
@@ -288,6 +283,7 @@ function NodeLabels({
   disabled: boolean
   onSave: (labels: Record<string, string>) => void
 }) {
+  const t = useTranslations("infra.swarm")
   const initial = Object.entries(node.labels)
     .map(([k, v]) => `${k}=${v}`)
     .join(" ")
@@ -309,13 +305,13 @@ function NodeLabels({
       <Input
         value={text}
         onChange={(e) => setText(e.target.value)}
-        placeholder="label: zone=eu tier=db"
+        placeholder={t("labelsPlaceholder")}
         className="font-mono text-xs"
-        aria-label={`Label node ${node.hostname}`}
+        aria-label={t("labelsAria", { hostname: node.hostname })}
       />
       {dirty && (
         <Button type="submit" variant="outline" disabled={disabled}>
-          Simpan
+          {t("save")}
         </Button>
       )}
     </form>

@@ -22,11 +22,19 @@ export const EXPIRY_CLASS: Record<ExpiryState, string> = {
   expired: "border-red-500/40 bg-red-500/10 text-red-700 dark:text-red-400",
 }
 
-export function expiryLabel(notAfter: string, now = Date.now()): string {
+/**
+ * Badge text for the time left. `t` is the `settings` translator
+ * (`useTranslations("settings")` / `getTranslations("settings")`).
+ */
+export function expiryLabel(
+  notAfter: string,
+  t: (key: string, values?: Record<string, number>) => string,
+  now = Date.now()
+): string {
   const days = daysLeft(notAfter, now)
-  if (days < 0) return "kedaluwarsa"
-  if (days === 0) return "berakhir hari ini"
-  return `${days} hari lagi`
+  if (days < 0) return t("expiry.expired")
+  if (days === 0) return t("expiry.today")
+  return t("expiry.daysLeft", { days })
 }
 
 /** Does one certificate name cover `host`? A wildcard covers exactly one label. */
@@ -47,8 +55,4 @@ function nameCovers(name: string, host: string): boolean {
 
 export function coversHost(cert: Certificate, host: string): boolean {
   return cert.domains.some((d) => nameCovers(d, host))
-}
-
-export function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString("id-ID", { dateStyle: "medium" })
 }

@@ -1,5 +1,9 @@
 # aoox-web
 
+## Language
+
+- Write everything in this repository in English: AGENTS.md, README, CONTRIBUTING, CHANGELOG, code comments and commit messages. Existing Indonesian text is being translated gradually; do not add new Indonesian text.
+
 Next.js 16 (App Router) + React 19 + Tailwind 4 + shadcn/ui frontend for aoox
 (self-hosted PaaS). Backend: `../aoox-api`.
 
@@ -118,6 +122,34 @@ Baca `AGENTS.md` — versi Next.js ini punya breaking changes; cek `node_modules
 - Verifikasi visual: dev server API + web, container sungguhan (`debian:bookworm-slim` sebagai container app palsu bernama `aoox-app-<appName>`), buka tab Console,
   ketik perintah nyata (`echo`/`hostname`), lihat output asli via `get_page_text` (browser real, bukan mock) — prompt shell (`root@<container-id>:/#`) dan hasil
   perintah tampil benar.
+
+## Internationalization (i18n)
+
+- Library: `next-intl` 4.x **without i18n routing**: no URL prefix, every route stays the same. Locales are `en` (default and fallback) and `id`
+  (`src/i18n/config.ts`: `LOCALES`, `DEFAULT_LOCALE`, `LOCALE_COOKIE` = `aoox_locale`). The locale is stored in that cookie only (not on the account, not in the API).
+  `src/i18n/request.ts` (`getRequestConfig`, registered by `createNextIntlPlugin()` in `next.config.ts`) reads the cookie and loads the message files of that locale;
+  a missing or unknown value falls back to `en`. `NextIntlClientProvider` wraps the app in `src/app/layout.tsx` and `<html lang>` follows the locale.
+- Switching: the user menu calls `setLocaleAction` (`src/features/locale/locale.actions.ts`, sets the cookie) and then `router.refresh()`.
+- **Messages**: one file per namespace and language, `messages/<locale>/<namespace>.json` (`en` and `id`). The file holds the namespace's keys directly, **without** a wrapper
+  object; the file name is the namespace name. Namespaces are listed in `src/i18n/namespaces.ts` (`NAMESPACES`); `src/i18n/request.ts` imports `messages/<locale>/<ns>.json` for each
+  of them (a dynamic import with a static prefix, so the bundler includes every file, nothing is read from disk at runtime) and merges them into `{ [namespace]: content }`.
+  Nested keys are fine (`groups.platform`); camelCase leaf names; ICU placeholders (`{count}`, `{version}`) must be identical in both languages. English is the reference file.
+  - Namespaces: `nav`, `breadcrumb`, `inbox`, `commandPalette`, `userMenu` (shell), `common` (shared buttons, states, labels, generic messages: reuse these before adding a key elsewhere),
+    `logViewer`, `validation` (zod and server-action messages), `auth`, `dashboard`, `projects`, `applications`, `compose`, `database`, `settings`, `infra`, `docker`, `registry`,
+    `terminal`, `templates`. An empty `{}` file is a namespace nobody has filled yet.
+  - To add text: put the key in the right namespace file in **both** languages (one area = one owner, so parallel work does not touch the same file), then
+    `useTranslations("namespace")` (client or server component) / `getTranslations` (async server code) and `t("key", { count })`.
+  - To add a namespace: create `messages/en/<ns>.json` and `messages/id/<ns>.json` and add the name to `NAMESPACES`.
+  - Run `npm run check:i18n` (`scripts/check-i18n.mjs`): it fails when the two languages have different files or keys, when a file is not listed in `NAMESPACES` (or a listed one has
+    no file), on empty values and on mismatched placeholders.
+  - **Never hardcode user-facing text in a new component.** Existing screens still hold Indonesian literals until they are migrated (stage 2); migrate a screen by moving its text
+    into its namespace, `id` getting today's Indonesian wording and `en` a natural English one.
+  - Text that comes from the API (error messages, notification/inbox titles) is displayed as received and is not translated.
+- **Navigation labels** live in the `nav` namespace; `src/components/custom/nav-items.ts` holds only keys (`key: "dockerDisk"`), so the sidebar and the command palette stay in sync.
+- **Dates, times, numbers**: never call `toLocaleString("id-ID")` or similar. Use `src/i18n/format.ts` (`formatDateTime`, `formatDate`, `formatTime`, `formatNumber`, `formatRelative`),
+  passing `useLocale()` (client) or `await getLocale()` (server). These are pure functions, usable in module-level helpers that take `locale` as a parameter.
+- Tooling note: `next-intl`'s plugin loads `@swc/core` when `next.config.ts` is read. On Windows, a restricted-token shell can make its native cache check fail
+  (`ERR_SWC_NATIVE_CACHE`); setting `SWC_NATIVE_BINDING_CACHE` to a directory under the user profile with a clean ACL (for example `C:\Users\<you>\.swc-cache`) fixes it. Normal shells are not affected.
 
 ## Komponen bersama UI (status, logo, kosong, log, grafik)
 

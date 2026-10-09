@@ -1,6 +1,7 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
+import { getTranslations } from "next-intl/server"
 import { requireToken } from "@/features/auth/auth.session"
 import { api, ApiError } from "@/lib/api"
 import type { SwarmNode, SwarmStatus } from "./swarm.entity"
@@ -8,11 +9,11 @@ import type { SwarmNode, SwarmStatus } from "./swarm.entity"
 export type ActionResult<T = undefined> =
   { ok: true; data: T } | { ok: false; error: string }
 
-function fail(err: unknown): { ok: false; error: string } {
+async function fail(err: unknown): Promise<{ ok: false; error: string }> {
+  const t = await getTranslations("infra.errors")
   return {
     ok: false,
-    error:
-      err instanceof ApiError ? err.message : "Tidak dapat terhubung ke server",
+    error: err instanceof ApiError ? err.message : t("serverUnreachable"),
   }
 }
 

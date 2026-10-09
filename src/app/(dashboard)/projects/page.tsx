@@ -1,4 +1,5 @@
 import { FolderKanban } from "lucide-react"
+import { getTranslations } from "next-intl/server"
 import { CreateProjectDialog } from "@/components/custom/create-project-dialog"
 import { ImportProjectDialog } from "@/components/custom/import-project-dialog"
 import { ProjectCard } from "@/components/custom/project-card"
@@ -6,9 +7,13 @@ import { ProjectsAutoRefresh } from "@/components/custom/projects-auto-refresh"
 import { listProjects } from "@/features/project/project.queries"
 import { EmptyState } from "@/components/custom/empty-state"
 
-export const metadata = { title: "Projects · aoox" }
+export async function generateMetadata() {
+  const t = await getTranslations("projects")
+  return { title: t("meta.title") }
+}
 
 export default async function ProjectsPage() {
+  const t = await getTranslations("projects")
   const projects = await listProjects()
   const anyDeploying = projects.some((p) =>
     p.instances.some((i) => i.deploying)
@@ -23,9 +28,9 @@ export default async function ProjectsPage() {
       />
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-lg font-semibold">Projects</h1>
+          <h1 className="text-lg font-semibold">{t("list.title")}</h1>
           <p className="text-xs text-muted-foreground">
-            Kelompokkan aplikasi dan database per project.
+            {t("list.subtitle")}
           </p>
         </div>
         <div className="flex gap-2">
@@ -40,7 +45,7 @@ export default async function ProjectsPage() {
           className="p-12"
           action={<CreateProjectDialog />}
         >
-          Belum ada project. Buat project pertama untuk mulai men-deploy.
+          {t("list.empty")}
         </EmptyState>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

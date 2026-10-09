@@ -1,0 +1,123 @@
+{
+  "selfHosted": {
+    "storageLocal": "Local (disk)",
+    "failed": "Failed",
+    "title": "Local registry",
+    "description": "A <code>registry:3</code> container managed by aoox. Push address: <addr>{url}</addr>",
+    "dockerUnavailable": {
+      "title": "Docker is unreachable",
+      "description": "The API cannot reach the Docker engine (check <code>DOCKER_SOCKET</code> and the socket mount in the container)."
+    },
+    "username": "Username",
+    "container": "Container",
+    "login": "Login",
+    "storage": "Storage",
+    "domain": "Domain",
+    "customDomain": "Custom domain",
+    "apply": "Apply",
+    "removeDomain": "Remove domain",
+    "domainNote": "Requires the reverse proxy to be enabled with an ACME email set — otherwise no certificate is issued and <code>docker push</code> will reject the domain.",
+    "noOutput": "(no output)",
+    "enable": "Enable registry",
+    "gcDryRun": "GC (dry-run)",
+    "gc": "Garbage collect",
+    "remove": "Delete registry",
+    "cancel": "Cancel",
+    "provision": {
+      "title": "Enable local registry",
+      "description": "Choose where images are stored. It cannot be changed without deleting and re-enabling the registry.",
+      "localDisk": "Local (VPS disk)",
+      "s3Option": "{name} (S3)",
+      "noDestinations": "There is no S3 destination yet — add one under Instance backup first if you want to use object storage.",
+      "preparing": "Preparing…",
+      "confirm": "Enable"
+    },
+    "ready": {
+      "title": "Registry ready",
+      "description": "Save this password now — it is shown only once. After that it is stored encrypted on the server.",
+      "address": "Address",
+      "password": "Password",
+      "localhostNote": "This <code>localhost</code> address only works when the command is run directly on this server (e.g. over an SSH terminal) — not from your own computer. To push/pull from anywhere over HTTPS, set a <b>Custom domain</b> on this card after closing the dialog.",
+      "saved": "I have saved it",
+      "copyLabel": "Copy {label}",
+      "copied": "{label} copied",
+      "copyFailed": "Failed to copy {label}"
+    },
+    "removeDialog": {
+      "title": "Delete local registry?",
+      "description": "The container is stopped and deleted. Choose whether the image data is deleted too.",
+      "keepData": "Delete, keep data",
+      "withData": "Delete with data"
+    },
+    "status": {
+      "dockerOff": "Docker off",
+      "none": "Not installed",
+      "running": "Running"
+    }
+  },
+  "external": {
+    "description": "Docker Hub, GHCR, GitLab, or another registry. Credentials are stored encrypted.",
+    "empty": "There are no external registries yet.",
+    "name": "Name",
+    "url": "URL",
+    "username": "Username",
+    "prefix": "Prefix",
+    "test": "Test",
+    "deleteLabel": "Delete {name}",
+    "add": "Add registry",
+    "dialog": {
+      "title": "External registry",
+      "description": "For Docker Hub use the URL <code>docker.io</code>; for GHCR <code>ghcr.io</code>; for GitLab <code>registry.gitlab.com</code>.",
+      "passwordToken": "Password / token",
+      "imagePrefix": "Image prefix",
+      "prefixHint": "Optional; images are pushed as <code>&lt;url&gt;/&lt;prefix&gt;/&lt;app&gt;</code>.",
+      "saving": "Saving…",
+      "save": "Save"
+    }
+  },
+  "repositories": {
+    "empty": "There are no images yet. First push: <code>docker push &lt;registry&gt;/&lt;name&gt;:&lt;tag&gt;</code>",
+    "deletingImage": "Deleting image {name}…",
+    "imageDeleted": "Image {name} deleted",
+    "tagCount": "{count, plural, one {# tag} other {# tags}}",
+    "deleteImageLabel": "Delete image {name}",
+    "loading": "Loading…",
+    "noTagsManage": "No tags (the manifests were deleted). Use the \"Delete image\" button to remove this repository from the catalog entirely.",
+    "noTags": "No tags (the manifests were deleted).",
+    "tag": "Tag",
+    "digest": "Digest",
+    "size": "Size",
+    "deleteTagLabel": "Delete tag {name}",
+    "deleteTag": {
+      "title": "Delete tag {name}?",
+      "description": "The registry deletes its <em>manifest</em>, not just the tag name.",
+      "shared": "These tags point to the same manifest and <b>are deleted too</b>: <code>{names}</code>.",
+      "diskNote": "Disk space is only reclaimed after a garbage collect."
+    },
+    "cancel": "Cancel",
+    "deleting": "Deleting…",
+    "delete": "Delete",
+    "deleteImage": {
+      "title": "Delete image {name}?",
+      "description": "This removes the repository from the catalog entirely: all {count, plural, one {# tag} other {# tags}} and their manifests, its folder in storage, then an automatic garbage collect. The registry restarts briefly so its blob cache is cleared too — pushing again under the same name still works afterwards. This cannot be undone.",
+      "checking": "Checking usage…",
+      "usedBy": "Used by {count, plural, one {# application} other {# applications}}: <b>{names}</b>. Rollback or redeploy without a build to that image will fail once it is deleted.",
+      "confirm": "Delete image"
+    }
+  },
+  "page": {
+    "description": "Where built images are stored — for rollback and deploying to multiple servers.",
+    "local": "Local registry",
+    "external": "External ({count})",
+    "images": "Images",
+    "unreachable": "The registry cannot be reached."
+  },
+  "validation": {
+    "nameRequired": "Name is required",
+    "urlRequired": "URL is required",
+    "urlExample": "Example: ghcr.io or registry.example.com:5000"
+  },
+  "errors": {
+    "serverUnreachable": "Cannot connect to the server"
+  }
+}

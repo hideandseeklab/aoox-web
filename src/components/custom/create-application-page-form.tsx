@@ -1,5 +1,6 @@
 "use client"
 
+import { useTranslations } from "next-intl"
 import { useRouter } from "@/lib/use-router"
 import { toast } from "sonner"
 import { ApplicationForm } from "@/components/custom/application-form"
@@ -15,7 +16,7 @@ import type { Registry } from "@/features/registry/registry.entity"
 import type { Server } from "@/features/server/server.entity"
 
 /**
- * Standalone "Aplikasi baru" page's form — same "Domain" access glue the
+ * Standalone "New application" page's form — same "Domain" access glue the
  * dialog version used to have (the plain create action redirects, which
  * would abort before the add-domain call), just without a dialog to close.
  */
@@ -32,6 +33,7 @@ export function CreateApplicationPageForm({
   registries: Registry[]
   proxy: ProxyStatus
 }) {
+  const t = useTranslations("applications")
   const router = useRouter()
   const action = createApplicationAction.bind(null, projectId)
 
@@ -52,17 +54,21 @@ export function CreateApplicationPageForm({
       const domain = await addDomainAction(app.id, host, https)
       if (!domain.ok) {
         toast.error(
-          `Aplikasi dibuat, tapi domain gagal ditambahkan: ${domain.error}`,
-          { id: toastId }
+          t("form.toast.createdDomainFailed", { error: domain.error }),
+          {
+            id: toastId,
+          }
         )
       } else {
         proxyAutoProvisioned = !!domain.data.proxyAutoProvisioned
-        toast.success(`Aplikasi "${app.name}" & domain dibuat.`, {
+        toast.success(t("form.toast.createdWithDomain", { name: app.name }), {
           id: toastId,
         })
       }
     } else {
-      toast.success(`Aplikasi "${app.name}" dibuat.`, { id: toastId })
+      toast.success(t("form.toast.created", { name: app.name }), {
+        id: toastId,
+      })
     }
     router.push(
       `/applications/${app.id}${proxyAutoProvisioned ? "?domainProxyAutoProvisioned=1" : ""}`
@@ -74,7 +80,7 @@ export function CreateApplicationPageForm({
     <ApplicationForm
       action={action}
       mode="create"
-      submitLabel="Buat aplikasi"
+      submitLabel={t("form.createSubmit")}
       credentials={credentials}
       servers={servers}
       registries={registries}

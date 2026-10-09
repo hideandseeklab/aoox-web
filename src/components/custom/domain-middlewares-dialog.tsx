@@ -1,6 +1,7 @@
 "use client"
 
 import { Layers } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { useState, useTransition } from "react"
 import { EmptyState } from "@/components/custom/empty-state"
 import { Button } from "@/components/ui/button"
@@ -34,6 +35,8 @@ export function DomainMiddlewaresDialog({
   domain: Domain
   options: DomainMiddlewareOption[]
 }) {
+  const t = useTranslations("applications")
+  const tc = useTranslations("common")
   const current = domain.middlewares ?? []
   const [open, setOpen] = useState(false)
   const [selected, setSelected] = useState<string[]>(current)
@@ -75,23 +78,17 @@ export function DomainMiddlewaresDialog({
       <DialogTrigger asChild>
         <Button variant="outline" size="sm">
           <Layers data-icon="inline-start" />
-          Atur
+          {t("middlewares.manage")}
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Middleware untuk {domain.host}</DialogTitle>
-          <DialogDescription>
-            Dijalankan berurutan sesuai urutan dipilih, sebelum request sampai
-            ke aplikasi. Menyimpan membuat ulang container tanpa build. Domain
-            HTTP-saja dan HTTPS sama-sama memakainya; pengalihan http→https
-            tidak.
-          </DialogDescription>
+          <DialogTitle>{t("middlewares.title", { host: domain.host })}</DialogTitle>
+          <DialogDescription>{t("middlewares.description")}</DialogDescription>
         </DialogHeader>
         {options.length === 0 && orphans.length === 0 ? (
           <EmptyState icon={Layers} compact>
-            Belum ada middleware. Owner membuatnya di Infrastruktur → Reverse
-            proxy → Konfigurasi dinamis.
+            {t("middlewares.empty")}
           </EmptyState>
         ) : (
           <ul className="divide-y rounded-md border text-xs">
@@ -107,7 +104,7 @@ export function DomainMiddlewaresDialog({
                   />
                   <span className="min-w-0 truncate font-mono">{o.ref}</span>
                   <span className="ms-auto text-muted-foreground">
-                    {index >= 0 ? `urutan ${index + 1}` : o.file}
+                    {index >= 0 ? t("middlewares.order", { n: index + 1 }) : o.file}
                   </span>
                 </li>
               )
@@ -121,7 +118,7 @@ export function DomainMiddlewaresDialog({
                   disabled={pending}
                 />
                 <span className="min-w-0 truncate font-mono">{ref}</span>
-                <span className="ms-auto text-destructive">tidak ada lagi</span>
+                <span className="ms-auto text-destructive">{t("middlewares.gone")}</span>
               </li>
             ))}
           </ul>
@@ -138,10 +135,10 @@ export function DomainMiddlewaresDialog({
             disabled={pending}
             onClick={() => setOpen(false)}
           >
-            Batal
+            {tc("actions.cancel")}
           </Button>
           <Button type="button" onClick={save} disabled={pending}>
-            {pending ? "Menyimpan…" : "Simpan"}
+            {pending ? tc("states.saving") : tc("actions.save")}
           </Button>
         </DialogFooter>
       </DialogContent>

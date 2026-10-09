@@ -1,5 +1,6 @@
 "use server"
 
+import { getTranslations } from "next-intl/server"
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
 import { requireToken } from "@/features/auth/auth.session"
@@ -9,12 +10,25 @@ import type { GitCredential } from "./git-credential.entity"
 export type ActionResult<T = undefined> =
   { ok: true; data: T } | { ok: false; error: string }
 
-const schema = z.object({
-  name: z.string().trim().min(1, "Nama wajib diisi").max(100),
-  provider: z.enum(["github", "gitlab", "generic"]),
-  username: z.string().trim().min(1, "Username wajib diisi").max(255),
-  token: z.string().min(1, "Token wajib diisi").max(4096),
-})
+async function fail(err: unknown): Promise<{ ok: false; error: string }> {
+  const t = await getTranslations("settings")
+  return {
+    ok: false,
+    error: err instanceof ApiError ? err.message : t("errors.unreachable"),
+  }
+}
+
+const schema = (t: (key: string) => string) =>
+  z.object({
+    name: z.string().trim().min(1, t("validation.nameRequired")).max(100),
+    provider: z.enum(["github", "gitlab", "generic"]),
+    username: z
+      .string()
+      .trim()
+      .min(1, t("validation.usernameRequired"))
+      .max(255),
+    token: z.string().min(1, t("validation.tokenRequired")).max(4096),
+  })
 
 export interface GitCredentialFormState {
   error?: string
@@ -34,7 +48,11 @@ export async function createGitCredentialAction(
     provider: String(formData.get("provider") ?? "github"),
     username: String(formData.get("username") ?? ""),
   }
-  const parsed = schema.safeParse({ ...values, token: formData.get("token") })
+  const t = await getTranslations("settings")
+  const parsed = schema(t).safeParse({
+    ...values,
+    token: formData.get("token"),
+  })
   if (!parsed.success) {
     const fieldErrors: GitCredentialFormState["fieldErrors"] = {}
     for (const issue of parsed.error.issues) {
@@ -50,13 +68,7 @@ export async function createGitCredentialAction(
       token: await requireToken(),
     })
   } catch (err) {
-    return {
-      error:
-        err instanceof ApiError
-          ? err.message
-          : "Tidak dapat terhubung ke server",
-      values,
-    }
+    return { error: (await fail(err)).error, values }
   }
   revalidatePath("/settings")
   return { created: true }
@@ -73,12 +85,6 @@ export async function deleteGitCredentialAction(
     revalidatePath("/settings")
     return { ok: true, data: undefined }
   } catch (err) {
-    return {
-      ok: false,
-      error:
-        err instanceof ApiError
-          ? err.message
-          : "Tidak dapat terhubung ke server",
-    }
+    return fail(err)
   }
 }

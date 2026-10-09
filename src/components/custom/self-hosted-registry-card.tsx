@@ -1,6 +1,7 @@
 "use client"
 
 import { Copy, Play, Trash2, Trash } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { useState, useTransition } from "react"
 import { toast } from "sonner"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
@@ -53,6 +54,7 @@ export function SelfHostedRegistryCard({
   canManage: boolean
   destinations: BackupDestination[]
 }) {
+  const t = useTranslations("registry.selfHosted")
   const [pending, start] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const [creds, setCreds] = useState<ProvisionResult | null>(null)
@@ -67,13 +69,13 @@ export function SelfHostedRegistryCard({
   const storageName = registry?.storageDestinationId
     ? (destinations.find((d) => d.id === registry.storageDestinationId)?.name ??
       "S3")
-    : "Lokal (disk)"
+    : t("storageLocal")
 
   const run = (fn: () => Promise<{ ok: boolean; error?: string }>) =>
     start(async () => {
       setError(null)
       const r = await fn()
-      if (!r.ok) setError(r.error ?? "Gagal")
+      if (!r.ok) setError(r.error ?? t("failed"))
     })
 
   return (
@@ -81,45 +83,46 @@ export function SelfHostedRegistryCard({
       <CardHeader>
         <div className="flex items-start justify-between gap-4">
           <div>
-            <CardTitle>Registry lokal</CardTitle>
+            <CardTitle>{t("title")}</CardTitle>
             <CardDescription>
-              Container <code>registry:3</code> yang dikelola aoox. Alamat push:{" "}
-              <code className="text-foreground">
-                {registry?.url ?? publicUrl}
-              </code>
+              {t.rich("description", {
+                code: (c) => <code>{c}</code>,
+                addr: (c) => <code className="text-foreground">{c}</code>,
+                url: registry?.url ?? publicUrl,
+              })}
             </CardDescription>
           </div>
-          <StatusBadge status={status} />
+          <StatusBadge status={status} t={t} />
         </div>
       </CardHeader>
       <CardContent className="space-y-3">
         {!dockerAvailable && (
           <Alert>
-            <AlertTitle>Docker tidak terjangkau</AlertTitle>
+            <AlertTitle>{t("dockerUnavailable.title")}</AlertTitle>
             <AlertDescription>
-              API tidak bisa mengakses Docker engine (cek{" "}
-              <code>DOCKER_SOCKET</code>
-              dan mount socket di container).
+              {t.rich("dockerUnavailable.description", {
+                code: (c) => <code>{c}</code>,
+              })}
             </AlertDescription>
           </Alert>
         )}
         {installed && registry && (
           <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-xs">
-            <dt className="text-muted-foreground">Username</dt>
+            <dt className="text-muted-foreground">{t("username")}</dt>
             <dd className="font-mono">{registry.username}</dd>
-            <dt className="text-muted-foreground">Container</dt>
+            <dt className="text-muted-foreground">{t("container")}</dt>
             <dd className="font-mono">
               {container.containerId?.slice(0, 12)} · {container.state}
             </dd>
-            <dt className="text-muted-foreground">Login</dt>
+            <dt className="text-muted-foreground">{t("login")}</dt>
             <dd className="font-mono">
               docker login {registry.url} -u {registry.username}
             </dd>
-            <dt className="text-muted-foreground">Storage</dt>
+            <dt className="text-muted-foreground">{t("storage")}</dt>
             <dd>{storageName}</dd>
             {registry.domain && (
               <>
-                <dt className="text-muted-foreground">Domain</dt>
+                <dt className="text-muted-foreground">{t("domain")}</dt>
                 <dd className="font-mono text-primary">{registry.domain}</dd>
               </>
             )}
@@ -141,7 +144,7 @@ export function SelfHostedRegistryCard({
             }}
           >
             <div className="min-w-0 flex-1 space-y-1">
-              <Label htmlFor="registry-domain">Domain kustom</Label>
+              <Label htmlFor="registry-domain">{t("customDomain")}</Label>
               <Input
                 id="registry-domain"
                 placeholder="registry.example.com"
@@ -151,7 +154,7 @@ export function SelfHostedRegistryCard({
               />
             </div>
             <Button type="submit" disabled={pending || !domainInput.trim()}>
-              Terapkan
+              {t("apply")}
             </Button>
             {registry?.domain && (
               <Button
@@ -162,13 +165,11 @@ export function SelfHostedRegistryCard({
                   run(() => setRegistryDomainAction(registry.id, null))
                 }
               >
-                Hapus domain
+                {t("removeDomain")}
               </Button>
             )}
             <p className="w-full text-xs text-muted-foreground">
-              Butuh reverse proxy sudah diaktifkan dengan email ACME diisi —
-              tanpa itu sertifikat tidak terbit dan <code>docker push</code>{" "}
-              akan menolak domainnya.
+              {t.rich("domainNote", { code: (c) => <code>{c}</code> })}
             </p>
           </form>
         )}
@@ -179,7 +180,7 @@ export function SelfHostedRegistryCard({
         )}
         {gcOutput !== null && (
           <pre className="max-h-48 overflow-auto rounded-md border bg-muted p-2 text-xs">
-            {gcOutput || "(tidak ada output)"}
+            {gcOutput || t("noOutput")}
           </pre>
         )}
       </CardContent>
@@ -191,7 +192,7 @@ export function SelfHostedRegistryCard({
               onClick={() => setProvisionOpen(true)}
             >
               <Play data-icon="inline-start" />
-              Aktifkan registry
+              {t("enable")}
             </Button>
           ) : (
             <>
@@ -207,7 +208,7 @@ export function SelfHostedRegistryCard({
                   })
                 }
               >
-                GC (dry-run)
+                {t("gcDryRun")}
               </Button>
               <Button
                 variant="outline"
@@ -222,7 +223,7 @@ export function SelfHostedRegistryCard({
                 }
               >
                 <Trash data-icon="inline-start" />
-                Garbage collect
+                {t("gc")}
               </Button>
               <Button
                 variant="destructive"
@@ -231,7 +232,7 @@ export function SelfHostedRegistryCard({
                 onClick={() => setRemoveOpen(true)}
               >
                 <Trash2 data-icon="inline-start" />
-                Hapus registry
+                {t("remove")}
               </Button>
             </>
           )}
@@ -241,37 +242,35 @@ export function SelfHostedRegistryCard({
       <Dialog open={provisionOpen} onOpenChange={setProvisionOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Aktifkan registry lokal</DialogTitle>
+            <DialogTitle>{t("provision.title")}</DialogTitle>
             <DialogDescription>
-              Pilih tempat penyimpanan image. Tidak bisa diganti tanpa hapus
-              lalu aktifkan ulang.
+              {t("provision.description")}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-1.5">
-            <Label htmlFor="registry-storage">Storage</Label>
+            <Label htmlFor="registry-storage">{t("storage")}</Label>
             <Select value={destinationId} onValueChange={setDestinationId}>
               <SelectTrigger id="registry-storage" className="w-full">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="local">Lokal (disk VPS)</SelectItem>
+                <SelectItem value="local">{t("provision.localDisk")}</SelectItem>
                 {destinations.map((d) => (
                   <SelectItem key={d.id} value={d.id}>
-                    {d.name} (S3)
+                    {t("provision.s3Option", { name: d.name })}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
             {destinations.length === 0 && (
               <p className="text-xs text-muted-foreground">
-                Belum ada tujuan S3 — tambah dulu di Backup instance kalau mau
-                pakai object storage.
+                {t("provision.noDestinations")}
               </p>
             )}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setProvisionOpen(false)}>
-              Batal
+              {t("cancel")}
             </Button>
             <Button
               disabled={pending}
@@ -289,7 +288,7 @@ export function SelfHostedRegistryCard({
                 })
               }
             >
-              {pending ? "Menyiapkan…" : "Aktifkan"}
+              {pending ? t("provision.preparing") : t("provision.confirm")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -298,35 +297,32 @@ export function SelfHostedRegistryCard({
       <Dialog open={creds !== null} onOpenChange={(o) => !o && setCreds(null)}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Registry siap</DialogTitle>
+            <DialogTitle>{t("ready.title")}</DialogTitle>
             <DialogDescription>
-              Simpan password ini sekarang — hanya ditampilkan sekali. Setelah
-              itu disimpan terenkripsi di server.
+              {t("ready.description")}
             </DialogDescription>
           </DialogHeader>
           {creds && (
             <div className="space-y-2 text-xs">
-              <CredRow label="Alamat" value={creds.registry.url} />
-              <CredRow label="Username" value={creds.username} />
-              <CredRow label="Password" value={creds.password} />
+              <CredRow label={t("ready.address")} value={creds.registry.url} />
+              <CredRow label={t("username")} value={creds.username} />
+              <CredRow label={t("ready.password")} value={creds.password} />
               <CredRow
-                label="Login"
+                label={t("login")}
                 value={`docker login ${creds.registry.url} -u ${creds.username}`}
               />
               {creds.registry.url.startsWith("localhost:") && (
                 <p className="text-xs text-muted-foreground">
-                  Alamat <code>localhost</code> ini hanya berfungsi kalau
-                  perintah dijalankan langsung di server ini (mis. lewat
-                  terminal SSH) — bukan dari komputermu sendiri. Untuk bisa
-                  push/pull dari mana saja lewat HTTPS, set{" "}
-                  <strong>Domain kustom</strong> di kartu ini setelah menutup
-                  dialog.
+                  {t.rich("ready.localhostNote", {
+                    code: (c) => <code>{c}</code>,
+                    b: (c) => <strong>{c}</strong>,
+                  })}
                 </p>
               )}
             </div>
           )}
           <DialogFooter>
-            <Button onClick={() => setCreds(null)}>Sudah saya simpan</Button>
+            <Button onClick={() => setCreds(null)}>{t("ready.saved")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -334,15 +330,14 @@ export function SelfHostedRegistryCard({
       <Dialog open={removeOpen} onOpenChange={setRemoveOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Hapus registry lokal?</DialogTitle>
+            <DialogTitle>{t("removeDialog.title")}</DialogTitle>
             <DialogDescription>
-              Container dihentikan dan dihapus. Pilih apakah data image ikut
-              dihapus.
+              {t("removeDialog.description")}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => setRemoveOpen(false)}>
-              Batal
+              {t("cancel")}
             </Button>
             <Button
               variant="outline"
@@ -355,7 +350,7 @@ export function SelfHostedRegistryCard({
                 })
               }
             >
-              Hapus, simpan data
+              {t("removeDialog.keepData")}
             </Button>
             <Button
               variant="destructive"
@@ -368,7 +363,7 @@ export function SelfHostedRegistryCard({
                 })
               }
             >
-              Hapus beserta data
+              {t("removeDialog.withData")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -377,16 +372,23 @@ export function SelfHostedRegistryCard({
   )
 }
 
-function StatusBadge({ status }: { status: SelfHostedStatus }) {
+function StatusBadge({
+  status,
+  t,
+}: {
+  status: SelfHostedStatus
+  t: ReturnType<typeof useTranslations>
+}) {
   if (!status.dockerAvailable)
-    return <Badge variant="destructive">Docker off</Badge>
+    return <Badge variant="destructive">{t("status.dockerOff")}</Badge>
   if (!status.container.installed)
-    return <Badge variant="secondary">Belum ada</Badge>
-  if (status.container.running) return <Badge>Running</Badge>
+    return <Badge variant="secondary">{t("status.none")}</Badge>
+  if (status.container.running) return <Badge>{t("status.running")}</Badge>
   return <Badge variant="destructive">{status.container.state}</Badge>
 }
 
 function CredRow({ label, value }: { label: string; value: string }) {
+  const t = useTranslations("registry.selfHosted.ready")
   return (
     <div className="flex items-center gap-2">
       <span className="w-20 shrink-0 text-muted-foreground">{label}</span>
@@ -396,12 +398,12 @@ function CredRow({ label, value }: { label: string; value: string }) {
       <Button
         variant="ghost"
         size="icon-sm"
-        aria-label={`Salin ${label}`}
+        aria-label={t("copyLabel", { label })}
         onClick={() =>
           void copyToClipboard(value).then((ok) =>
             ok
-              ? toast.success(`${label} disalin`)
-              : toast.error(`Gagal menyalin ${label.toLowerCase()}`)
+              ? toast.success(t("copied", { label }))
+              : toast.error(t("copyFailed", { label: label.toLowerCase() }))
           )
         }
       >

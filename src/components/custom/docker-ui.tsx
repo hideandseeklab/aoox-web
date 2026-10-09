@@ -1,22 +1,26 @@
 "use client"
 
 import { Search, type LucideIcon } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { createContext, useContext } from "react"
 import { EmptyState } from "@/components/custom/empty-state"
 import { Input } from "@/components/ui/input"
 
-/** Short relative age in Indonesian ("3 jam", "2 hari"); null input = "-". */
-export function ago(iso: string | null): string {
-  if (!iso) return "-"
-  const s = Math.max(0, (Date.now() - new Date(iso).getTime()) / 1000)
-  if (s < 90) return "baru saja"
-  const m = s / 60
-  if (m < 90) return `${Math.round(m)} menit`
-  const h = m / 60
-  if (h < 36) return `${Math.round(h)} jam`
-  const d = h / 24
-  if (d < 60) return `${Math.round(d)} hari`
-  return `${Math.round(d / 30)} bulan`
+/** Returns a function giving a short localized age ("3 hours", "2 days"); null input = "-". */
+export function useAgo(): (iso: string | null) => string {
+  const t = useTranslations("docker.ago")
+  return (iso) => {
+    if (!iso) return "-"
+    const s = Math.max(0, (Date.now() - new Date(iso).getTime()) / 1000)
+    if (s < 90) return t("justNow")
+    const m = s / 60
+    if (m < 90) return t("minutes", { count: Math.round(m) })
+    const h = m / 60
+    if (h < 36) return t("hours", { count: Math.round(h) })
+    const d = h / 24
+    if (d < 60) return t("days", { count: Math.round(d) })
+    return t("months", { count: Math.round(d / 30) })
+  }
 }
 
 /** The toolbar owns the search box (top right, next to the tabs); the tab tables read its text here. */

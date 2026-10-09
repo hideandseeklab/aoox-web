@@ -1,6 +1,7 @@
 "use client"
 
 import { Download } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -24,6 +25,8 @@ export function ExportProjectButton({
   id: string
   canExportSecrets: boolean
 }) {
+  const t = useTranslations("projects")
+  const tc = useTranslations("common")
   const href = (secrets: boolean) =>
     `/api/projects/${id}/export${secrets ? "?includeSecrets=true" : ""}`
   return (
@@ -31,17 +34,17 @@ export function ExportProjectButton({
       <DropdownMenuTrigger asChild>
         <Button variant="outline">
           <Download data-icon="inline-start" />
-          Ekspor
+          {tc("actions.export")}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-72">
-        <DropdownMenuLabel>Ekspor konfigurasi (JSON)</DropdownMenuLabel>
+        <DropdownMenuLabel>{t("export.label")}</DropdownMenuLabel>
         <DropdownMenuItem asChild>
           <a href={href(false)} download>
             <span className="flex flex-col">
-              <span>Tanpa rahasia</span>
+              <span>{t("export.withoutSecrets")}</span>
               <span className="text-xs text-muted-foreground">
-                Password database dikosongkan, dibuat baru saat impor
+                {t("export.withoutSecretsHint")}
               </span>
             </span>
           </a>
@@ -52,9 +55,9 @@ export function ExportProjectButton({
             <DropdownMenuItem asChild>
               <a href={href(true)} download>
                 <span className="flex flex-col">
-                  <span>Dengan password database</span>
+                  <span>{t("export.withSecrets")}</span>
                   <span className="text-xs text-muted-foreground">
-                    Simpan file ini seperti rahasia lain
+                    {t("export.withSecretsHint")}
                   </span>
                 </span>
               </a>

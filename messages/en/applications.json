@@ -1,0 +1,656 @@
+{
+  "form": {
+    "createSubmit": "Create application",
+    "toast": {
+      "created": "Application \"{name}\" created.",
+      "createdWithDomain": "Application \"{name}\" and domain created.",
+      "createdDomainFailed": "Application created, but the domain could not be added: {error}",
+      "checkFields": "Check the form fields",
+      "creatingNamed": "Creating application {name}…",
+      "creatingUnnamed": "Creating new application…",
+      "saved": "Saved.",
+      "hostPortSetRecreated": "Host port applied, container recreated.",
+      "hostPortRemovedRecreated": "Host port removed, container recreated.",
+      "hostPortRolling": "Host port saved; applied through a configuration deployment (see History).",
+      "hostPortOnStart": "Host port saved; takes effect when the application is started again.",
+      "applyingHostPort": "Applying host port — recreating the container…"
+    },
+    "source": {
+      "title": "Source",
+      "description": "Where this application runs from.",
+      "legend": "Application source",
+      "options": {
+        "git": {
+          "title": "Git repo (built)",
+          "description": "Clone the repo, build an image, then run it."
+        },
+        "image": {
+          "title": "Ready-made image (pulled)",
+          "description": "Pull an image from a registry, no build."
+        }
+      }
+    },
+    "image": {
+      "title": "Image",
+      "label": "Image",
+      "placeholder": "ghcr.io/org/app:1.2 or nginx:1.27",
+      "description": "Pulled again on every deploy, so moving tags such as <code>latest</code> stay up to date. No build and no local registry.",
+      "credentials": "Credentials",
+      "public": "Public",
+      "autoUpdate": "Auto update",
+      "autoUpdateSwitch": "Redeploy when the tag's digest changes in the registry",
+      "checkEvery": "check every <input></input> minutes",
+      "intervalAria": "Check interval (minutes)",
+      "autoUpdateHelp": "Like Watchtower: the manifest digest is compared through the registry API (Docker Hub, GHCR, local registry), without pulling. Tags pinned by digest (<code>@sha256:…</code>) never change."
+    },
+    "git": {
+      "title": "Git repository",
+      "label": "Git repository",
+      "description": "A git repo that can be cloned over HTTPS.",
+      "branch": "Branch",
+      "buildType": "Build method",
+      "buildTypes": {
+        "dockerfile": "Dockerfile in the repo",
+        "nixpacks": "Nixpacks (auto-detect)",
+        "railpack": "Railpack (auto-detect, build cache)",
+        "static": "Static site (nginx)"
+      },
+      "rootDirectory": "Root directory",
+      "rootDirectoryPlaceholder": "apps/web (empty = repo root)",
+      "rootDirectoryHelp": "For monorepos: the folder that is built, e.g. <code>apps/web</code>. The Dockerfile path and output folder below are relative to this folder, and files outside it are not part of the build.",
+      "watchRootAria": "Deploy only when this folder changes",
+      "watchRoot": "Webhook: deploy only when files in this folder change",
+      "railpackHelp": "Railpack (Railway) also detects the stack from the repo contents, but its build runs on BuildKit so <strong>dependency cache persists between deploys</strong> (tested here: 284 s<arrow></arrow>54 s). Needs a BuildKit container on the host — started automatically on the first build; applications on a remote server are not supported. Build args are passed as <code>--env</code>.",
+      "nixpacksHelp": "Nixpacks recognizes Node, Python, Go, PHP, Ruby, Rust and more from the repo contents. The first build is slower (base image ±430 MB + package installation through Nix); the build cache is disabled — use Railpack if you want a cache. The build args below are passed to Nixpacks as env (e.g. <code>NIXPACKS_NODE_VERSION=22</code>).",
+      "credential": "Git credential",
+      "credentialNone": "None (public repo)",
+      "credentialHelp": "For private repos; add a credential in Settings."
+    },
+    "static": {
+      "buildCommand": "Build command",
+      "buildCommandPlaceholder": "npm ci && npm run build (empty = files are already in the repo)",
+      "buildCommandHelp": "Runs in the <code>node:22-alpine</code> image; the result is copied to nginx. Leave empty for plain static HTML.",
+      "outputDir": "Output folder",
+      "outputDirHelp": "<code>dist</code>, <code>build</code>, <code>out</code>, or <code>.</code> for the whole repo.",
+      "spaMode": "SPA mode",
+      "spaSwitch": "Send unknown paths to <code>index.html</code>",
+      "spaHelp": "Container port = 80. Turn on for React/Vue Router."
+    },
+    "network": {
+      "title": "Network & access",
+      "containerPort": "Container port",
+      "staticNote": "Static sites are served by nginx on port 80.",
+      "hostPort": "Host port",
+      "hostPortPlaceholder": "empty = not published",
+      "applyRecreate": "Applied immediately: the container is recreated from the running image (no build; brief downtime because two containers cannot use the same port).",
+      "applyRolling": "Applied as a configuration deployment (swarm service rolling update).",
+      "applyOnStart": "The application is stopped: takes effect when it is started again.",
+      "applyNextDeploy": "Takes effect on the first deploy.",
+      "healthcheck": "Health check path",
+      "healthcheckPlaceholder": "/health (empty = no health check)",
+      "healthcheckHelp": "The deploy waits for this path to answer 2xx/3xx inside the container (needs wget/curl/node/python3 in the image). For apps routed through a domain without a host port, the new container is started beside the old one and only replaces it once healthy — no downtime. If it never becomes healthy the deploy fails and the old container keeps running."
+    },
+    "access": {
+      "label": "Access",
+      "description": "Without a host port or domain, the application runs but cannot be opened from outside — you can also set this later in the Settings or Domain tab.",
+      "tabPort": "IP & port",
+      "tabDomain": "Domain",
+      "tabLater": "Later",
+      "hostPortPlaceholder": "e.g. 8080",
+      "ipPlaceholder": "'<server-ip>'",
+      "hostPortHelp": "Opened directly through the IP: <code>{url}</code>, without a domain/proxy.",
+      "hostname": "Hostname",
+      "hostRequired": "Host is required",
+      "domainHelp": "Opened through the reverse proxy (point this host's DNS to this server).",
+      "proxyNotRunning": "The proxy is not running — it will be started automatically if needed.",
+      "httpsNeedsAcme": "HTTPS requires PROXY_ACME_EMAIL on the API.",
+      "laterHelp": "The application is created without an access address — set a host port or domain later."
+    },
+    "env": {
+      "label": "Environment variables",
+      "description": "Applied on the next deploy, on top of the project's shared env."
+    },
+    "advanced": {
+      "title": "Resources & advanced",
+      "localHost": "aoox host",
+      "serverHelp": "On a remote server: the build and the container run on that server's Docker (over SSH) and the image is not pushed to the registry. Domains are served by that server's own proxy (Infrastructure<arrow></arrow>Remote servers<arrow></arrow>Proxy).",
+      "deployMode": "Deploy mode",
+      "modeContainer": "Container (blue/green by aoox)",
+      "modeService": "Swarm service (replicas, rolling update by the daemon)",
+      "deployModeHelp": "A service runs on the aoox host only. Stop/start = scale to 0 and back; logs & metrics come from its tasks. Changing the mode = redeploy the last image. Replicas > 1 share the same volume mounts.",
+      "replicas": "Replicas",
+      "constraint": "Extra constraint",
+      "constraintHelp": "Node labels are set in Settings<arrow></arrow>Docker Swarm. Combined with the placement below (all must be satisfied).",
+      "rollingUpdate": "Rolling update",
+      "rollingUpdateRow": "<parallelism></parallelism> tasks per batch, delay <delay></delay> seconds",
+      "parallelismAria": "Tasks per batch",
+      "delayAria": "Delay between batches (seconds)",
+      "order": "Order",
+      "orderAuto": "Automatic (start-first; stop-first when there is a host port)",
+      "orderStartFirst": "start-first (new task first)",
+      "orderStopFirst": "stop-first (stop the old one first)",
+      "placement": "Placement",
+      "placementAny": "Any node (automatic)",
+      "placementHelp": "Applications with mounts are always placed on the aoox host (their volumes live there). Tasks on other nodes: logs still show, but job exec & metrics only work for tasks on the host.",
+      "cpuLimit": "CPU limit (millicores)",
+      "cpuPlaceholder": "empty = unlimited; 1000 = 1 core",
+      "memoryLimit": "Memory limit (MiB)",
+      "memoryPlaceholder": "empty = unlimited",
+      "memoryHelp": "Applied immediately to the running container (removing a limit = the container is recreated).",
+      "deploymentKeep": "Deployment history",
+      "deploymentKeepHelp": "Number of successful deployments (with their images) kept for rollback; older ones are deleted during the nightly cleanup.",
+      "ignoreErrors": "Ignore errors in logs",
+      "ignoreErrorsHelp": "Skip this application in the automatic log scan (the <em>Application error</em> notification) — for applications whose normal output looks like errors.",
+      "buildArgs": "Build args",
+      "buildArgsHelp": "One <code>KEY=VALUE</code> per line, passed to <code>ARG</code> in the Dockerfile at build time. They are stored in the image — do not use for secrets; references are not supported."
+    },
+    "previews": {
+      "label": "Pull request previews",
+      "switch": "Build & run every opened PR (via webhook)",
+      "domainPlaceholder": "preview.example.com (optional; defaults to the API's PREVIEW_DOMAIN)",
+      "domainAria": "Preview domain",
+      "help": "Previews are reachable at <code>'<app>'-pr'<N>'.'<preview domain>'</code> (needs wildcard DNS to this host). PRs from forks are always ignored — a PR branch is arbitrary code. At most 5 open previews per application. Enable the <em>Pull requests</em> event in the provider's webhook."
+    }
+  },
+  "page": {
+    "backToProject": "Back to project",
+    "newTitle": "New application",
+    "newDescription": "Built from a git repo (Dockerfile, Nixpacks, or static site) or pulled from a ready-made image, then run as a container.",
+    "readOnly": "Read only"
+  },
+  "tabs": {
+    "deploy": "Deploy",
+    "domains": "Domains ({count})",
+    "mounts": "Mounts ({count})",
+    "environment": "Environment",
+    "jobs": "Jobs ({count})",
+    "monitor": "Monitor",
+    "webhook": "Webhook",
+    "console": "Console",
+    "settings": "Settings",
+    "settingsTitle": "Settings",
+    "settingsDescription": "Host port, domains, and resource limits are applied directly to the running application; other settings take effect on the next deploy.",
+    "taskLabel": "Task {slot}",
+    "taskLabelNode": "Task {slot} · {node}"
+  },
+  "actions": {
+    "deploy": "Deploy",
+    "deploying": "Deploying…",
+    "failed": "Failed",
+    "invalidData": "Invalid data",
+    "serverUnreachable": "Could not reach the server"
+  },
+  "environment": {
+    "title": "Environment",
+    "description": "This application's env variables. Applied on the next deploy (values are read when the container is created), on top of the project's shared env: on the same key, this one wins.",
+    "saving": "Saving environment…",
+    "saved": "Environment saved",
+    "readOnly": "Only developers and above can change the environment."
+  },
+  "imagePicker": {
+    "trigger": "Choose from registry",
+    "title": "Choose an image from a registry",
+    "description": "Only shows repositories/tags that have already been pushed — run <code>docker push</code> first if there are none.",
+    "registry": "Registry",
+    "pickRegistry": "Choose a registry",
+    "repository": "Repository",
+    "pickRepository": "Choose a repository",
+    "noImages": "No images in this registry yet",
+    "tagCount": "{count, plural, one {# tag} other {# tags}}",
+    "tag": "Tag",
+    "pickTag": "Choose a tag",
+    "noTags": "No tags",
+    "use": "Use"
+  },
+  "delete": {
+    "title": "Delete application?",
+    "description": "The container <strong>{name}</strong> will be stopped and removed. Images in the registry are not deleted."
+  },
+  "validation": {
+    "nameRequired": "Name is required",
+    "imageRefInvalid": "Invalid image reference",
+    "imageRefRequired": "Image reference is required",
+    "swarmConstraintFormat": "Format: node.labels.'<key>'=='<value>', node.role==worker, node.hostname!='<name>'",
+    "branchInvalid": "Invalid branch name",
+    "pathInvalid": "Invalid path",
+    "rootDirectoryFormat": "Relative folder, e.g. apps/web (no .. and no leading /)",
+    "healthcheckPath": "Must start with / (e.g. /health)",
+    "staticOutputDir": "Folder relative to the repo root",
+    "domainInvalid": "Invalid domain",
+    "gitUrlRequired": "Git URL is required",
+    "gitUrlFormat": "Must be an http(s) or git:// URL",
+    "envTooLong": "Environment is too long (max 20,000 characters)"
+  },
+  "status": {
+    "notDeployed": "not deployed",
+    "service": "service {running}/{desired}",
+    "serviceUpdating": "service {running}/{desired} · {state}"
+  },
+  "shared": {
+    "envRefs": "Values can reference <code>{projectRef}</code> and <code>{databaseRef}</code>.",
+    "envRefsWithDb": "Values can reference <code>{projectRef}</code> and this project's databases: <databases></databases> (also <code>.host</code>, <code>.port</code>, <code>.username</code>, <code>.password</code>, <code>.database</code>)."
+  },
+  "deploy": {
+    "failed": "Failed",
+    "reconnect": "reconnect",
+    "rollbackHere": "Roll back to this",
+    "toast": {
+      "started": "Deploy started — {trigger}"
+    },
+    "trigger": {
+      "by": "by {name}",
+      "webhook": "Webhook",
+      "webhookDetail": "Webhook — {detail}",
+      "autoUpdate": "Automatic update (image changed)",
+      "manual": "Manual",
+      "manualBy": "Manual by {name}"
+    },
+    "proxyWarning": {
+      "title": "Reverse proxy was not running — it has been started automatically",
+      "intro": "The proxy (Traefik) was not running before this domain was saved, so it was started automatically. The new domain is reachable once these three things are also in place:",
+      "dns": "The domain's DNS points to this server's IP.",
+      "ports": "Ports <code>80</code> and <code>443</code> are open to the public (OS firewall and VPS provider).",
+      "cert": "The HTTPS certificate (Let's Encrypt) is only issued the first time the domain is visited — wait a minute."
+    },
+    "noAccess": {
+      "title": "This application has no access address",
+      "body": "Without a host port or a domain, this application can only be reached inside the Docker network.",
+      "setPort": "Set host port",
+      "addDomain": "Add domain"
+    },
+    "swarm": {
+      "title": "Swarm service",
+      "tasks": "{running}/{desired} tasks",
+      "update": "update {state}",
+      "otherNode": "(other node)"
+    },
+    "image": {
+      "check": "Check image update",
+      "pinned": "The reference uses a fixed digest — nothing changed.",
+      "baseline": "Digest recorded ({digest}); nothing to compare yet.",
+      "changedStarted": "Image changed ({digest}) — deploy started.",
+      "changedBusy": "Image changed ({digest}) — another deployment is running.",
+      "upToDate": "Already up to date ({digest})."
+    },
+    "logs": {
+      "follow": "Container logs (live)",
+      "stopFollow": "Stop following logs",
+      "containerLabel": "Container logs"
+    },
+    "origin": {
+      "title": "Realtime logs are not available at this address",
+      "body": "This panel has a custom domain (<code>{webOrigin}</code>), and realtime logs only accept connections from that domain — not from <code>{browserOrigin}</code>, which you are using now.",
+      "open": "Open this page at {origin}"
+    },
+    "history": {
+      "title": "Deployments",
+      "empty": "Never deployed."
+    },
+    "kind": {
+      "build": "build",
+      "rollback": "rollback",
+      "auto-update": "auto-update",
+      "config": "configuration",
+      "configTitle": "Apply configuration (no build)",
+      "autoUpdateTitle": "Automatic update from the registry"
+    },
+    "log": {
+      "title": "Deployment log",
+      "label": "Deployment log",
+      "select": "Select a deployment."
+    }
+  },
+  "stepper": {
+    "ariaLabel": "Deployment steps",
+    "steps": {
+      "queued": "Queued",
+      "pull": "Pull",
+      "build": "Build",
+      "push": "Push",
+      "start": "Start",
+      "finished": "Done",
+      "failed": "Failed"
+    },
+    "state": {
+      "done": "done",
+      "active": "in progress",
+      "failed": "failed",
+      "pending": "waiting"
+    },
+    "duration": {
+      "ms": "{value} ms",
+      "seconds": "{value} s",
+      "minutes": "{minutes} min",
+      "minutesSeconds": "{minutes} min {seconds} s"
+    }
+  },
+  "domains": {
+    "proxyStopped": {
+      "title": "Proxy is not running",
+      "body": "New domains take effect once the reverse proxy is enabled on the Settings page."
+    },
+    "notDeployed": "Domains are applied to the container when the application is deployed.",
+    "autoProvisioned": {
+      "title": "Reverse proxy was not running — it has been started automatically",
+      "intro": "The proxy (Traefik) was not running before this, so it was started automatically for the domain <code>{host}</code>. Check these one by one if the domain is still unreachable after a few minutes:",
+      "dns": "The DNS A record for <code>{host}</code> points to this server's IP.",
+      "ports": "Ports <code>80</code> and <code>443</code> are open to the public — both the OS firewall (<code>ufw</code>) and your VPS/server provider's firewall or security group.",
+      "cert": "If you asked for HTTPS: the certificate (Let's Encrypt) is only issued by Traefik the first time the domain is visited, which takes a few seconds to a minute — and only if the ACME email is set (host: panel Domain; remote server: server settings)."
+    },
+    "form": {
+      "hostname": "Hostname",
+      "certificate": "Certificate"
+    },
+    "certAuto": "Automatic (Let's Encrypt)",
+    "customCert": "custom certificate",
+    "certFor": "Certificate for {host}",
+    "notCovered": "does not cover host",
+    "httpsNeedsEmail": "HTTPS requires <code>PROXY_ACME_EMAIL</code> on the API.",
+    "empty": "No domains yet. The application can only be reached through its host port.",
+    "deleteAria": "Delete {host}",
+    "middleware": "Middleware",
+    "dns": {
+      "badge": "DNS {status}",
+      "ok": "ok",
+      "mismatch": "wrong target",
+      "unresolved": "not found",
+      "unknown": "?",
+      "checkAria": "Check DNS for {host}",
+      "detected": "Public IP detected automatically; set PUBLIC_IP on the API if it is wrong."
+    },
+    "expiry": {
+      "expired": "Certificate expired",
+      "warn": "Certificate {when}",
+      "today": "expires today",
+      "daysLeft": "{days, plural, one {# day left} other {# days left}}"
+    }
+  },
+  "middlewares": {
+    "manage": "Manage",
+    "title": "Middleware for {host}",
+    "description": "Run in the order they are selected, before the request reaches the application. Saving recreates the container without a build. HTTP-only and HTTPS domains both use them; the http→https redirect does not.",
+    "empty": "No middleware yet. The owner creates them under Infrastructure → Reverse proxy → Dynamic configuration.",
+    "order": "order {n}",
+    "gone": "no longer exists"
+  },
+  "jobs": {
+    "empty": "No jobs yet.",
+    "new": {
+      "title": "New job",
+      "description": "The command is run with <code>sh -c</code>. <b>In the container</b>: <code>docker exec</code> in the running container (e.g. <code>{example}</code>). <b>Separate container</b>: a one-off container from the same image{extra} — for heavy work or when the container is stopped. A job that is still running is not started twice.",
+      "extra": {
+        "database": " with the env DB_HOST/DB_PORT/DB_USER/DB_PASSWORD/DB_NAME",
+        "application": " with the application's env and mounts",
+        "compose": " with the service's env"
+      },
+      "service": "Service",
+      "deployFirst": "Deploy the stack first",
+      "run": "Run",
+      "targetContainer": "In the application container",
+      "targetRun": "Separate container",
+      "command": "Command",
+      "schedule": "Schedule",
+      "cron": "Cron (5 fields)",
+      "timeout": "Timeout (seconds)",
+      "add": "Add job"
+    },
+    "preset": {
+      "manual": "Manual only",
+      "everyMinute": "Every minute",
+      "every5": "Every 5 minutes",
+      "hourly": "Every hour",
+      "daily": "Every day at 02:00",
+      "custom": "Custom"
+    },
+    "row": {
+      "openHistory": "Open history",
+      "closeHistory": "Close history",
+      "manual": "manual",
+      "inContainer": "in container",
+      "separate": "separate container",
+      "timeout": "timeout {seconds}s",
+      "last": "last {when}",
+      "active": "active",
+      "runNow": "Run",
+      "deleteAria": "Delete job",
+      "deleteTitle": "Delete job \"{name}\"?",
+      "deleteDescription": "The job is permanently deleted along with its run history, and its schedule stops. This cannot be undone.",
+      "neverRun": "Never run."
+    },
+    "run": {
+      "scheduled": "scheduled",
+      "output": "Output",
+      "outputLabel": "Job output",
+      "noOutput": "(no output)"
+    }
+  },
+  "monitor": {
+    "title": "HTTP monitor",
+    "description": "Checks the application over HTTP periodically and sends a notification after several failures in a row. An application whose container is alive but returns 5xx or hangs is caught here.",
+    "active": "Active",
+    "state": {
+      "up": "healthy",
+      "down": "down",
+      "unknown": "not checked yet",
+      "disabled": "disabled"
+    },
+    "toast": {
+      "saving": "Saving monitor…",
+      "saved": "Monitor saved",
+      "enabling": "Enabling monitor…",
+      "disabling": "Disabling monitor…",
+      "enabled": "Monitor enabled",
+      "disabled": "Monitor disabled",
+      "checking": "Checking…",
+      "checked": "Check finished"
+    },
+    "target": {
+      "label": "Target (derived from the application, cannot be changed)",
+      "none": "No address yet",
+      "note": "The check runs from the panel machine: it does not prove the application is reachable from the outside internet. With a public domain, the result can be affected by hairpin NAT.",
+      "source": {
+        "domain": "domain (through the proxy)",
+        "hostPort": "host port",
+        "container": "container name (aoox network)"
+      }
+    },
+    "fields": {
+      "path": "Path",
+      "healthyCodes": "Healthy status",
+      "interval": "Interval",
+      "minutes": "{n, plural, one {# minute} other {# minutes}}",
+      "timeout": "Timeout",
+      "seconds": "{n, plural, one {# second} other {# seconds}}",
+      "threshold": "Consecutive failures",
+      "beforeAlert": "{n}× before alert",
+      "useInternal": "Check through the internal address (skip the public domain)"
+    },
+    "mustRun": "The application must be running",
+    "saveFirst": "Save your changes first",
+    "checkNow": "Check now",
+    "stats": {
+      "lastChecked": "Last checked",
+      "lastResult": "Last result",
+      "uptime24h": "Uptime 24 hours",
+      "uptime7d": "Uptime 7 days",
+      "avgLatency": "Average latency (24 hours)",
+      "p95Latency": "p95 latency (24 hours)",
+      "checks24h": "Checks (24 hours)",
+      "downSince": "Down since"
+    },
+    "incidents": {
+      "title": "Recent down incidents",
+      "done": "resolved",
+      "ongoing": "ongoing"
+    },
+    "duration": {
+      "seconds": "{n} s",
+      "minutes": "{n} min",
+      "hoursMinutes": "{h} h {m} min"
+    },
+    "series": {
+      "empty": "No data yet — the first check runs within a minute.",
+      "noHealthy": "no healthy response",
+      "noResponse": "no response",
+      "failed": "{failures}/{checks} failed",
+      "aria": "Latency over the last 24 hours, latest {value} ms"
+    }
+  },
+  "mounts": {
+    "empty": "No mounts yet.",
+    "applying": "Applying…",
+    "readOnly": "Read-only",
+    "type": {
+      "volume": "Volume",
+      "bind": "Bind (host)",
+      "file": "File"
+    },
+    "add": {
+      "title": "Add mount",
+      "description": "<b>Volume</b>: persistent data that survives deploys (a named Docker volume). <b>Bind</b>: a folder/file on the host (owner/admin only). <b>File</b>: a small config file stored here and mounted read-only. Changes are applied immediately by recreating the container{suffix}.",
+      "suffixDatabase": " (brief restart; data stays in the volume)",
+      "suffixOther": " (no build)",
+      "kind": "Type",
+      "volumeName": "Volume name",
+      "hostPath": "Path on host",
+      "containerPath": "Path in container",
+      "fileContent": "File content"
+    },
+    "row": {
+      "volumeSource": "volume {name}",
+      "ro": "ro",
+      "deleteAria": "Remove mount",
+      "detachTitle": "Detach mount {name}?",
+      "detachVolumeDescription": "The mount is detached from the container. Choose what happens to its Docker volume: keep it (data stays) or delete it too (data is lost permanently and cannot be recovered).",
+      "detachDescription": "The mount is detached from the container. This cannot be undone.",
+      "detachAndDelete": "Detach and delete volume (data lost)",
+      "detach": "Detach mount",
+      "detachKeep": "Detach mount only (data stays)",
+      "contentAria": "Content of {name}",
+      "saveApply": "Save & apply"
+    }
+  },
+  "secretSource": {
+    "title": "Secret source",
+    "description": "Pull secrets from a secret manager (Infisical) instead of copying them into the env. Values are fetched when the container is created (deploy, apply config, rollback); reference a single secret with <code>{ref}</code> in the env, or turn on <em>Sync</em> to pass them all through. The application env wins over a secret when the key is the same. PR previews do not inherit it. If the secret manager cannot be reached during a deploy, the deployment fails and the old container keeps running.",
+    "noConnections": "No secret manager connections yet.",
+    "addAt": "Add one in <link><section></section></link>.",
+    "askAdmin": "Ask an owner/admin to add one in <section></section>.",
+    "settings": "Settings",
+    "integrations": "Integrations",
+    "connection": "Connection",
+    "notUsed": "Not used",
+    "projectId": "Project ID",
+    "environment": "Environment",
+    "path": "Path",
+    "syncAll": "Sync all secrets to the container",
+    "saveFirst": "Save your changes first",
+    "viewKeys": "View keys",
+    "noKeys": "No secrets at this path.",
+    "keysShown": "{count, plural, one {# key} other {# keys}} (names only, values are not shown):",
+    "toast": {
+      "saving": "Saving secret source…",
+      "saved": "Secret source saved",
+      "removed": "Secret source removed",
+      "fetchingKeys": "Fetching the key list…",
+      "keyCount": "{count, plural, one {# key} other {# keys}}"
+    }
+  },
+  "webhook": {
+    "title": "Auto-deploy webhook",
+    "description": "Every push to the <code>{branch}</code> branch triggers a deploy. Pushes to other branches are ignored; if a deploy is already running, the event is skipped.",
+    "copyUrlAria": "Copy webhook URL",
+    "urlCopied": "Webhook URL copied",
+    "urlCopyFailed": "Could not copy the webhook URL",
+    "steps": {
+      "github": "<p>GitHub:</p> Settings<arrow></arrow>Webhooks<arrow></arrow>Add webhook. Payload URL = the URL above, Content type <code>application/json</code>, event <em>Just the push event</em>{hasSecret, select, true {, <em>Secret</em> = the secret below} other {}}.",
+      "gitlab": "<p>GitLab:</p> Settings<arrow></arrow>Webhooks. URL = the URL above, trigger <em>Push events</em>{hasSecret, select, true {, <em>Secret token</em> = the secret below} other {}}.",
+      "reachable": "Make sure this API can be reached from the internet (<code>PUBLIC_API_URL</code>)."
+    },
+    "secret": {
+      "title": "Secret (signature)",
+      "activeNote": "Active — requests without a matching X-Hub-Signature-256 / X-Gitlab-Token are rejected (401).",
+      "inactiveNote": "Inactive — anyone who knows the URL can trigger a deploy.",
+      "copyAria": "Copy secret",
+      "copied": "Secret copied",
+      "copyFailed": "Could not copy the secret",
+      "rotate": "Rotate secret",
+      "enable": "Enable secret",
+      "disable": "Disable"
+    },
+    "regenerate": "Create new URL",
+    "regenerateNote": "The old URL stops working immediately."
+  },
+  "previews": {
+    "title": "Pull request previews",
+    "descriptionEnabled": "Every open PR is built from its branch and run in its own container; it is removed automatically when the PR is closed.",
+    "descriptionDisabled": "Disabled — enable it in the Settings tab. The provider webhook must send pull request events.",
+    "empty": "No previews yet.",
+    "building": "building…",
+    "openAria": "Open preview #{n}",
+    "log": "Log",
+    "deleteAria": "Delete preview #{n}",
+    "noDomain": "no preview domain",
+    "pr": "PR",
+    "logLabel": "Preview log",
+    "noLogs": "No logs yet."
+  },
+  "console": {
+    "openFailed": "Could not open the console.",
+    "exited": "session exited with code {code}",
+    "task": "Task",
+    "reconnect": "Reconnect",
+    "note": "This shell is inside the container. File changes are lost on redeploy, except in a volume mount.",
+    "status": {
+      "connecting": "Connecting…",
+      "connected": "Connected",
+      "closed": "Disconnected",
+      "error": "Failed"
+    },
+    "origin": {
+      "title": "The console cannot be used from this address",
+      "body": "This panel already has a custom domain (<code>{webOrigin}</code>), and the Console only accepts connections from that domain — not from <code>{browserOrigin}</code>, which you are using now. This is a built-in security protection, not a bug.",
+      "open": "Open the Console at {origin}"
+    }
+  },
+  "volumeBackups": {
+    "title": "Volume backups",
+    "description": "A <code>tar.gz</code> archive of each volume in <code>aoox_backups</code>{copied}. Restore stops the container briefly and overwrites the volume contents.",
+    "copiedTo": " and copied to {name}",
+    "s3Destination": "S3 destination",
+    "volume": "Volume",
+    "volumeDeleted": "(volume deleted)",
+    "processing": "Working…",
+    "backupVolume": "Back up {name}",
+    "empty": "No backups yet.",
+    "scheduled": "scheduled",
+    "manual": "manual",
+    "s3Only": "only on S3",
+    "restore": "Restore",
+    "restoring": "Restoring…",
+    "deleteAria": "Delete backup",
+    "failed": "Backup failed",
+    "preset": {
+      "off": "Disabled",
+      "hourly": "Every hour",
+      "daily": "Every day at 02:00",
+      "weekly": "Every week (Sunday 03:00)",
+      "custom": "Custom"
+    },
+    "schedule": {
+      "title": "Volume backup schedule",
+      "description": "Applies to all volumes of this application. Old scheduled backups beyond the number kept are deleted (per volume).",
+      "frequency": "Frequency",
+      "cron": "Cron (5 fields)",
+      "keep": "Keep",
+      "destination": "S3 destination",
+      "localOnly": "Local only",
+      "current": "Currently:",
+      "off": "disabled"
+    },
+    "restoreDialog": {
+      "title": "Restore volume?",
+      "description": "The contents of volume <strong>{volume}</strong> will be deleted and replaced with <code>{file}</code>. The container is stopped during the process. This cannot be undone."
+    }
+  }
+}

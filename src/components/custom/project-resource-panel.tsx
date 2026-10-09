@@ -1,6 +1,7 @@
 "use client"
 
 import { Activity, Cpu, MemoryStick, Network } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { useEffect, useState } from "react"
 import { StatCard } from "@/components/custom/stat-card"
 import { fetchProjectResourceUsageAction } from "@/features/project/project.actions"
@@ -24,6 +25,7 @@ export function ProjectResourcePanel({
   projectId: string
   initial: ProjectResourceUsageResponse
 }) {
+  const t = useTranslations("projects")
   const [data, setData] = useState(initial)
 
   useEffect(() => {
@@ -43,7 +45,7 @@ export function ProjectResourcePanel({
   if (!cur) {
     return (
       <EmptyState icon={Activity} compact>
-        Tidak ada aplikasi/database/stack yang berjalan di project ini.
+        {t("resource.empty")}
       </EmptyState>
     )
   }
@@ -55,7 +57,7 @@ export function ProjectResourcePanel({
         icon={Cpu}
         label="CPU"
         value={cur.cpuPercent === null ? "–" : `${cur.cpuPercent.toFixed(1)}%`}
-        hint={`jumlah ${data.containers} container`}
+        hint={t("resource.containerSum", { count: data.containers })}
         trend={{
           series: data.history.map((p) => p.cpuPercent ?? 0),
           format: (v) => `${v.toFixed(1)}%`,
@@ -65,7 +67,7 @@ export function ProjectResourcePanel({
       <StatCard
         variant="tile"
         icon={MemoryStick}
-        label="Memori"
+        label={t("resource.memory")}
         value={formatBytes(cur.memoryBytes)}
         trend={{
           series: data.history.map((p) => p.memoryBytes),
@@ -76,7 +78,7 @@ export function ProjectResourcePanel({
       <StatCard
         variant="tile"
         icon={Network}
-        label="Jaringan"
+        label={t("resource.network")}
         value={
           cur.netRxBytesPerSec === null
             ? "–"

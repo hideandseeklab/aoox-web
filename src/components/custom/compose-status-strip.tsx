@@ -1,6 +1,7 @@
 "use client"
 
 import { Play, Rocket, Square, Trash2 } from "lucide-react"
+import { useTranslations } from "next-intl"
 import type { ReactNode } from "react"
 import { ConfirmDialog } from "@/components/custom/confirm-dialog"
 import { useComposeLive } from "@/components/custom/compose-live"
@@ -16,10 +17,12 @@ import {
 
 /**
  * The compose page's status line under the tabs: the live status badge, the `compose` badge and the
- * source line (`info`, built by the page) on the left; Deploy, Stop/Start and Hapus on the right,
+ * source line (`info`, built by the page) on the left; Deploy, Stop/Start and Delete on the right,
  * exactly the buttons and rules the Deploy tab's toolbar had.
  */
 export function ComposeStatusStrip({ info }: { info: ReactNode }) {
+  const t = useTranslations("compose")
+  const tc = useTranslations("common")
   const { app, pending, busy, error, run } = useComposeLive()
 
   return (
@@ -36,7 +39,7 @@ export function ComposeStatusStrip({ info }: { info: ReactNode }) {
                   : "secondary"
             }
           >
-            {app.status === "deploying" ? "berjalan…" : app.status}
+            {t(`statusStrip.status.${app.status}`)}
           </Badge>
           <Badge variant="outline">compose</Badge>
         </>
@@ -50,7 +53,9 @@ export function ComposeStatusStrip({ info }: { info: ReactNode }) {
             onClick={() => run(() => deployComposeAppAction(app.id))}
           >
             <Rocket data-icon="inline-start" />
-            {app.status === "idle" ? "Deploy" : "Deploy ulang"}
+            {app.status === "idle"
+              ? t("statusStrip.deploy")
+              : t("statusStrip.redeploy")}
           </Button>
           {app.status === "running" && (
             <Button
@@ -60,7 +65,7 @@ export function ComposeStatusStrip({ info }: { info: ReactNode }) {
               onClick={() => run(() => stopComposeAppAction(app.id))}
             >
               <Square data-icon="inline-start" />
-              Stop
+              {tc("actions.stop")}
             </Button>
           )}
           {app.status === "stopped" && (
@@ -71,7 +76,7 @@ export function ComposeStatusStrip({ info }: { info: ReactNode }) {
               onClick={() => run(() => startComposeAppAction(app.id))}
             >
               <Play data-icon="inline-start" />
-              Start
+              {tc("actions.start")}
             </Button>
           )}
           <ConfirmDialog
@@ -82,12 +87,12 @@ export function ComposeStatusStrip({ info }: { info: ReactNode }) {
                 disabled={pending || busy}
               >
                 <Trash2 data-icon="inline-start" />
-                Hapus
+                {tc("actions.delete")}
               </Button>
             }
-            title={`Hapus stack ${app.name}?`}
-            description="Semua container stack dihentikan dan dihapus, beserta volume datanya dan salinan checkout-nya. Data di volume hilang permanen dan tidak bisa dibatalkan."
-            confirmLabel="Hapus stack"
+            title={t("statusStrip.deleteTitle", { name: app.name })}
+            description={t("statusStrip.deleteDescription")}
+            confirmLabel={t("statusStrip.deleteConfirm")}
             onConfirm={() => deleteComposeAppAction(app.id, app.projectId)}
           />
           {error && (

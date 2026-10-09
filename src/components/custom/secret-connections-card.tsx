@@ -1,6 +1,7 @@
 "use client"
 
 import { Plug, Plus, Trash2, Vault } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { useActionState, useState, useTransition } from "react"
 import { EmptyState } from "@/components/custom/empty-state"
 import { Button } from "@/components/ui/button"
@@ -48,6 +49,7 @@ export function SecretConnectionsCard({
 }: {
   connections: SecretConnection[]
 }) {
+  const t = useTranslations("settings")
   const [pending, start] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const [tests, setTests] = useState<
@@ -58,7 +60,7 @@ export function SecretConnectionsCard({
     start(async () => {
       setError(null)
       const r = await testSecretConnectionAction(id)
-      if (r.ok) setTests((t) => ({ ...t, [id]: r.data }))
+      if (r.ok) setTests((prev) => ({ ...prev, [id]: r.data }))
       else setError(r.error)
     })
 
@@ -67,11 +69,9 @@ export function SecretConnectionsCard({
       <CardHeader>
         <div className="flex items-start justify-between gap-4">
           <div>
-            <CardTitle>Secret manager</CardTitle>
+            <CardTitle>{t("secretConnections.title")}</CardTitle>
             <CardDescription>
-              Koneksi ke Infisical (machine identity). Aplikasi bisa mengambil
-              secret darinya saat container dibuat, tanpa menyalinnya ke env.
-              Client secret disimpan terenkripsi dan tidak bisa dilihat lagi.
+              {t("secretConnections.description")}
             </CardDescription>
           </div>
           <AddConnectionDialog />
@@ -80,7 +80,7 @@ export function SecretConnectionsCard({
       <CardContent>
         {connections.length === 0 ? (
           <EmptyState icon={Plug} compact>
-            Belum ada koneksi — aplikasi memakai env biasa.
+            {t("secretConnections.empty")}
           </EmptyState>
         ) : (
           <ul className="divide-y rounded-md border">
@@ -92,13 +92,15 @@ export function SecretConnectionsCard({
                     <Vault className="size-4 shrink-0 text-muted-foreground" />
                     <span className="font-medium">{c.name}</span>
                     <span className="truncate text-xs text-muted-foreground">
-                      {c.url || "Infisical Cloud"} · {c.clientId}
+                      {c.url || t("secretConnections.cloud")} · {c.clientId}
                     </span>
                     <span className="ms-auto" />
                     <Button
                       variant="ghost"
                       size="icon"
-                      aria-label={`Tes koneksi ${c.name}`}
+                      aria-label={t("secretConnections.testAria", {
+                        name: c.name,
+                      })}
                       disabled={pending}
                       onClick={() => test(c.id)}
                     >
@@ -107,7 +109,9 @@ export function SecretConnectionsCard({
                     <Button
                       variant="ghost"
                       size="icon"
-                      aria-label={`Hapus ${c.name}`}
+                      aria-label={t("secretConnections.deleteAria", {
+                        name: c.name,
+                      })}
                       disabled={pending}
                       onClick={() =>
                         start(async () => {
@@ -149,6 +153,8 @@ export function SecretConnectionsCard({
 const initialState: SecretConnectionFormState = {}
 
 function AddConnectionDialog() {
+  const t = useTranslations("settings")
+  const c = useTranslations("common")
   const [open, setOpen] = useState(false)
   const [state, action, pending] = useActionState(
     async (prev: SecretConnectionFormState, formData: FormData) => {
@@ -167,22 +173,20 @@ function AddConnectionDialog() {
       <DialogTrigger asChild>
         <Button size="sm">
           <Plus data-icon="inline-start" />
-          Tambah
+          {c("actions.add")}
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Koneksi secret manager baru</DialogTitle>
+          <DialogTitle>{t("secretConnections.dialogTitle")}</DialogTitle>
           <DialogDescription>
-            Buat machine identity (Universal Auth) di Infisical, beri akses baca
-            ke project yang dibutuhkan, lalu isi Client ID dan Client secret-nya
-            di sini.
+            {t("secretConnections.dialogDescription")}
           </DialogDescription>
         </DialogHeader>
         <form action={action} noValidate>
           <FieldGroup>
             <Field data-invalid={!!state.fieldErrors?.name || undefined}>
-              <FieldLabel htmlFor="sc-name">Nama</FieldLabel>
+              <FieldLabel htmlFor="sc-name">{c("labels.name")}</FieldLabel>
               <Input
                 id="sc-name"
                 name="name"
@@ -192,7 +196,9 @@ function AddConnectionDialog() {
               <FieldError errors={errs("name")} />
             </Field>
             <Field data-invalid={!!state.fieldErrors?.url || undefined}>
-              <FieldLabel htmlFor="sc-url">URL (opsional)</FieldLabel>
+              <FieldLabel htmlFor="sc-url">
+                {t("secretConnections.urlOptional")}
+              </FieldLabel>
               <Input
                 id="sc-url"
                 name="url"
@@ -200,12 +206,14 @@ function AddConnectionDialog() {
                 defaultValue={state.values?.url}
               />
               <FieldDescription>
-                Kosongkan untuk Infisical Cloud; isi untuk instance self-hosted.
+                {t("secretConnections.urlHelp")}
               </FieldDescription>
               <FieldError errors={errs("url")} />
             </Field>
             <Field data-invalid={!!state.fieldErrors?.clientId || undefined}>
-              <FieldLabel htmlFor="sc-client-id">Client ID</FieldLabel>
+              <FieldLabel htmlFor="sc-client-id">
+                {t("secretConnections.clientId")}
+              </FieldLabel>
               <Input
                 id="sc-client-id"
                 name="clientId"
@@ -218,7 +226,9 @@ function AddConnectionDialog() {
             <Field
               data-invalid={!!state.fieldErrors?.clientSecret || undefined}
             >
-              <FieldLabel htmlFor="sc-client-secret">Client secret</FieldLabel>
+              <FieldLabel htmlFor="sc-client-secret">
+                {t("secretConnections.clientSecret")}
+              </FieldLabel>
               <Input
                 id="sc-client-secret"
                 name="clientSecret"
@@ -227,7 +237,7 @@ function AddConnectionDialog() {
                 required
               />
               <FieldDescription>
-                Tidak bisa dilihat lagi setelah disimpan.
+                {t("secretConnections.secretHelp")}
               </FieldDescription>
               <FieldError errors={errs("clientSecret")} />
             </Field>
@@ -238,7 +248,7 @@ function AddConnectionDialog() {
             )}
             <div className="flex justify-end">
               <Button type="submit" disabled={pending}>
-                {pending ? "Menyimpan…" : "Simpan"}
+                {pending ? c("states.saving") : c("actions.save")}
               </Button>
             </div>
           </FieldGroup>

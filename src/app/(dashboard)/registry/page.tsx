@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server"
 import { ExternalRegistries } from "@/components/custom/external-registries"
 import { RegistryRepositories } from "@/components/custom/registry-repositories"
 import { SelfHostedRegistryCard } from "@/components/custom/self-hosted-registry-card"
@@ -15,6 +16,7 @@ import {
 export const metadata = { title: "Registry · aoox" }
 
 export default async function RegistryPage() {
+  const t = await getTranslations("registry.page")
   const [session, status, registries, destinations] = await Promise.all([
     getVerifiedSession(),
     getSelfHostedStatus(),
@@ -35,16 +37,15 @@ export default async function RegistryPage() {
       <div>
         <h1 className="text-lg font-semibold">Registry</h1>
         <p className="text-xs text-muted-foreground">
-          Tempat image hasil build disimpan — untuk rollback dan deploy ke
-          banyak server.
+          {t("description")}
         </p>
       </div>
 
       <Tabs defaultValue="local">
         <ScrollableTabsList>
-          <TabsTrigger value="local">Registry lokal</TabsTrigger>
+          <TabsTrigger value="local">{t("local")}</TabsTrigger>
           <TabsTrigger value="external">
-            Eksternal ({external.length})
+            {t("external", { count: external.length })}
           </TabsTrigger>
         </ScrollableTabsList>
         <TabsContent value="local" className="space-y-4 pt-4">
@@ -55,10 +56,10 @@ export default async function RegistryPage() {
           />
           {selfHosted && (
             <section className="space-y-2">
-              <h2 className="text-sm font-medium">Image</h2>
+              <h2 className="text-sm font-medium">{t("images")}</h2>
               {repositories === null ? (
                 <p className="text-xs text-muted-foreground">
-                  Registry tidak dapat dihubungi.
+                  {t("unreachable")}
                 </p>
               ) : (
                 <RegistryRepositories

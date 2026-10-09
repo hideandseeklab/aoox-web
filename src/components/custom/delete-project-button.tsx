@@ -1,6 +1,7 @@
 "use client"
 
 import { Trash2 } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { useState, useTransition } from "react"
 import { Button } from "@/components/ui/button"
 import {
@@ -21,6 +22,8 @@ export function DeleteProjectButton({
   id: string
   name: string
 }) {
+  const t = useTranslations("projects")
+  const tc = useTranslations("common")
   const [open, setOpen] = useState(false)
   const [pending, startTransition] = useTransition()
 
@@ -29,27 +32,31 @@ export function DeleteProjectButton({
       <DialogTrigger asChild>
         <Button variant="destructive">
           <Trash2 data-icon="inline-start" />
-          Hapus
+          {tc("actions.delete")}
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-sm">
         <DialogHeader>
-          <DialogTitle>Hapus project?</DialogTitle>
+          <DialogTitle>{t("delete.title")}</DialogTitle>
           <DialogDescription>
-            Project <span className="font-medium text-foreground">{name}</span>{" "}
-            akan dihapus permanen.
+            {t.rich("delete.description", {
+              name,
+              b: (chunks) => (
+                <span className="font-medium text-foreground">{chunks}</span>
+              ),
+            })}
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>
-            Batal
+            {tc("actions.cancel")}
           </Button>
           <Button
             variant="destructive"
             disabled={pending}
             onClick={() => startTransition(() => deleteProjectAction(id))}
           >
-            {pending ? "Menghapus…" : "Hapus"}
+            {pending ? tc("states.deleting") : tc("actions.delete")}
           </Button>
         </DialogFooter>
       </DialogContent>

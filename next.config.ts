@@ -1,5 +1,8 @@
 import type { NextConfig } from "next"
+import createNextIntlPlugin from "next-intl/plugin"
 import pkg from "./package.json" with { type: "json" }
+
+const withNextIntl = createNextIntlPlugin()
 
 const nextConfig: NextConfig = {
   // Inlined at build time; the sidebar tooltip compares it with the API's.
@@ -12,4 +15,4 @@ const nextConfig: NextConfig = {
   },
 }
 
-export default nextConfig
+export default withNextIntl(nextConfig)

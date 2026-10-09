@@ -1,5 +1,6 @@
 "use client"
 
+import { useTranslations } from "next-intl"
 import { useEffect, useState, useTransition } from "react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
@@ -42,24 +43,11 @@ export type EditorTarget =
   | { mode: "edit"; file: ProxyConfigFile }
   | { mode: "new"; name?: string; content?: string }
 
-const TEMPLATE = `# Konfigurasi dinamis Traefik (hanya bagian "http").
-# Contoh: middleware header respons, lalu pasang ke domain di tab Domain aplikasi.
-http:
-  middlewares:
-    contoh-header:
-      headers:
-        customResponseHeaders:
-          X-Powered-By: aoox
-`
-
-function reportSync(sync: ProxyConfigSync) {
-  if (sync.proxyRecreated)
-    toast.info(
-      "Proxy dibuat ulang satu kali agar bisa memuat konfigurasi dinamis."
-    )
+function reportSync(sync: ProxyConfigSync, t: (key: string) => string) {
+  if (sync.proxyRecreated) toast.info(t("recreated"))
   if (sync.warning) toast.warning(sync.warning)
-  else if (sync.verified) toast.success("Tersimpan dan dimuat Traefik")
-  else toast.success("Tersimpan")
+  else if (sync.verified) toast.success(t("savedLoaded"))
+  else toast.success(t("saved"))
 }
 
 /**
@@ -123,12 +111,13 @@ function EditorForm({
   onBusy: (busy: boolean) => void
   onClose: () => void
 }) {
+  const t = useTranslations("infra.proxyConfigEditor")
   const editing = target.mode === "edit" ? target.file : null
   const [name, setName] = useState(
     target.mode === "new" ? (target.name ?? "") : target.file.name
   )
   const [content, setContent] = useState(
-    target.mode === "new" ? (target.content ?? TEMPLATE) : ""
+    target.mode === "new" ? (target.content ?? t("template")) : ""
   )
   const [enabled, setEnabled] = useState(
     target.mode === "new" ? true : target.file.enabled
@@ -153,7 +142,7 @@ function EditorForm({
 
   const nameProblem =
     !editing && name !== "" && !CONFIG_NAME.test(name)
-      ? 'Nama: huruf kecil, angka, "-" (maks. 40 karakter).'
+      ? t("nameProblem")
       : null
 
   const save = () =>
@@ -178,7 +167,7 @@ function EditorForm({
           })
       onBusy(false)
       if (!r.ok) return setError(r.error)
-      reportSync(r.data.sync)
+      reportSync(r.data.sync, t)
       onClose()
     })
 
@@ -188,31 +177,31 @@ function EditorForm({
         <DialogTitle>
           {editing
             ? canWrite
-              ? `Ubah ${editing.fileName}`
+              ? t("editTitle", { fileName: editing.fileName })
               : editing.fileName
-            : "Berkas konfigurasi baru"}
+            : t("newTitle")}
         </DialogTitle>
         <DialogDescription>
-          YAML konfigurasi dinamis Traefik. Hanya bagian <code>http</code>{" "}
-          (middlewares, routers, services, serversTransports) yang diterima;
-          sertifikat dikelola di Pengaturan. Berkas dimuat ulang Traefik tanpa
-          restart.
+          {t.rich("description", { code: (c) => <code>{c}</code> })}
         </DialogDescription>
       </DialogHeader>
       <FieldGroup>
         {!editing && (
           <Field>
-            <FieldLabel htmlFor="pc-name">Nama berkas</FieldLabel>
+            <FieldLabel htmlFor="pc-name">{t("fileName")}</FieldLabel>
             <Input
               id="pc-name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="header-keamanan"
+              placeholder={t("namePlaceholder")}
               autoComplete="off"
               disabled={!canWrite}
             />
             <FieldDescription>
-              Ditulis sebagai <code>user-{name || "nama"}.yml</code>.
+              {t.rich("writtenAs", {
+                name: name || t("nameFallback"),
+                code: (c) => <code>{c}</code>,
+              })}
             </FieldDescription>
             {nameProblem && (
               <p className="text-xs text-destructive">{nameProblem}</p>
@@ -220,10 +209,10 @@ function EditorForm({
           </Field>
         )}
         <Field>
-          <FieldLabel htmlFor="pc-content">Isi (YAML)</FieldLabel>
+          <FieldLabel htmlFor="pc-content">{t("content")}</FieldLabel>
           <Textarea
             id="pc-content"
-            value={loading ? "Memuat…" : content}
+            value={loading ? t("loading") : content}
             onChange={(e) => setContent(e.target.value)}
             rows={16}
             spellCheck={false}
@@ -238,7 +227,7 @@ function EditorForm({
             onCheckedChange={setEnabled}
             disabled={!canWrite}
           />
-          <FieldLabel htmlFor="pc-enabled">Aktif (ditulis ke proxy)</FieldLabel>
+          <FieldLabel htmlFor="pc-enabled">{t("enabled")}</FieldLabel>
         </Field>
         {error && (
           <p
@@ -256,7 +245,7 @@ function EditorForm({
           disabled={pending}
           onClick={onClose}
         >
-          {canWrite ? "Batal" : "Tutup"}
+          {canWrite ? t("cancel") : t("close")}
         </Button>
         {canWrite && (
           <Button
@@ -269,7 +258,7 @@ function EditorForm({
               (!editing && (!name || nameProblem !== null))
             }
           >
-            {pending ? "Menyimpan…" : "Simpan"}
+            {pending ? t("saving") : t("save")}
           </Button>
         )}
       </DialogFooter>

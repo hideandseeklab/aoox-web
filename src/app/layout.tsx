@@ -1,5 +1,7 @@
 import type { Metadata } from "next"
 import { Fira_Code, Inter, JetBrains_Mono } from "next/font/google"
+import { NextIntlClientProvider } from "next-intl"
+import { getLocale } from "next-intl/server"
 import { Suspense } from "react"
 
 import "./globals.css"
@@ -39,14 +41,15 @@ export const metadata: Metadata = {
   },
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  const locale = await getLocale()
   return (
     <html
-      lang="en"
+      lang={locale}
       suppressHydrationWarning
       className={cn(
         "antialiased",
@@ -57,13 +60,15 @@ export default function RootLayout({
       )}
     >
       <body>
-        <ThemeProvider>
-          <Suspense fallback={null}>
-            <NavigationProgress />
-          </Suspense>
-          <TooltipProvider>{children}</TooltipProvider>
-          <Toaster />
-        </ThemeProvider>
+        <NextIntlClientProvider>
+          <ThemeProvider>
+            <Suspense fallback={null}>
+              <NavigationProgress />
+            </Suspense>
+            <TooltipProvider>{children}</TooltipProvider>
+            <Toaster />
+          </ThemeProvider>
+        </NextIntlClientProvider>
       </body>
     </html>
   )

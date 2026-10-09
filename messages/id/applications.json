@@ -1,0 +1,656 @@
+{
+  "form": {
+    "createSubmit": "Buat aplikasi",
+    "toast": {
+      "created": "Aplikasi \"{name}\" dibuat.",
+      "createdWithDomain": "Aplikasi \"{name}\" & domain dibuat.",
+      "createdDomainFailed": "Aplikasi dibuat, tapi domain gagal ditambahkan: {error}",
+      "checkFields": "Periksa isian form",
+      "creatingNamed": "Membuat aplikasi {name}…",
+      "creatingUnnamed": "Membuat aplikasi baru…",
+      "saved": "Tersimpan.",
+      "hostPortSetRecreated": "Port host diterapkan, container dibuat ulang.",
+      "hostPortRemovedRecreated": "Port host dihapus, container dibuat ulang.",
+      "hostPortRolling": "Port host disimpan; diterapkan lewat deployment konfigurasi (lihat Riwayat).",
+      "hostPortOnStart": "Port host disimpan; berlaku saat aplikasi dijalankan lagi.",
+      "applyingHostPort": "Menerapkan port host — container dibuat ulang…"
+    },
+    "source": {
+      "title": "Sumber",
+      "description": "Dari mana aplikasi ini dijalankan.",
+      "legend": "Sumber aplikasi",
+      "options": {
+        "git": {
+          "title": "Repo git (di-build)",
+          "description": "Clone repo, build image, lalu jalankan."
+        },
+        "image": {
+          "title": "Image siap pakai (di-pull)",
+          "description": "Tarik image dari registry, tanpa build."
+        }
+      }
+    },
+    "image": {
+      "title": "Image",
+      "label": "Image",
+      "placeholder": "ghcr.io/org/app:1.2 atau nginx:1.27",
+      "description": "Di-pull ulang tiap deploy, jadi tag bergerak seperti <code>latest</code> ikut terbarui. Tanpa build & registry lokal.",
+      "credentials": "Kredensial",
+      "public": "Publik",
+      "autoUpdate": "Update otomatis",
+      "autoUpdateSwitch": "Deploy ulang saat digest tag berubah di registry",
+      "checkEvery": "cek tiap <input></input> menit",
+      "intervalAria": "Interval cek (menit)",
+      "autoUpdateHelp": "Seperti Watchtower: digest manifest dibandingkan lewat registry API (Docker Hub, GHCR, registry lokal), tanpa pull. Tag yang dipin digest (<code>@sha256:…</code>) tidak pernah berubah."
+    },
+    "git": {
+      "title": "Repository git",
+      "label": "Git repository",
+      "description": "Repo git yang bisa di-clone lewat HTTPS.",
+      "branch": "Branch",
+      "buildType": "Cara build",
+      "buildTypes": {
+        "dockerfile": "Dockerfile di repo",
+        "nixpacks": "Nixpacks (deteksi otomatis)",
+        "railpack": "Railpack (deteksi otomatis, cache build)",
+        "static": "Situs statis (nginx)"
+      },
+      "rootDirectory": "Root directory",
+      "rootDirectoryPlaceholder": "apps/web (kosong = root repo)",
+      "rootDirectoryHelp": "Untuk monorepo: folder yang di-build, mis. <code>apps/web</code>. Path Dockerfile dan folder output di bawah dihitung dari folder ini, dan file di luarnya tidak ikut build.",
+      "watchRootAria": "Deploy hanya bila folder ini berubah",
+      "watchRoot": "Webhook: deploy hanya bila file di folder ini berubah",
+      "railpackHelp": "Railpack (Railway) juga mendeteksi stack dari isi repo, tetapi build-nya dijalankan BuildKit sehingga <strong>cache dependensi bertahan antar deploy</strong> (uji di sini: 284 s<arrow></arrow>54 s). Butuh container BuildKit di host — dinyalakan otomatis saat build pertama; aplikasi di server remote tidak didukung. Build args diteruskan sebagai <code>--env</code>.",
+      "nixpacksHelp": "Nixpacks mengenali Node, Python, Go, PHP, Ruby, Rust, dan lainnya dari isi repo. Build pertama lebih lama (image dasar ±430 MB + instalasi paket via Nix); cache build dinonaktifkan — pakai Railpack kalau ingin cache. Build args di bawah diteruskan sebagai env ke Nixpacks (mis. <code>NIXPACKS_NODE_VERSION=22</code>).",
+      "credential": "Kredensial Git",
+      "credentialNone": "Tidak ada (repo publik)",
+      "credentialHelp": "Untuk repo privat; tambahkan kredensial di Settings."
+    },
+    "static": {
+      "buildCommand": "Perintah build",
+      "buildCommandPlaceholder": "npm ci && npm run build (kosong = file sudah ada di repo)",
+      "buildCommandHelp": "Dijalankan di image <code>node:22-alpine</code>; hasilnya disalin ke nginx. Kosongkan untuk HTML statis biasa.",
+      "outputDir": "Folder output",
+      "outputDirHelp": "<code>dist</code>, <code>build</code>, <code>out</code>, atau <code>.</code> untuk seluruh repo.",
+      "spaMode": "Mode SPA",
+      "spaSwitch": "Arahkan path tak dikenal ke <code>index.html</code>",
+      "spaHelp": "Port container = 80. Nyalakan untuk React/Vue Router."
+    },
+    "network": {
+      "title": "Jaringan & akses",
+      "containerPort": "Port container",
+      "staticNote": "Situs statis dilayani nginx di port 80.",
+      "hostPort": "Port host",
+      "hostPortPlaceholder": "kosong = tidak dipublikasikan",
+      "applyRecreate": "Diterapkan langsung: container dibuat ulang dari image yang berjalan (tanpa build; ada downtime singkat karena port yang sama tidak bisa dipakai dua container).",
+      "applyRolling": "Diterapkan sebagai deployment konfigurasi (rolling update service swarm).",
+      "applyOnStart": "Aplikasi sedang berhenti: berlaku saat dijalankan lagi.",
+      "applyNextDeploy": "Berlaku pada deploy pertama.",
+      "healthcheck": "Health check path",
+      "healthcheckPlaceholder": "/health (kosong = tanpa health check)",
+      "healthcheckHelp": "Deploy menunggu path ini menjawab 2xx/3xx di dalam container (butuh wget/curl/node/python3 di image). Untuk app yang dirutekan lewat domain tanpa port host, container baru dinaikkan di samping yang lama dan baru menggantikannya setelah sehat — tanpa downtime. Gagal sehat = deploy gagal, container lama tetap jalan."
+    },
+    "access": {
+      "label": "Akses",
+      "description": "Tanpa port host atau domain, aplikasi berjalan tapi tidak bisa dibuka dari luar — ini bisa diatur nanti juga di tab Pengaturan atau Domain.",
+      "tabPort": "IP & port",
+      "tabDomain": "Domain",
+      "tabLater": "Nanti saja",
+      "hostPortPlaceholder": "mis. 8080",
+      "ipPlaceholder": "'<ip-server>'",
+      "hostPortHelp": "Dibuka langsung lewat IP: <code>{url}</code>, tanpa domain/proxy.",
+      "hostname": "Hostname",
+      "hostRequired": "Host wajib diisi",
+      "domainHelp": "Dibuka lewat reverse proxy (arahkan DNS host ini ke server ini).",
+      "proxyNotRunning": "Proxy belum berjalan — akan diaktifkan otomatis kalau perlu.",
+      "httpsNeedsAcme": "HTTPS memerlukan PROXY_ACME_EMAIL di API.",
+      "laterHelp": "Aplikasi dibuat tanpa alamat akses — atur port host atau domain belakangan."
+    },
+    "env": {
+      "label": "Environment variables",
+      "description": "Berlaku pada deploy berikutnya, di atas env bersama project."
+    },
+    "advanced": {
+      "title": "Sumber daya & lanjutan",
+      "localHost": "Host aoox",
+      "serverHelp": "Di server remote: build dan container berjalan di Docker server itu (lewat SSH) dan image tidak di-push ke registry. Domain dilayani proxy server itu sendiri (Infrastruktur<arrow></arrow>Server remote<arrow></arrow>Proxy).",
+      "deployMode": "Mode deploy",
+      "modeContainer": "Container (blue/green oleh aoox)",
+      "modeService": "Swarm service (replika, rolling update oleh daemon)",
+      "deployModeHelp": "Service hanya di host aoox. Stop/start = skala ke 0 dan kembali; log & metrik dari task-nya. Ganti mode = deploy ulang image terakhir. Replika > 1 berbagi mount volume yang sama.",
+      "replicas": "Replika",
+      "constraint": "Constraint tambahan",
+      "constraintHelp": "Label node diatur di Settings<arrow></arrow>Docker Swarm. Digabung dengan penempatan di bawah (semua harus terpenuhi).",
+      "rollingUpdate": "Rolling update",
+      "rollingUpdateRow": "<parallelism></parallelism> task/batch, jeda <delay></delay> detik",
+      "parallelismAria": "Task per batch",
+      "delayAria": "Jeda antar batch (detik)",
+      "order": "Urutan",
+      "orderAuto": "Otomatis (start-first; stop-first bila ada port host)",
+      "orderStartFirst": "start-first (task baru dulu)",
+      "orderStopFirst": "stop-first (hentikan yang lama dulu)",
+      "placement": "Penempatan",
+      "placementAny": "Node mana saja (otomatis)",
+      "placementHelp": "Aplikasi dengan mount selalu ditempatkan di host aoox (volume-nya di sana). Task di node lain: log tetap tampil, tetapi exec job & metrik hanya untuk task di host.",
+      "cpuLimit": "Batas CPU (millicore)",
+      "cpuPlaceholder": "kosong = tanpa batas; 1000 = 1 core",
+      "memoryLimit": "Batas memori (MiB)",
+      "memoryPlaceholder": "kosong = tanpa batas",
+      "memoryHelp": "Berlaku langsung ke container yang sedang jalan (mencabut batas = container dibuat ulang).",
+      "deploymentKeep": "Riwayat deployment",
+      "deploymentKeepHelp": "Jumlah deployment sukses (beserta image-nya) yang disimpan untuk rollback; lebih lama dihapus saat pembersihan malam.",
+      "ignoreErrors": "Abaikan error di log",
+      "ignoreErrorsHelp": "Lewati aplikasi ini dari pemindaian log otomatis (notifikasi <em>Error aplikasi</em>) — untuk aplikasi yang output normalnya memang terlihat seperti error.",
+      "buildArgs": "Build args",
+      "buildArgsHelp": "Satu <code>KEY=VALUE</code> per baris, diteruskan ke <code>ARG</code> di Dockerfile saat build. Ikut tersimpan di image — jangan untuk rahasia; tidak mendukung referensi."
+    },
+    "previews": {
+      "label": "Preview pull request",
+      "switch": "Build & jalankan setiap PR yang dibuka (via webhook)",
+      "domainPlaceholder": "preview.example.com (opsional; default PREVIEW_DOMAIN API)",
+      "domainAria": "Domain preview",
+      "help": "Preview dapat diakses di <code>'<app>'-pr'<N>'.'<domain preview>'</code> (butuh DNS wildcard ke host ini). PR dari fork selalu diabaikan — branch PR adalah kode arbitrer. Maks 5 preview terbuka per aplikasi. Aktifkan event <em>Pull requests</em> di webhook provider."
+    }
+  },
+  "page": {
+    "backToProject": "Kembali ke project",
+    "newTitle": "Aplikasi baru",
+    "newDescription": "Di-build dari repo git (Dockerfile, Nixpacks, atau situs statis) atau di-pull dari image siap pakai, lalu dijalankan sebagai container.",
+    "readOnly": "Baca saja"
+  },
+  "tabs": {
+    "deploy": "Deploy",
+    "domains": "Domain ({count})",
+    "mounts": "Mount ({count})",
+    "environment": "Environment",
+    "jobs": "Jobs ({count})",
+    "monitor": "Monitor",
+    "webhook": "Webhook",
+    "console": "Console",
+    "settings": "Pengaturan",
+    "settingsTitle": "Pengaturan",
+    "settingsDescription": "Port host, domain, dan limit resource diterapkan langsung ke aplikasi yang berjalan; pengaturan lain berlaku pada deploy berikutnya.",
+    "taskLabel": "Task {slot}",
+    "taskLabelNode": "Task {slot} · {node}"
+  },
+  "actions": {
+    "deploy": "Deploy",
+    "deploying": "Sedang deploy…",
+    "failed": "Gagal",
+    "invalidData": "Data tidak valid",
+    "serverUnreachable": "Tidak dapat terhubung ke server"
+  },
+  "environment": {
+    "title": "Environment",
+    "description": "Variabel env aplikasi ini. Berlaku pada deploy berikutnya (nilai dibaca saat container dibuat), di atas env bersama project: bila key sama, yang ini menang.",
+    "saving": "Menyimpan environment…",
+    "saved": "Environment disimpan",
+    "readOnly": "Hanya developer ke atas yang bisa mengubah environment."
+  },
+  "imagePicker": {
+    "trigger": "Pilih dari registry",
+    "title": "Pilih image dari registry",
+    "description": "Cuma menampilkan repository/tag yang sudah pernah di-push — <code>docker push</code> dulu kalau belum ada.",
+    "registry": "Registry",
+    "pickRegistry": "Pilih registry",
+    "repository": "Repository",
+    "pickRepository": "Pilih repository",
+    "noImages": "Belum ada image di registry ini",
+    "tagCount": "{count} tag",
+    "tag": "Tag",
+    "pickTag": "Pilih tag",
+    "noTags": "Tidak ada tag",
+    "use": "Pakai"
+  },
+  "delete": {
+    "title": "Hapus aplikasi?",
+    "description": "Container <strong>{name}</strong> akan dihentikan dan dihapus. Image di registry tidak dihapus."
+  },
+  "validation": {
+    "nameRequired": "Nama wajib diisi",
+    "imageRefInvalid": "Referensi image tidak valid",
+    "imageRefRequired": "Referensi image wajib diisi",
+    "swarmConstraintFormat": "Format: node.labels.'<key>'=='<nilai>', node.role==worker, node.hostname!='<nama>'",
+    "branchInvalid": "Nama branch tidak valid",
+    "pathInvalid": "Path tidak valid",
+    "rootDirectoryFormat": "Folder relatif, mis. apps/web (tanpa .. dan tanpa / di awal)",
+    "healthcheckPath": "Harus diawali / (mis. /health)",
+    "staticOutputDir": "Folder relatif dari root repo",
+    "domainInvalid": "Domain tidak valid",
+    "gitUrlRequired": "URL git wajib diisi",
+    "gitUrlFormat": "Harus URL http(s) atau git://",
+    "envTooLong": "Environment terlalu panjang (maks 20.000 karakter)"
+  },
+  "status": {
+    "notDeployed": "belum deploy",
+    "service": "service {running}/{desired}",
+    "serviceUpdating": "service {running}/{desired} · {state}"
+  },
+  "shared": {
+    "envRefs": "Nilai bisa merujuk <code>{projectRef}</code> dan <code>{databaseRef}</code>.",
+    "envRefsWithDb": "Nilai bisa merujuk <code>{projectRef}</code> dan database project ini: <databases></databases> (juga <code>.host</code>, <code>.port</code>, <code>.username</code>, <code>.password</code>, <code>.database</code>)."
+  },
+  "deploy": {
+    "failed": "Gagal",
+    "reconnect": "sambung ulang",
+    "rollbackHere": "Rollback ke sini",
+    "toast": {
+      "started": "Deploy dimulai — {trigger}"
+    },
+    "trigger": {
+      "by": "oleh {name}",
+      "webhook": "Webhook",
+      "webhookDetail": "Webhook — {detail}",
+      "autoUpdate": "Update otomatis (image berubah)",
+      "manual": "Manual",
+      "manualBy": "Manual oleh {name}"
+    },
+    "proxyWarning": {
+      "title": "Reverse proxy belum aktif — sudah dinyalakan otomatis",
+      "intro": "Proxy (Traefik) belum jalan sebelum domain ini disimpan, jadi sudah diaktifkan otomatis. Domain baru bisa diakses kalau tiga hal ini juga sudah benar:",
+      "dns": "DNS domain sudah mengarah ke IP server ini.",
+      "ports": "Port <code>80</code> dan <code>443</code> terbuka untuk publik (firewall OS maupun provider VPS).",
+      "cert": "Sertifikat HTTPS (Let's Encrypt) baru diterbitkan saat domain pertama kali diakses — tunggu semenit."
+    },
+    "noAccess": {
+      "title": "Aplikasi belum punya alamat akses",
+      "body": "Tanpa port host atau domain, aplikasi ini hanya bisa dijangkau di dalam network Docker.",
+      "setPort": "Atur port host",
+      "addDomain": "Tambah domain"
+    },
+    "swarm": {
+      "title": "Swarm service",
+      "tasks": "{running}/{desired} task",
+      "update": "update {state}",
+      "otherNode": "(node lain)"
+    },
+    "image": {
+      "check": "Cek update image",
+      "pinned": "Referensi memakai digest tetap — tidak ada yang berubah.",
+      "baseline": "Digest dicatat ({digest}); belum ada pembanding.",
+      "changedStarted": "Image berubah ({digest}) — deploy dimulai.",
+      "changedBusy": "Image berubah ({digest}) — deployment lain sedang berjalan.",
+      "upToDate": "Sudah yang terbaru ({digest})."
+    },
+    "logs": {
+      "follow": "Log container (live)",
+      "stopFollow": "Berhenti mengikuti log",
+      "containerLabel": "Log container"
+    },
+    "origin": {
+      "title": "Log realtime tidak tersedia lewat alamat ini",
+      "body": "Panel ini punya domain kustom (<code>{webOrigin}</code>), dan log realtime hanya menerima koneksi dari domain itu — bukan dari <code>{browserOrigin}</code> yang sedang kamu pakai.",
+      "open": "Buka halaman ini di {origin}"
+    },
+    "history": {
+      "title": "Deployment",
+      "empty": "Belum pernah deploy."
+    },
+    "kind": {
+      "build": "build",
+      "rollback": "rollback",
+      "auto-update": "auto-update",
+      "config": "konfigurasi",
+      "configTitle": "Terapkan konfigurasi (tanpa build)",
+      "autoUpdateTitle": "Update otomatis dari registry"
+    },
+    "log": {
+      "title": "Log deployment",
+      "label": "Log deployment",
+      "select": "Pilih deployment."
+    }
+  },
+  "stepper": {
+    "ariaLabel": "Langkah deployment",
+    "steps": {
+      "queued": "Antre",
+      "pull": "Pull",
+      "build": "Build",
+      "push": "Push",
+      "start": "Start",
+      "finished": "Selesai",
+      "failed": "Gagal"
+    },
+    "state": {
+      "done": "selesai",
+      "active": "berjalan",
+      "failed": "gagal",
+      "pending": "menunggu"
+    },
+    "duration": {
+      "ms": "{value} ms",
+      "seconds": "{value} dtk",
+      "minutes": "{minutes} mnt",
+      "minutesSeconds": "{minutes} mnt {seconds} dtk"
+    }
+  },
+  "domains": {
+    "proxyStopped": {
+      "title": "Proxy belum berjalan",
+      "body": "Domain baru berlaku setelah reverse proxy diaktifkan di halaman Settings."
+    },
+    "notDeployed": "Domain dipasang ke container saat aplikasi di-deploy.",
+    "autoProvisioned": {
+      "title": "Reverse proxy belum aktif — sudah dinyalakan otomatis",
+      "intro": "Proxy (Traefik) belum jalan sebelum ini, jadi sudah diaktifkan otomatis untuk domain <code>{host}</code>. Cek satu per satu kalau domain belum bisa diakses setelah beberapa menit:",
+      "dns": "DNS A record <code>{host}</code> sudah mengarah ke IP server ini.",
+      "ports": "Port <code>80</code> dan <code>443</code> terbuka untuk publik — baik firewall OS (<code>ufw</code>) maupun firewall/security group dari provider VPS/server kamu.",
+      "cert": "Kalau meminta HTTPS: sertifikat (Let's Encrypt) baru diterbitkan Traefik saat pertama kali domain diakses, butuh beberapa detik sampai semenit — dan hanya terbit kalau email ACME sudah diisi (host: Domain panel; server remote: pengaturan server)."
+    },
+    "form": {
+      "hostname": "Hostname",
+      "certificate": "Sertifikat"
+    },
+    "certAuto": "Otomatis (Let's Encrypt)",
+    "customCert": "sertifikat kustom",
+    "certFor": "Sertifikat untuk {host}",
+    "notCovered": "tidak mencakup host",
+    "httpsNeedsEmail": "HTTPS memerlukan <code>PROXY_ACME_EMAIL</code> di API.",
+    "empty": "Belum ada domain. Aplikasi hanya bisa diakses lewat port host.",
+    "deleteAria": "Hapus {host}",
+    "middleware": "Middleware",
+    "dns": {
+      "badge": "DNS {status}",
+      "ok": "ok",
+      "mismatch": "salah arah",
+      "unresolved": "belum ada",
+      "unknown": "?",
+      "checkAria": "Cek DNS {host}",
+      "detected": "IP publik dideteksi otomatis; set PUBLIC_IP di API bila keliru."
+    },
+    "expiry": {
+      "expired": "Sertifikat kedaluwarsa",
+      "warn": "Sertifikat {when}",
+      "today": "berakhir hari ini",
+      "daysLeft": "{days} hari lagi"
+    }
+  },
+  "middlewares": {
+    "manage": "Atur",
+    "title": "Middleware untuk {host}",
+    "description": "Dijalankan berurutan sesuai urutan dipilih, sebelum request sampai ke aplikasi. Menyimpan membuat ulang container tanpa build. Domain HTTP-saja dan HTTPS sama-sama memakainya; pengalihan http→https tidak.",
+    "empty": "Belum ada middleware. Owner membuatnya di Infrastruktur → Reverse proxy → Konfigurasi dinamis.",
+    "order": "urutan {n}",
+    "gone": "tidak ada lagi"
+  },
+  "jobs": {
+    "empty": "Belum ada job.",
+    "new": {
+      "title": "Job baru",
+      "description": "Perintah dijalankan dengan <code>sh -c</code>. <b>Di container</b>: <code>docker exec</code> di container yang berjalan (mis. <code>{example}</code>). <b>Container terpisah</b>: container sekali-jalan dari image yang sama{extra} — untuk pekerjaan berat atau saat container berhenti. Job yang masih berjalan tidak dijalankan ganda.",
+      "extra": {
+        "database": " dengan env DB_HOST/DB_PORT/DB_USER/DB_PASSWORD/DB_NAME",
+        "application": " beserta env dan mount aplikasi",
+        "compose": " beserta env service"
+      },
+      "service": "Service",
+      "deployFirst": "Deploy stack dulu",
+      "run": "Jalankan",
+      "targetContainer": "Di container aplikasi",
+      "targetRun": "Container terpisah",
+      "command": "Perintah",
+      "schedule": "Jadwal",
+      "cron": "Cron (5 kolom)",
+      "timeout": "Timeout (detik)",
+      "add": "Tambah job"
+    },
+    "preset": {
+      "manual": "Manual saja",
+      "everyMinute": "Setiap menit",
+      "every5": "Setiap 5 menit",
+      "hourly": "Setiap jam",
+      "daily": "Setiap hari 02:00",
+      "custom": "Kustom"
+    },
+    "row": {
+      "openHistory": "Buka riwayat",
+      "closeHistory": "Tutup riwayat",
+      "manual": "manual",
+      "inContainer": "di container",
+      "separate": "container terpisah",
+      "timeout": "timeout {seconds}s",
+      "last": "terakhir {when}",
+      "active": "aktif",
+      "runNow": "Jalankan",
+      "deleteAria": "Hapus job",
+      "deleteTitle": "Hapus job \"{name}\"?",
+      "deleteDescription": "Job dihapus permanen beserta riwayat run-nya, dan jadwalnya berhenti. Ini tidak bisa dibatalkan.",
+      "neverRun": "Belum pernah dijalankan."
+    },
+    "run": {
+      "scheduled": "terjadwal",
+      "output": "Output",
+      "outputLabel": "Output job",
+      "noOutput": "(tidak ada output)"
+    }
+  },
+  "monitor": {
+    "title": "Monitor HTTP",
+    "description": "Memeriksa aplikasi lewat HTTP secara berkala dan mengirim notifikasi bila gagal beberapa kali berturut-turut. Aplikasi yang container-nya hidup tapi mengembalikan 5xx atau macet terdeteksi di sini.",
+    "active": "Aktif",
+    "state": {
+      "up": "sehat",
+      "down": "down",
+      "unknown": "belum dicek",
+      "disabled": "nonaktif"
+    },
+    "toast": {
+      "saving": "Menyimpan monitor…",
+      "saved": "Monitor disimpan",
+      "enabling": "Mengaktifkan monitor…",
+      "disabling": "Menonaktifkan monitor…",
+      "enabled": "Monitor aktif",
+      "disabled": "Monitor nonaktif",
+      "checking": "Memeriksa…",
+      "checked": "Pemeriksaan selesai"
+    },
+    "target": {
+      "label": "Target (diturunkan dari aplikasi, tidak bisa diubah)",
+      "none": "Belum ada alamat",
+      "note": "Pemeriksaan dijalankan dari mesin panel: tidak membuktikan aplikasi bisa dijangkau dari internet luar. Dengan domain publik, hasilnya bisa terpengaruh hairpin NAT.",
+      "source": {
+        "domain": "domain (lewat proxy)",
+        "hostPort": "port host",
+        "container": "nama container (jaringan aoox)"
+      }
+    },
+    "fields": {
+      "path": "Path",
+      "healthyCodes": "Status sehat",
+      "interval": "Interval",
+      "minutes": "{n} menit",
+      "timeout": "Batas waktu",
+      "seconds": "{n} detik",
+      "threshold": "Gagal berturut-turut",
+      "beforeAlert": "{n}× sebelum alert",
+      "useInternal": "Periksa lewat alamat internal (lewati domain publik)"
+    },
+    "mustRun": "Aplikasi harus berjalan",
+    "saveFirst": "Simpan perubahan dulu",
+    "checkNow": "Periksa sekarang",
+    "stats": {
+      "lastChecked": "Terakhir dicek",
+      "lastResult": "Hasil terakhir",
+      "uptime24h": "Uptime 24 jam",
+      "uptime7d": "Uptime 7 hari",
+      "avgLatency": "Latensi rata-rata (24 jam)",
+      "p95Latency": "Latensi p95 (24 jam)",
+      "checks24h": "Pemeriksaan (24 jam)",
+      "downSince": "Down sejak"
+    },
+    "incidents": {
+      "title": "Kejadian down terakhir",
+      "done": "selesai",
+      "ongoing": "berlangsung"
+    },
+    "duration": {
+      "seconds": "{n} dtk",
+      "minutes": "{n} mnt",
+      "hoursMinutes": "{h} j {m} mnt"
+    },
+    "series": {
+      "empty": "Belum ada data — pemeriksaan pertama berjalan dalam semenit.",
+      "noHealthy": "tanpa respons sehat",
+      "noResponse": "tanpa respons",
+      "failed": "{failures}/{checks} gagal",
+      "aria": "Latensi 24 jam terakhir, terakhir {value} ms"
+    }
+  },
+  "mounts": {
+    "empty": "Belum ada mount.",
+    "applying": "Menerapkan…",
+    "readOnly": "Read-only",
+    "type": {
+      "volume": "Volume",
+      "bind": "Bind (host)",
+      "file": "File"
+    },
+    "add": {
+      "title": "Tambah mount",
+      "description": "<b>Volume</b>: data persisten yang bertahan antar deploy (volume Docker bernama). <b>Bind</b>: folder/file di host (hanya owner/admin). <b>File</b>: file konfigurasi kecil yang disimpan di sini dan di-mount read-only. Perubahan langsung diterapkan dengan membuat ulang container{suffix}.",
+      "suffixDatabase": " (restart singkat; data tetap di volume)",
+      "suffixOther": " (tanpa build)",
+      "kind": "Jenis",
+      "volumeName": "Nama volume",
+      "hostPath": "Path di host",
+      "containerPath": "Path di container",
+      "fileContent": "Isi file"
+    },
+    "row": {
+      "volumeSource": "volume {name}",
+      "ro": "ro",
+      "deleteAria": "Hapus mount",
+      "detachTitle": "Lepas mount {name}?",
+      "detachVolumeDescription": "Mount dilepas dari container. Pilih apa yang terjadi pada volume Docker-nya: dibiarkan (data tetap ada) atau ikut dihapus (data hilang permanen dan tidak bisa dibatalkan).",
+      "detachDescription": "Mount dilepas dari container. Ini tidak bisa dibatalkan.",
+      "detachAndDelete": "Lepas dan hapus volume (data hilang)",
+      "detach": "Lepas mount",
+      "detachKeep": "Lepas mount saja (data tetap ada)",
+      "contentAria": "Isi {name}",
+      "saveApply": "Simpan & terapkan"
+    }
+  },
+  "secretSource": {
+    "title": "Sumber secret",
+    "description": "Ambil secret dari secret manager (Infisical) alih-alih menyalinnya ke env. Nilai diambil saat container dibuat (deploy, apply config, rollback); rujuk satu secret dengan <code>{ref}</code> di env, atau nyalakan <em>Sync</em> untuk meneruskan semuanya. Env aplikasi menang atas secret bila key sama. Preview PR tidak mewarisinya. Bila secret manager tidak bisa dijangkau saat deploy, deployment gagal dan container lama tetap berjalan.",
+    "noConnections": "Belum ada koneksi secret manager.",
+    "addAt": "Tambahkan di <link><section></section></link>.",
+    "askAdmin": "Minta owner/admin menambahkannya di <section></section>.",
+    "settings": "Settings",
+    "integrations": "Integrasi",
+    "connection": "Koneksi",
+    "notUsed": "Tidak dipakai",
+    "projectId": "Project ID",
+    "environment": "Environment",
+    "path": "Path",
+    "syncAll": "Sync semua secret ke container",
+    "saveFirst": "Simpan perubahan dulu",
+    "viewKeys": "Lihat key",
+    "noKeys": "Tidak ada secret di path ini.",
+    "keysShown": "{count} key (hanya nama, nilai tidak ditampilkan):",
+    "toast": {
+      "saving": "Menyimpan sumber secret…",
+      "saved": "Sumber secret disimpan",
+      "removed": "Sumber secret dihapus",
+      "fetchingKeys": "Mengambil daftar key…",
+      "keyCount": "{count} key"
+    }
+  },
+  "webhook": {
+    "title": "Webhook auto-deploy",
+    "description": "Setiap push ke branch <code>{branch}</code> memicu deploy. Push ke branch lain diabaikan; kalau deploy sedang berjalan, event dilewati.",
+    "copyUrlAria": "Salin URL webhook",
+    "urlCopied": "URL webhook disalin",
+    "urlCopyFailed": "Gagal menyalin URL webhook",
+    "steps": {
+      "github": "<p>GitHub:</p> Settings<arrow></arrow>Webhooks<arrow></arrow>Add webhook. Payload URL = URL di atas, Content type <code>application/json</code>, event <em>Just the push event</em>{hasSecret, select, true {, <em>Secret</em> = secret di bawah} other {}}.",
+      "gitlab": "<p>GitLab:</p> Settings<arrow></arrow>Webhooks. URL = URL di atas, trigger <em>Push events</em>{hasSecret, select, true {, <em>Secret token</em> = secret di bawah} other {}}.",
+      "reachable": "Pastikan API ini bisa dijangkau dari internet (<code>PUBLIC_API_URL</code>)."
+    },
+    "secret": {
+      "title": "Secret (tanda tangan)",
+      "activeNote": "Aktif — request tanpa X-Hub-Signature-256 / X-Gitlab-Token yang cocok ditolak (401).",
+      "inactiveNote": "Nonaktif — siapa pun yang tahu URL bisa memicu deploy.",
+      "copyAria": "Salin secret",
+      "copied": "Secret disalin",
+      "copyFailed": "Gagal menyalin secret",
+      "rotate": "Rotasi secret",
+      "enable": "Aktifkan secret",
+      "disable": "Nonaktifkan"
+    },
+    "regenerate": "Buat URL baru",
+    "regenerateNote": "URL lama langsung tidak berlaku."
+  },
+  "previews": {
+    "title": "Preview pull request",
+    "descriptionEnabled": "Setiap PR yang dibuka di-build dari branch-nya dan dijalankan di container sendiri; ditutup otomatis saat PR ditutup.",
+    "descriptionDisabled": "Nonaktif — aktifkan di tab Pengaturan. Webhook provider harus mengirim event pull request.",
+    "empty": "Belum ada preview.",
+    "building": "building…",
+    "openAria": "Buka preview #{n}",
+    "log": "Log",
+    "deleteAria": "Hapus preview #{n}",
+    "noDomain": "tanpa domain preview",
+    "pr": "PR",
+    "logLabel": "Log preview",
+    "noLogs": "Belum ada log."
+  },
+  "console": {
+    "openFailed": "Tidak dapat membuka console.",
+    "exited": "sesi keluar dengan kode {code}",
+    "task": "Task",
+    "reconnect": "Sambung ulang",
+    "note": "Shell ini ada di dalam container. Perubahan file hilang saat redeploy, kecuali di mount volume.",
+    "status": {
+      "connecting": "Menghubungkan…",
+      "connected": "Terhubung",
+      "closed": "Terputus",
+      "error": "Gagal"
+    },
+    "origin": {
+      "title": "Console tidak bisa diakses lewat alamat ini",
+      "body": "Panel ini sudah punya domain kustom (<code>{webOrigin}</code>), dan fitur Console hanya menerima koneksi dari domain itu — bukan dari <code>{browserOrigin}</code> yang sedang kamu pakai. Ini proteksi keamanan bawaan, bukan bug.",
+      "open": "Buka Console di {origin}"
+    }
+  },
+  "volumeBackups": {
+    "title": "Backup volume",
+    "description": "Arsip <code>tar.gz</code> tiap volume di <code>aoox_backups</code>{copied}. Restore menghentikan container sebentar dan menimpa isi volume.",
+    "copiedTo": " dan disalin ke {name}",
+    "s3Destination": "tujuan S3",
+    "volume": "Volume",
+    "volumeDeleted": "(volume dihapus)",
+    "processing": "Memproses…",
+    "backupVolume": "Backup {name}",
+    "empty": "Belum ada backup.",
+    "scheduled": "terjadwal",
+    "manual": "manual",
+    "s3Only": "hanya di S3",
+    "restore": "Restore",
+    "restoring": "Me-restore…",
+    "deleteAria": "Hapus backup",
+    "failed": "Backup gagal",
+    "preset": {
+      "off": "Nonaktif",
+      "hourly": "Setiap jam",
+      "daily": "Setiap hari 02:00",
+      "weekly": "Setiap minggu (Minggu 03:00)",
+      "custom": "Kustom"
+    },
+    "schedule": {
+      "title": "Jadwal backup volume",
+      "description": "Berlaku untuk semua volume aplikasi ini. Backup terjadwal lama dihapus melebihi jumlah yang disimpan (per volume).",
+      "frequency": "Frekuensi",
+      "cron": "Cron (5 kolom)",
+      "keep": "Simpan",
+      "destination": "Tujuan S3",
+      "localOnly": "Hanya lokal",
+      "current": "Sekarang:",
+      "off": "nonaktif"
+    },
+    "restoreDialog": {
+      "title": "Restore volume?",
+      "description": "Isi volume <strong>{volume}</strong> akan dihapus dan diganti dengan <code>{file}</code>. Container dihentikan selama proses. Tidak bisa dibatalkan."
+    }
+  }
+}

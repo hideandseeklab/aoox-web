@@ -1,6 +1,7 @@
 "use client"
 
 import { Copy } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
 import { TerminalAuthorizeButton } from "@/components/custom/terminal-authorize-button"
@@ -15,10 +16,10 @@ import {
 import type { TerminalStatus } from "@/features/terminal/terminal.entity"
 import { copyToClipboard } from "@/lib/clipboard"
 
-const KEY_SOURCE_LABEL = {
-  "env-key": "key dari konfigurasi",
-  "env-password": "password dari konfigurasi",
-  generated: "key otomatis",
+const KEY_SOURCE_KEY = {
+  "env-key": "envKey",
+  "env-password": "envPassword",
+  generated: "generated",
 } as const
 
 /** Settings card: how the web terminal reaches the host and, for the
@@ -31,6 +32,7 @@ export function TerminalCard({
   /** Owner and the API allows it: show the button above the manual command. */
   canAutoAuthorize?: boolean
 }) {
+  const t = useTranslations("terminal.card")
   const target =
     status.mode === "ssh"
       ? `${status.username ?? "?"}@${status.host}:${status.port}`
@@ -45,26 +47,28 @@ export function TerminalCard({
             <CardDescription>
               {status.mode === "ssh" ? (
                 <>
-                  Shell di host lewat SSH ke <code>{target}</code>
+                  {t.rich("sshDescription", {
+                    target: target ?? "",
+                    code: (c) => <code>{c}</code>,
+                  })}
                   {status.usernameSource === "default" &&
-                    " (user default — TERMINAL_SSH_USER kosong)"}
+                    ` ${t("defaultUser")}`}
                   {status.keySource &&
-                    ` (${KEY_SOURCE_LABEL[status.keySource]})`}
+                    ` (${t(`keySource.${KEY_SOURCE_KEY[status.keySource]}`)})`}
                   .
                 </>
               ) : (
-                <>
-                  Shell lokal di samping proses API. Di Docker, set{" "}
-                  <code>TERMINAL_SSH_HOST</code> agar terminal masuk ke host.
-                </>
+                t.rich("localDescription", {
+                  code: (c) => <code>{c}</code>,
+                })
               )}
             </CardDescription>
           </div>
           {status.error ? (
-            <Badge variant="destructive">Perlu perhatian</Badge>
+            <Badge variant="destructive">{t("needsAttention")}</Badge>
           ) : (
             <Badge variant={status.mode === "ssh" ? "default" : "secondary"}>
-              {status.mode === "ssh" ? "SSH" : "Lokal"}
+              {status.mode === "ssh" ? "SSH" : t("local")}
             </Badge>
           )}
         </div>
@@ -84,16 +88,18 @@ export function TerminalCard({
           {status.authorizeCommand && (
             <div className="space-y-1.5">
               <p className="text-muted-foreground">
-                Jalankan sekali di host sebagai user{" "}
-                <code>{status.username}</code> agar key ini diizinkan login:
+                {t.rich("authorizeInstruction", {
+                  user: status.username ?? "",
+                  code: (c) => <code>{c}</code>,
+                })}
               </p>
-              <CommandBox label="perintah" value={status.authorizeCommand} />
+              <CommandBox label={t("commandLabel")} value={status.authorizeCommand} />
             </div>
           )}
           {status.publicKey && (
             <div className="space-y-1.5">
-              <p className="text-muted-foreground">Public key:</p>
-              <CommandBox label="public key" value={status.publicKey} />
+              <p className="text-muted-foreground">{t("publicKey")}</p>
+              <CommandBox label={t("publicKeyLabel")} value={status.publicKey} />
             </div>
           )}
         </CardContent>
@@ -103,6 +109,7 @@ export function TerminalCard({
 }
 
 function CommandBox({ label, value }: { label: string; value: string }) {
+  const t = useTranslations("terminal.card")
   return (
     <div className="flex items-start gap-2">
       <pre className="min-w-0 flex-1 overflow-x-auto rounded bg-muted px-2 py-1.5 font-mono text-xs break-all whitespace-pre-wrap">
@@ -111,12 +118,12 @@ function CommandBox({ label, value }: { label: string; value: string }) {
       <Button
         variant="ghost"
         size="icon-sm"
-        aria-label={`Salin ${label}`}
+        aria-label={t("copy", { label })}
         onClick={() =>
           void copyToClipboard(value).then((ok) =>
             ok
-              ? toast.success(`${label} disalin`)
-              : toast.error(`Gagal menyalin ${label}`)
+              ? toast.success(t("copied", { label }))
+              : toast.error(t("copyFailed", { label }))
           )
         }
       >

@@ -1,4 +1,5 @@
 import { ArrowLeft } from "lucide-react"
+import { getTranslations } from "next-intl/server"
 import { getProject } from "@/features/project/project.queries"
 import { SetBreadcrumb } from "@/components/custom/breadcrumb-store"
 import { SourceIcon } from "@/components/custom/brand-icon"
@@ -41,9 +42,12 @@ export default async function ApplicationPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>
-  /** Set by the "Aplikasi baru" page's "Domain" option; see create-application-page-form.tsx. */
+  /** Set by the "New application" page's "Domain" option; see create-application-page-form.tsx. */
   searchParams: Promise<{ domainProxyAutoProvisioned?: string }>
 }) {
+  const t = await getTranslations("applications")
+  const tb = await getTranslations("breadcrumb")
+  const tc = await getTranslations("common")
   const { id } = await params
   const { domainProxyAutoProvisioned } = await searchParams
   const app = await getApplication(id)
@@ -87,7 +91,7 @@ export default async function ApplicationPage({
     listDatabases(app.projectId),
     fetchMetricsAction("application", app.id),
     getHttpMonitor(app.id).catch(() => null),
-    // Names only, for the "Sumber secret" picker; [] when the API has none.
+    // Names only, for the secret source picker; [] when the API has none.
     listSecretConnections().catch(() => []),
     // Members get 403 here; they simply cannot move apps between servers.
     listServers().catch(() => []),
@@ -106,9 +110,9 @@ export default async function ApplicationPage({
     <>
       <SetBreadcrumb
         items={[
-          { label: "Projects", href: "/projects" },
+          { label: tb("projects"), href: "/projects" },
           {
-            label: project?.name ?? "Project",
+            label: project?.name ?? tc("labels.project"),
             href: `/projects/${app.projectId}`,
           },
           { label: app.name },
@@ -118,7 +122,7 @@ export default async function ApplicationPage({
         <Button asChild variant="ghost" size="icon" className="mt-0.5">
           <Link
             href={`/projects/${app.projectId}`}
-            aria-label="Kembali ke project"
+            aria-label={t("page.backToProject")}
           >
             <ArrowLeft />
           </Link>
@@ -167,7 +171,9 @@ export default async function ApplicationPage({
             status={
               <>
                 <Badge variant={running ? "default" : "secondary"}>
-                  {app.container ? app.container.state : "belum deploy"}
+                  {app.container
+                    ? app.container.state
+                    : t("status.notDeployed")}
                 </Badge>
                 {server && <Badge variant="outline">{server.name}</Badge>}
                 {app.service && (
@@ -180,10 +186,17 @@ export default async function ApplicationPage({
                       )
                       .join("\n")}
                   >
-                    service {app.service.running}/{app.service.desired}
                     {app.service.updateState &&
-                      app.service.updateState !== "completed" &&
-                      ` · ${app.service.updateState}`}
+                    app.service.updateState !== "completed"
+                      ? t("status.serviceUpdating", {
+                          running: app.service.running,
+                          desired: app.service.desired,
+                          state: app.service.updateState,
+                        })
+                      : t("status.service", {
+                          running: app.service.running,
+                          desired: app.service.desired,
+                        })}
                   </Badge>
                 )}
               </>
@@ -214,7 +227,7 @@ export default async function ApplicationPage({
               <>
                 <ApplicationStatusActions app={app} deployments={deployments} />
                 {app.projectRole === "viewer" ? (
-                  <Badge variant="outline">Baca saja</Badge>
+                  <Badge variant="outline">{t("page.readOnly")}</Badge>
                 ) : (
                   <DeleteApplicationButton
                     id={app.id}

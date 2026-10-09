@@ -1,6 +1,7 @@
 "use client"
 
 import { Pencil } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { useState, useTransition } from "react"
 import { Button } from "@/components/ui/button"
 import {
@@ -47,6 +48,8 @@ export function RowEditDialog({
   row: Record<string, string | null>
   onSaved: () => void
 }) {
+  const t = useTranslations("database")
+  const tc = useTranslations("common")
   const [open, setOpen] = useState(false)
   const [fields, setFields] = useState<Record<string, FieldState>>({})
   const [error, setError] = useState<string | null>(null)
@@ -79,7 +82,7 @@ export function RowEditDialog({
       const missingPk = pk.find((c) => !(c.name in row))
       if (missingPk) {
         return setError(
-          `Nilai kolom "${missingPk.name}" tidak ditemukan di baris ini`
+          t("rowEdit.missingPk", { name: missingPk.name })
         )
       }
       const where = Object.fromEntries(pk.map((c) => [c.name, row[c.name]]))
@@ -109,17 +112,18 @@ export function RowEditDialog({
       }}
     >
       <DialogTrigger asChild>
-        <Button variant="ghost" size="icon-sm" aria-label="Ubah baris">
+        <Button variant="ghost" size="icon-sm" aria-label={t("rowEdit.trigger")}>
           <Pencil />
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Ubah baris</DialogTitle>
+          <DialogTitle>{t("rowEdit.title")}</DialogTitle>
           <DialogDescription>
-            {table} — dicari lewat primary key (
-            {pk.map((c) => c.name).join(", ")}); kolom itu sendiri tidak bisa
-            diubah di sini.
+            {t("rowEdit.description", {
+              table,
+              keys: pk.map((c) => c.name).join(", "),
+            })}
           </DialogDescription>
         </DialogHeader>
         <div className="max-h-[60vh] space-y-3 overflow-y-auto">
@@ -179,10 +183,10 @@ export function RowEditDialog({
         )}
         <DialogFooter>
           <Button variant="ghost" onClick={() => setOpen(false)}>
-            Batal
+            {tc("actions.cancel")}
           </Button>
           <Button onClick={save} disabled={pending}>
-            {pending ? "Menyimpan…" : "Simpan"}
+            {pending ? tc("states.saving") : tc("actions.save")}
           </Button>
         </DialogFooter>
       </DialogContent>

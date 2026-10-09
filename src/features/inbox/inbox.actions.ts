@@ -1,5 +1,6 @@
 "use server"
 
+import { getTranslations } from "next-intl/server"
 import { requireToken } from "@/features/auth/auth.session"
 import { api, ApiError } from "@/lib/api"
 import type { InboxPage } from "./inbox.entity"
@@ -7,12 +8,10 @@ import type { InboxPage } from "./inbox.entity"
 export type ActionResult<T = undefined> =
   { ok: true; data: T } | { ok: false; error: string }
 
-function fail(err: unknown): { ok: false; error: string } {
-  return {
-    ok: false,
-    error:
-      err instanceof ApiError ? err.message : "Tidak dapat terhubung ke server",
-  }
+async function fail(err: unknown): Promise<{ ok: false; error: string }> {
+  if (err instanceof ApiError) return { ok: false, error: err.message }
+  const t = await getTranslations("inbox")
+  return { ok: false, error: t("unreachable") }
 }
 
 /** Latest events plus the unread count; polled by the bell in the top bar. */

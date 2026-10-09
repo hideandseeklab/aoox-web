@@ -13,6 +13,7 @@ import {
   Trash2,
   Upload,
 } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { QueryHistoryMenu } from "@/components/custom/query-history-menu"
 import { ConfirmDialog } from "@/components/custom/confirm-dialog"
 import { RowEditDialog } from "@/components/custom/row-edit-dialog"
@@ -76,6 +77,8 @@ export function DatabaseDataBrowser({
   running: boolean
   canWrite: boolean
 }) {
+  const t = useTranslations("database")
+  const tc = useTranslations("common")
   // Valkey is a Redis drop-in (same key-value commands), so it shares every
   // Redis-specific UI branch here.
   const isRedis = db.engine === "redis" || db.engine === "valkey"
@@ -269,7 +272,7 @@ export function DatabaseDataBrowser({
   if (!running) {
     return (
       <p className="text-xs text-muted-foreground">
-        Database harus berjalan untuk menjelajahi data.
+        {t("browser.notRunning")}
       </p>
     )
   }
@@ -289,18 +292,17 @@ export function DatabaseDataBrowser({
       <ConfirmDialog
         open={rowToDelete !== null}
         onOpenChange={(o) => !o && setRowToDelete(null)}
-        title="Hapus baris ini?"
+        title={t("browser.deleteRow.title")}
         description={
-          rowToDelete && selected ? (
-            <>
-              Baris <code>{pkSummary(rowToDelete)}</code> dihapus permanen dari{" "}
-              <code>{selected.name}</code>. Ini tidak bisa dibatalkan.
-            </>
-          ) : (
-            "Baris dihapus permanen. Ini tidak bisa dibatalkan."
-          )
+          rowToDelete && selected
+            ? t.rich("browser.deleteRow.description", {
+                pk: pkSummary(rowToDelete),
+                table: selected.name,
+                code: (chunks) => <code>{chunks}</code>,
+              })
+            : t("browser.deleteRow.descriptionFallback")
         }
-        confirmLabel="Hapus baris"
+        confirmLabel={t("browser.deleteRow.confirm")}
         onConfirm={() =>
           rowToDelete ? removeRow(rowToDelete) : Promise.resolve()
         }
@@ -308,18 +310,22 @@ export function DatabaseDataBrowser({
       <ConfirmDialog
         open={fileToImport !== null}
         onOpenChange={(o) => !o && setFileToImport(null)}
-        title={`Jalankan ${fileToImport?.name ?? "berkas SQL"}?`}
-        description={
-          fileToImport ? (
-            <>
-              Berkas <code>{fileToImport.name}</code> (
-              {(fileToImport.size / 1024).toFixed(0)} KB) dijalankan di database{" "}
-              <code>{schema}</code>. Statement di dalamnya dieksekusi apa
-              adanya, termasuk yang mengubah atau menghapus data.
-            </>
-          ) : null
+        title={
+          fileToImport
+            ? t("browser.import.title", { name: fileToImport.name })
+            : t("browser.import.titleFallback")
         }
-        confirmLabel="Jalankan"
+        description={
+          fileToImport
+            ? t.rich("browser.import.description", {
+                name: fileToImport.name,
+                size: (fileToImport.size / 1024).toFixed(0),
+                db: schema,
+                code: (chunks) => <code>{chunks}</code>,
+              })
+            : null
+        }
+        confirmLabel={t("browser.import.confirm")}
         tone="neutral"
         onConfirm={async () => {
           if (fileToImport) importFile(fileToImport)
@@ -335,7 +341,7 @@ export function DatabaseDataBrowser({
                   <SelectTrigger
                     size="sm"
                     className="w-full min-w-0 flex-1 font-mono text-xs"
-                    aria-label="Database"
+                    aria-label={t("browser.databaseAria")}
                   >
                     <SelectValue />
                   </SelectTrigger>
@@ -348,7 +354,7 @@ export function DatabaseDataBrowser({
                         {s.isPrimary && (
                           <span className="text-muted-foreground">
                             {" "}
-                            · utama
+                            · {t("browser.primary")}
                           </span>
                         )}
                       </SelectItem>
@@ -360,7 +366,11 @@ export function DatabaseDataBrowser({
           )}
           <div className="flex items-center justify-between">
             <CardTitle>
-              {isRedis ? "Key" : isMongo ? "Koleksi" : "Tabel"}
+              {isRedis
+                ? t("browser.list.keys")
+                : isMongo
+                  ? t("browser.list.collections")
+                  : t("browser.list.tables")}
             </CardTitle>
             <div className="flex items-center">
               {canWrite &&
@@ -386,7 +396,7 @@ export function DatabaseDataBrowser({
               <Button
                 variant="ghost"
                 size="icon-sm"
-                aria-label="Muat ulang daftar"
+                aria-label={t("browser.reloadList")}
                 disabled={pending}
                 onClick={loadTables}
               >
@@ -397,14 +407,16 @@ export function DatabaseDataBrowser({
         </CardHeader>
         <CardContent className="p-0">
           {tables === null ? (
-            <p className="px-4 pb-4 text-xs text-muted-foreground">Memuat…</p>
+            <p className="px-4 pb-4 text-xs text-muted-foreground">
+              {tc("states.loading")}
+            </p>
           ) : tables.length === 0 ? (
             <p className="px-4 pb-4 text-xs text-muted-foreground">
               {isRedis
-                ? "Belum ada key."
+                ? t("browser.empty.keys")
                 : isMongo
-                  ? "Belum ada koleksi."
-                  : "Belum ada tabel."}
+                  ? t("browser.empty.collections")
+                  : t("browser.empty.tables")}
             </p>
           ) : (
             <ul className="max-h-[480px] divide-y overflow-y-auto text-xs">
@@ -447,10 +459,10 @@ export function DatabaseDataBrowser({
             <div className="flex items-center justify-between gap-2">
               <CardTitle>
                 {isRedis
-                  ? `Perintah ${kvLabel}`
+                  ? t("browser.query.titleKv", { engine: kvLabel })
                   : isMongo
-                    ? "Query MongoDB"
-                    : "SQL"}
+                    ? t("browser.query.titleMongo")
+                    : t("browser.query.titleSql")}
               </CardTitle>
               <div className="flex items-center gap-1">
                 <QueryHistoryMenu databaseId={db.id} onPick={setSql} />
@@ -460,7 +472,7 @@ export function DatabaseDataBrowser({
                       href={`/api/databases/${db.id}/export${dbParam ? `?db=${encodeURIComponent(dbParam)}` : ""}`}
                     >
                       <Download data-icon="inline-start" />
-                      Ekspor SQL
+                      {t("browser.exportSql")}
                     </a>
                   </Button>
                 )}
@@ -484,7 +496,7 @@ export function DatabaseDataBrowser({
                       onClick={() => fileInput.current?.click()}
                     >
                       <Upload data-icon="inline-start" />
-                      Impor SQL
+                      {t("browser.importSql")}
                     </Button>
                   </>
                 )}
@@ -492,14 +504,14 @@ export function DatabaseDataBrowser({
             </div>
             <CardDescription>
               {isRedis
-                ? "Satu perintah, mis. HGETALL user:1 atau SCAN 0 MATCH sess:* COUNT 100."
+                ? t("browser.query.hintKv")
                 : isMongo
-                  ? 'Satu query, mis. users.find({"age":{"$gt":18}}) — hanya find(), read-only untuk saat ini.'
-                  : "Satu statement per eksekusi; SELECT tanpa LIMIT dibatasi 500 baris, timeout 15 detik."}{" "}
+                  ? t("browser.query.hintMongo")
+                  : t("browser.query.hintSql")}{" "}
               {!isMongo &&
                 (canWrite
-                  ? "Kamu bisa menulis (INSERT/UPDATE/DELETE/DDL) — hati-hati, tidak ada undo."
-                  : "Sesi ini read-only; hanya owner/admin yang bisa mengubah data.")}
+                  ? t("browser.query.writeHint")
+                  : t("browser.query.readOnlyHint"))}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-2">
@@ -525,13 +537,16 @@ export function DatabaseDataBrowser({
             <div className="flex items-center gap-3">
               <Button size="sm" disabled={pending || !sql.trim()} onClick={run}>
                 <Play data-icon="inline-start" />
-                Jalankan
+                {t("browser.query.run")}
               </Button>
               <span className="text-xs text-muted-foreground">Ctrl+Enter</span>
               {grid && (
                 <span className="ms-auto text-xs text-muted-foreground">
-                  {grid.rows.length} baris · {grid.durationMs} ms
-                  {grid.truncated && " · dipotong 500"}
+                  {t("browser.query.summary", {
+                    count: grid.rows.length,
+                    ms: grid.durationMs,
+                  })}
+                  {grid.truncated && ` · ${t("browser.query.truncated")}`}
                 </span>
               )}
             </div>
@@ -558,7 +573,7 @@ export function DatabaseDataBrowser({
               <div className="flex items-center gap-2">
                 <CardTitle className="truncate">
                   {result
-                    ? "Hasil query"
+                    ? t("browser.resultTitle")
                     : selected
                       ? `${selected.schema && selected.schema !== "public" ? `${selected.schema}.` : ""}${selected.name}`
                       : ""}
@@ -573,14 +588,14 @@ export function DatabaseDataBrowser({
                       onClick={() => setView("data")}
                       className={`px-2 py-1 ${view === "data" ? "bg-muted font-medium" : "text-muted-foreground"}`}
                     >
-                      Data
+                      {t("browser.tabs.data")}
                     </button>
                     <button
                       type="button"
                       onClick={() => setView("structure")}
                       className={`border-s px-2 py-1 ${view === "structure" ? "bg-muted font-medium" : "text-muted-foreground"}`}
                     >
-                      Struktur
+                      {t("browser.tabs.structure")}
                     </button>
                   </div>
                 )}
@@ -589,7 +604,7 @@ export function DatabaseDataBrowser({
                     asChild
                     variant="ghost"
                     size="icon-sm"
-                    aria-label="Ekspor CSV"
+                    aria-label={t("browser.exportCsv")}
                   >
                     <a
                       href={`/api/databases/${db.id}/tables/${encodeURIComponent(selected?.name ?? "")}/rows/export?${new URLSearchParams(
@@ -611,12 +626,12 @@ export function DatabaseDataBrowser({
                 {rows && !result && (
                   <span className="ms-auto flex items-center gap-1 text-xs text-muted-foreground">
                     {rows.rows.length === 0
-                      ? "kosong"
+                      ? t("browser.pager.empty")
                       : `${offset + 1}–${offset + rows.rows.length}`}
                     <Button
                       variant="ghost"
                       size="icon-sm"
-                      aria-label="Sebelumnya"
+                      aria-label={t("browser.pager.previous")}
                       disabled={pending || offset === 0}
                       onClick={() => page(-PAGE)}
                     >
@@ -625,7 +640,7 @@ export function DatabaseDataBrowser({
                     <Button
                       variant="ghost"
                       size="icon-sm"
-                      aria-label="Berikutnya"
+                      aria-label={t("browser.pager.next")}
                       disabled={pending || !rows.hasMore}
                       onClick={() => page(PAGE)}
                     >
@@ -639,16 +654,16 @@ export function DatabaseDataBrowser({
               {view === "structure" && rows && !result && !isRedis ? (
                 columns === null ? (
                   <p className="px-4 pb-4 text-xs text-muted-foreground">
-                    Memuat…
+                    {tc("states.loading")}
                   </p>
                 ) : (
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Kolom</TableHead>
-                        <TableHead>Tipe</TableHead>
-                        <TableHead>Nullable</TableHead>
-                        <TableHead>Default</TableHead>
+                        <TableHead>{t("browser.structure.column")}</TableHead>
+                        <TableHead>{tc("labels.type")}</TableHead>
+                        <TableHead>{t("browser.structure.nullable")}</TableHead>
+                        <TableHead>{t("browser.structure.default")}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -665,7 +680,7 @@ export function DatabaseDataBrowser({
                           <TableCell className="font-mono text-muted-foreground">
                             {c.dataType}
                           </TableCell>
-                          <TableCell>{c.nullable ? "ya" : "tidak"}</TableCell>
+                          <TableCell>{c.nullable ? tc("states.yes") : tc("states.no")}</TableCell>
                           <TableCell className="max-w-[220px] truncate font-mono text-muted-foreground">
                             {c.defaultValue ?? "—"}
                           </TableCell>
@@ -676,7 +691,7 @@ export function DatabaseDataBrowser({
                 )
               ) : !grid || grid.columns.length === 0 ? (
                 <p className="px-4 pb-4 text-xs text-muted-foreground">
-                  Tidak ada hasil.
+                  {tc("messages.noResults")}
                 </p>
               ) : (
                 <Table>
@@ -708,7 +723,7 @@ export function DatabaseDataBrowser({
                         !isRedis &&
                         canWrite &&
                         columns?.some((c) => c.isPrimaryKey) && (
-                          <TableHead className="w-0">Aksi</TableHead>
+                          <TableHead className="w-0">{tc("labels.actions")}</TableHead>
                         )}
                     </TableRow>
                   </TableHeader>
@@ -727,7 +742,7 @@ export function DatabaseDataBrowser({
                               </span>
                             ) : v === "" ? (
                               <span className="text-muted-foreground italic">
-                                (kosong)
+                                {t("browser.emptyValue")}
                               </span>
                             ) : (
                               v
@@ -755,7 +770,7 @@ export function DatabaseDataBrowser({
                               <Button
                                 variant="ghost"
                                 size="icon-sm"
-                                aria-label="Hapus baris"
+                                aria-label={t("browser.deleteRow.aria")}
                                 onClick={() => setRowToDelete(r)}
                               >
                                 <Trash2 />

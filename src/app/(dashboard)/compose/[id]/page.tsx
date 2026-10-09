@@ -3,6 +3,7 @@ import { getProject } from "@/features/project/project.queries"
 import { SetBreadcrumb } from "@/components/custom/breadcrumb-store"
 import { ComposeSourceIcon } from "@/components/custom/brand-icon"
 import Link from "next/link"
+import { getTranslations } from "next-intl/server"
 import { notFound } from "next/navigation"
 import { ApplicationJobs } from "@/components/custom/application-jobs"
 import { ComposeAccessHint } from "@/components/custom/compose-access-hint"
@@ -47,6 +48,9 @@ export default async function ComposeAppPage({
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
+  const t = await getTranslations("compose")
+  const tb = await getTranslations("breadcrumb")
+  const tc = await getTranslations("common")
   const app = await getComposeApp(id)
   if (!app) notFound()
   const [
@@ -77,16 +81,16 @@ export default async function ComposeAppPage({
   const services = [...new Set(app.containers.map((c) => c.service))].filter(
     Boolean
   )
-  const template = templates.find((t) => t.id === app.templateId)
+  const template = templates.find((tpl) => tpl.id === app.templateId)
 
   const project = await getProject(app.projectId)
   return (
     <>
       <SetBreadcrumb
         items={[
-          { label: "Projects", href: "/projects" },
+          { label: tb("projects"), href: "/projects" },
           {
-            label: project?.name ?? "Project",
+            label: project?.name ?? tc("labels.project"),
             href: `/projects/${app.projectId}`,
           },
           { label: app.name },
@@ -96,7 +100,7 @@ export default async function ComposeAppPage({
         <Button asChild variant="ghost" size="icon" className="mt-0.5">
           <Link
             href={`/projects/${app.projectId}`}
-            aria-label="Kembali ke project"
+            aria-label={t("page.backToProject")}
           >
             <ArrowLeft />
           </Link>
@@ -114,17 +118,25 @@ export default async function ComposeAppPage({
       <ComposeLiveProvider initial={app}>
         <Tabs defaultValue="deploy">
           <ScrollableTabsList>
-            <TabsTrigger value="deploy">Deploy</TabsTrigger>
-            <TabsTrigger value="history">Riwayat ({runs.length})</TabsTrigger>
-            <TabsTrigger value="mounts">Mount ({mounts.length})</TabsTrigger>
-            <TabsTrigger value="jobs">Jobs ({jobs.length})</TabsTrigger>
-            <TabsTrigger value="settings">Pengaturan</TabsTrigger>
+            <TabsTrigger value="deploy">{t("page.tabs.deploy")}</TabsTrigger>
+            <TabsTrigger value="history">
+              {t("page.tabs.history", { count: runs.length })}
+            </TabsTrigger>
+            <TabsTrigger value="mounts">
+              {t("page.tabs.mounts", { count: mounts.length })}
+            </TabsTrigger>
+            <TabsTrigger value="jobs">
+              {t("page.tabs.jobs", { count: jobs.length })}
+            </TabsTrigger>
+            <TabsTrigger value="settings">
+              {t("page.tabs.settings")}
+            </TabsTrigger>
           </ScrollableTabsList>
           <ComposeStatusStrip
             info={
               <span className="font-mono break-all">
                 {app.source === "template"
-                  ? `template · ${app.templateId}`
+                  ? t("page.templateInfo", { id: app.templateId ?? "" })
                   : `${(app.gitUrl ?? "").replace(/^https?:\/\//, "")}#${app.gitBranch} · ${app.composePath}`}
               </span>
             }
@@ -165,9 +177,9 @@ export default async function ComposeAppPage({
             <ComposeResources appId={app.id} resources={app.serviceResources} />
             <Card>
               <CardHeader>
-                <CardTitle>Pengaturan</CardTitle>
+                <CardTitle>{t("page.settingsTitle")}</CardTitle>
                 <CardDescription>
-                  Perubahan berlaku pada deploy berikutnya.
+                  {t("page.settingsDescription")}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -183,7 +195,7 @@ export default async function ComposeAppPage({
                     composeContent: app.composeContent ?? "",
                   }}
                   source={app.source}
-                  submitLabel="Simpan"
+                  submitLabel={tc("actions.save")}
                   credentials={credentials}
                   databaseSlugs={databases.map((d) => d.slug)}
                 />

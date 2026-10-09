@@ -1,5 +1,6 @@
 "use server"
 
+import { getTranslations } from "next-intl/server"
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
 import { requireToken } from "@/features/auth/auth.session"
@@ -9,22 +10,23 @@ import type { Certificate } from "./certificate.entity"
 export type ActionResult<T = undefined> =
   { ok: true; data: T } | { ok: false; error: string }
 
-function fail(err: unknown): { ok: false; error: string } {
+async function fail(err: unknown): Promise<{ ok: false; error: string }> {
+  const t = await getTranslations("settings")
   return {
     ok: false,
-    error:
-      err instanceof ApiError ? err.message : "Tidak dapat terhubung ke server",
+    error: err instanceof ApiError ? err.message : t("errors.unreachable"),
   }
 }
 
 // PEM text is small; the cap only stops absurd pastes.
 const pem = z.string().trim().min(1).max(100_000)
 
-const createSchema = z.object({
-  name: z.string().trim().min(1, "Nama wajib diisi").max(100),
-  certificate: pem,
-  privateKey: pem,
-})
+const createSchema = (t: (key: string) => string) =>
+  z.object({
+    name: z.string().trim().min(1, t("validation.nameRequired")).max(100),
+    certificate: pem,
+    privateKey: pem,
+  })
 
 const replaceSchema = z.object({ certificate: pem, privateKey: pem })
 
@@ -38,11 +40,12 @@ export interface CertificateInput {
 export async function createCertificateAction(
   input: Required<CertificateInput>
 ): Promise<ActionResult<Certificate>> {
-  const parsed = createSchema.safeParse(input)
+  const t = await getTranslations("settings")
+  const parsed = createSchema(t).safeParse(input)
   if (!parsed.success)
     return {
       ok: false,
-      error: parsed.error.issues[0]?.message ?? "Tidak valid",
+      error: parsed.error.issues[0]?.message ?? t("errors.invalid"),
     }
   try {
     const data = await api<Certificate>("/certificates", {
@@ -63,8 +66,10 @@ export async function replaceCertificateAction(
   input: Omit<CertificateInput, "name">
 ): Promise<ActionResult<Certificate>> {
   const parsed = replaceSchema.safeParse(input)
-  if (!parsed.success)
-    return { ok: false, error: "Sertifikat dan kunci privat wajib diisi" }
+  if (!parsed.success) {
+    const t = await getTranslations("settings")
+    return { ok: false, error: t("validation.certAndKeyRequired") }
+  }
   try {
     const data = await api<Certificate>(`/certificates/${id}`, {
       method: "PUT",
