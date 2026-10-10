@@ -17,6 +17,7 @@ import {
   markInboxReadAction,
 } from "@/features/inbox/inbox.actions"
 import type { InboxItem, InboxPage } from "@/features/inbox/inbox.entity"
+import { describeInboxItem } from "@/features/inbox/inbox.describe"
 import { badgeText } from "@/features/inbox/inbox.format"
 import { formatRelative } from "@/i18n/format"
 
@@ -148,12 +149,16 @@ function InboxRow({
   const t = useTranslations("inbox")
   const locale = useLocale()
   const { Icon, cls } = LEVEL_ICON[item.level]
+  // Composed in the active language; events without params (or unknown ones) keep the API's English text.
+  const localized = describeInboxItem(item, { t, locale })
+  const title = localized?.title ?? item.title
+  const summary = localized ? localized.summary : item.summary
   const body = (
     <>
       <Icon aria-hidden="true" className={`mt-0.5 size-3.5 shrink-0 ${cls}`} />
       <span className="min-w-0 flex-1 text-xs">
         <span className="flex items-start justify-between gap-2">
-          <span className={unread ? "font-medium" : ""}>{item.title}</span>
+          <span className={unread ? "font-medium" : ""}>{title}</span>
           {unread && (
             <span
               className="mt-1 size-1.5 shrink-0 rounded-full bg-primary"
@@ -161,9 +166,9 @@ function InboxRow({
             />
           )}
         </span>
-        {item.summary && (
+        {summary && (
           <span className="mt-0.5 line-clamp-2 block text-muted-foreground">
-            {item.summary}
+            {summary}
           </span>
         )}
         <span className="mt-0.5 block text-muted-foreground tabular-nums">

@@ -5,5 +5,115 @@
   "loading": "Loading…",
   "empty": "No notifications yet. Deploys, backups and alerts will show up here.",
   "unread": "Unread",
-  "unreachable": "Could not reach the server"
+  "unreachable": "Could not reach the server",
+  "duration": {
+    "seconds": "{seconds}s",
+    "minutes": "{minutes}m {seconds}s",
+    "hours": "{hours}h {minutes}m",
+    "wholeMinutes": "{minutes}m",
+    "wholeHours": "{hours}h"
+  },
+  "events": {
+    "deploymentStarted": {
+      "title": "{kind, select, rollback {Rollback started: {application}} other {Deployment started: {application}}}",
+      "summary": "{project} · {trigger, select, webhook {Webhook} autoUpdate {Auto-update} other {Manual}}{by, select, none {} other { · {by}}}{commit, select, none {} other { · {commit}}}"
+    },
+    "deploymentSuccess": {
+      "title": "{kind, select, rollback {Rollback succeeded: {application}} other {Deployment succeeded: {application}}}",
+      "summary": "{project}{duration, select, none {} other { · {duration}}}"
+    },
+    "deploymentFailure": {
+      "title": "{kind, select, rollback {Rollback failed: {application}} other {Deployment failed: {application}}}",
+      "summary": "{project}{duration, select, none {} other { · {duration}}}{error, select, none {} other { · {error}}}",
+      "compose": {
+        "title": "Compose deployment failed: {stack}",
+        "summary": "{source, select, template {Template} other {Git}}{error, select, none {} other { · {error}}}"
+      }
+    },
+    "backupFailure": {
+      "database": {
+        "title": "Backup failed: {database}",
+        "summary": "{engine, select, none {} other {{engine} · }}{trigger, select, scheduled {Scheduled} other {Manual}}{error, select, none {} other { · {error}}}"
+      },
+      "volume": {
+        "title": "Volume backup failed: {application} ({volume})",
+        "summary": "{trigger, select, scheduled {Scheduled} other {Manual}}{error, select, none {} other { · {error}}}"
+      },
+      "instance": {
+        "title": "Instance backup failed",
+        "summary": "{trigger, select, scheduled {Scheduled} other {Manual}}{error, select, none {} other { · {error}}}"
+      }
+    },
+    "jobFailure": {
+      "title": "{status, select, timeout {Job timed out: {job}} other {Job failed: {job}}}"
+    },
+    "containerDown": {
+      "application": {
+        "title": "{restarting, select, true {Application crashed: {application}} other {Application went down: {application}}}{server, select, none {} other { on server {server}}}",
+        "summary": "{project} · Exit code {exitCode} · {restarting, select, true {restarting (restart policy)} other {stopped}}"
+      },
+      "task": {
+        "title": "Application task crashed: {application} ({running}/{desired} replicas)",
+        "summary": "{project}"
+      },
+      "database": {
+        "title": "{restarting, select, true {Database crashed: {database}} other {Database went down: {database}}}",
+        "summary": "Exit code {exitCode} · {restarting, select, true {restarting (restart policy)} other {stopped}}"
+      },
+      "stack": {
+        "title": "{restarting, select, true {Stack service crashed: {stack} ({service})} other {Stack service went down: {stack} ({service})}}",
+        "summary": "Exit code {exitCode} · {restarting, select, true {restarting (restart policy)} other {stopped}}"
+      },
+      "replicas": {
+        "title": "Service short of replicas: {application} ({running}/{desired})",
+        "summary": "{project}"
+      }
+    },
+    "diskLow": {
+      "title": "Disk {usedPercent}% full on the aoox host",
+      "summary": "{used} of {total} used · {free} free · threshold {threshold}%"
+    },
+    "certificateFailure": {
+      "expired": {
+        "title": "Certificate expired: {certificate}",
+        "summary": "{domains, select, none {} other {{domains} · }}Expired on {date}"
+      },
+      "expiring": {
+        "title": "Certificate expiring: {certificate}",
+        "summary": "{domains, select, none {} other {{domains} · }}Expires on {date}"
+      },
+      "acme": {
+        "title": "Certificate failed: {domain}",
+        "summary": "{reason, select, none {Check the DNS A record and that port 80 is reachable from the internet.} other {{reason}}}"
+      }
+    },
+    "dnsIssue": {
+      "title": "{status, select, unresolved {DNS not set up: {domain}} other {DNS mismatch: {domain}}}",
+      "summary": "{application} · {project}"
+    },
+    "appError": {
+      "title": "Application error detected: {application}",
+      "summary": "{project} · {count, plural, one {# error} other {# errors}} in the latest check"
+    },
+    "serverDown": {
+      "down": {
+        "title": "{reminder, select, true {Server still unreachable: {server}} other {Server unreachable: {server}}}",
+        "summary": "{error, select, none {The connection check failed.} other {{error}}}"
+      },
+      "recovered": {
+        "title": "Server reachable again: {server}",
+        "summary": "{downFor, select, none {Back online.} other {Down for {downFor}}}"
+      }
+    },
+    "httpDown": {
+      "down": {
+        "title": "{reminder, select, true {HTTP check still failing: {application}} other {HTTP check failing: {application}}}",
+        "summary": "{project, select, none {} other {{project} · }}{target}{error, select, none {} other { · {error}}}"
+      },
+      "recovered": {
+        "title": "HTTP check healthy again: {application}",
+        "summary": "{project, select, none {} other {{project} · }}{downFor, select, none {Back to normal.} other {Down for {downFor}}}"
+      }
+    }
+  }
 }

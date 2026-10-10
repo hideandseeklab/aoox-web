@@ -11,6 +11,7 @@
 import fs from "node:fs"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
+import { parse } from "@formatjs/icu-messageformat-parser"
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
 const DIR = path.join(ROOT, "messages")
@@ -35,8 +36,24 @@ function leaves(node, prefix = "", out = new Map()) {
   return out
 }
 
-const placeholders = (s) =>
-  [...String(s).matchAll(/\{\s*([A-Za-z0-9_]+)\s*(?=[,}])/g)].map((m) => m[1]).sort().join(",")
+// Argument names used by a message (parsed, so the words inside select/plural branches do not count).
+function collectArgs(nodes, out) {
+  for (const n of nodes) {
+    if (n.value !== undefined && n.type !== 0 && typeof n.value === "string") out.add(n.value)
+    if (n.options) for (const o of Object.values(n.options)) collectArgs(o.value, out)
+    if (n.children) collectArgs(n.children, out)
+  }
+}
+const placeholders = (s) => {
+  try {
+    const out = new Set()
+    collectArgs(parse(String(s)), out)
+    return [...out].sort().join(",")
+  } catch (e) {
+    problems.push(`invalid ICU message "${String(s).slice(0, 60)}": ${e.message}`)
+    return ""
+  }
+}
 
 const locales = fs
   .readdirSync(DIR, { withFileTypes: true })

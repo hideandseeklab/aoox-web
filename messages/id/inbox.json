@@ -5,5 +5,115 @@
   "loading": "Memuat…",
   "empty": "Belum ada notifikasi. Deploy, backup, dan peringatan akan muncul di sini.",
   "unread": "Belum dibaca",
-  "unreachable": "Tidak dapat terhubung ke server"
+  "unreachable": "Tidak dapat terhubung ke server",
+  "duration": {
+    "seconds": "{seconds} dtk",
+    "minutes": "{minutes} mnt {seconds} dtk",
+    "hours": "{hours} j {minutes} mnt",
+    "wholeMinutes": "{minutes} mnt",
+    "wholeHours": "{hours} j"
+  },
+  "events": {
+    "deploymentStarted": {
+      "title": "{kind, select, rollback {Rollback dimulai: {application}} other {Deploy dimulai: {application}}}",
+      "summary": "{project} · {trigger, select, webhook {Webhook} autoUpdate {Update otomatis} other {Manual}}{by, select, none {} other { · {by}}}{commit, select, none {} other { · {commit}}}"
+    },
+    "deploymentSuccess": {
+      "title": "{kind, select, rollback {Rollback berhasil: {application}} other {Deploy berhasil: {application}}}",
+      "summary": "{project}{duration, select, none {} other { · {duration}}}"
+    },
+    "deploymentFailure": {
+      "title": "{kind, select, rollback {Rollback gagal: {application}} other {Deploy gagal: {application}}}",
+      "summary": "{project}{duration, select, none {} other { · {duration}}}{error, select, none {} other { · {error}}}",
+      "compose": {
+        "title": "Deploy compose gagal: {stack}",
+        "summary": "{source, select, template {Template} other {Git}}{error, select, none {} other { · {error}}}"
+      }
+    },
+    "backupFailure": {
+      "database": {
+        "title": "Backup gagal: {database}",
+        "summary": "{engine, select, none {} other {{engine} · }}{trigger, select, scheduled {Terjadwal} other {Manual}}{error, select, none {} other { · {error}}}"
+      },
+      "volume": {
+        "title": "Backup volume gagal: {application} ({volume})",
+        "summary": "{trigger, select, scheduled {Terjadwal} other {Manual}}{error, select, none {} other { · {error}}}"
+      },
+      "instance": {
+        "title": "Backup instance gagal",
+        "summary": "{trigger, select, scheduled {Terjadwal} other {Manual}}{error, select, none {} other { · {error}}}"
+      }
+    },
+    "jobFailure": {
+      "title": "{status, select, timeout {Job melewati batas waktu: {job}} other {Job gagal: {job}}}"
+    },
+    "containerDown": {
+      "application": {
+        "title": "{restarting, select, true {Aplikasi crash: {application}} other {Aplikasi mati: {application}}}{server, select, none {} other { di server {server}}}",
+        "summary": "{project} · Exit code {exitCode} · {restarting, select, true {restart otomatis (restart policy)} other {berhenti}}"
+      },
+      "task": {
+        "title": "Task aplikasi crash: {application} ({running}/{desired} replika)",
+        "summary": "{project}"
+      },
+      "database": {
+        "title": "{restarting, select, true {Database crash: {database}} other {Database mati: {database}}}",
+        "summary": "Exit code {exitCode} · {restarting, select, true {restart otomatis (restart policy)} other {berhenti}}"
+      },
+      "stack": {
+        "title": "{restarting, select, true {Service stack crash: {stack} ({service})} other {Service stack mati: {stack} ({service})}}",
+        "summary": "Exit code {exitCode} · {restarting, select, true {restart otomatis (restart policy)} other {berhenti}}"
+      },
+      "replicas": {
+        "title": "Replika service kurang: {application} ({running}/{desired})",
+        "summary": "{project}"
+      }
+    },
+    "diskLow": {
+      "title": "Disk host aoox terisi {usedPercent}%",
+      "summary": "{used} dari {total} terpakai · sisa {free} · batas {threshold}%"
+    },
+    "certificateFailure": {
+      "expired": {
+        "title": "Sertifikat kedaluwarsa: {certificate}",
+        "summary": "{domains, select, none {} other {{domains} · }}Kedaluwarsa pada {date}"
+      },
+      "expiring": {
+        "title": "Sertifikat hampir kedaluwarsa: {certificate}",
+        "summary": "{domains, select, none {} other {{domains} · }}Berlaku sampai {date}"
+      },
+      "acme": {
+        "title": "Sertifikat gagal: {domain}",
+        "summary": "{reason, select, none {Periksa record DNS A dan pastikan port 80 bisa dijangkau dari internet.} other {{reason}}}"
+      }
+    },
+    "dnsIssue": {
+      "title": "{status, select, unresolved {DNS belum diatur: {domain}} other {DNS tidak cocok: {domain}}}",
+      "summary": "{application} · {project}"
+    },
+    "appError": {
+      "title": "Error aplikasi terdeteksi: {application}",
+      "summary": "{project} · {count} error pada pemeriksaan terakhir"
+    },
+    "serverDown": {
+      "down": {
+        "title": "{reminder, select, true {Server masih tidak terjangkau: {server}} other {Server tidak terjangkau: {server}}}",
+        "summary": "{error, select, none {Pemeriksaan koneksi gagal.} other {{error}}}"
+      },
+      "recovered": {
+        "title": "Server terjangkau lagi: {server}",
+        "summary": "{downFor, select, none {Kembali online.} other {Mati selama {downFor}}}"
+      }
+    },
+    "httpDown": {
+      "down": {
+        "title": "{reminder, select, true {Cek HTTP masih gagal: {application}} other {Cek HTTP gagal: {application}}}",
+        "summary": "{project, select, none {} other {{project} · }}{target}{error, select, none {} other { · {error}}}"
+      },
+      "recovered": {
+        "title": "Cek HTTP sehat lagi: {application}",
+        "summary": "{project, select, none {} other {{project} · }}{downFor, select, none {Kembali normal.} other {Mati selama {downFor}}}"
+      }
+    }
+  }
 }
