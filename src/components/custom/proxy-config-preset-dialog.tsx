@@ -58,7 +58,7 @@ function payload(preset: ProxyPreset, values: Values): Record<string, unknown> {
 }
 
 /**
- * "Dari preset": a small form per preset (basic auth, security headers, rate limit, IP allowlist,
+ * "From preset": a small form per preset (basic auth, security headers, rate limit, IP allowlist,
  * www redirect). It only asks the API for YAML and hands it to the editor — nothing is saved
  * here, and the result is a normal file that can be edited. The basic-auth password is hashed
  * on the server and is not part of the YAML.

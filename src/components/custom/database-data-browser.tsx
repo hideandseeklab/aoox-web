@@ -84,7 +84,7 @@ export function DatabaseDataBrowser({
   const isRedis = db.engine === "redis" || db.engine === "valkey"
   const kvLabel = db.engine === "valkey" ? "Valkey" : "Redis"
   // MongoDB is schemaless and has no SQL: no table structure/create-table,
-  // no row edit/delete, no SQL export/import (see AGENTS.md "Belum"). It
+  // no row edit/delete, no SQL export/import (see AGENTS.md "Not yet"). It
   // still gets the database (schema) selector, the rows grid, sorting and
   // CSV export — those already work against the backend's collection model.
   const isMongo = db.engine === "mongodb"

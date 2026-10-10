@@ -7,13 +7,13 @@
 Next.js 16 (App Router) + React 19 + Tailwind 4 + shadcn/ui frontend for aoox
 (self-hosted PaaS). Backend: `../aoox-api`.
 
-Baca `AGENTS.md` — versi Next.js ini punya breaking changes; cek `node_modules/next/dist/docs/` sebelum menulis kode.
+Read `AGENTS.md` — this version of Next.js has breaking changes; check `node_modules/next/dist/docs/` before writing code.
 
-## Struktur folder (semua kode di `src/`, alias `@/*` → `src/*`)
+## Folder structure (all code under `src/`, alias `@/*` → `src/*`)
 
-- `src/app/` — routes/layouts App Router saja (UI tipis, tanpa bisnis logic).
-- `src/features/<nama-feature>/` — semua bisnis logic, entity (data interface/type),
-  server action, dan schema (validasi). Contoh:
+- `src/app/` — App Router routes/layouts only (thin UI, no business logic).
+- `src/features/<feature-name>/` — all business logic, entities (data interfaces/types),
+  server actions, and schemas (validation). Example:
 
   ```
   src/features/project/
@@ -23,112 +23,104 @@ Baca `AGENTS.md` — versi Next.js ini punya breaking changes; cek `node_modules
   └── project.service.ts
   ```
 
-- `src/components/ui/` — komponen dari provider (shadcn, dll). Jangan diedit manual.
-- `src/components/custom/` — semua komponen custom buatan sendiri.
-- `src/hooks/`, `src/lib/` — hooks dan util umum.
+- `src/components/ui/` — components from the provider (shadcn, etc.). Do not edit manually.
+- `src/components/custom/` — all of our own custom components.
+- `src/hooks/`, `src/lib/` — shared hooks and utilities.
 
 ## Font
 
-- UI (teks biasa **dan** heading) = **Inter** (`next/font/google` → variabel `--font-sans` di `layout.tsx`; `globals.css` `@theme` `--font-heading: var(--font-sans)`
-  dan `html { @apply font-sans; }`). Sebelumnya Geist + `html` dipaksa `font-mono` (seluruh UI monospace) — keduanya sudah diganti.
-  **JetBrains Mono** (`--font-mono`) tetap dipakai eksplisit lewat kelas `font-mono` untuk hal teknis: `<code>`/`<pre>`, nama image/URL/hash/commit SHA/log/perintah,
-  path mount, dan field form yang isinya identifier teknis (nama repo, env var, dsb) — jangan hapus kelas itu di komponen yang memang menampilkan nilai teknis.
-  Terminal (xterm) tetap **Fira Code** lewat `--font-terminal`, lihat bagian Terminal — tidak terpengaruh perubahan ini sama sekali.
-- **Letter-spacing berjenjang** (gaya helipod.io, ditegakkan di `globals.css` `@layer base` — selector elemen/`data-slot`, spesifisitas rendah supaya kelas
-  `tracking-*` di satu elemen tetap bisa menimpa, jangan tulis `letter-spacing` per komponen): `h1`/`h2` (judul halaman seperti `InfraPage`, header dialog) = `-0.03em`;
-  `h3` dan `[data-slot="card-title"|"dialog-title"|"sheet-title"|"alert-title"]` (`CardTitle`/`DialogTitle`/`SheetTitle`/`AlertTitle`) = `-0.015em`; teks
-  display/angka sangat besar (mis. kartu statistik `text-3xl` di dashboard home) pakai kelas Tailwind bawaan `tracking-tighter` (`-0.05em`) langsung di elemen itu.
-  Teks isi, tombol, label, input, badge, tabel, dan **apa pun berkelas `font-mono`** tetap `letter-spacing: normal` (ada rule pengaman `.font-mono { letter-spacing: normal }`
-  di base layer) — jangan tambahkan tracking pada heading yang isinya teknis (path, hash, dsb).
+- UI (plain text **and** headings) = **Inter** (`next/font/google` → variable `--font-sans` in `layout.tsx`; `globals.css` `@theme` `--font-heading: var(--font-sans)`
+  and `html { @apply font-sans; }`). Previously Geist, with `html` forced to `font-mono` (the entire UI was monospace) — both have been replaced.
+  **JetBrains Mono** (`--font-mono`) is still applied explicitly through the `font-mono` class for technical content: `<code>`/`<pre>`, image names/URLs/hashes/commit SHAs/logs/commands,
+  mount paths, and form fields whose content is a technical identifier (repo names, env vars, etc.) — do not remove that class from components that display technical values.
+  The terminal (xterm) still uses **Fira Code** via `--font-terminal`, see the Terminal section — it is not affected by this change at all.
+- **Tiered letter-spacing** (helipod.io style, enforced in `globals.css` `@layer base` — element/`data-slot` selectors with low specificity so that a `tracking-*` class on a single element can still override it; do not write `letter-spacing` per component): `h1`/`h2` (page titles such as `InfraPage`, dialog headers) = `-0.03em`;
+  `h3` and `[data-slot="card-title"|"dialog-title"|"sheet-title"|"alert-title"]` (`CardTitle`/`DialogTitle`/`SheetTitle`/`AlertTitle`) = `-0.015em`; very large display text/numbers (e.g. the `text-3xl` stat cards on the dashboard home) use Tailwind's built-in `tracking-tighter` (`-0.05em`) directly on that element.
+  Body text, buttons, labels, inputs, badges, tables, and **anything with the `font-mono` class** stay at `letter-spacing: normal` (there is a safety rule `.font-mono { letter-spacing: normal }`
+  in the base layer) — do not add tracking to headings whose content is technical (paths, hashes, etc.).
 
-## Perintah
+## Commands
 
 - `npm run dev` — dev server
 - `npm run build` — production build
 - `npm run typecheck` — `tsc --noEmit`
-- `npm run lint` — ESLint 9 (eslint-config-next belum mendukung v10); file hasil generate shadcn dikecualikan dari `react-hooks/set-state-in-effect`
+- `npm run lint` — ESLint 9 (eslint-config-next does not support v10 yet); shadcn-generated files are excluded from `react-hooks/set-state-in-effect`
 
 ## Git
 
-- Jangan commit atau push kecuali diperintahkan secara eksplisit oleh user.
+- Do not commit or push unless explicitly instructed by the user.
 
 ## Auth
 
-- Sign-in memanggil `POST /auth/sign-in` di API lewat server action (`src/features/auth/auth.actions.ts`),
-  lalu menyimpan `{ token, user }` di cookie httpOnly `aoox_session` (`auth.session.ts`).
-- `src/proxy.ts` hanya redirect optimistis berdasarkan keberadaan cookie (`/sign-in`, `/setup`, `/invite/` publik).
-- Anggota: `src/features/member/` (entity/queries/actions) + `members-card.tsx` di Settings (daftar user dengan select peran & hapus untuk owner, undangan menunggu,
-  dialog **Undang** yang menampilkan tautan sekali — salin manual) dan halaman publik `/invite/[token]` (`accept-invite-form.tsx`: preview email/peran dari API,
-  form nama+password, lalu `setSession` + redirect `/`). Semua anggota melihat semua project; peran hanya membatasi Settings/terminal.
-  Halaman server memakai `getVerifiedSession()` (`GET /auth/me`, di-`cache()` per request) — cookie basi/secret berbeda → dianggap tidak login, bukan error.
-- Onboarding: `/setup` (`setupAction`) tampil saat `GET /auth/setup-status` → `needsSetup`; `/sign-in` redirect ke sana.
-- Panggilan HTTP ke API selalu dari server lewat `src/lib/api.ts` (`API_URL` di `.env.local`, lihat `.env.example`).
-  Pengecualian: terminal (Socket.IO) konek langsung dari browser ke `PUBLIC_API_URL`, yang dibaca **saat request** di server component
-  dan dikirim sebagai prop — jangan pakai `NEXT_PUBLIC_*` untuk ini karena akan di-inline saat build image.
+- Sign-in calls `POST /auth/sign-in` on the API through a server action (`src/features/auth/auth.actions.ts`),
+  then stores `{ token, user }` in the httpOnly cookie `aoox_session` (`auth.session.ts`).
+- `src/proxy.ts` only does an optimistic redirect based on the presence of the cookie (`/sign-in`, `/setup`, and `/invite/` are public).
+- Members: `src/features/member/` (entity/queries/actions) + `members-card.tsx` in Settings (user list with a role select and delete for owners, pending invitations,
+  an **Undang** (Invite) dialog that shows the link once — copy it manually) and the public page `/invite/[token]` (`accept-invite-form.tsx`: email/role preview from the API,
+  name+password form, then `setSession` + redirect to `/`). All members see all projects; roles only restrict Settings/terminal.
+  Server pages use `getVerifiedSession()` (`GET /auth/me`, wrapped in `cache()` per request) — a stale cookie or a different secret → treated as not logged in, not as an error.
+- Onboarding: `/setup` (`setupAction`) is shown when `GET /auth/setup-status` → `needsSetup`; `/sign-in` redirects there.
+- HTTP calls to the API always go from the server via `src/lib/api.ts` (`API_URL` in `.env.local`, see `.env.example`).
+  Exception: the terminal (Socket.IO) connects directly from the browser to `PUBLIC_API_URL`, which is read **at request time** in a server component
+  and passed as a prop — do not use `NEXT_PUBLIC_*` for this, because it would be inlined at image build time.
 
 ## Dashboard
 
-- Semua halaman terautentikasi ada di route group `src/app/(dashboard)/` — `layout.tsx`-nya
-  memasang `SidebarProvider` + `AppSidebar` + `AppNavbar` (dropdown user di kanan) dan redirect ke `/sign-in` bila tidak ada session.
-- Shell: `src/components/custom/app-sidebar.tsx` (menu navigasi ada di konstanta `NAV`), `app-navbar.tsx`, `user-menu.tsx`.
-  Logo = `brand-logo.tsx` (SVG salmon inline di tile primary, dipakai header sidebar). Navbar: trigger sidebar, separator (`data-vertical:h-4 self-center` — default ui
-  Separator `self-stretch` membuatnya setinggi header), lalu **breadcrumb** `app-breadcrumb.tsx` (shadcn `breadcrumb`): halaman detail menerbitkan crumb bernama lewat
-  `<SetBreadcrumb items />` (`breadcrumb-store.ts`: store module-level + `useSyncExternalStore`; `useLayoutEffect` set/clear — bukan context, karena navbar dan page
-  adalah sibling di layout), Settings lewat `SettingsTabs` (label tab), selain itu diturunkan dari pathname (`STATIC`). **Jangan** pakai `useSearchParams` di
-  navbar: dibungkus Suspense, subtree crumb tidak ter-hydrate saat full load sampai interaksi pertama (store tidak pernah di-subscribe) — sebab itu label tab
-  diterbitkan dari halaman Settings.
-- Pola per feature (contoh `src/features/project/`): `*.entity.ts`, `*.schema.ts` (zod), `*.queries.ts` (fetch server-side, pakai `requireToken()`),
-  `*.actions.ts` (server action untuk mutasi, `revalidatePath` + `redirect`). Form client pakai `useActionState`.
+- All authenticated pages live in the route group `src/app/(dashboard)/` — its `layout.tsx`
+  mounts `SidebarProvider` + `AppSidebar` + `AppNavbar` (user dropdown on the right) and redirects to `/sign-in` when there is no session.
+- Shell: `src/components/custom/app-sidebar.tsx` (the navigation menu is in the `NAV` constant), `app-navbar.tsx`, `user-menu.tsx`.
+  Logo = `brand-logo.tsx` (inline salmon SVG on the primary tile, used in the sidebar header). Navbar: sidebar trigger, separator (`data-vertical:h-4 self-center` — the default ui
+  Separator `self-stretch` would make it as tall as the header), then the **breadcrumb** `app-breadcrumb.tsx` (shadcn `breadcrumb`): detail pages publish named crumbs via
+  `<SetBreadcrumb items />` (`breadcrumb-store.ts`: module-level store + `useSyncExternalStore`; `useLayoutEffect` sets/clears — not context, because the navbar and the page
+  are siblings in the layout), Settings via `SettingsTabs` (tab labels), otherwise derived from the pathname (`STATIC`). **Do not** use `useSearchParams` in
+  the navbar: it is wrapped in Suspense, so the crumb subtree is not hydrated on full load until the first interaction (the store never gets subscribed) — that is why the tab labels
+  are published from the Settings page.
+- Per-feature pattern (example `src/features/project/`): `*.entity.ts`, `*.schema.ts` (zod), `*.queries.ts` (server-side fetch, uses `requireToken()`),
+  `*.actions.ts` (server actions for mutations, `revalidatePath` + `redirect`). Client forms use `useActionState`.
 
 ## Terminal
 
-- `/terminal` — xterm.js (`src/components/custom/terminal-view.tsx`, client-only via dynamic import) + `socket.io-client` ke namespace `/terminal` API.
-  Font terminal = **Fira Code** (`next/font/google` → variabel `--font-terminal` di `layout.tsx`; xterm membaca family dari variabel itu), `lineHeight` 1.4.
-  xterm mengukur sel glyph sekali saat `open()`, jadi font ditunggu dulu (`document.fonts.load`, dibatasi 1,5 s) dan di-refit lagi saat `loadingdone`. FitAddon membagi
-  dengan tinggi sel *tak dibulatkan* sementara DOM merender baris dengan tinggi piksel bulat → baris terakhir bisa "tenggelam" di bawah kotak; `refit()` mengukur
-  tinggi baris nyata (`.xterm-rows > div`) dan `term.resize` ke jumlah baris yang benar-benar muat (dijalankan lagi di rAF + 250 ms karena baris baru ada setelah paint pertama).
-- `src/features/terminal/` — `terminal.protocol.ts` (cermin event API + `terminalNamespaceUrl`), `terminal.actions.ts` (`createTerminalTicket`),
+- `/terminal` — xterm.js (`src/components/custom/terminal-view.tsx`, client-only via dynamic import) + `socket.io-client` connecting to the API's `/terminal` namespace.
+  Terminal font = **Fira Code** (`next/font/google` → variable `--font-terminal` in `layout.tsx`; xterm reads the family from that variable), `lineHeight` 1.4.
+  xterm measures the glyph cell once at `open()`, so the font is awaited first (`document.fonts.load`, capped at 1.5 s) and re-fitted on `loadingdone`. FitAddon divides
+  by the *unrounded* cell height while the DOM renders rows at whole-pixel heights → the last row can "sink" below the box; `refit()` measures the real row
+  height (`.xterm-rows > div`) and calls `term.resize` with the number of rows that actually fit (re-run at rAF + 250 ms, because new rows exist only after the first paint).
+- `src/features/terminal/` — `terminal.protocol.ts` (mirror of the API events + `terminalNamespaceUrl`), `terminal.actions.ts` (`createTerminalTicket`),
   `terminal.entity.ts` + `terminal.queries.ts` (`getTerminalStatus` → `GET /terminal/status`, owner/admin).
-- Settings menampilkan `terminal-card.tsx`: mode (SSH/lokal), public key otomatis dari API, dan perintah `authorized_keys` yang dijalankan user sekali di host.
-  Pesan `error` dari gateway saat SSH gagal auth sudah berisi perintah yang sama, ditulis apa adanya ke xterm.
-- Notifikasi: `src/features/notification/` (entity/queries/actions) + `notifications-card.tsx` di Settings — dialog tambah dengan field per tipe
-  (Telegram token+chat id, Slack/Discord webhook URL, webhook URL, email = host/port/TLS/user/password/pengirim/penerima dipisah koma),
-  empat toggle event (deploy sukses/gagal, backup gagal, container mati; Radix `Switch` dengan `name` → "on"), tombol kirim tes, hapus.
-- Server remote: `src/features/server/` (`server.entity.ts`, `server.queries.ts` `listServers`/`getPlatformSshKey`, `server.actions.ts` create/delete/test) +
-  `servers-card.tsx` di Settings (key platform + perintah, daftar server, tes koneksi yang menampilkan `authorizeCommand` bila ditolak, dialog tambah dengan private key opsional).
-  `terminal-view.tsx` menerima `servers` dan menampilkan `<Select>` target ("Host aoox" / server); `createTerminalTicket(serverId?)` mengirim `serverId` di body tiket —
-  target diikat ke tiket oleh API, bukan dikirim di handshake.
-- **Deteksi origin salah untuk fitur Socket.IO** (Terminal, log realtime deploy): kedua gateway API menolak koneksi dari origin selain `WEB_ORIGIN` yang terkonfigurasi
-  (lihat aoox-api AGENTS.md bagian Terminal) — kalau panel sudah punya domain kustom tapi dibuka lewat IP, dulu ini muncul sebagai teks mentah `origin not allowed` yang
-  ditulis xterm/dilempar sebagai error socket, membingungkan (ditemukan lewat test VPS sungguhan). `use-browser-host.ts` `useBrowserOrigin()` (hook baru, pola sama dengan
-  `useBrowserHost()`) dibandingkan dengan `webOrigin` prop (dari `lib/api.ts` `webOrigin()` — baca `process.env.WEB_ORIGIN` container **web**, bukan API) yang dikirim
-  server-side dari halaman `/terminal` dan `/applications/[id]`. Kalau beda: `terminal-view.tsx` tidak pernah mencoba connect sama sekali (skip render div xterm-nya);
-  `application-deploy-panel.tsx` mengirim `enabled: false` ke `useLogsSocket()` (parameter baru, effect-nya `return` lebih awal — supaya tidak buang tiket log untuk koneksi
-  yang pasti ditolak) — keduanya menampilkan `<Alert>` yang menjelaskan penyebabnya + tombol yang membuka halaman yang sama persis di `webOrigin`.
-- `requireToken()` ada di `src/features/auth/auth.session.ts`, dipakai semua queries/actions.
+- Settings shows `terminal-card.tsx`: mode (SSH/local), the public key automatically from the API, and the `authorized_keys` command that the user runs once on the host.
+  The `error` message from the gateway when SSH auth fails already contains the same command, written as-is to xterm.
+- Notifications: `src/features/notification/` (entity/queries/actions) + `notifications-card.tsx` in Settings — an add dialog with fields per type
+  (Telegram token+chat id, Slack/Discord webhook URL, webhook URL, email = host/port/TLS/user/password/sender/recipients separated by commas),
+  four event toggles (deploy success/failure, backup failure, container down; Radix `Switch` with `name` → "on"), a send-test button, and delete.
+- Remote servers: `src/features/server/` (`server.entity.ts`, `server.queries.ts` `listServers`/`getPlatformSshKey`, `server.actions.ts` create/delete/test) +
+  `servers-card.tsx` in Settings (platform key + command, server list, connection test that shows `authorizeCommand` when rejected, add dialog with an optional private key).
+  `terminal-view.tsx` receives `servers` and shows a target `<Select>` ("Host aoox" / server); `createTerminalTicket(serverId?)` sends `serverId` in the ticket body —
+  the target is bound to the ticket by the API, not sent in the handshake.
+- **Wrong-origin detection for Socket.IO features** (Terminal, live deploy logs): both API gateways reject connections from any origin other than the configured `WEB_ORIGIN`
+  (see the aoox-api AGENTS.md Terminal section). If the panel has a custom domain but is opened via IP, this used to show up as the raw text `origin not allowed` written by xterm / thrown as a socket error, which was confusing (found through a real VPS test). `use-browser-host.ts` `useBrowserOrigin()` (new hook, same pattern as
+  `useBrowserHost()`) is compared with the `webOrigin` prop (from `lib/api.ts` `webOrigin()` — reads `process.env.WEB_ORIGIN` of the **web** container, not the API), passed
+  server-side from the `/terminal` and `/applications/[id]` pages. If they differ: `terminal-view.tsx` never tries to connect at all (it skips rendering the xterm div);
+  `application-deploy-panel.tsx` passes `enabled: false` to `useLogsSocket()` (a new parameter; its effect `return`s early — so that a log ticket is not wasted on a connection that is certain to be rejected). Both show an `<Alert>` explaining the cause plus a button that opens the same page at `webOrigin`.
+- `requireToken()` is in `src/features/auth/auth.session.ts` and is used by all queries/actions.
 
 ## Console
 
-- Tab **Console** di halaman aplikasi (`application-tabs.tsx`, di samping "Webhook"): `docker exec -it` masuk ke container aplikasi itu sendiri — beda dari `/terminal`
-  yang SSH ke host. `console-view.tsx` adalah salinan `terminal-view.tsx` (xterm.js + `--font-terminal`, refit sama, deteksi origin-mismatch dengan `<Alert>` sama)
-  dikurangi pemilih server (tidak relevan — kontainer sudah tertentu) ditambah pemilih **task** opsional untuk app mode `service` yang task lokalnya lebih dari satu
-  (`ConsoleTask[]`, muncul hanya kalau `tasks.length > 1`, sama seperti pemilih server di terminal). `src/features/console/` — `console.protocol.ts` (cermin
-  `console.protocol.ts` API + `consoleNamespaceUrl`), `console.actions.ts` (`createConsoleTicket(applicationId, containerId?)`).
-- **Tab disembunyikan untuk viewer** (`app.projectRole !== "viewer"`, dicek di `application-tabs.tsx` sebelum merender `TabsTrigger`/`TabsContent` — API sudah menolak
-  403 juga, ini cuma supaya viewer tidak melihat tab yang pasti gagal). Daftar task diambil dari `app.service.tasks` yang **sudah ada** di `ApplicationDetail`
-  (`get-application` — lihat AGENTS.md aoox-api bagian Docker Swarm): difilter `local && state === "running"` (task tanpa `containerId` atau bukan di node ini tidak
-  bisa di-exec dari sini, sama seperti batasan job/metrik swarm lintas node), label `Task <slot> · <node>`.
-  Teks kecil "Shell ini ada di dalam container. Perubahan file hilang saat redeploy, kecuali di mount volume." selalu tampil — pengingat bahwa ini bukan mount, bukan editor kode.
-- Verifikasi visual: dev server API + web, container sungguhan (`debian:bookworm-slim` sebagai container app palsu bernama `aoox-app-<appName>`), buka tab Console,
-  ketik perintah nyata (`echo`/`hostname`), lihat output asli via `get_page_text` (browser real, bukan mock) — prompt shell (`root@<container-id>:/#`) dan hasil
-  perintah tampil benar.
+- Tab **Console** on the application page (`application-tabs.tsx`, next to "Webhook"): `docker exec -it` into the application's own container — unlike `/terminal`, which SSHes into the host. `console-view.tsx` is a copy of `terminal-view.tsx` (xterm.js + `--font-terminal`, same refit, same origin-mismatch detection with the same `<Alert>`)
+  minus the server selector (not relevant — the container is already determined), plus an optional **task** selector for `service`-mode apps with more than one local task
+  (`ConsoleTask[]`, shown only if `tasks.length > 1`, same as the server selector in the terminal). `src/features/console/` — `console.protocol.ts` (mirror of
+  the API's `console.protocol.ts` + `consoleNamespaceUrl`), `console.actions.ts` (`createConsoleTicket(applicationId, containerId?)`).
+- **Tab hidden for viewers** (`app.projectRole !== "viewer"`, checked in `application-tabs.tsx` before rendering `TabsTrigger`/`TabsContent` — the API already rejects with 403 too; this only keeps viewers from seeing a tab that is certain to fail). The task list comes from the **existing** `app.service.tasks` in `ApplicationDetail`
+  (`get-application` — see the aoox-api AGENTS.md Docker Swarm section): filtered by `local && state === "running"` (tasks without a `containerId` or not on this node cannot be exec'd from here, same as the swarm cross-node limitation for jobs/metrics), label `Task <slot> · <node>`.
+  A small caption "Shell ini ada di dalam container. Perubahan file hilang saat redeploy, kecuali di mount volume." (This shell runs inside the container. File changes are lost on redeploy, unless they are in a mounted volume.) always shows — a reminder that this is not a mount and not a code editor.
+- Visual verification: API + web dev servers, real containers (`debian:bookworm-slim` as a fake app container named `aoox-app-<appName>`), open the Console tab,
+  type real commands (`echo`/`hostname`), check the real output via `get_page_text` (real browser, not a mock) — the shell prompt (`root@<container-id>:/#`) and the command results display correctly.
 
 ## Internationalization (i18n)
 
 - Library: `next-intl` 4.x **without i18n routing**: no URL prefix, every route stays the same. Locales are `en` (default and fallback) and `id`
   (`src/i18n/config.ts`: `LOCALES`, `DEFAULT_LOCALE`, `LOCALE_COOKIE` = `aoox_locale`). The locale is stored in that cookie only (not on the account, not in the API).
   `src/i18n/request.ts` (`getRequestConfig`, registered by `createNextIntlPlugin()` in `next.config.ts`) reads the cookie and loads the message files of that locale;
-  a missing or unknown value falls back to `en`. `NextIntlClientProvider` wraps the app in `src/app/layout.tsx` and `<html lang>` follows the locale.
+  a missing or unknown value falls back to `en`. `NextIntlClientProvider` wraps the app in `src/app/layout.tsx`, and `<html lang>` follows the locale.
 - Switching: the user menu calls `setLocaleAction` (`src/features/locale/locale.actions.ts`, sets the cookie) and then `router.refresh()`.
 - **Messages**: one file per namespace and language, `messages/<locale>/<namespace>.json` (`en` and `id`). The file holds the namespace's keys directly, **without** a wrapper
   object; the file name is the namespace name. Namespaces are listed in `src/i18n/namespaces.ts` (`NAMESPACES`); `src/i18n/request.ts` imports `messages/<locale>/<ns>.json` for each
@@ -139,330 +131,288 @@ Baca `AGENTS.md` — versi Next.js ini punya breaking changes; cek `node_modules
     `terminal`, `templates`. An empty `{}` file is a namespace nobody has filled yet.
   - To add text: put the key in the right namespace file in **both** languages (one area = one owner, so parallel work does not touch the same file), then
     `useTranslations("namespace")` (client or server component) / `getTranslations` (async server code) and `t("key", { count })`.
-  - To add a namespace: create `messages/en/<ns>.json` and `messages/id/<ns>.json` and add the name to `NAMESPACES`.
+  - To add a namespace: create `messages/en/<ns>.json` and `messages/id/<ns>.json`, and add the name to `NAMESPACES`.
   - Run `npm run check:i18n` (`scripts/check-i18n.mjs`): it fails when the two languages have different files or keys, when a file is not listed in `NAMESPACES` (or a listed one has
-    no file), on empty values and on mismatched placeholders.
+    no file), on empty values, and on mismatched placeholders.
   - **Never hardcode user-facing text in a new component.** Existing screens still hold Indonesian literals until they are migrated (stage 2); migrate a screen by moving its text
-    into its namespace, `id` getting today's Indonesian wording and `en` a natural English one.
-  - Text that comes from the API (error messages, notification/inbox titles) is displayed as received and is not translated.
+    into its namespace, with `id` getting today's Indonesian wording and `en` a natural English one.
+  - Text that comes from the API (error messages, audit-log event titles) is displayed as received and is not translated. **Inbox** items are the exception: the API sends structured `params`
+    (+ `variant`) next to its English `title`/`summary`, and `features/inbox/inbox.describe.ts` composes the line from `messages/<lang>/inbox.json` (`events.<event>[.<variant>].title|summary`, ICU).
+    A row without `params`, an unknown event/variant, or a missing needed value falls back to the API text. Adding an event or variant = a builder in `inbox.describe.ts` + both message files (the contract is in aoox-api AGENTS "Inbox").
 - **Navigation labels** live in the `nav` namespace; `src/components/custom/nav-items.ts` holds only keys (`key: "dockerDisk"`), so the sidebar and the command palette stay in sync.
 - **Dates, times, numbers**: never call `toLocaleString("id-ID")` or similar. Use `src/i18n/format.ts` (`formatDateTime`, `formatDate`, `formatTime`, `formatNumber`, `formatRelative`),
   passing `useLocale()` (client) or `await getLocale()` (server). These are pure functions, usable in module-level helpers that take `locale` as a parameter.
 - Tooling note: `next-intl`'s plugin loads `@swc/core` when `next.config.ts` is read. On Windows, a restricted-token shell can make its native cache check fail
   (`ERR_SWC_NATIVE_CACHE`); setting `SWC_NATIVE_BINDING_CACHE` to a directory under the user profile with a clean ACL (for example `C:\Users\<you>\.swc-cache`) fixes it. Normal shells are not affected.
 
-## Komponen bersama UI (status, logo, kosong, log, grafik)
+## Shared UI components (status, logo, empty state, log, charts)
 
-- `status-dot.tsx` `StatusDot` + `statusTone()`: satu arti warna status di semua daftar/kartu (lime `bg-primary` = running/aktif, amber berdenyut = transisi, `bg-destructive` = error/failed, muted = lainnya);
-  `showLabel` menampilkan teks kecil, tanpa itu hanya titik + `sr-only`. Halaman detail (`StatusStrip`) tetap memakai `Badge`. Jangan buat titik/warna status baru per komponen.
-- `brand-icon.tsx` (+ `brand-paths.ts`, path simple-icons CC0 inline, `currentColor`, tanpa CDN/dependensi): `EngineIcon`, `SourceIcon`, `GitProviderIcon`, `ImageRegistryIcon`, `ComposeSourceIcon`.
-  Valkey tidak ada di simple-icons → ikon lucide. Tambah merek baru = tambah entri di `brand-paths.ts`.
-- `empty-state.tsx` `EmptyState` (ikon lucide + satu kalimat + aksi opsional; `compact` di dalam kartu/tab). Aksi hanya dirender bila tombol setaranya memang ada untuk peran itu.
-- `log-viewer.tsx` `LogViewer` + `lib/ansi.ts` `parseAnsi` (murni): semua log (deployment, container live, compose, job, preview, dialog log Docker). Teks → React text node, tidak pernah HTML; hanya
-  2000 baris terakhir digambar (tombol untuk yang lebih lama); "Ikuti" berhenti saat user menggulir ke atas. Permukaan selalu gelap (`#0a0a0a`) di kedua tema.
-- `area-chart.tsx` `AreaChart` (SVG sendiri, lebar piksel nyata via `ResizeObserver`, kurva monotone cubic, gradasi `primary`, tooltip nilai+waktu): dipakai `StatSparkline`, grafik host, dan latensi monitor HTTP. Tanpa library chart.
-- `nav-items.ts`: satu-satunya definisi navigasi (`NAV`/`INFRA_NAV`/`SETTINGS_NAV`/`AUDIT_LOG_NAV` + `visibleNav({showTerminal,isOwner})` dengan flag `terminal`/`manage`/`owner`); sidebar dan command palette memakainya — item nav baru cukup ditambah di sini.
-- `command-palette.tsx` `CommandPalette` (di `AppNavbar`, Ctrl/Cmd+K, dibangun di atas `ui/dialog` tanpa `cmdk`): halaman + project/instance dari satu `fetchProjectsAction` (`GET /projects`, dibaca saat pertama dibuka) + ganti tema; murni navigasi, tanpa aksi tulis.
-  Shortcut tidak aktif di `textarea`/contenteditable/`.xterm`/`[data-no-palette]` (beri atribut itu pada editor baru). Pola combobox + listbox/option + `aria-activedescendant`; fokus dikembalikan lewat `onCloseAutoFocus` (dialog tak punya Radix trigger).
-- Transisi (tab, baris `ul.divide-y > li`) ada di `globals.css` di balik `prefers-reduced-motion: no-preference`; dialog/menu memakai animasi bawaan stok.
+- `status-dot.tsx` `StatusDot` + `statusTone()`: one meaning for status colors across all lists/cards (lime `bg-primary` = running/active, pulsing amber = transitioning, `bg-destructive` = error/failed, muted = other);
+  `showLabel` shows a small text label; without it only the dot + `sr-only`. Detail pages (`StatusStrip`) keep using `Badge`. Do not create new status dots/colors per component.
+- `brand-icon.tsx` (+ `brand-paths.ts`, inline simple-icons CC0 paths, `currentColor`, no CDN/dependencies): `EngineIcon`, `SourceIcon`, `GitProviderIcon`, `ImageRegistryIcon`, `ComposeSourceIcon`.
+  Valkey is not in simple-icons → lucide icon. Adding a new brand = adding an entry in `brand-paths.ts`.
+- `empty-state.tsx` `EmptyState` (lucide icon + one sentence + optional action; `compact` inside a card/tab). Actions are rendered only when the equivalent button actually exists for that role.
+- `log-viewer.tsx` `LogViewer` + `lib/ansi.ts` `parseAnsi` (pure): all logs (deployment, live container, compose, job, preview, Docker log dialog). Text → React text nodes, never HTML; only the last
+  2000 lines are drawn (a button for older ones); `"Ikuti"` (Follow) stops when the user scrolls up. The surface is always dark (`#0a0a0a`) in both themes.
+- `area-chart.tsx` `AreaChart` (own SVG, real pixel width via `ResizeObserver`, monotone cubic curve, `primary` gradient, value+time tooltip): used by `StatSparkline`, the host charts, and HTTP monitor latency. No chart library.
+- `nav-items.ts`: the single navigation definition (`NAV`/`INFRA_NAV`/`SETTINGS_NAV`/`AUDIT_LOG_NAV` + `visibleNav({showTerminal,isOwner})` with the `terminal`/`manage`/`owner` flags); the sidebar and command palette both use it — new nav items are simply added here.
+- `command-palette.tsx` `CommandPalette` (in `AppNavbar`, Ctrl/Cmd+K, built on `ui/dialog` without `cmdk`): pages + project/instance from a single `fetchProjectsAction` (`GET /projects`, read when first opened) + theme switch; navigation only, no write actions.
+  The shortcut is inactive in `textarea`/contenteditable/`.xterm`/`[data-no-palette]` (put that attribute on new editors). Combobox + listbox/option pattern + `aria-activedescendant`; focus is returned via `onCloseAutoFocus` (the dialog has no Radix trigger).
+- Transitions (tabs, `ul.divide-y > li` rows) are in `globals.css` behind `prefers-reduced-motion: no-preference`; dialogs/menus use the stock built-in animations.
 
-## Prinsip
+## Principles
 
-- Selalu ikuti dokumentasi resmi (Next.js di `node_modules/next/dist/docs/`, shadcn, dll.) untuk pemilihan paket dan pola kode.
+- Always follow the official documentation (Next.js in `node_modules/next/dist/docs/`, shadcn, etc.) for package selection and code patterns.
 
-## Tinggi field dan tombol (satu baris)
+## Field and button height (one row)
 
-- Field (`Input`, `SelectTrigger`) dan `Button` default = **h-7 (28 px)**. Dalam satu baris yang berisi field **dan** tombol, semuanya harus setinggi sama: **jangan** beri override `h-*` pada field (mis. `h-8`) dan **jangan** pakai `Button size="sm"`/`icon-sm` di sebelah field default. `size="sm"`/`xs` tetap untuk toolbar, baris daftar/tabel, dan header kartu yang tidak berisi field default; baris yang seluruhnya kecil (mis. `SelectTrigger size="sm"` + `icon-sm`, seperti toolbar Terminal/Console) juga boleh karena seragam.
-- Field berlabel di atas + tombol di kanan: bungkus dalam baris `flex items-end` (label+field di satu kolom `space-y-1`), sehingga dasar tombol = dasar field. `SelectTrigger` sudah `mb-0` (di dalam `<form>` Radix menambah `<select>` tersembunyi sebagai anak terakhir, dan `space-y-*` Tailwind v4 memberi margin-bawah 4 px ke trigger yang bukan `:last-child`).
-- `npm run check:ui` (`scripts/check-field-heights.mjs`, tanpa dependency baru) menandai override tinggi pada field dan baris dengan tinggi kontrol campur; sengaja manual (heuristik, tidak di build/CI). Pengecualian disengaja: komentar `ui-check-ignore: alasan` di baris atas. Pengukur sebenarnya tetap `getBoundingClientRect` di browser.
+- Fields (`Input`, `SelectTrigger`) and the default `Button` = **h-7 (28 px)**. In a row that contains **both** fields and buttons, everything must be the same height: **do not** add `h-*` overrides on fields (e.g. `h-8`), and **do not** use `Button size="sm"`/`icon-sm` next to default-size fields. `size="sm"`/`xs` remain for toolbars, list/table rows, and card headers that contain no default-size fields; rows that are entirely small (e.g. `SelectTrigger size="sm"` + `icon-sm`, like the Terminal/Console toolbars) are also fine because they are uniform.
+- Labeled fields stacked above, with a button on the right: wrap them in a `flex items-end` row (label+field in one `space-y-1` column), so the button's bottom = the field's bottom. `SelectTrigger` already has `mb-0` (inside a `<form>` Radix adds a hidden `<select>` as the last child, and Tailwind v4's `space-y-*` gives a 4 px bottom margin to a trigger that is not `:last-child`).
+- `npm run check:ui` (`scripts/check-field-heights.mjs`, no new dependencies) flags height overrides on fields and rows with mixed control heights; it is intentionally manual (a heuristic, not in build/CI). Intentional exceptions: a `ui-check-ignore: reason` comment on the line above. The actual measurer remains `getBoundingClientRect` in the browser.
 
-## Toast & loading saat create (aplikasi, database, stack compose, template, impor project)
+## Toast & loading on create (application, database, compose stack, template, project import)
 
-- Pola: `toast.loading(...)` (sonner) saat submit → simpan id yang dikembalikan (di `useRef`, bukan `useState` — tidak perlu re-render) → `toast.success`/`toast.error` dengan `{ id }` yang sama saat hasil ada, supaya **update** toast yang sama alih-alih menumpuk toast baru. Tombol submit dapat ikon `Loader2` (lucide) `animate-spin` + teks kerja ("Membuat…") selain `disabled={pending}`. Untuk yang masih dialog (`deploy-template-dialog.tsx`, `import-project-dialog.tsx`), dialog juga dikunci (`onOpenChange` menolak menutup, `DialogContent showCloseButton={!pending}`) supaya request yang sedang jalan tidak terputus oleh Escape/klik overlay/tombol X.
-- **Kenapa bukan `redirect()` server action**: `createApplicationAction`/`createDatabaseAction`/`createComposeAppAction` dulu memanggil `redirect()` di server saat sukses — ini memutus promise `useActionState` sebelum sempat meng-update toast (toast tetap "loading" selamanya di halaman tujuan, sonner tidak tahu harus menyelesaikannya). Ketiganya sekarang **mengembalikan `{ values, createdId }`** (field baru di `ApplicationFormState`/`DatabaseFormState`/`ComposeFormState`) alih-alih redirect; komponen form (`application-form.tsx` mode create, `compose-form.tsx` prop `mode`, `database-form.tsx`) yang melakukan `router.push()` sendiri di `useEffect` yang mengamati transisi `pending: true → false` — begitu `state.createdId` ada, toast di-update ke sukses dulu baru navigasi (bukan sebaliknya), jadi toast tidak pernah macet meski komponen lama langsung unmount setelah push. Field error tervalidasi tetap tampil inline seperti sebelumnya (tidak berubah — hanya penanganan sukses yang pindah dari server ke client).
-- `deploy-template-dialog.tsx` dan `import-project-dialog.tsx` sudah memakai `useTransition` + `router.push()` manual dari awal (tidak pernah `redirect()` server) — cuma ditambah toast+spinner, tanpa perubahan action.
-- Pesan sukses **jujur soal proses di background**: database ("...sedang disiapkan, pull image bisa beberapa menit"), stack ("...sedang deploy") — baris ini merujuk status `creating`/`deploying` yang halaman detailnya **sudah** memoll sendiri (`database-panel.tsx`, `compose-panel.tsx`, `setInterval` tiap 3 detik selama status belum terminal) — jangan tambah polling baru di sana, cukup pastikan toast tidak mengklaim "selesai".
-- `onCreateWithDomain` di `application-form.tsx` (opsi Akses → Domain) sekarang menerima `(formData, toastId)` — `create-application-page-form.tsx` yang menaruh `toast.success`/`toast.error` dengan id itu, karena alur ini juga memanggil `addDomainAction` setelah create dan pesannya perlu tahu apakah domain-nya berhasil ditambahkan atau tidak.
-- **Halaman penuh, bukan dialog** (`/projects/[id]/applications/new`, `/projects/[id]/compose/new`, `/projects/[id]/databases/new`): form "New application"/"Stack compose"/"New database" awalnya dialog di halaman project — terlalu penuh untuk lebar dialog, terutama form aplikasi (Sumber, Akses, Swarm, dll). Sekarang tiap route punya `page.tsx` sendiri (breadcrumb + tombol kembali + `Card` `max-w-3xl` membungkus form yang sama persis) dan tombol "New application"/"Stack compose"/"New database" di halaman project jadi `Link` biasa, bukan trigger dialog. `application-form.tsx`/`compose-form.tsx`/`database-form.tsx` menerima prop `cancelHref?: string` baru — dirender sebagai tombol "Batal" (`Button asChild variant="outline"`) di sebelah tombol submit, cuma dipakai halaman create (edit di tab Pengaturan tidak butuh Batal). Karena toast sonner disimpan di store global (`<Toaster/>` di root layout), bukan di komponen form, navigasi lewat "Batal" atau `router.push` sukses tidak pernah memutus toast yang sedang berjalan. `create-application-page-form.tsx` (client, tanpa `Dialog`) membungkus `application-form.tsx` untuk opsi Akses → Domain — logikanya sama persis dengan dialog yang dihapus, cuma tanpa `open`/`setOpen`. `deploy-template-dialog.tsx` **tetap dialog** (di luar cakupan perubahan ini) karena dipanggil dari katalog template (`/templates`), bukan dari halaman project.
+- Pattern: `toast.loading(...)` (sonner) on submit → store the returned id (in a `useRef`, not `useState` — no re-render needed) → `toast.success`/`toast.error` with the same `{ id }` when the result arrives, so the **update** replaces the same toast instead of stacking new ones. The submit button gets a `Loader2` (lucide) icon with `animate-spin` + a working text (`"Membuat…"` (Creating…)) in addition to `disabled={pending}`. For forms that are still dialogs (`deploy-template-dialog.tsx`, `import-project-dialog.tsx`), the dialog is also locked (`onOpenChange` refuses to close, `DialogContent showCloseButton={!pending}`) so a running request is not cut off by Escape, an overlay click, or the X button.
+- **Why not `redirect()` in a server action**: `createApplicationAction`/`createDatabaseAction`/`createComposeAppAction` used to call `redirect()` on the server on success — this cut off the `useActionState` promise before it could update the toast (the toast stayed "loading" forever on the destination page, since sonner did not know how to finish it). All three now **return `{ values, createdId }`** (new fields on `ApplicationFormState`/`DatabaseFormState`/`ComposeFormState`) instead of redirecting. The form components (`application-form.tsx` create mode, `compose-form.tsx` with the `mode` prop, `database-form.tsx`) perform `router.push()` themselves in a `useEffect` that watches the `pending: true → false` transition — once `state.createdId` is present, the toast is updated to success first and only then does navigation happen (not the other way around), so the toast never gets stuck even though the old component unmounts right after the push. Validated field errors still appear inline as before (unchanged — only the success handling moved from server to client).
+- `deploy-template-dialog.tsx` and `import-project-dialog.tsx` already used `useTransition` + a manual `router.push()` from the start (never a server-side `redirect()`) — only a toast + spinner were added, with no action changes.
+- Success messages are **honest about background processing**: database (`"...sedang disiapkan, pull image bisa beberapa menit"` (...is being prepared, pulling the image can take a few minutes)), stack (`"...sedang deploy"` (...is deploying)) — these lines refer to the `creating`/`deploying` statuses whose detail pages **already** poll themselves (`database-panel.tsx`, `compose-panel.tsx`, `setInterval` every 3 seconds while the status is not terminal) — do not add new polling there, just make sure the toast does not claim "done".
+- `onCreateWithDomain` in `application-form.tsx` (Access option → Domain) now takes `(formData, toastId)` — `create-application-page-form.tsx` sets `toast.success`/`toast.error` with that id, because this flow also calls `addDomainAction` after create, and its message needs to know whether the domain was added successfully or not.
+- **Full pages, not dialogs** (`/projects/[id]/applications/new`, `/projects/[id]/compose/new`, `/projects/[id]/databases/new`): the "New application"/"Stack compose"/"New database" forms were originally dialogs on the project page — too cramped for the dialog width, especially the application form (Source, Access, Swarm, etc.). Each route now has its own `page.tsx` (breadcrumb + back button + a `max-w-3xl` `Card` wrapping the exact same form), and the "New application"/"Stack compose"/"New database" buttons on the project page are now plain `Link`s, not dialog triggers. `application-form.tsx`/`compose-form.tsx`/`database-form.tsx` receive a new `cancelHref?: string` prop — rendered as a `"Batal"` (Cancel) button (`Button asChild variant="outline"`) next to the submit button, used only by the create pages (editing in the Settings tab does not need Cancel). Because the sonner toast is stored in a global store (`<Toaster/>` in the root layout), not in the form component, navigating via "Batal" or a successful `router.push` never cuts off a toast that is still running. `create-application-page-form.tsx` (client, no `Dialog`) wraps `application-form.tsx` for the Access → Domain option — its logic is exactly the same as the removed dialog, just without `open`/`setOpen`. `deploy-template-dialog.tsx` **remains a dialog** (outside the scope of this change) because it is invoked from the template catalog (`/templates`), not from the project page.
 
 ## Docker
 
-- `Dockerfile` mengikuti contoh resmi `vercel/next.js/examples/with-docker` (`output: "standalone"` di `next.config.ts`).
-- Env runtime: `API_URL` (server → api, di compose `http://api:3001`) dan `PUBLIC_API_URL` (browser → api). Stack lengkap ada di `../aoox-api/docker-compose.dist.yml`.
+- `Dockerfile` follows the official example `vercel/next.js/examples/with-docker` (`output: "standalone"` in `next.config.ts`).
+- Runtime env: `API_URL` (server → api, in compose `http://api:3001`) and `PUBLIC_API_URL` (browser → api). The full stack is in `../aoox-api/docker-compose.dist.yml`.
 
 ## Registry
 
-- `/registry` — tab "Registry lokal" (`self-hosted-registry-card.tsx`: provision/GC/hapus, kredensial ditampilkan sekali; `registry-repositories.tsx`: repo → tag, hapus tag dengan peringatan digest bersama)
-  dan tab "Eksternal" (`external-registries.tsx`). `src/features/registry/` = entity, schema, queries, actions (`ActionResult<T>` untuk aksi non-form).
+- `/registry` — the `"Registry lokal"` (Local registry) tab (`self-hosted-registry-card.tsx`: provision/GC/delete, credentials shown once; `registry-repositories.tsx`: repo → tag, delete tag with a shared-digest warning)
+  and the `"Eksternal"` (External) tab (`external-registries.tsx`). `src/features/registry/` = entity, schema, queries, actions (`ActionResult<T>` for non-form actions).
 
 ## Application
 
-- Daftar aplikasi ada di halaman detail project (tombol "New application" → `/projects/[id]/applications/new`, lihat bagian Toast & loading); detail di `/applications/[id]` dengan tab Deploy
-  (`application-deploy-panel.tsx`: tombol Deploy/Stop/Start, daftar deployment, log deployment & log container **streaming** via Socket.IO `/logs` — hook `src/features/application/use-logs-socket.ts`, protokol di `logs.protocol.ts`; `router.refresh()` saat status terminal)
-  dan tab Pengaturan (`application-form.tsx`, dipakai juga untuk create). Tab-tab aplikasi (Deploy/Domain/Mount/Jobs/Webhook/Pengaturan) sekarang di-render oleh
-  `application-tabs.tsx` (client, `Tabs` **terkontrol** lewat `useState`) alih-alih `<Tabs defaultValue>` langsung di `page.tsx` — dibutuhkan supaya tombol di
-  `application-deploy-panel.tsx` (nudge akses) bisa memindah tab dari luar.
-- **Langkah Akses saat create** (`application-form.tsx`, prop `mode: "create" | "edit"` — hanya create yang menampilkan ini, edit tetap field Port host + tab Domain
-  terpisah seperti sebelumnya): tab segmented (`Tabs` shadcn, pola sama dengan `compose-domains.tsx`) **IP & port** / **Domain** / **Nanti saja**. "IP & port" memakai
-  ulang field `hostPort` yang sama (nama field sama, cuma dipindah lokasinya saat create). "Domain" (host + switch HTTPS, disabled tanpa `proxy.acmeEmail`) tidak bisa
-  lewat DTO create (belum ada field domain di sana) — form-nya sendiri mem-bypass `formAction` normal (`onSubmit` kustom, bukan `action={formAction}`) dan memanggil
-  prop `onCreateWithDomain` (diimplementasikan `create-application-page-form.tsx`): `createApplicationForAccessAction` (varian `createApplicationAction` yang
-  **tidak** `redirect()` supaya bisa lanjut memanggil `addDomainAction`) → `addDomainAction` → `router.push` ke halaman app (dengan `?domainProxyAutoProvisioned=1`
-  bila `addDomainAction` melaporkan itu). API `POST /applications/:id/domains` sekarang membalas `{domain, proxyAutoProvisioned}` (bukan `Domain` polos) — `addDomainAction`
-  meratakannya kembali jadi `Domain & {proxyAutoProvisioned}` (lihat AGENTS.md aoox-api bagian Proxy & Domain) supaya kedua pemanggil (`create-application-page-form.tsx`,
-  `application-domains.tsx`) tetap baca `r.data.proxyAutoProvisioned` tanpa tahu bentuk response berubah. Error 400 generik dari create/update yang menyebut
-  kata "port" (bukan `fieldErrors` terstruktur — API belum mengembalikan itu untuk konflik port) ditampilkan di dekat field Port host, bukan cuma banner bawah
-  (`portConflict`, berlaku create maupun edit).
-- Panel deploy (`application-deploy-panel.tsx`) menerima `hasAccess` (dari `!!app.hostPort || domains.length > 0`, dihitung `application-tabs.tsx`): kalau app
-  sudah pernah sukses deploy (`app.currentImage`) tapi `!hasAccess`, tampil Alert "Aplikasi belum punya alamat akses" dengan tombol ke tab Pengaturan/Domain
-  (`onNavigateTab`, prop dari `application-tabs.tsx`). Prop `domainProxyAutoProvisioned` (dari query string yang di-set halaman "Aplikasi baru") menampilkan Alert
-  peringatan yang sama gayanya dengan `panel-domain-card.tsx` (DNS/firewall/tunggu ACME) — bisa ditutup, tidak menghapus query string.
-- **Asal pemicu deployment & `deployment:created` live** (`application-deploy-panel.tsx`): `DeploymentSummary` (`application.entity.ts`) sekarang punya
-  `trigger` (`manual`|`webhook`|`auto-update`), `commitSha`/`commitMessage`/`triggeredBy` dari API (lihat AGENTS.md aoox-api bagian Application & Deploy). Riwayat
-  menampilkan ikon `Webhook` (lucide) untuk deploy webhook + SHA pendek di baris tanggal, keduanya dengan `title` tooltip (`triggerLabel()`, helper lokal di file
-  ini — bukan komponen `Tooltip` shadcn, konsisten dengan ikon `kind` lain di list yang sudah pakai `title` biasa); deployment terpilih menampilkan label yang sama
-  di subjudul log. `logs.protocol.ts` (salinan `LogsServerEvents` dari aoox-api) punya event baru `deployment:created` — effect terpisah (tidak digabung effect
-  log per-deployment yang sudah ada, supaya tetap mendengarkan meski `selectedId`/`following` berubah) mendengarkannya selama `socket` ada: pilih deployment baru,
-  reset state log, `router.refresh()`, dan `toast.info()` (sonner) dengan `triggerLabel()`. Tunduk pada `useLogsSocket(..., enabled)` yang sudah ada — origin
-  mismatch berarti fitur live ini juga tidak jalan, sama seperti log streaming biasa; tanpa fallback polling.
-- `src/features/application/` — entity (termasuk `ACTIVE_DEPLOYMENT_STATUSES`), schema zod (`hostPort` kosong → null), queries, actions.
-- `application-form.tsx`: select **Server** (Host aoox / server remote dari `listServers()`, hanya tampil bila ada server; member mendapat 403 → daftar kosong) dengan
-  catatan batasan remote (tanpa push registry, tanpa domain/proxy); detail aplikasi menampilkan badge nama server.
-- `application-form.tsx`: field **Health check path** (`healthcheckPath`, kosong = null) dengan keterangan blue/green & prasyarat wget/curl/node/python3 di image.
-- Halaman database kini bertab **Ringkasan / Data / Backup**. Tab Data = `database-data-browser.tsx` (daftar tabel/key di kiri dengan perkiraan baris, grid baris
-  berhalaman 50 + sort per kolom, kotak SQL/perintah Redis dengan Ctrl+Enter, hasil dengan `NULL`/(kosong) dibedakan, badge `message`, pesan error engine apa adanya).
-  `src/features/managed-database/data-browser.{entity,actions}.ts` (`listTablesAction`, `fetchTableRowsAction`, `runQueryAction`). `canWrite` dari role session
-  (owner/admin) hanya mengubah teks keterangan — pagar sesungguhnya di API.
-  Pemilih **database** di atas daftar tabel (non-Redis): `listSchemasAction`, `createSchemaAction` (input + tombol +), `dropSchemaAction` (ikon sampah, hanya non-utama,
-  `window.confirm`); `dbParam` = undefined untuk db utama sehingga semua aksi data browser dikirim `db` hanya bila berpindah. Form jadwal backup punya switch
-  "Semua database di server" (`backupAllDatabases`), daftar backup menandai `scope: all`.
-  Tab Ringkasan: `database-panel.tsx` menerima `schemas` (dari `listSchemas`, hanya saat server running & bukan Redis) dan menampilkan select "Koneksi untuk database"
-  bila >1 — memilih database lain hanya mengganti nama database & path URL (`withDatabase`), host/user/password sama.
-- Buat tabel: `create-table-dialog.tsx` (tombol + di header daftar tabel, owner/admin, non-Redis) — form kolom (nama, tipe per engine dari `COLUMN_TYPES`, panjang varchar,
-  NULL, PK, default) → `buildCreateTable()` (`src/features/managed-database/create-table.ts`, pure: validasi identifier, PK implisit NOT NULL) → pratinjau SQL → dijalankan
-  lewat `runQueryAction` yang sama dengan kotak SQL (hak tulis dicek API). Setelah sukses daftar dimuat ulang dan tabel baru dibuka.
-- Ekspor/impor SQL di header kotak SQL: **Ekspor SQL** = `<a href="/api/databases/[id]/export?db=">` (route handler mem-proxy stream dengan Bearer, `Content-Disposition`
-  diteruskan); **Impor SQL** (owner/admin) = input file tersembunyi → `window.confirm` (nama, ukuran, database tujuan) → `importSqlAction(id, db, FormData)` (fetch multipart
-  langsung ke API, bukan `api()` JSON) → notice hasil, daftar tabel dimuat ulang.
-- `application-form.tsx`: field **Batas CPU (millicore)** & **Batas memori (MiB)** (`cpuMillicores`/`memoryMb`, kosong = null); halaman database punya card `database-resources.tsx`
-  (`updateDatabaseResourcesAction` → `PATCH /databases/:id`). Keterangan di UI: berlaku langsung, mencabut batas = container dibuat ulang.
-- `application-form.tsx`: select **Cara build** (`buildType` Dockerfile / Nixpacks); field Dockerfile hanya tampil untuk `dockerfile`, Nixpacks menampilkan catatan
-  (build pertama lama, cache nonaktif, build args = env nixpacks).
-- Env: `env-editor.tsx` (client) = editor per baris dengan nilai disamarkan (input password + toggle tampilkan) dan mode teks untuk paste `.env`;
-  submit tetap satu field teks `KEY=VALUE` (kontrak API tidak berubah — API tetap mengembalikan nilai asli, masking hanya di UI). Dipakai `application-form.tsx`
-  (plus field build args dan hint slug database project) dan `project-form.tsx` (`showEnv`, env bersama di halaman project).
-- Compose: `src/features/compose/` (entity/schema/queries/actions — aksi server harus `async function`, alias arrow ditolak Next) + `compose-form.tsx` (dipakai halaman
-  `/projects/[id]/compose/new` dan tab Pengaturan), `compose-panel.tsx` (client: deploy/stop/start/hapus, daftar container, log aksi terakhir; poll 3 detik selama
-  `deploying`), route `/compose/[id]`. Halaman project menampilkan section **Stack compose** di antara Aplikasi dan Database.
-  Tab Deploy compose diawali `compose-access-hint.tsx` (client): tanpa `serviceDomains` & `servicePorts` → Alert "belum punya alamat" (container stack hanya buka port di
-  network Docker; arahkan ke tab Pengaturan → Akses, `*.localhost` untuk dev, ingatkan bila proxy belum jalan); selain itu tombol "Buka" per service — domain
-  `http(s)://host[:port proxy]`, port host `http://<hostname browser>:<hostPort>`. Hostname dari `use-browser-host.ts` (`useSyncExternalStore` atas
-  `window.location.hostname`, `null` di server) — stack selalu berjalan di mesin yang sama dengan panel, jadi host panel = host port yang dipublikasikan; tanpa API.
-  Layout `/projects/[id]`: dua kolom di `lg` (`grid lg:grid-cols-[minmax(0,1fr)_400px]`) — Aplikasi, Stack compose, Database di kiri; card Pengaturan (sticky) di kanan;
-  grid card resource memakai `sm:grid-cols-2 2xl:grid-cols-3` karena kolomnya lebih sempit.
-- Template one-click: `/templates` (`templates-catalog.tsx` grid + pencarian, `deploy-template-dialog.tsx`: project, nama, fieldset **Akses** per service (host + HTTPS dan/atau port host — `servicePorts` ikut ke `deployTemplateAction`), field variabel —
-  kosong = default/di-generate API) → `deployTemplateAction` (`src/features/template/`) → redirect ke `/compose/<id>`. Sidebar punya menu **Templates**; halaman project
-  punya tombol **Dari template** (`/templates?project=<id>`). Stack `source: "template"`: `ComposeForm source="template"` (textarea `composeContent`, tanpa field git;
-  hidden input `source` memilih `composeTemplateSchema` di action) dan kartu **Akses** `compose-domains.tsx` (`ComposeAccess`: satu daftar gabungan domain + port host
-  dengan badge, form tambah dengan Tabs **Domain** / **IP & port** — field Service & Port container sama, lalu Host+HTTPS atau Port host; saran service dari katalog via
-  `templateId`; `updateServiceDomainsAction` / `updateServicePortsAction`, keduanya PATCH `/compose-apps/:id`). Error 400 API (port sudah dipakai) tampil di bawah form. `ComposeApp.gitUrl` sekarang nullable — tampilkan `template · <id>` bila `source === "template"`.
-- `/projects`: kartu `project-card.tsx` — nama, badge active/inactive (≥1 instance `running`), daftar instance dari `ProjectListItem.instances`
-  (ikon per jenis, engine/jenis, titik status: hijau running, merah error, kuning berdenyut building/deploying/creating, abu lainnya) dan ringkasan `n/total berjalan`.
-  **`instance.deploying`** (dari API, lihat AGENTS.md aoox-api bagian Project): badge amber "deploy…" + titik status berdenyut, menang atas warna status biasa —
-  ini satu-satunya cara aplikasi (bukan compose/database) menampilkan indikator deploy di sini, karena `Application.status` sendiri tidak pernah berisi
-  `building`/`deploying`. Halaman `/projects` me-render `ProjectsAutoRefresh` (client, `projects-auto-refresh.tsx`) yang `router.refresh()` tiap 4 detik **hanya**
-  selama ada instance `deploying` di project mana pun pada halaman itu (dihitung server-side dari hasil `listProjects()`), berhenti sendiri begitu semua badge hilang —
-  tanpa polling saat tidak ada yang sedang deploy.
-- Dashboard: `live-clock.tsx` di pojok kanan header (hari, tanggal, jam:menit:detik lokal, `useSyncExternalStore` dengan interval 1 s sebagai store; snapshot server `null`
-  → placeholder, jadi tanpa hydration mismatch dan tanpa `setState` di effect yang ditolak lint).
-- Dashboard: tiga card project di atas (`getProjectSummary` → total / aktif hijau `emerald` / tidak aktif merah `red`; warna hanya penguat, label tetap menyebut maknanya).
-- Grafik realtime host di Dashboard (di bawah card Host): `host-live-chart.tsx` (owner/admin) — tiga area chart CPU %, RAM % & Storage % (berdampingan di layar lebar `lg:grid-cols-3`, bertumpuk di layar sempit; SVG `preserveAspectRatio="none"` + stroke non-scaling agar meregang penuh) skala tetap 0–100 dengan gridline 25 %, 5 menit terakhir,
-  poll `fetchHostLiveAction` tiap 2 detik **hanya saat tab terlihat** (`visibilitychange` via `useSyncExternalStore`), hover crosshair + waktu (diformat di klien).
-  Data awal dari `getHostLive()` di server; keterangan menampilkan porsi container aoox (CPU container "per core" dibagi jumlah core host).
-- Monitoring: `src/features/monitoring/` (`getHostOverview`, `getMetrics`, server action `fetchMetricsAction` untuk polling klien) + `metrics-panel.tsx`
-  (client; KPI row CPU/memori/jaringan dengan sparkline SVG satu seri — ink `muted-foreground`, titik terkini `primary`, hover membaca sampel terdekat;
-  poll tiap 15 detik = interval sampler API) di tab Deploy aplikasi dan halaman database; `host-overview-card.tsx` (server) di Dashboard untuk owner/admin dengan meter
-  disk Docker bertumpuk (satu hue, langkah makin terang). Pola chart mengikuti skill `dataviz`.
-- Preview PR: `previews-panel.tsx` di tab Webhook (daftar preview: status, host, tautan buka, log, hapus; poll 5 detik selama `building`) +
-  toggle `previewsEnabled` dan `previewDomain` di `application-form.tsx` (`src/features/application/preview.entity.ts`, `listPreviews`, `fetchPreviewsAction`, `deletePreviewAction`).
-  `metrics-panel.tsx` memformat waktu hanya di klien (`useSyncExternalStore` mounted) untuk menghindari hydration mismatch.
-  Sparkline `metrics-panel.tsx` diregang selebar tile (`preserveAspectRatio="none"`, stroke non-scaling, penanda garis tegak); tile Jaringan menampilkan
-  laju masuk per detik (`rxRate`: selisih counter kumulatif antar sampel / detik, clamp 0 saat counter reset).
-- Daftar backup (DB & volume) memakai `local` dari API: `remoteKey` tanpa `local` ditampilkan "hanya di S3" — restore/unduh tetap bisa (API menarik dari S3).
-- **Backup volume** (`volume-backups.tsx`, di bawah tab Mount; `src/features/volume-backup/`): backup per volume (pilih volume bila >1), daftar unduh/restore/hapus, jadwal + retensi +
-  tujuan S3 per aplikasi (`updateVolumeBackupScheduleAction` → `PATCH /applications/:id/backup-schedule`). Volume terpilih diturunkan dari props (fallback volume pertama), bukan
-  `useState` awal — komponen pertama kali dirender saat belum ada volume. Unduhan lewat `/api/volume-backups/[id]/download`.
-- `application-jobs.tsx` dan `application-mounts.tsx` menerima **`owner`** (`JobOwner`: application|database|compose; `MountOwner`: application|database) — path API dari
-  `ownerBase()`, revalidasi halaman dari `ownerPage()` (compose: `/compose/<id>`). Halaman database punya tab Mount & Jobs; halaman compose tab Jobs dengan select `service`
-  (nama service diambil dari container stack yang berjalan — stack yang belum di-deploy tidak punya pilihan).
-- Tab **Jobs** (`application-jobs.tsx`): job cron per aplikasi (`src/features/job/` entity/queries/actions). Riwayat run dimuat saat baris dibuka (bukan di effect — aturan
-  React Compiler `set-state-in-effect`), di-poll tiap 2 detik selama ada run `running`, lalu `router.refresh()` supaya `lastStatus`/`lastRunAt` di header ikut segar.
-  Notifikasi punya toggle baru `onJobFailure`.
-- Tab **Mount** (`application-mounts.tsx`): daftar mount (file = textarea + "Simpan & terapkan"; hapus volume menanyakan purge via `confirm`) + form tambah
-  (volume/bind/file; bind hanya bila `canBind` = owner/admin dari `getVerifiedSession`). Aksi `addMountAction`/`updateMountAction`/`deleteMountAction`, query `listMounts`.
-- Tab **Domain** (`application-domains.tsx`): tambah/hapus hostname + toggle HTTPS (aktif hanya bila proxy punya `acmeEmail`); tombol Rollback di panel deploy.
-  Kalau `addDomainAction` melaporkan `proxyAutoProvisioned` (API menyalakan proxy otomatis untuk domain pertama), tampil Alert troubleshooting yang sama gayanya
-  dengan `panel-domain-card.tsx` (DNS/firewall/tunggu ACME) — state lokal (`justAutoProvisioned`), bukan lewat query string seperti jalur create-dengan-domain.
-- Cek DNS per domain (tombol radar di `application-domains.tsx`): `checkDomainDnsAction` → `GET /applications/:id/domains/:domainId/dns`, hasil badge `ok|salah arah|belum ada|?` + pesan;
-  bila IP publik dideteksi otomatis, pesan menyarankan `PUBLIC_IP` di API. `DnsCheck` di `application.entity.ts`.
-- `/settings` dikelompokkan dalam `Tabs` (`?tab=` = deep link, default `account`): **Akun** (account-card, api-tokens-card), **Tim** (members-card + link audit log; owner/admin),
-  **Integrasi** (git-credentials-card, notifications-card, backup-destinations-card). Card di dalam tab tetap grid `lg:grid-cols-2`; data dimuat sekaligus di server.
-  Tab-nya **terkontrol oleh URL** (`settings-tabs.tsx`: `useSearchParams` → `router.replace(?tab=)`) sehingga grup sidebar **Settings** (`app-sidebar.tsx`: Akun / Tim /
-  Integrasi + Audit log; Tim & Audit hanya owner/admin, memakai flag `showTerminal` yang sama) selalu sinkron dengan tab yang terbuka. Menu "Settings" di grup Platform dihapus.
-- **Infrastruktur** = grup sidebar sendiri, **satu halaman per komponen host** di `app/(dashboard)/infra/<slug>/page.tsx` (sebelumnya satu tab penuh card): `proxy`
-  (semua member; `canManage` untuk tombol), `servers`, `terminal`, `swarm`, `disk` (owner/admin, `notFound()` untuk member), `backup` (owner saja). Tiap halaman hanya
-  memuat data card-nya sendiri dan memakai `infra-page.tsx` (judul + deskripsi + `SetBreadcrumb` "Infrastruktur › …"; card full width). `/infra` redirect ke `/infra/proxy`.
-  `INFRA_NAV` di `app-sidebar.tsx` (flag `manage`/`owner`; prop `isOwner` baru dari layout). Teks bantuan yang dulu menyebut "Settings → Infrastruktur" kini "Infrastruktur → Reverse proxy".
-- `/infra/proxy` — `proxy-card.tsx` (provision/hapus Traefik); `src/features/proxy/` entity, queries, actions.
-- Di produksi web bisa dilayani lewat proxy dengan domain sendiri (`docker-compose.domain.yml` di repo API): `WEB_ORIGIN`/`PUBLIC_API_URL` harus https
-  dan sama dengan domain itu — cookie `Secure` mengikuti `WEB_ORIGIN`, dan gateway terminal menolak `Origin` lain.
-- Tab **Webhook** (`application-webhook.tsx`): URL + salin + buat ulang. Form aplikasi punya select **Kredensial Git** (`"none"` → dikirim sebagai null).
-- Secret webhook (di tab yang sama, bagian "Secret (tanda tangan)"): `setWebhookSecretAction(id, enabled)` (PUT/DELETE `/applications/:id/webhook/secret`), secret ditampilkan + salin,
-  tombol aktifkan/rotasi/nonaktifkan; instruksi provider menyebut field Secret / Secret token bila aktif.
-- Sign-in dua langkah: `signInAction` mengembalikan `challengeToken` bila API menjawab `requiresTwoFactor`; `sign-in-form.tsx` lalu memakai `useActionState` kedua
-  (`signInTwoFactorAction`) — hasil langkah 2 menentukan tampilan: ada `challengeToken` = tetap di langkah kode (kode salah), tidak ada = kembali ke langkah 1 (challenge kedaluwarsa).
-- `servers-card.tsx` menyisipkan `server-proxy-panel.tsx` per server: status (diambil saat diminta, lewat SSH), port HTTP/HTTPS, email ACME, staging, Provision/Provision ulang/Hapus
-  (`provisionServerProxyAction`/`serverProxyStatusAction`/`removeServerProxyAction`). `Server` entity membawa setting proxy. Teks form aplikasi & backup volume tidak lagi menyebut batasan server remote.
-- `notifications-card.tsx`: toggle `onDiskLow` & `onCertificateFailure`; channel webhook punya field `secret` (opsional, type password) dengan penjelasan header tanda tangan.
-  Toggle `onDeploymentStarted` ("deploy dimulai") **default tidak dicentang** saat bikin channel baru — beda dari semua toggle lain di `EVENT_LABEL` yang defaultnya
-  aktif (`DEFAULT_CHECKED_EVENTS`, dihitung dari `EVENT_LABEL` minus field ini) — menyamai default API (`on_deployment_started = false`) karena event ini bisa sering
-  terpicu lewat webhook/auto-update. Toggle `onAppError` ("error di log aplikasi") ikut daftar `DEFAULT_OFF_EVENTS` yang sama (bukan `Set` satu elemen lagi) —
-  default mati juga di API, karena deteksi dari teks log rawan salah tebak (lihat AGENTS.md aoox-api bagian Notifikasi).
-- `application-form.tsx`: switch **"Abaikan error di log"** (`ignoreErrorLogs`, mode edit saja — sama pola dengan `staticSpa`/`previewsEnabled`) melewatkan aplikasi
-  dari pemindaian log `app-error-watcher.service.ts` di API, untuk app yang output normalnya memang terlihat seperti error.
-  **Jebakan yang ditemukan** (ditemukan lewat verifikasi manual halaman "Aplikasi baru" — bukan `tsc`/lint/test, karena tipenya valid secara struktur, cuma salah
-  secara semantik): `applicationSchema` (zod) dipakai bersama create & edit, jadi `ignoreErrorLogs` selalu ada di `data` hasil parse (`.default(false)`) — tapi
-  `CreateApplicationDto` di API **tidak** mendeklarasikan field ini (edit-only, lihat `update-application.dto.ts`), dan `ValidationPipe` global `forbidNonWhitelisted`
-  menolak 400 `property ignoreErrorLogs should not exist` untuk **setiap** pembuatan aplikasi, apa pun sumber/engine-nya — bug ini membuat create-application 100%
-  gagal sampai ditemukan di sini. Fix: `createApplicationAction`/`createApplicationForAccessAction` (`application.actions.ts`) memfilter field ini lewat helper
-  `omitIgnoreErrorLogs()` sebelum `POST /applications`. Field lain dengan pola sama (schema gabungan create+edit, field edit-only) berisiko sama — cek DTO create
-  di aoox-api benar-benar mendeklarasikan tiap field yang dikirim sebelum menambah field baru ke schema bersama ini.
-- `application-form.tsx`: select **Sumber** (`sourceType` git|image): `image` menampilkan `imageRef` + select kredensial registry (`imageRegistryId`, `"public"` → null) dan
-  menyembunyikan blok git (`hidden`, tetap ter-submit). Validasi per sumber di `applicationSchema` = `baseSchema.superRefine` (gitUrl wajib untuk git, imageRef untuk image).
-  Halaman project & aplikasi memuat `listRegistries()` (member → `[]`). Field `imageRef`/`imageRegistryId` sekarang **controlled** (bukan `defaultValue`) karena tombol
-  **"Pilih dari registry"** (`image-picker-dialog.tsx`) perlu mengisinya programatik: dialog memakai ulang `fetchRepositoriesAction`/`fetchTagsAction` yang sama dengan halaman
-  Registry (endpoint `GET /registries/:id/repositories[/…/tags]`, OCI catalog — jalan untuk registry manapun, bukan cuma self-hosted, meski registry publik seperti Docker Hub
-  tanpa dukungan `_catalog` akan tampil kosong) untuk cascading select registry → repository → tag, lalu menyusun `imageRef` = `<registry.url>/<repo>:<tag>` saat "Pakai".
-  Tombol ini disembunyikan kalau belum ada registry sama sekali (`registries.length === 0`) — tetap bisa isi manual seperti sebelumnya.
-- `application-form.tsx`: cara build ketiga **Situs statis (nginx)** → field `staticBuildCommand` (kosong = null), `staticOutputDir` (kosong → `dist`), switch `staticSpa`
-  (Radix Switch dengan `name` mengirim `on`; `readForm` menormalkan ke `"on" | ""`, `parse` mengubah ke boolean seperti `previewsEnabled`).
-- `disk-card.tsx` di `/settings` (owner/admin; `src/features/maintenance/`): bar pemakaian Docker, "Bisa dibebaskan", tombol **Bersihkan sekarang** (owner; sinkron, bisa ~1 menit)
-  + toggle GC registry, laporan terakhir. Form aplikasi punya field `deploymentKeep` (default "10" di `readForm`).
-- `/settings` memuat `account-card.tsx` (`src/features/account/`): ganti password, aktifkan 2FA (dialog QR + konfirmasi kode → dialog kode cadangan sekali), nonaktifkan dengan password.
-  `members-card.tsx`: owner bisa set password & nonaktifkan 2FA anggota non-owner (`prompt`/`confirm`). `/settings/audit-log` (`audit-log-table.tsx`, `src/features/audit-log/`):
-  owner/admin, filter `action`, cursor `before`, detail body per baris. `AuthUser.twoFactorEnabled` opsional (hanya dari `/auth/me`).
-- `/settings` memuat `api-tokens-card.tsx` (`src/features/api-token/`): buat token (nama + kedaluwarsa) → dialog plaintext sekali + contoh curl, daftar prefix/last used, cabut;
-  link ke `${publicApiUrl}/docs`. `Date.now()` dibaca sekali via `useState` (React Compiler menolak fungsi impure di render).
-- `/settings` juga memuat `git-credentials-card.tsx`; `src/features/git-credential/` entity, queries, actions.
+- The application list is on the project detail page (the "New application" button → `/projects/[id]/applications/new`, see the Toast & loading section). The detail page is at `/applications/[id]` with a Deploy tab
+  (`application-deploy-panel.tsx`: Deploy/Stop/Start buttons, deployment list, deployment logs and container logs **streamed** via Socket.IO `/logs` — hook `src/features/application/use-logs-socket.ts`, protocol in `logs.protocol.ts`; `router.refresh()` when the status is terminal)
+  and a Settings tab (`application-form.tsx`, also used for create). The application tabs (Deploy/Domain/Mount/Jobs/Webhook/Settings) are now rendered by
+  `application-tabs.tsx` (client, **controlled** `Tabs` via `useState`) instead of `<Tabs defaultValue>` directly in `page.tsx` — this is needed so that the button in
+  `application-deploy-panel.tsx` (access nudge) can switch tabs from outside.
+- **Access step on create** (`application-form.tsx`, prop `mode: "create" | "edit"` — only create shows this; edit keeps the Host port field + the separate Domain tab as before): a segmented tab (shadcn `Tabs`, same pattern as `compose-domains.tsx`) **IP & port** / **Domain** / **`"Nanti saja"` (Later)**. "IP & port" reuses the same `hostPort` field (same field name, only moved during create). "Domain" (host + HTTPS switch, disabled without `proxy.acmeEmail`) cannot go through the create DTO (there is no domain field there yet) — its form bypasses the normal `formAction` itself (custom `onSubmit`, not `action={formAction}`) and calls the
+  `onCreateWithDomain` prop (implemented by `create-application-page-form.tsx`): `createApplicationForAccessAction` (a variant of `createApplicationAction` that does **not** `redirect()`, so it can go on to call `addDomainAction`) → `addDomainAction` → `router.push` to the application page (with `?domainProxyAutoProvisioned=1`
+  when `addDomainAction` reports that). The API `POST /applications/:id/domains` now replies with `{domain, proxyAutoProvisioned}` (not a plain `Domain`) — `addDomainAction`
+  flattens it back into `Domain & {proxyAutoProvisioned}` (see the aoox-api AGENTS.md Proxy & Domain section) so both callers (`create-application-page-form.tsx`,
+  `application-domains.tsx`) still read `r.data.proxyAutoProvisioned` without knowing the response shape changed. A generic 400 error from create/update that mentions the word "port" (not structured `fieldErrors` — the API does not return those for port conflicts yet) is shown near the Host port field instead of only in the bottom banner
+  (`portConflict`, applies to both create and edit).
+- The deploy panel (`application-deploy-panel.tsx`) receives `hasAccess` (from `!!app.hostPort || domains.length > 0`, computed in `application-tabs.tsx`): if the app has once deployed successfully (`app.currentImage`) but `!hasAccess`, an Alert "Aplikasi belum punya alamat akses" (The application has no access address yet) appears with a button to the Settings/Domain tab
+  (`onNavigateTab`, a prop from `application-tabs.tsx`). The `domainProxyAutoProvisioned` prop (from the query string set by the "New application" page) shows the same warning Alert style as `panel-domain-card.tsx` (DNS/firewall/wait for ACME) — it can be closed, and it does not remove the query string.
+- **Deployment trigger origin & live `deployment:created`** (`application-deploy-panel.tsx`): `DeploymentSummary` (`application.entity.ts`) now has
+  `trigger` (`manual`|`webhook`|`auto-update`), `commitSha`/`commitMessage`/`triggeredBy` from the API (see the aoox-api AGENTS.md Application & Deploy section). The history
+  shows a `Webhook` (lucide) icon for webhook deploys + the short SHA in the date row, both with a `title` tooltip (`triggerLabel()`, a local helper in this file — not a shadcn `Tooltip` component, consistent with the other `kind` icons in the list, which already use a plain `title`); the selected deployment shows the same label
+  in the log subtitle. `logs.protocol.ts` (a copy of `LogsServerEvents` from aoox-api) has a new event `deployment:created` — a separate effect (not merged into the per-deployment log effect that already exists, so it keeps listening even when `selectedId`/`following` change) listens for it while `socket` exists: it selects the new deployment, resets the log state, calls `router.refresh()`, and shows a `toast.info()` (sonner) with `triggerLabel()`. It is subject to the existing `useLogsSocket(..., enabled)` — an origin
+  mismatch means this live feature also does not run, just like the regular log streaming; there is no polling fallback.
+- `src/features/application/` — entity (including `ACTIVE_DEPLOYMENT_STATUSES`), zod schema (empty `hostPort` → null), queries, actions.
+- `application-form.tsx`: a **Server** select (Host aoox / remote servers from `listServers()`, shown only when there are servers; a member gets 403 → an empty list) with a note on remote limitations (no registry push, no domain/proxy); the application detail shows a server name badge.
+- `application-form.tsx`: **Health check path** field (`healthcheckPath`, empty = null) with a note on blue/green and the prerequisites wget/curl/node/python3 in the image.
+- The database page now has the tabs **Overview / Data / Backup**. The Data tab = `database-data-browser.tsx` (table/key list on the left with estimated rows, a grid of rows
+  paged 50 at a time with per-column sort, an SQL/command box with Ctrl+Enter, results where `NULL`/(empty) are distinguished, a `message` badge, and the engine's error messages as-is).
+  `src/features/managed-database/data-browser.{entity,actions}.ts` (`listTablesAction`, `fetchTableRowsAction`, `runQueryAction`). `canWrite` from the session role
+  (owner/admin) only changes the caption text — the real gate is in the API.
+  A **database** selector above the table list (non-Redis): `listSchemasAction`, `createSchemaAction` (input + + button), `dropSchemaAction` (trash icon, non-primary only, `window.confirm`); `dbParam` = undefined for the primary database, so all data browser actions send `db` only when switching. The backup schedule form has a switch
+  `"Semua database di server"` (All databases on the server) (`backupAllDatabases`), and the backup list marks `scope: all`.
+  Overview tab: `database-panel.tsx` receives `schemas` (from `listSchemas`, only when the server is running and it is not Redis) and shows a "Koneksi untuk database" (Connection for database) select when there is more than one — choosing another database only changes the database name and URL path (`withDatabase`); the host/user/password stay the same.
+- Create table: `create-table-dialog.tsx` (+ button in the table list header, owner/admin, non-Redis) — a column form (name, type per engine from `COLUMN_TYPES`, varchar length,
+  NULL, PK, default) → `buildCreateTable()` (`src/features/managed-database/create-table.ts`, pure: identifier validation, implicit PK NOT NULL) → SQL preview → executed
+  through the same `runQueryAction` as the SQL box (write rights are checked by the API). After success, the list is reloaded and the new table is opened.
+- SQL export/import in the header of the SQL box: **Ekspor SQL** (Export SQL) = `<a href="/api/databases/[id]/export?db=">` (a route handler proxies the stream with a Bearer token, `Content-Disposition`
+  is passed through); **Impor SQL** (Import SQL, owner/admin) = a hidden file input → `window.confirm` (name, size, target database) → `importSqlAction(id, db, FormData)` (a multipart fetch
+  directly to the API, not the JSON `api()`) → a result notice, and the table list is reloaded.
+- `application-form.tsx`: **CPU limit (millicore)** & **Memory limit (MiB)** fields (`cpuMillicores`/`memoryMb`, empty = null); the database page has a `database-resources.tsx` card
+  (`updateDatabaseResourcesAction` → `PATCH /databases/:id`). The UI note: applies immediately; removing a limit = the container is recreated.
+- `application-form.tsx`: **Build method** select (`buildType` Dockerfile / Nixpacks); the Dockerfile field appears only for `dockerfile`, and Nixpacks shows a note
+  (the first build is slow, cache is disabled, build args = nixpacks env).
+- Env: `env-editor.tsx` (client) = a per-line editor with masked values (password input + show toggle) and a text mode for pasting a `.env`;
+  the submit is still one text field `KEY=VALUE` (the API contract is unchanged — the API still returns the real values, masking is only in the UI). Used by `application-form.tsx`
+  (plus the build args field and the project's database slug hint) and `project-form.tsx` (`showEnv`, the shared env on the project page).
+- Compose: `src/features/compose/` (entity/schema/queries/actions — server actions must be `async function`, arrow aliases are rejected by Next) + `compose-form.tsx` (used by the
+  `/projects/[id]/compose/new` page and the Settings tab), `compose-panel.tsx` (client: deploy/stop/start/delete, container list, last action log; polls every 3 seconds while
+  `deploying`), route `/compose/[id]`. The project page shows the **Compose stack** section between Applications and Databases.
+  The Compose Deploy tab starts with `compose-access-hint.tsx` (client): without `serviceDomains` & `servicePorts` → an Alert "belum punya alamat" (has no address yet) (the stack's containers only open ports on the Docker network; point to the Settings → Access tab, `*.localhost` for dev, and warn if the proxy is not running); otherwise an "Buka" (Open) button per service — domain
+  `http(s)://host[:proxy port]`, host port `http://<browser hostname>:<hostPort>`. The hostname comes from `use-browser-host.ts` (`useSyncExternalStore` over
+  `window.location.hostname`, `null` on the server) — the stack always runs on the same machine as the panel, so the panel's host = the published port's host; no API call.
+  `/projects/[id]` layout: two columns at `lg` (`grid lg:grid-cols-[minmax(0,1fr)_400px]`) — Applications, Compose stacks, Databases on the left; the Settings card (sticky) on the right;
+  the resource card grid uses `sm:grid-cols-2 2xl:grid-cols-3` because the columns are narrower.
+- One-click templates: `/templates` (`templates-catalog.tsx` grid + search, `deploy-template-dialog.tsx`: project, name, a per-service **Access** fieldset (host + HTTPS and/or host port — `servicePorts` is passed to `deployTemplateAction`), variable fields —
+  empty = default/generated by the API) → `deployTemplateAction` (`src/features/template/`) → redirect to `/compose/<id>`. The sidebar has a **Templates** menu; the project page
+  has a **Dari template** (From template) button (`/templates?project=<id>`). Stack `source: "template"`: `ComposeForm source="template"` (a `composeContent` textarea, no git fields;
+  a hidden `source` input selects `composeTemplateSchema` in the action) and the **Access** card `compose-domains.tsx` (`ComposeAccess`: a single combined list of domains + host ports
+  with badges, an add form with **Domain** / **IP & port** Tabs — the Service & container Port fields are the same, then Host+HTTPS or Host port; service suggestions from the catalog via
+  `templateId`; `updateServiceDomainsAction` / `updateServicePortsAction`, both PATCH `/compose-apps/:id`). An API 400 error (port already in use) is shown below the form. `ComposeApp.gitUrl` is now nullable — show `template · <id>` when `source === "template"`.
+- `/projects`: `project-card.tsx` cards — name, an active/inactive badge (≥1 instance `running`), the instance list from `ProjectListItem.instances`
+  (a per-kind icon, engine/kind, a status dot: green running, red error, yellow pulsing building/deploying/creating, gray other) and an `n/total running` summary.
+  **`instance.deploying`** (from the API, see the aoox-api AGENTS.md Project section): an amber "deploy…" badge + a pulsing status dot, which wins over the normal status color —
+  this is the only way an application (not compose/database) shows a deploy indicator here, because `Application.status` itself never holds
+  `building`/`deploying`. The `/projects` page renders `ProjectsAutoRefresh` (client, `projects-auto-refresh.tsx`), which calls `router.refresh()` every 4 seconds **only**
+  while there is a `deploying` instance in any project on that page (computed server-side from the `listProjects()` result), and stops by itself once all badges are gone —
+  no polling when nothing is deploying.
+- Dashboard: `live-clock.tsx` in the top-right corner of the header (day, date, local hh:mm:ss, `useSyncExternalStore` with a 1 s interval as the store; a server snapshot of `null`
+  → placeholder, so there is no hydration mismatch and no `setState` in an effect, which the lint rules reject).
+- Dashboard: three project cards at the top (`getProjectSummary` → total / active in green `emerald` / inactive in red `red`; the colors only reinforce, the labels still say what they mean).
+- Realtime host charts on the Dashboard (below the Host card): `host-live-chart.tsx` (owner/admin) — three area charts for CPU %, RAM %, and Storage % (side by side on wide screens `lg:grid-cols-3`, stacked on narrow ones; SVG `preserveAspectRatio="none"` + non-scaling stroke so they stretch fully) with a fixed 0–100 scale and 25 % gridlines, the last 5 minutes,
+  polling `fetchHostLiveAction` every 2 seconds **only while the tab is visible** (`visibilitychange` via `useSyncExternalStore`), hover crosshair + time (formatted on the client).
+  The initial data comes from `getHostLive()` on the server; the caption shows the share of aoox containers (container CPU "per core" divided by the host's core count).
+- Monitoring: `src/features/monitoring/` (`getHostOverview`, `getMetrics`, server action `fetchMetricsAction` for client polling) + `metrics-panel.tsx`
+  (client; a KPI row for CPU/memory/network with a single-series SVG sparkline — ink `muted-foreground`, current point `primary`, hover reads the nearest sample;
+  polled every 15 seconds = the API sampler interval) in the application's Deploy tab and on the database page; `host-overview-card.tsx` (server) on the Dashboard for owner/admin with a stacked Docker disk meter (one hue, steps getting lighter). The chart patterns follow the `dataviz` skill.
+- Preview PRs: `previews-panel.tsx` in the Webhook tab (preview list: status, host, open link, logs, delete; polls every 5 seconds while `building`) +
+  the `previewsEnabled` toggle and `previewDomain` in `application-form.tsx` (`src/features/application/preview.entity.ts`, `listPreviews`, `fetchPreviewsAction`, `deletePreviewAction`).
+  `metrics-panel.tsx` formats time only on the client (`useSyncExternalStore` mounted) to avoid hydration mismatches.
+  The `metrics-panel.tsx` sparkline is stretched to the full tile width (`preserveAspectRatio="none"`, non-scaling stroke, vertical marker line); the Network tile shows the incoming rate per second (`rxRate`: the difference in cumulative counters between samples / second, clamped to 0 when a counter resets).
+- The backup lists (DB & volume) use `local` from the API: a `remoteKey` without `local` is shown as `"Hanya di S3"` (Only in S3) — restore/download still work (the API pulls it from S3).
+- **Volume backups** (`volume-backups.tsx`, below the Mount tab; `src/features/volume-backup/`): backup per volume (select a volume when there is more than one), a list with download/restore/delete, schedule + retention + S3 destination per application (`updateVolumeBackupScheduleAction` → `PATCH /applications/:id/backup-schedule`). The selected volume is derived from props (falling back to the first volume), not from an initial `useState` — the component first renders when no volume exists yet. Downloads go through `/api/volume-backups/[id]/download`.
+- `application-jobs.tsx` and `application-mounts.tsx` receive **`owner`** (`JobOwner`: application|database|compose; `MountOwner`: application|database) — the API paths come from `ownerBase()`, page revalidation from `ownerPage()` (compose: `/compose/<id>`). The database page has Mount & Jobs tabs; the compose page has a Jobs tab with a `service` select
+  (service names come from the running stack's containers — a stack that has not been deployed has no options).
+- **Jobs** tab (`application-jobs.tsx`): cron jobs per application (`src/features/job/` entity/queries/actions). Run history is loaded when the row is opened (not in an effect — the React Compiler `set-state-in-effect` rule), polled every 2 seconds while a run is `running`, and then `router.refresh()` so `lastStatus`/`lastRunAt` in the header are refreshed too.
+  Notifications have a new `onJobFailure` toggle.
+- **Mount** tab (`application-mounts.tsx`): the mount list (file = textarea + "Simpan & terapkan" (Save & apply); deleting a volume asks about purging via `confirm`) + an add form
+  (volume/bind/file; bind only when `canBind` = owner/admin from `getVerifiedSession`). Actions `addMountAction`/`updateMountAction`/`deleteMountAction`, query `listMounts`.
+- **Domain** tab (`application-domains.tsx`): add/remove hostnames + an HTTPS toggle (enabled only when the proxy has an `acmeEmail`); a Rollback button in the deploy panel.
+  If `addDomainAction` reports `proxyAutoProvisioned` (the API turned on the proxy automatically for the first domain), a troubleshooting Alert in the same style as
+  `panel-domain-card.tsx` (DNS/firewall/wait for ACME) appears — local state (`justAutoProvisioned`), not via the query string like the create-with-domain path.
+- Per-domain DNS check (radar button in `application-domains.tsx`): `checkDomainDnsAction` → `GET /applications/:id/domains/:domainId/dns`, result badge `ok|salah arah|belum ada|?` (ok|wrong direction|not yet|?) + message;
+  when the public IP is detected automatically, the message suggests `PUBLIC_IP` in the API. `DnsCheck` in `application.entity.ts`.
+- `/settings` is grouped in `Tabs` (`?tab=` = deep link, default `account`): **Akun** (Account) (account-card, api-tokens-card), **Tim** (Team) (members-card + audit log link; owner/admin),
+  **Integrasi** (Integrations) (git-credentials-card, notifications-card, backup-destinations-card). Cards inside a tab keep the `lg:grid-cols-2` grid; data is loaded all at once on the server.
+  The tabs are **controlled by the URL** (`settings-tabs.tsx`: `useSearchParams` → `router.replace(?tab=)`), so the **Settings** sidebar group (`app-sidebar.tsx`: Akun / Tim / Integrasi + Audit log; Tim & Audit only for owner/admin, using the same `showTerminal` flag) always stays in sync with the open tab. The "Settings" menu in the Platform group was removed.
+- **Infrastruktur** (Infrastructure) = its own sidebar group, **one page per host component** at `app/(dashboard)/infra/<slug>/page.tsx` (previously one tab full of cards): `proxy`
+  (all members; `canManage` for buttons), `servers`, `terminal`, `swarm`, `disk` (owner/admin, `notFound()` for members), `backup` (owner only). Each page loads only the data for its own card and uses `infra-page.tsx` (title + description + `SetBreadcrumb` "Infrastruktur › …" (Infrastructure › …); cards full width). `/infra` redirects to `/infra/proxy`.
+  `INFRA_NAV` in `app-sidebar.tsx` (flags `manage`/`owner`; a new `isOwner` prop from the layout). Help text that used to say "Settings → Infrastruktur" now says "Infrastruktur → Reverse proxy".
+- `/infra/proxy` — `proxy-card.tsx` (provision/remove Traefik); `src/features/proxy/` entity, queries, actions.
+- In production the web app can be served through the proxy with its own domain (`docker-compose.domain.yml` in the API repo): `WEB_ORIGIN`/`PUBLIC_API_URL` must be https
+  and match that domain — the `Secure` cookie follows `WEB_ORIGIN`, and the terminal gateway rejects other `Origin`s.
+- **Webhook** tab (`application-webhook.tsx`): URL + copy + regenerate. The application form has a **Git credentials** select (`"none"` → sent as null).
+- Webhook secret (in the same tab, the "Secret (tanda tangan)" (signature) section): `setWebhookSecretAction(id, enabled)` (PUT/DELETE `/applications/:id/webhook/secret`), the secret is shown with copy,
+  enable/rotate/disable buttons; the provider instructions mention the Secret / Secret token field when enabled.
+- Two-step sign-in: `signInAction` returns a `challengeToken` when the API answers `requiresTwoFactor`; `sign-in-form.tsx` then uses a second `useActionState`
+  (`signInTwoFactorAction`) — the result of step 2 decides the view: a `challengeToken` present = stay on the code step (wrong code); none = back to step 1 (the challenge expired).
+- `servers-card.tsx` inserts `server-proxy-panel.tsx` for each server: status (fetched on request, via SSH), HTTP/HTTPS ports, ACME email, staging, Provision/Re-provision/Remove
+  (`provisionServerProxyAction`/`serverProxyStatusAction`/`removeServerProxyAction`). The `Server` entity carries the proxy settings. The application and volume backup form text no longer mentions the limitations of remote servers.
+- `notifications-card.tsx`: the `onDiskLow` & `onCertificateFailure` toggles; the webhook channel has an optional `secret` field (type password) with an explanation of the signature header.
+  The `onDeploymentStarted` toggle ("deploy dimulai" (deploy started)) is **unchecked by default** when creating a new channel — unlike all other toggles in `EVENT_LABEL`, which are on by default (`DEFAULT_CHECKED_EVENTS`, computed from `EVENT_LABEL` minus this field) — to match the API default (`on_deployment_started = false`), because this event can fire often via webhook/auto-update. The `onAppError` toggle ("error di log aplikasi" (errors in application logs)) is in the same `DEFAULT_OFF_EVENTS` list (not a one-element `Set` anymore) — it is also off by default in the API, because detection from log text is prone to misjudging (see the aoox-api AGENTS.md Notifications section).
+- `application-form.tsx`: the **"Abaikan error di log"** (Ignore errors in logs) switch (`ignoreErrorLogs`, edit mode only — same pattern as `staticSpa`/`previewsEnabled`) excludes the application
+  from the log scanning in `app-error-watcher.service.ts` in the API, for apps whose normal output looks like errors.
+  **A pitfall that was found** (found through manual verification of the "New application" page — not by `tsc`/lint/tests, because the type is structurally valid, just semantically wrong): the `applicationSchema` (zod) is shared by create & edit, so `ignoreErrorLogs` is always present in the `data` after parsing (`.default(false)`) — but
+  the `CreateApplicationDto` in the API does **not** declare this field (edit-only, see `update-application.dto.ts`), and the global `ValidationPipe` with `forbidNonWhitelisted`
+  rejects with 400 `property ignoreErrorLogs should not exist` for **every** application creation, regardless of source/engine — this bug made create-application fail 100% until it was found here. The fix: `createApplicationAction`/`createApplicationForAccessAction` (`application.actions.ts`) filter this field out via the helper `omitIgnoreErrorLogs()` before `POST /applications`. Other fields with the same pattern (a shared create+edit schema, edit-only fields) carry the same risk — check that the create DTO in aoox-api actually declares every field that is sent before adding a new field to this shared schema.
+- `application-form.tsx`: the **Source** select (`sourceType` git|image): `image` shows `imageRef` + a registry credentials select (`imageRegistryId`, `"public"` → null) and hides the git block (`hidden`, still submitted). Per-source validation in `applicationSchema` = `baseSchema.superRefine` (gitUrl required for git, imageRef for image).
+  The project and application pages load `listRegistries()` (members → `[]`). The `imageRef`/`imageRegistryId` fields are now **controlled** (not `defaultValue`), because the **"Pilih dari registry"** (Pick from registry) button (`image-picker-dialog.tsx`) needs to fill them programmatically: the dialog reuses the same `fetchRepositoriesAction`/`fetchTagsAction` as the Registry page (endpoint `GET /registries/:id/repositories[/…/tags]`, OCI catalog — works for any registry, not just self-hosted, though a public registry such as Docker Hub without `_catalog` support will show empty) for cascading registry → repository → tag selects, then builds `imageRef` = `<registry.url>/<repo>:<tag>` on "Pakai" (Use).
+  This button is hidden when there are no registries at all (`registries.length === 0`) — you can still fill it in manually as before.
+- `application-form.tsx`: third build method **Static site (nginx)** → fields `staticBuildCommand` (empty = null), `staticOutputDir` (empty → `dist`), switch `staticSpa`
+  (Radix Switch with `name` sends `on`; `readForm` normalizes to `"on" | ""`, `parse` converts to boolean like `previewsEnabled`).
+- `disk-card.tsx` in `/settings` (owner/admin; `src/features/maintenance/`): a Docker usage bar, "Bisa dibebaskan" (Can be freed), a **Bersihkan sekarang** (Clean up now) button (owner; synchronous, can take about 1 minute)
+  + a registry GC toggle, and the last report. The application form has a `deploymentKeep` field (default "10" in `readForm`).
+- `/settings` loads `account-card.tsx` (`src/features/account/`): change password, enable 2FA (QR dialog + code confirmation → a one-time recovery codes dialog), disable with password.
+  `members-card.tsx`: the owner can set a member's password and disable a non-owner member's 2FA (`prompt`/`confirm`). `/settings/audit-log` (`audit-log-table.tsx`, `src/features/audit-log/`):
+  owner/admin, `action` filter, `before` cursor, body details per row. `AuthUser.twoFactorEnabled` is optional (only from `/auth/me`).
+- `/settings` loads `api-tokens-card.tsx` (`src/features/api-token/`): create a token (name + expiry) → a one-time plaintext dialog + a curl example, a list of prefix/last used, revoke;
+  a link to `${publicApiUrl}/docs`. `Date.now()` is read once via `useState` (the React Compiler rejects impure functions in render).
+- `/settings` also loads `git-credentials-card.tsx`; `src/features/git-credential/` entity, queries, actions.
 
 ## Managed database
 
-- Section **Database** di halaman project (tombol "New database" → `/projects/[id]/databases/new`, form di `database-form.tsx` — tidak ada mode edit, ganti
-  engine/varian setelah dibuat tidak didukung), detail di `/databases/[id]` (`database-panel.tsx`: start/stop, kredensial dengan mask/salin,
-  URL internal & eksternal, hapus dengan/tanpa volume; auto-refresh selama `creating`). `src/features/managed-database/` entity, schema, queries, actions.
-  **Engine**: `postgres`|`mysql`|`mariadb`|`redis`|`valkey`|`mongodb` (`ENGINE_LABEL`/`ENGINE_DEFAULT_TAG`, `Record<DatabaseEngine, ...>` jadi menambah engine baru dipaksa
-  compiler untuk mengisi semua tempat). Untuk `postgres`, `database-form.tsx` menampilkan select **Varian** tambahan (`POSTGRES_VARIANT_INFO`: pgvector/PostGIS/
-  TimescaleDB, tiap opsi punya deskripsi + tag default sendiri yang menggantikan placeholder tag) — dikirim sebagai field `variant` (sentinel `"none"` di UI,
-  dikonversi ke `""` lalu `null` sebelum ke API, pola yang sama dengan `gitCredentialId`/`imageRegistryId` "none"/"public"). Tempat lain yang membedakan
-  redis dari engine SQL (`isRedis` di `database-data-browser.tsx`, `Exclude<DatabaseEngine, "redis">` di `create-table.ts`/`create-table-dialog.tsx`, cek
-  `engine !== "redis"` di `database-backups.tsx` dan halaman detail database) semuanya diperluas mencakup `"valkey"` juga — Valkey sama-sama key-value,
-  tidak punya tabel/skema bernama. **Perhatikan `z.enum([...])` di `managed-database.schema.ts`** — daftar literal ini tidak ikut ketangkap oleh
-  `Record<DatabaseEngine, ...>` exhaustiveness check (baru ketahuan lewat grep manual saat menambah `mongodb`, bukan dari `tsc`), jadi tiap engine baru
-  wajib ditambahkan ke sana juga atau form create akan gagal validasi Zod sebelum sempat sampai ke API.
-  **MongoDB** dapat mode ketiga `isMongo` di `database-data-browser.tsx` (di samping SQL dan `isRedis`): daftar koleksi ("Koleksi"), grid baris, sort, dan
-  ekspor CSV tetap jalan (backend sudah mendukungnya); tab Struktur, `CreateTableDialog` (di-`Exclude` juga di `create-table.ts`/`create-table-dialog.tsx`,
-  sama seperti redis/valkey — MongoDB tanpa `CREATE TABLE`), ekspor/impor SQL, dan edit/hapus baris disembunyikan (backend menolak 400; kolom `columns`
-  sengaja tidak pernah diisi untuk mongo jadi tombol aksi berbasis PK otomatis tidak muncul tanpa cek eksplisit tambahan). Query box menampilkan placeholder
-  `users.find({})` dan deskripsi yang menyebut hanya `.find()` yang didukung (read-only).
-- Backup: `database-backups.tsx` di bawah panel (backup sekarang, daftar dengan unduh/restore/hapus, dialog konfirmasi restore, form jadwal cron preset/kustom + jumlah simpan).
-  Data via `listBackups`, aksi `createBackupAction`/`restoreBackupAction`/`deleteBackupAction`/`updateBackupScheduleAction` (cron, keep, `backupDestinationId`).
-  Form jadwal punya select "Tujuan S3" (`local` = null) dari `listBackupDestinations`; backup yang tersalin ke S3 (`remoteKey`) diberi ikon awan.
-- Tujuan backup S3: `src/features/backup-destination/` (entity/queries/actions create/delete/test) + `backup-destinations-card.tsx` di Settings (owner/admin):
-  dialog tambah (nama, endpoint kosong = AWS, bucket, region, prefix, access key, secret key sekali tulis, switch path-style), tes koneksi, hapus.
-  Unduhan tidak bisa membawa header Bearer dari `<a href>`, jadi lewat route handler `src/app/api/backups/[id]/download/route.ts` yang membaca cookie session
-  dan mem-proxy stream dari API (`Content-Disposition` diteruskan).
+- The **Database** section on the project page (the "New database" button → `/projects/[id]/databases/new`, form in `database-form.tsx` — there is no edit mode; changing the
+  engine/variant after creation is not supported), details at `/databases/[id]` (`database-panel.tsx`: start/stop, credentials with masking/copy,
+  internal & external URLs, delete with/without volume; auto-refresh while `creating`). `src/features/managed-database/` entity, schema, queries, actions.
+  **Engine**: `postgres`|`mysql`|`mariadb`|`redis`|`valkey`|`mongodb` (`ENGINE_LABEL`/`ENGINE_DEFAULT_TAG`, `Record<DatabaseEngine, ...>`, so adding a new engine forces the compiler to fill every place). For `postgres`, `database-form.tsx` shows an extra **Variant** select (`POSTGRES_VARIANT_INFO`: pgvector/PostGIS/
+  TimescaleDB, each option has its own description + default tag that replaces the tag placeholder) — sent as the `variant` field (the `"none"` sentinel in the UI,
+  converted to `""` and then `null` before reaching the API, the same pattern as `gitCredentialId`/`imageRegistryId` "none"/"public"). Other places that distinguish
+  redis from SQL engines (`isRedis` in `database-data-browser.tsx`, `Exclude<DatabaseEngine, "redis">` in `create-table.ts`/`create-table-dialog.tsx`, the check
+  `engine !== "redis"` in `database-backups.tsx` and the database detail page) have all been extended to include `"valkey"` as well — Valkey is key-value too,
+  with no named tables/schemas. **Watch out for `z.enum([...])` in `managed-database.schema.ts`** — this literal list is not caught by the
+  `Record<DatabaseEngine, ...>` exhaustiveness check (it was only found by a manual grep when adding `mongodb`, not by `tsc`), so every new engine
+  must also be added there, or the create form will fail Zod validation before it ever reaches the API.
+  **MongoDB** gets a third mode `isMongo` in `database-data-browser.tsx` (alongside SQL and `isRedis`): the collection list ("Koleksi" (Collections)), the row grid, sort, and
+  CSV export keep working (the backend already supports them); the Structure tab, `CreateTableDialog` (also `Exclude`d in `create-table.ts`/`create-table-dialog.tsx`,
+  just like redis/valkey — MongoDB has no `CREATE TABLE`), SQL export/import, and row edit/delete are hidden (the backend rejects these with 400; the `columns` field is deliberately never filled for mongo, so PK-based action buttons do not appear without an extra explicit check). The query box shows the placeholder
+  `users.find({})` and a description saying that only `.find()` is supported (read-only).
+- Backup: `database-backups.tsx` below the panel (backup now, a list with download/restore/delete, a restore confirmation dialog, a schedule form with cron presets/custom + keep count).
+  Data via `listBackups`; actions `createBackupAction`/`restoreBackupAction`/`deleteBackupAction`/`updateBackupScheduleAction` (cron, keep, `backupDestinationId`).
+  The schedule form has an "Tujuan S3" (S3 destination) select (`local` = null) from `listBackupDestinations` (the `"Tujuan S3"` label is quoted UI text: S3 destination); backups copied to S3 (`remoteKey`) get a cloud icon.
+- S3 backup destinations: `src/features/backup-destination/` (entity/queries/actions create/delete/test) + `backup-destinations-card.tsx` in Settings (owner/admin):
+  an add dialog (name, empty endpoint = AWS, bucket, region, prefix, access key, secret key written once, path-style switch), connection test, delete.
+  Downloads cannot carry a Bearer header from an `<a href>`, so they go through the route handler `src/app/api/backups/[id]/download/route.ts`, which reads the session cookie
+  and proxies the stream from the API (`Content-Disposition` is passed through).
 
-## Ekspor/impor project
+## Project export/import
 
-- `export-project-button.tsx` (halaman project; dropdown "Tanpa rahasia" / "Dengan password database" — yang kedua hanya untuk owner, dari `getSession()` di page) mengunduh lewat
-  route handler `src/app/api/projects/[id]/export/route.ts` (cookie → Bearer, `Content-Disposition` `<slug>.aoox.json`, `?includeSecrets=true` diteruskan).
-- `import-project-dialog.tsx` (halaman `/projects`, di samping New project): file dibaca & di-`JSON.parse` di browser lalu `importProjectAction(file, name?)`
-  (`src/features/project-transfer/`, `POST /projects/import`). Tanpa warning → langsung ke project baru; ada warning → laporan (jumlah dibuat + daftar warning) dulu, tombol "Buka project".
+- `export-project-button.tsx` (project page; a dropdown "Tanpa rahasia" (No secrets) / "Dengan password database" (With database passwords) — the second is only for owners, from `getSession()` in the page) downloads through the route handler `src/app/api/projects/[id]/export/route.ts` (cookie → Bearer, `Content-Disposition` `<slug>.aoox.json`, `?includeSecrets=true` is passed through).
+- `import-project-dialog.tsx` (`/projects` page, next to New project): the file is read and `JSON.parse`d in the browser, then `importProjectAction(file, name?)`
+  (`src/features/project-transfer/`, `POST /projects/import`). With no warnings → straight to the new project; with warnings → a report (the number created + the list of warnings) first, then an "Buka project" (Open project) button.
 
-## Backup instance
+## Instance backup
 
-- `instance-backup-card.tsx` (Settings → Infrastruktur, hanya owner — page memuat `listInstanceBackups`/`getInstanceBackupSettings` dari `src/features/instance-backup/` bila role owner):
-  Backup sekarang, daftar (unduh via `/api/instance-backups/[id]/download`, restore dengan dialog konfirmasi, hapus), form jadwal (preset/kustom, simpan, tujuan S3), "Restore dari file"
-  (multipart `restoreInstanceUploadAction`). Setelah restore: `router.refresh()` + laporan warning dari API (ENCRYPTION_KEY/JWT_SECRET); `revalidatePath("/", "layout")` karena semua data berubah.
+- `instance-backup-card.tsx` (Settings → Infrastruktur, owner only — the page loads `listInstanceBackups`/`getInstanceBackupSettings` from `src/features/instance-backup/` when the role is owner):
+  Back up now, a list (download via `/api/instance-backups/[id]/download`, restore with a confirmation dialog, delete), the schedule form (presets/custom, save, S3 destination), and "Restore dari file" (Restore from file)
+  (multipart `restoreInstanceUploadAction`). After a restore: `router.refresh()` + a warnings report from the API (ENCRYPTION_KEY/JWT_SECRET); `revalidatePath("/", "layout")` because all data changes.
 
-## Update otomatis image
+## Automatic image updates
 
-- Form aplikasi (bagian image): switch `autoUpdate` + interval menit (`autoUpdateIntervalMinutes`, zod 5–1440); `application-deploy-panel.tsx` tombol **Cek update image**
-  (`checkImageUpdateAction(id, deploy=true)` → `POST /applications/:id/check-image`) dengan pesan hasil (baseline/terbaru/berubah → pilih deployment baru); riwayat menandai
-  `kind === "auto-update"` dengan ⟳.
+- Application form (image section): the `autoUpdate` switch + interval in minutes (`autoUpdateIntervalMinutes`, zod 5–1440); `application-deploy-panel.tsx` has the **Cek update image** (Check image update) button
+  (`checkImageUpdateAction(id, deploy=true)` → `POST /applications/:id/check-image`) with a result message (baseline/latest/changed → pick the new deployment); the history marks
+  `kind === "auto-update"` with ⟳.
 
-## Halaman Docker (grup Platform di sidebar; rute `/infra/docker`)
+## Docker page (Platform group in the sidebar; route `/infra/docker`)
 
-- `app/(dashboard)/infra/docker/page.tsx` (server component, owner/admin — selain itu 404) membaca `?server=<uuid>&tab=containers|images|volumes|networks` dari URL: server yang tidak ada di
-  `GET /servers` jatuh ke host, tab tak dikenal ke `containers`. Hanya data **tab yang terbuka** yang diambil (`features/docker/docker.queries.ts` → `/docker/*` di API, lihat AGENTS aoox-api
-  "Docker manager"); galat server (server remote mati) tampil sebagai `Alert` di halaman, bukan 500. `docker-toolbar.tsx` (client) = **satu baris**: pemilih "Server" (opsi pertama "Host (mesin aoox)") + tab strip (h-7) yang hanya mengganti URL + kotak cari rata kanan (`ms-auto`, `sm:max-w-sm sm:flex-1`, di bawah `sm` turun satu baris penuh; di 375 px: baris server, baris tab, baris cari). Toolbar membungkus kontennya (`children`) dan membagikan teks cari lewat `DockerQueryContext` (`useDockerQuery()` di tiap tabel); teks dikosongkan tiap pindah tab.
-- **Sidebar & judul**: item "Docker" ada di `NAV` (grup Platform, setelah Registry, sebelum Terminal) dengan flag `terminal: true` = gerbang owner/admin yang sama dengan item Terminal (member/viewer tidak
-  melihatnya dan membuka URL-nya = 404); halaman memasang `SetBreadcrumb` "Docker" dan judulnya sendiri (bukan `InfraPage`, supaya tidak muncul crumb "Infrastruktur"). "Disk Docker"/"Docker Swarm" tetap di Infrastruktur.
-  **Tabel container**: kolom pertama titik bulat (`StateDot`: `bg-primary` bila `running`, `bg-muted-foreground/40` selain itu; `title` dan teks `sr-only` berisi state asli), lalu Container, Status (hanya teks status Docker),
-  **Managed by aoox** (judul persis itu, final dari user; `MANAGED_LABEL` = Panel aoox/Proxy/Registry/Aplikasi/Database/Admin database/Stack/Build/Job/Backup, tooltip `managedHint`, "-" bila tidak dikelola), Port, Umur, Aksi.
-  Tab Image memakai kolom yang sama untuk lencana "Image aoox" dan "dilindungi".
-- Satu komponen client per tab (`docker-containers/-images/-volumes/-networks.tsx`) yang memfilter dengan teks dari toolbar (`docker-ui.tsx`: `useDockerQuery`, `DockerSearch`, `matches`, `ago`, `DockerEmpty`); kolom titik state selebar `w-10 min-w-10 px-0` dengan titik di tengah dan kolom Container `ps-0`, sehingga jarak titik ke tepi kiri tabel = jarak titik ke teks nama (16 px, diukur di 1280 dan 375 px; tanpa `min-w` kolom itu menyusut jadi 8 px di tabel yang menggulir); tabel dibungkus
-  `overflow-x-auto` bawaan `Table` (375 px tanpa scroll horizontal halaman, diuji). Container milik aoox (`managed` dari API) mendapat lencana `aoox · <jenis>` dan tautan "Buka halamannya"
-  bila label menyebut resource (`/applications|databases|compose/<id>`), **tanpa** tombol stop/restart/hapus — API menolaknya juga (403); UI hanya menyembunyikan aksinya. Aksi untuk container lain:
-  Log (`docker-logs-dialog.tsx`, satu kali ambil 100/200/500 baris, dialog di-`key` per container supaya state bersih), Start/Stop, Restart, Hapus (`ConfirmDialog`; untuk container berjalan ada
-  switch "Paksa" — tanpa itu API membalas 409 yang tampil di dialog). Aksi tulis hanya terlihat untuk owner (`isOwner`); admin hanya membaca. Image: hapus untuk yang tidak dipakai, bukan
-  milik aoox, dan tanpa `protectedReason` (image yang dipakai rollback/aplikasi/preview atau milik registry aoox mendapat lencana "dilindungi" dengan alasannya di tooltip, tanpa tombol hapus);
-  tombol "Bersihkan dangling" (jumlah di label) membuka `ConfirmDialog` yang menyebut itu berlaku untuk **semua** image dangling di server itu (bukan hanya aoox) dengan perkiraan jumlah/ukuran
-  dari daftar yang sudah dimuat (tanpa panggilan baru). Dialog hapus image (`RemoveImageButton`) menyebut bahwa hapus berlaku **per ID image** (API memakai `force`, jadi semua tag ikut hilang) dan menampilkan
-  semua `DockerImage.tags` (mono, satu per baris, kotak `max-h-40` ≈ 8 baris yang menggulir); image tanpa tag menampilkan ID pendek + "tanpa tag". Volume/network baca saja (lencana `aoox`, `yatim`, `bawaan`, `internal`).
-- Teks aksi di audit log: 6 kunci `POST/DELETE /docker/...` di `audit-log.format.ts`. Server action (`docker.actions.ts`) mem-`revalidatePath('/infra/docker')`, jadi daftar menyegar sendiri;
-  stop container yang mengabaikan SIGTERM butuh ±10 detik (tombol terkunci "Rendering…" selama itu — normal).
-- **Belum**: aksi untuk server remote belum diuji nyata (kodenya sama dengan host); volume/network tanpa hapus; tanpa exec/shell.
+- `app/(dashboard)/infra/docker/page.tsx` (server component, owner/admin — otherwise 404) reads `?server=<uuid>&tab=containers|images|volumes|networks` from the URL: a server that is not in
+  `GET /servers` falls back to the host, and an unknown tab falls back to `containers`. Only the data for the **open tab** is fetched (`features/docker/docker.queries.ts` → `/docker/*` in the API, see the aoox-api AGENTS "Docker manager"); a server error (a remote server that is down) appears as an `Alert` on the page, not as a 500. `docker-toolbar.tsx` (client) = **one row**: a "Server" selector (first option "Host (mesin aoox)" (Host, the aoox machine)) + a tab strip (h-7) that only changes the URL + a search box aligned right (`ms-auto`, `sm:max-w-sm sm:flex-1`; below `sm` it drops to its own full row; at 375 px: a server row, a tab row, a search row). The toolbar wraps its content (`children`) and shares the search text via `DockerQueryContext` (`useDockerQuery()` in each table); the text is cleared on every tab change.
+- **Sidebar & title**: the "Docker" item is in `NAV` (Platform group, after Registry, before Terminal) with the flag `terminal: true` = the same owner/admin gate as the Terminal item (members/viewers do not see it, and opening its URL = 404); the page sets `SetBreadcrumb` "Docker" and its own title (not `InfraPage`, so that no "Infrastruktur" crumb appears). "Disk Docker"/"Docker Swarm" remain under Infrastruktur.
+  **Container table**: the first column is a dot (`StateDot`: `bg-primary` when `running`, `bg-muted-foreground/40` otherwise; the `title` and `sr-only` text hold the original state), then Container, Status (only the Docker status text),
+  **Managed by aoox** (that exact title, final by the user; `MANAGED_LABEL` = Panel aoox/Proxy/Registry/Aplikasi (Application)/Database/Admin database/Stack/Build/Job/Backup, with the `managedHint` tooltip, "-" when not managed), Port, Age, Actions.
+  The Image tab uses the same columns for the "Image aoox" and "dilindungi" (protected) badges.
+- One client component per tab (`docker-containers/-images/-volumes/-networks.tsx`) that filters with the text from the toolbar (`docker-ui.tsx`: `useDockerQuery`, `DockerSearch`, `matches`, `ago`, `DockerEmpty`); the state-dot column is `w-10 min-w-10 px-0` wide with the dot centered and the Container column is `ps-0`, so the distance from the dot to the table's left edge equals the distance from the dot to the name text (16 px, measured at 1280 and 375 px; without `min-w` the column shrinks to 8 px in tables that scroll); the table is wrapped in the default `overflow-x-auto` of `Table` (no horizontal page scroll at 375 px, tested). An aoox-owned container (`managed` from the API) gets an `aoox · <kind>` badge and an "Buka halamannya" (Open its page) link
+  when the label names a resource (`/applications|databases|compose/<id>`), **without** stop/restart/delete buttons — the API rejects those too (403); the UI only hides the actions. Actions for other containers:
+  Log (`docker-logs-dialog.tsx`, a one-time fetch of 100/200/500 lines; the dialog is `key`ed per container so the state is clean), Start/Stop, Restart, Delete (`ConfirmDialog`; for a running container there is a "Paksa" (Force) switch — without it the API replies 409, which is shown in the dialog). Write actions are only visible to the owner (`isOwner`); admins can only read. Images: delete is available for images that are unused, not aoox-owned, and have no `protectedReason` (images used by rollback/applications/previews, or owned by the aoox registry, get a "dilindungi" (protected) badge with the reason in the tooltip, and no delete button);
+  the "Bersihkan dangling" (Clean up dangling) button (the count is in the label) opens a `ConfirmDialog` that says this applies to **all** dangling images on that server (not only aoox ones), with an estimated count/size
+  from the list that is already loaded (no new call). The image delete dialog (`RemoveImageButton`) says that delete applies **per image ID** (the API uses `force`, so all tags disappear too), and shows all `DockerImage.tags` (mono, one per line, a `max-h-40` box ≈ 8 lines that scrolls); an image without tags shows a short ID + "tanpa tag" (no tag). Volumes/networks are read-only (`aoox`, `yatim` (orphan), `bawaan` (built-in), `internal` badges).
+- Action text in the audit log: the 6 keys `POST/DELETE /docker/...` in `audit-log.format.ts`. The server action (`docker.actions.ts`) calls `revalidatePath('/infra/docker')`, so the list refreshes itself;
+  stopping a container that ignores SIGTERM takes about 10 seconds (the button stays locked on "Rendering…" during that time — this is normal).
+- **Not yet**: actions for remote servers are not yet tested live (the code is the same as for the host); volumes/networks have no delete; no exec/shell.
 
 ## Docker Swarm
 
-- `swarm-card.tsx` (Settings → Infrastruktur, owner/admin; aksi hanya owner): status, init (advertise addr opsional), daftar node (drain/aktifkan, hapus), perintah join (salin),
-  jumlah app mode service, keluar (dinonaktifkan selama ada app service). `src/features/swarm/` entity/queries/actions.
-- Form aplikasi: field **Mode deploy** (container/service) + **Replika** hanya tampil bila `swarmActive` (halaman app memuat `getSwarmStatus()`; member → null → tersembunyi) atau app
-  sudah `service`. Header app menampilkan badge `service running/desired` dari `ApplicationDetail.service`.
-- Multi-node: form punya select **Penempatan** (`swarmNodeId`, "any" = null) bila mode service dan ada > 1 node (`swarmNodes` dari status); badge header `service n/m` menampilkan
-  task per node di `title`; kartu Swarm memperingatkan registry `localhost:` bila node > 1 (`status.registry.reachableFromNodes`).
-- Panel deploy app service: tabel task (slot, node, state, sejak, error; "(node lain)" bila bukan host) + badge n/m; metrik menampilkan "jumlah N task"; riwayat menandai deployment
-  `config` (⚙, "konfigurasi") yang dibuat saat mode/replika/node/limit diubah.
-- Form service: **Constraint tambahan** (`swarmConstraint`, zod regex sama dengan API), **Rolling update** (`updateParallelism`/`updateDelaySeconds`) dan **Urutan** (`updateOrder`);
-  kartu Swarm: `NodeLabels` (input `key=value …` per node, tombol Simpan muncul saat berubah → `updateNodeAction(id, {labels})`).
+- `swarm-card.tsx` (Settings → Infrastruktur, owner/admin; actions owner only): status, init (advertise address optional), node list (drain/activate, remove), join command (copy),
+  the number of service-mode apps, leave (disabled while service apps exist). `src/features/swarm/` entity/queries/actions.
+- Application form: **Deploy mode** (container/service) + **Replicas** fields appear only when `swarmActive` (the application page loads `getSwarmStatus()`; a member gets null → hidden) or the app
+  is already `service`. The application header shows a `service running/desired` badge from `ApplicationDetail.service`.
+- Multi-node: the form has a **Placement** select (`swarmNodeId`, "any" = null) when in service mode and there is more than one node (`swarmNodes` from the status); the `service n/m` header badge shows the tasks per node in its `title`; the Swarm card warns about a `localhost:` registry when there is more than one node (`status.registry.reachableFromNodes`).
+- The service app's deploy panel: a task table (slot, node, state, since, error; "(node lain)" (other node) when it is not the host) + an n/m badge; metrics show a "jumlah N task" (N tasks) count; the history marks `config` deployments (⚙, "konfigurasi" (configuration)) that were created when mode/replicas/node/limits were changed.
+- Service form: **Constraint tambahan** (Additional constraint) (`swarmConstraint`, the same zod regex as the API), **Rolling update** (`updateParallelism`/`updateDelaySeconds`) and **Urutan** (Order) (`updateOrder`);
+  Swarm card: `NodeLabels` (a `key=value …` input per node; a Save button appears when changed → `updateNodeAction(id, {labels})`).
 
-## Anggota project
+## Project members
 
-- `project-members.tsx` di kolom kanan halaman project (di bawah Pengaturan): daftar anggota (implisit: owner/admin platform & pembuat; eksplisit: select peran + keluarkan),
-  form tambah by e-mail + peran — hanya bila `myRole === "admin"`; tombol Hapus project juga hanya admin. Data `listProjectMembers` (`src/features/project-member/`).
-  Daftar project & summary sudah difilter API per akses, web tidak perlu memfilter lagi.
-- Viewer: halaman project menyembunyikan tombol buat (app/compose/template/database) dan Hapus (`canWrite = myRole !== "viewer"`); halaman aplikasi menampilkan badge "Baca saja"
-  alih-alih tombol Hapus (`ApplicationDetail.projectRole`, juga ada di detail database). Panel lain belum menyembunyikan aksi — API menolak 403 dengan pesan jelas.
+- `project-members.tsx` in the right column of the project page (below Settings): the member list (implicit: platform owner/admin & creator; explicit: role select + remove),
+  an add form by e-mail + role — only when `myRole === "admin"`; the Delete project button is also admin-only. Data from `listProjectMembers` (`src/features/project-member/`).
+  The project list & summary are already filtered by access in the API, so the web does not need to filter again.
+- Viewer: the project page hides the create buttons (app/compose/template/database) and Delete (`canWrite = myRole !== "viewer"`); the application page shows a "Baca saja" (Read only) badge
+  instead of the Delete button (`ApplicationDetail.projectRole`, also present in the database detail). Other panels do not yet hide actions — the API rejects with 403 and a clear message.
 
-## Riwayat metrik
+## Metrics history
 
-- `metrics-panel.tsx` punya pemilih rentang (1 jam / 24 jam / 7 hari / 30 hari, `METRIC_RANGES`): `1h` tetap polling 15 detik dari sampler live, rentang lain memanggil
-  `fetchMetricsAction(target, id, range)` sekali saat dipilih lalu ikut polling; panel juga tampil saat container mati bila ada riwayat tersimpan, dengan catatan resolusi
-  (menit/jam) dan jumlah titik.
+- `metrics-panel.tsx` has a range picker (1 hour / 24 hours / 7 days / 30 days, `METRIC_RANGES`): `1h` keeps polling every 15 seconds from the live sampler; other ranges call
+  `fetchMetricsAction(target, id, range)` once when selected and then keep polling; the panel also shows when the container is down if there is stored history, with a note on the resolution
+  (minute/hour) and the number of points.
 
 ## Railpack
 
-- Form aplikasi: opsi **Railpack (deteksi otomatis, cache build)** di select "Cara build" + penjelasan (cache antar deploy, butuh BuildKit di host, tidak untuk server remote).
-  Kartu Disk menampilkan hasil prune cache BuildKit (`CleanupReport.buildkitCache`).
+- Application form: the **Railpack (deteksi otomatis, cache build)** (Railpack (automatic detection, build cache)) option in the "Cara build" (Build method) select + an explanation (cache between deploys, needs BuildKit on the host, not for remote servers).
+  The Disk card shows the results of the BuildKit cache prune (`CleanupReport.buildkitCache`).
 
-## Stepper deploy, bel notifikasi, checklist onboarding
+## Deploy stepper, notification bell, onboarding checklist
 
-- `features/application/deployment-steps.ts` `buildSteps()` (pure) + `components/custom/deploy-stepper.tsx`: langkah per jenis (git: Antre→Build→Push→Start→Selesai; sumber image: Antre→Pull→Start;
-  rollback/config: Antre→Start; server remote tanpa Push). Waktu dari `stepTimes` API; panel deploy mengisi `liveTimes` dari `deployment:status.at` (pertama menang). Baris lama tanpa waktu tampil
-  tanpa durasi; deployment gagal tanpa waktu menandai langkah akhir "Gagal". Spinner hanya `motion-safe`.
-- `components/custom/inbox-bell.tsx` di `app-navbar.tsx`: `GET /inbox` via server action, polling 30 dtk hanya saat tab terlihat + saat navigasi (tanpa Socket.IO); "Tandai semua dibaca".
-- `components/custom/onboarding-checklist.tsx` di dashboard: hanya dirender bila `getOnboarding()` (owner) `visible`; "Sembunyikan" = `dismissOnboardingAction`. Audit-log: `POST /inbox/read`, `POST /onboarding/dismiss` ada di `audit-log.format.ts`.
+- `features/application/deployment-steps.ts` `buildSteps()` (pure) + `components/custom/deploy-stepper.tsx`: steps per kind (git: Antre (Queue)→Build→Push→Start→Selesai (Done); image source: Antre→Pull→Start;
+  rollback/config: Antre→Start; remote server without Push). Times come from the API's `stepTimes`; the deploy panel fills `liveTimes` from `deployment:status.at` (first one wins). Old rows without times appear without durations;
+  a failed deployment without times marks the final step as "Gagal" (Failed). The spinner is `motion-safe` only.
+- `components/custom/inbox-bell.tsx` in `app-navbar.tsx`: `GET /inbox` via a server action, polling every 30 seconds only while the tab is visible + on navigation (no Socket.IO); "Tandai semua dibaca" (Mark all as read). Each row's title/summary is composed by `describeInboxItem()` (`features/inbox/inbox.describe.ts`) from the `event` + `params` from the API, see the i18n section.
+- `components/custom/onboarding-checklist.tsx` on the dashboard: rendered only when `getOnboarding()` (owner) returns `visible`; "Sembunyikan" (Hide) = `dismissOnboardingAction`. Audit log: `POST /inbox/read` and `POST /onboarding/dismiss` are in `audit-log.format.ts`.
 
 <!-- BEGIN:nextjs-agent-rules -->
 
