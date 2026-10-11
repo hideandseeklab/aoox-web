@@ -275,7 +275,8 @@
     "logs": {
       "follow": "Container logs (live)",
       "stopFollow": "Stop following logs",
-      "containerLabel": "Container logs"
+      "containerLabel": "Container logs",
+      "connectFailed": "Could not connect to the logs"
     },
     "origin": {
       "title": "Realtime logs are not available at this address",

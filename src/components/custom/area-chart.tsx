@@ -7,7 +7,7 @@ import {
   useState,
   useSyncExternalStore,
 } from "react"
-import { useLocale } from "next-intl"
+import { useLocale, useTranslations } from "next-intl"
 import { formatTime } from "@/i18n/format"
 import { cn } from "@/lib/utils"
 
@@ -98,6 +98,7 @@ export function AreaChart({
   const [hover, setHover] = useState<number | null>(null)
   const gradId = useId()
   const locale = useLocale()
+  const t = useTranslations("common.states")
   const mounted = useSyncExternalStore(
     () => () => undefined,
     () => true,
@@ -270,7 +271,7 @@ export function AreaChart({
               {describe
                 ? describe(hover)
                 : pt.value === null
-                  ? "tanpa data"
+                  ? t("noDataPoint")
                   : format(pt.value)}
             </div>
             {mounted && (

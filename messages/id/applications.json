@@ -275,7 +275,8 @@
     "logs": {
       "follow": "Log container (live)",
       "stopFollow": "Berhenti mengikuti log",
-      "containerLabel": "Log container"
+      "containerLabel": "Log container",
+      "connectFailed": "Tidak dapat terhubung ke log"
     },
     "origin": {
       "title": "Log realtime tidak tersedia lewat alamat ini",

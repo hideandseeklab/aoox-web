@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server"
 import { requireToken } from "@/features/auth/auth.session"
 
 const API_URL = process.env.API_URL ?? "http://localhost:3001"
@@ -16,7 +17,8 @@ export async function GET(
   )
   if (!upstream.ok || !upstream.body) {
     const text = await upstream.text().catch(() => "")
-    return new Response(text || "Ekspor gagal", { status: upstream.status })
+    const t = await getTranslations("database.browser")
+    return new Response(text || t("exportFailed"), { status: upstream.status })
   }
   const headers = new Headers()
   for (const h of [

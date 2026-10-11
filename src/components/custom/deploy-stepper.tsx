@@ -21,7 +21,7 @@ const ICON_CLASS: Record<StepState, string> = {
 }
 
 /**
- * Queued → Build/Pull → Push → Start → Selesai for one deployment, with the
+ * Queued → Build/Pull → Push → Start → Done for one deployment, with the
  * time each step took. The active step spins (only when the user allows
  * motion) and its time keeps counting; a failed deployment marks the step
  * that was running. Older deployments without step times show the states

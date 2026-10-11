@@ -259,6 +259,7 @@
     "exportSql": "Export SQL",
     "importSql": "Import SQL",
     "exportCsv": "Export CSV",
+    "exportFailed": "Export failed",
     "resultTitle": "Query result",
     "tabs": {
       "data": "Data",

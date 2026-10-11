@@ -1,7 +1,7 @@
 import { useTranslations } from "next-intl"
 import { SetBreadcrumb } from "@/components/custom/breadcrumb-store"
 
-/** Heading + breadcrumb shared by the Infrastruktur pages (one component each). */
+/** Heading + breadcrumb shared by the Infrastructure pages (one component each). */
 export function InfraPage({
   title,
   description,

@@ -11,92 +11,93 @@ Versions below 1.0.0 may include breaking changes in a minor release.
 ### Added
 
 - **Multi-language support (English and Bahasa Indonesia).** The whole dashboard now speaks two languages (`next-intl`, no URL prefix): every screen, dialog, toast and form message is translated, including projects, applications, stacks, databases, the dashboard, Settings, Infrastructure, Docker, Registry, Terminal, Templates and the sign-in, setup and invite pages. The language lives in a cookie (English by default, also when the cookie is missing or unknown), `<html lang>` follows it, and it is chosen from the user menu. Dates, times, relative times and numbers follow the active language instead of a hardcoded Indonesian format. Text that comes from the API (error messages, notification and audit-log event titles, template catalog texts) is shown as received. Messages live in `messages/<language>/<area>.json` and `npm run check:i18n` fails when the two languages differ (it also parses every message as ICU and compares the arguments, ignoring words inside select/plural branches).
-- **Deploy stepper.** The Deploy tab shows the steps of the selected deployment (Antre → Build → Push → Start → Selesai; image sources Antre → Pull → Start; rollbacks and config changes Antre → Start; Push is skipped on remote servers) with the time each step took. It follows a running deployment live, and a failure marks the step that failed. Old deployments without step times show no durations.
-- **Notification bell.** A bell in the top bar shows the number of unread notifications (refreshed every 30 s while the tab is visible and on navigation). The menu lists recent events with a level icon, relative time and a link to the resource, and "Tandai semua dibaca".
+- **Deploy stepper.** The Deploy tab shows the steps of the selected deployment (Queued → Build → Push → Start → Done; image sources Queued → Pull → Start; rollbacks and config changes Queued → Start; Push is skipped on remote servers) with the time each step took. It follows a running deployment live, and a failure marks the step that failed. Old deployments without step times show no durations.
+- **Notification bell.** A bell in the top bar shows the number of unread notifications (refreshed every 30 s while the tab is visible and on navigation). The menu lists recent events with a level icon, relative time and a link to the resource, and "Mark all as read".
 - **Notifications follow the language.** Inbox titles and summaries are now composed in the active language from the structured facts the API sends (`params`), for every event type: deployments, backups, jobs, container, stack, server and HTTP down/recovered, disk, certificates, DNS and application errors. Events recorded before that, and event types the web does not know yet, keep the English text from the API; system error messages stay as received. Notifications sent to Telegram, Slack, email and webhooks are unchanged.
-- **Getting-started checklist** on the dashboard for the owner: registry, proxy, panel domain (optional), first project and first running resource, each with a button to the right page; it disappears when the required steps are done, or with "Sembunyikan".
+- **Getting-started checklist** on the dashboard for the owner: registry, proxy, panel domain (optional), first project and first running resource, each with a button to the right page; it disappears when the required steps are done, or with "Hide".
 
 - **Docker page (Docker, in the Platform group of the sidebar).** Pick the host or a remote server, then browse containers, images, volumes and networks (search box on each,
   the choice lives in the URL). Containers aoox owns (panel, proxy, registry, applications, databases, stacks) carry a badge and a link to their own page and
   get no stop/restart/remove here; other containers can show their log tail and be started, stopped, restarted or removed (owner, with a confirmation and
-  an optional "force" for running ones). Images no container uses can be removed (the owner) unless they are still needed for rollback, by an application or preview, or belong to aoox's local registry (badged "dilindungi"); dangling ones are cleaned up in one click after a confirmation that says it covers every dangling image on that server, with an estimated count and size; volumes and networks are
+  an optional "force" for running ones). Images no container uses can be removed (the owner) unless they are still needed for rollback, by an application or preview, or belong to aoox's local registry (badged "protected"); dangling ones are cleaned up in one click after a confirmation that says it covers every dangling image on that server, with an estimated count and size; volumes and networks are
   read-only with size, users and an "orphan" marker. Audit log entries read in Indonesian.
-- **"Otorisasi otomatis" for the terminal's SSH key.** The owner can let the panel add its SSH key to the host user's `~/.ssh/authorized_keys` instead of running the manual command: a button in Infrastruktur, Terminal (above the command, which stays as the fallback) and in the connection error notice on the Terminal page, behind a confirmation dialog that names the user. On success with a verified login the toast says "Terminal siap" and the terminal reconnects; otherwise the API's message is shown and the manual command stays visible. The audit log reads "Otorisasi key SSH terminal" for it. Needs the matching API (`POST /terminal/authorize`, `canAutoAuthorize` in the terminal status).
+- **"Authorize automatically" for the terminal's SSH key.** The owner can let the panel add its SSH key to the host user's `~/.ssh/authorized_keys` instead of running the manual command: a button in Infrastructure, Terminal (above the command, which stays as the fallback) and in the connection error notice on the Terminal page, behind a confirmation dialog that names the user. On success with a verified login the toast says "Terminal ready" and the terminal reconnects; otherwise the API's message is shown and the manual command stays visible. The audit log reads "Authorize terminal SSH key" for it. Needs the matching API (`POST /terminal/authorize`, `canAutoAuthorize` in the terminal status).
 
-- **Proxy dynamic configuration (Infrastruktur > Reverse proxy).** A "Konfigurasi dinamis" card lists the Traefik config files of the host or a
+- **Proxy dynamic configuration (Infrastructure > Reverse proxy).** A "Dynamic configuration" card lists the Traefik config files of the host or a
   remote server (`?server=`): enable/disable, a YAML editor that shows Traefik's rejection verbatim (the previous version is restored), delete with
-  a confirmation, "Dari preset" (basic auth, security headers, rate limit, IP allowlist, www redirect) and "Terapkan ulang". The owner writes, admins
+  a confirmation, "From preset" (basic auth, security headers, rate limit, IP allowlist, www redirect) and "Apply again". The owner writes, admins
   read. A proxy from an older aoox asks for confirmation before it is recreated once. Audit log entries read in Indonesian.
-- **Domain tab: middlewares.** Each domain shows its Traefik middlewares and, for developers and up, an "Atur" dialog to pick them (the order they are
+- **Domain tab: middlewares.** Each domain shows its Traefik middlewares and, for developers and up, an "Manage" dialog to pick them (the order they are
   switched on is the order they run).
 
 ### Fixed
 
-- **"Tidak dapat terhubung ke server" after a save that worked.** Saving "SSH Terminal" (and the other sections) in Infrastruktur, Environment showed that toast although the change was applied: the API answers `202 Accepted` with an empty body, and the web's API helper tried to parse the empty body as JSON. The helper now treats an empty successful response as "no data" (a non-empty body that is not valid JSON still fails, and error responses are unchanged). The same applied to "Terapkan update", which only worked because the page treats a network error as "the panel is restarting".
+- **"Cannot reach the server" after a save that worked.** Saving "SSH Terminal" (and the other sections) in Infrastructure, Environment showed that toast although the change was applied: the API answers `202 Accepted` with an empty body, and the web's API helper tried to parse the empty body as JSON. The helper now treats an empty successful response as "no data" (a non-empty body that is not valid JSON still fails, and error responses are unchanged). The same applied to "Apply update", which only worked because the page treats a network error as "the panel is restarting".
+- **Last hardcoded Indonesian texts.** The log connection error, the backup and export download errors, and the chart's empty-state label now follow the selected language.
 
 ### UI UX Improvement
 
 - **Language picker.** The user menu at the foot of the sidebar has a "Language" submenu (English / Bahasa Indonesia); choosing one switches the interface at once and is remembered in this browser.
 - **Deploy progress, notifications and first steps are visible.** A deploy now shows a stepper with per-step durations instead of one status word, the top bar has a notification bell with an unread badge (the menu stays inside a 375 px screen), and a new owner sees a short progress checklist on the dashboard. The animated spinner on the active step only runs when the system does not ask for reduced motion.
 - **One status language, resource logos and empty states.** Lists and cards show status as a small dot plus the status text (lime = running, amber = in transition and pulsing, red = failed, grey = anything else) in the project's cards and the application, database and stack cards; the Docker containers tab uses the same dot. The detail pages keep their status badges. Database engines show their logo (PostgreSQL, MySQL, MariaDB, Redis, MongoDB; pgvector, PostGIS and TimescaleDB are PostgreSQL; Valkey a generic database glyph) and applications show where they come from (GitHub, GitLab, Bitbucket or plain git, Docker Hub, GitHub for ghcr.io, a generic package for other registries) on the cards and in the page titles; the glyphs are drawn in the text colour. Empty lists (projects, applications, stacks, databases, domains, jobs, mounts, API tokens, backups, notifications, servers, certificates, registries, audit log, the Docker tabs and others) share one look: an icon, one sentence and, when you can act on it, one button. Numbers that update or sit in columns use tabular figures. Tab changes and list rows get a light 150–200 ms transition, only when the system does not ask for reduced motion.
-- **Log viewer.** Deployment logs (live and history), the live container log, stack action logs, job output, preview logs and the Docker log dialog share one viewer: ANSI colours (other escape sequences are dropped and nothing is ever rendered as HTML), line numbers, search with highlights and next/previous (Enter / Shift+Enter), "Ikuti" (follows the newest line and lets go as soon as you scroll up), wrap toggle and copy all. Only the last 2000 lines are drawn until you ask for older ones, so long logs stay smooth. It is dark in both themes, like the logs already were.
-- **Command palette (Ctrl+K / Cmd+K).** A "Cari…" button in the top bar (icon only on phones) and the shortcut open a quick-jump dialog: every page the sidebar shows to you (same list and role rules, now defined once in `nav-items.ts`), your projects with their applications, databases and stacks (status dot, engine logo, project name as secondary text; read once, the first time it opens, and limited to what you may see), and theme switches (light, dark, system). Type to filter, ↑/↓ to move, Enter to open, Esc to close; focus goes back to where it was. The shortcut stays out of the way inside text areas, the terminal/console and other editors. It never changes anything on the server.
+- **Log viewer.** Deployment logs (live and history), the live container log, stack action logs, job output, preview logs and the Docker log dialog share one viewer: ANSI colours (other escape sequences are dropped and nothing is ever rendered as HTML), line numbers, search with highlights and next/previous (Enter / Shift+Enter), "Follow" (follows the newest line and lets go as soon as you scroll up), wrap toggle and copy all. Only the last 2000 lines are drawn until you ask for older ones, so long logs stay smooth. It is dark in both themes, like the logs already were.
+- **Command palette (Ctrl+K / Cmd+K).** A "Search…" button in the top bar (icon only on phones) and the shortcut open a quick-jump dialog: every page the sidebar shows to you (same list and role rules, now defined once in `nav-items.ts`), your projects with their applications, databases and stacks (status dot, engine logo, project name as secondary text; read once, the first time it opens, and limited to what you may see), and theme switches (light, dark, system). Type to filter, ↑/↓ to move, Enter to open, Esc to close; focus goes back to where it was. The shortcut stays out of the way inside text areas, the terminal/console and other editors. It never changes anything on the server.
 - **Metric charts.** The charts under the metric tiles (application, database, stack, project), the host CPU/RAM/storage charts on the dashboard and the HTTP monitor's latency chart are smooth area charts with a faint fade from the accent colour, a tooltip with value and time while hovering or touching, and a minimal axis (the top of the scale and the first and last time).
 - **Removing an image says what goes with it.** The confirmation in the Docker page's Image tab now explains that removal is per image ID, so every tag of that image disappears from the server, and lists all of its tags (monospace, one per line, scrolling after about eight); an image without a tag shows its short ID and says so. The data was already in the image list, so the API is unchanged; protection, actions and the other dialogs are untouched.
-- **Docker page layout.** "Docker" moved from the Infrastruktur group to the Platform group of the sidebar (between Registry and Terminal, shown to owners and admins only like the Terminal item; the address is still `/infra/docker`, the breadcrumb now reads Dashboard, Docker, and "Disk Docker" and "Docker Swarm" stay under Infrastruktur). The picker is labelled "Server" with "Host (mesin aoox)" as its first choice. In the container table the state became a small round marker in its own first column (lime while running, muted otherwise, with the real state as its tooltip and for screen readers), "Status" holds only Docker's status text, and a new "Managed by aoox" column names what aoox container it is (Panel aoox, Proxy, Registry, Aplikasi, Database, Admin database, Stack, Build, Job, Backup) with a tooltip saying it is managed from its own page; the images table got the same column for its "Image aoox" and "dilindungi" markers. The state dot sits exactly in the middle of its own column (16 px to the table edge and 16 px to the container name, also at phone width). The toolbar is one row: Server picker, the tabs, and the search box at the right edge (it drops onto its own full-width row on a narrow screen); the search text starts empty on each tab. Contents, actions and the guards behind them are unchanged.
-- **Terminal SSH help text.** When the terminal cannot reach the host, the error notice now adds a short explanation of "SSH authentication failed": the authorization command has to run on the host as the same user as the User field in Environment, and root login is often refused by sshd on cloud VPS, so on Ubuntu set User to your login user (usually `ubuntu`). The User field in Infrastruktur, Environment has a one-line note saying the same. Text only; no protocol or behaviour change.
+- **Docker page layout.** "Docker" moved from the Infrastructure group to the Platform group of the sidebar (between Registry and Terminal, shown to owners and admins only like the Terminal item; the address is still `/infra/docker`, the breadcrumb now reads Dashboard, Docker, and "Docker disk" and "Docker Swarm" stay under Infrastructure). The picker is labelled "Server" with "Host (aoox machine)" as its first choice. In the container table the state became a small round marker in its own first column (lime while running, muted otherwise, with the real state as its tooltip and for screen readers), "Status" holds only Docker's status text, and a new "Managed by aoox" column names what aoox container it is (aoox panel, Proxy, Registry, Application, Database, Database admin, Stack, Build, Job, Backup) with a tooltip saying it is managed from its own page; the images table got the same column for its "aoox image" and "protected" markers. The state dot sits exactly in the middle of its own column (16 px to the table edge and 16 px to the container name, also at phone width). The toolbar is one row: Server picker, the tabs, and the search box at the right edge (it drops onto its own full-width row on a narrow screen); the search text starts empty on each tab. Contents, actions and the guards behind them are unchanged.
+- **Terminal SSH help text.** When the terminal cannot reach the host, the error notice now adds a short explanation of "SSH authentication failed": the authorization command has to run on the host as the same user as the User field in Environment, and root login is often refused by sshd on cloud VPS, so on Ubuntu set User to your login user (usually `ubuntu`). The User field in Infrastructure, Environment has a one-line note saying the same. Text only; no protocol or behaviour change.
 
-- **Settings cards follow the content width.** In Settings, the Akun and Integrasi tabs lay their cards out in two columns only when the content area is wide enough (it used to depend on the screen width, which squeezed both cards to about 350 px between 1024 and 1280 px), and a card left alone on the last row, such as Sertifikat SSL, or the only card a member sees under Integrasi, now spans the full width instead of leaving half the row empty. Contents, roles and the tab and sidebar navigation are unchanged.
+- **Settings cards follow the content width.** In Settings, the Account and Integrations tabs lay their cards out in two columns only when the content area is wide enough (it used to depend on the screen width, which squeezed both cards to about 350 px between 1024 and 1280 px), and a card left alone on the last row, such as Sertifikat SSL, or the only card a member sees under Integrations, now spans the full width instead of leaving half the row empty. Contents, roles and the tab and sidebar navigation are unchanged.
 
-- **Application and compose detail pages: status line under the tabs.** The status badges (state, server, swarm service for applications; state and `compose` for stacks) and the source line moved from the page header to a status line right under the tab list, so they stay visible on every tab. The Deploy and Stop/Start buttons moved there too (the application's "Hapus" or "Baca saja" badge and the stack's Hapus with its confirmation dialog as well), with their error message beside them; Deploy still opens the new deployment's log in the Deploy tab. "Cek update image" and "Log container (live)" stay in the Deploy tab. The stack page now keeps its live state in one place (`ComposeLiveProvider`), so the badge and buttons in the status line change as soon as a deploy, stop or start finishes. Nothing was added or removed; checked by comparing every text and control before and after for an owner and a project viewer.
+- **Application and compose detail pages: status line under the tabs.** The status badges (state, server, swarm service for applications; state and `compose` for stacks) and the source line moved from the page header to a status line right under the tab list, so they stay visible on every tab. The Deploy and Stop/Start buttons moved there too (the application's "Delete" or "Read only" badge and the stack's Delete with its confirmation dialog as well), with their error message beside them; Deploy still opens the new deployment's log in the Deploy tab. "Check image update" and "Container logs (live)" stay in the Deploy tab. The stack page now keeps its live state in one place (`ComposeLiveProvider`), so the badge and buttons in the status line change as soon as a deploy, stop or start finishes. Nothing was added or removed; checked by comparing every text and control before and after for an owner and a project viewer.
 
 - **Icons in the statistic cards.** The dashboard cards (projects, active, inactive, and the Host boxes) and the CPU/Memori/Jaringan tiles on the application, database, compose and project pages now show a small icon chip before the label (an optional `icon` of the shared `StatCard`, using the existing text colours).
 
-- **Database detail page: status line and one wide connection card.** The status badge and the "engine version · slug" line moved from the page header to a status line right under the tabs (so they stay visible on every tab), with the Start/Stop button (and its error message) on the right of that line instead of the Ringkasan toolbar. "Koneksi internal" and "Koneksi eksternal" are now two columns of one full-width card (stacked at 375 px) built from the shared `DetailList`, which replaced the private `Row`; every row, value, mask, copy button and note is the same. "Tampilkan password" and "Hapus database" stay where they were. The dashboard needed no further change after the shared statistic card. Checked by comparing all text and controls before and after for an owner and for a project viewer.
+- **Database detail page: status line and one wide connection card.** The status badge and the "engine version · slug" line moved from the page header to a status line right under the tabs (so they stay visible on every tab), with the Start/Stop button (and its error message) on the right of that line instead of the Overview toolbar. "Internal connection" and "External connection" are now two columns of one full-width card (stacked at 375 px) built from the shared `DetailList`, which replaced the private `Row`; every row, value, mask, copy button and note is the same. "Show password" and "Delete database" stay where they were. The dashboard needed no further change after the shared statistic card. Checked by comparing all text and controls before and after for an owner and for a project viewer.
 
 - **Sidebar logo removed.** The header of the sidebar shows only the "aoox" name and the version line, left-aligned with the menu icons in the same 48 px button; the logo tile is gone (this supersedes the full-bleed logo in 0.1.0-alpha.6) and the `BrandLogo` component was deleted. The site favicon is unchanged. In the collapsed icon rail the header is hidden, since there is no mark to fit the 32 px rail; the sidebar toggle stays in the top bar.
 
 - **One statistic block, one activity list.** The three look-alike statistic blocks (dashboard KPI cards, the boxes inside the Host card, and the CPU/Memori/Jaringan tiles on the application, database, compose and project pages) are now one `StatCard` component with three sizes, and the two copies of the sparkline became one `StatSparkline`; the Recent activity rows became `ActivityList`. The rendered result is unchanged, checked by comparing the page markup before and after. New `DetailList` (label/value rows) and `StatusStrip` (status line with actions) are added for the detail pages and are not used by any page yet.
 
-- **Sidebar: user menu at the bottom, active marker on the start edge.** The signed-in user's menu moved from the top bar to the foot of the sidebar with exactly the same contents (name, email, Profile, Sign out). In icon mode it shows just the avatar (the name is the tooltip) and opens beside the rail; in the mobile drawer and expanded sidebar it opens above the button. The top bar keeps the sidebar toggle and the breadcrumb. The active menu item gets a 2 px marker on its start edge in the existing sidebar accent colour (a pseudo-element in `globals.css`, so the focus ring is untouched). The "Update tersedia" button stays above the user menu and only shows for the owner as before; menu items hidden for some roles stay hidden. No routes, labels or information changed.
+- **Sidebar: user menu at the bottom, active marker on the start edge.** The signed-in user's menu moved from the top bar to the foot of the sidebar with exactly the same contents (name, email, Profile, Sign out). In icon mode it shows just the avatar (the name is the tooltip) and opens beside the rail; in the mobile drawer and expanded sidebar it opens above the button. The top bar keeps the sidebar toggle and the breadcrumb. The active menu item gets a 2 px marker on its start edge in the existing sidebar accent colour (a pseudo-element in `globals.css`, so the focus ring is untouched). The "Update available" button stays above the user menu and only shows for the owner as before; menu items hidden for some roles stay hidden. No routes, labels or information changed.
 
 ## [0.1.0-alpha.6] - 2026-10-05
 
 ### Added
 
-- **Custom SSL certificates for application domains.** Settings → Integrasi has a "Sertifikat SSL" card (owner/admin): upload a certificate (PEM, with its chain) and its private key by pasting or picking the files, see each certificate's names, issuer, expiry (green, amber under 14 days, red when expired) and how many domains use it, replace its content with "Perbarui" (e.g. after a renewal) or delete it (refused while a domain uses it). The private key is write-only: it is sent once, never shown again and wiped from the form afterwards. In an application's Domain tab every https domain shows its certificate and (developer and up) can switch between "Otomatis (Let's Encrypt)" and an uploaded certificate that covers the host; the add-domain form has the same choice, and a certificate that is close to or past its expiry is flagged. Needs the matching API (`/certificates`, `PATCH /applications/:id/domains/:domainId`).
+- **Custom SSL certificates for application domains.** Settings → Integrations has a "SSL certificates" card (owner/admin): upload a certificate (PEM, with its chain) and its private key by pasting or picking the files, see each certificate's names, issuer, expiry (green, amber under 14 days, red when expired) and how many domains use it, replace its content with "Update" (e.g. after a renewal) or delete it (refused while a domain uses it). The private key is write-only: it is sent once, never shown again and wiped from the form afterwards. In an application's Domain tab every https domain shows its certificate and (developer and up) can switch between "Automatic (Let's Encrypt)" and an uploaded certificate that covers the host; the add-domain form has the same choice, and a certificate that is close to or past its expiry is flagged. Needs the matching API (`/certificates`, `PATCH /applications/:id/domains/:domainId`).
 
-- **Recent activity on the dashboard (owner/admin).** A new "Aktivitas terakhir" card at the bottom of the dashboard lists the 10 latest audit-log entries: time, who, a readable action ("Deploy aplikasi", "Hapus database"; the raw route when an action has no label), a soft green/amber/red status and how it was done (session, API token, webhook). It refreshes every 30 seconds while the tab is visible, shows an empty state, and shows a small error inside the card if loading fails. "Lihat semua" opens the Audit log. Other roles do not get the card at all. Request bodies and params are never shown here; the action labels are shared with the Audit log page code (`audit-log.format.ts`).
+- **Recent activity on the dashboard (owner/admin).** A new "Recent activity" card at the bottom of the dashboard lists the 10 latest audit-log entries: time, who, a readable action ("Deploy application", "Delete database"; the raw route when an action has no label), a soft green/amber/red status and how it was done (session, API token, webhook). It refreshes every 30 seconds while the tab is visible, shows an empty state, and shows a small error inside the card if loading fails. "View all" opens the Audit log. Other roles do not get the card at all. Request bodies and params are never shown here; the action labels are shared with the Audit log page code (`audit-log.format.ts`).
 
-- **Admin UI card on the database page** (Ringkasan tab): install a web admin tool for the database (the list comes from the API and depends on the engine) as its own container. The install dialog picks the tool (each shows whether it signs in with the database login or a generated password) and the access, either a domain (hostname, HTTPS switch) or an IP and host port, validated before sending. The installed card shows the tool, a status badge (creating refreshes every 3 s until it settles, errors show the message), the URL opening in a new tab, "Tampilkan kredensial" which fetches the generated login on demand (tools using the database login point to the Kredensial card instead), and "Hapus Admin UI" with a confirmation. Developers and up manage it; viewers only see status and URL. Install is disabled while the database is not running. New `database-companion.tsx` and `src/features/database-companion/`.
+- **Admin UI card on the database page** (Overview tab): install a web admin tool for the database (the list comes from the API and depends on the engine) as its own container. The install dialog picks the tool (each shows whether it signs in with the database login or a generated password) and the access, either a domain (hostname, HTTPS switch) or an IP and host port, validated before sending. The installed card shows the tool, a status badge (creating refreshes every 3 s until it settles, errors show the message), the URL opening in a new tab, "Show credentials" which fetches the generated login on demand (tools using the database login point to the Credentials card instead), and "Remove Admin UI" with a confirmation. Developers and up manage it; viewers only see status and URL. Install is disabled while the database is not running. New `database-companion.tsx` and `src/features/database-companion/`.
 
 - **New one-click template: Excalidraw** (the 15th). The Templates page lists it automatically from the API catalog, with its logo and a "Whiteboard" service you can give a domain. It is a static client with no database or variables, so the deploy dialog only asks for the project, name and domain; live collaboration is not included.
 
 ### Fixed
 
-- **Audit log texts for certificates.** The dashboard's Recent activity and the Audit log show "Unggah sertifikat SSL", "Perbarui sertifikat SSL", "Hapus sertifikat SSL" and "Ubah sertifikat domain" instead of the raw routes; every route the API records now has a readable text (checked against all POST/PUT/PATCH/DELETE routes).
-- **Admin UI card hint.** For Adminer and phpMyAdmin it told you to sign in with the credentials "from the Kredensial card", which does not exist; it now points to the Koneksi internal card and its Tampilkan password button.
+- **Audit log texts for certificates.** The dashboard's Recent activity and the Audit log show "Upload SSL certificate", "Update SSL certificate", "Delete SSL certificate" and "Change domain certificate" instead of the raw routes; every route the API records now has a readable text (checked against all POST/PUT/PATCH/DELETE routes).
+- **Admin UI card hint.** For Adminer and phpMyAdmin it told you to sign in with the credentials "from the Credentials card", which does not exist; it now points to the Internal connection card and its Show password button.
 
 ### UI UX Improvement
 
-- The application Environment tab's "Environment" and "Sumber secret" cards span the full content width (they were capped at 672 px); descriptions keep a readable line length, the secret-source fields sit in one row on wide screens and stack at 375 px. The Pengaturan, Domain and Webhook tabs are full width too: on a wide screen the settings form lays its cards out in two columns (source and image/repo details on the left, network and resources on the right) and stays one column at 375 px and on the narrow create page; the add-domain form keeps a readable width.
+- The application Environment tab's "Environment" and "Secret source" cards span the full content width (they were capped at 672 px); descriptions keep a readable line length, the secret-source fields sit in one row on wide screens and stack at 375 px. The Settings, Domain and Webhook tabs are full width too: on a wide screen the settings form lays its cards out in two columns (source and image/repo details on the left, network and resources on the right) and stays one column at 375 px and on the narrow create page; the add-domain form keeps a readable width.
 
 - The Admin UI card uses the usual card, dialog and field sizes (12 px text, 28 px controls) and stacks cleanly at 375 px; the tool and access choices are full-width selectable cards.
 
 - **Sidebar logo is full-bleed.** The mark was a small dark `$` tile inside a ringed box (a white hairline in dark mode), so it looked off-centre and too small next to the "aoox" and version text. `BrandLogo` now crops the same artwork to the glyph's own margins (the `$` is centred on the 64 grid; the favicon keeps its wider margin for the circle crop), fills the whole 32 px square, has no ring or padding, and uses `rounded-lg` (follows `--radius`). The logo is only used in the sidebar header, in expanded and icon mode. The header button drops its padding so the mark now spans the full 48 px button height (it was a 32 px tile that blended into the dark sidebar and read as a bare `$` at the edge); in icon mode it stays 32 px.
 
-- **Normal text is small everywhere, set once.** Card details, lists, rows, helper and error text had drifted to `text-sm`/16 px next to the 12 px fields and buttons (most visible in the Registry lokal card, the image list, Settings → Infrastruktur and the application/database/compose pages). The scale is now defined in the theme (`globals.css`, rem untouched): `text-base` and `text-xs` are 12 px, `text-sm` is 13 px and means section/card/dialog titles (with `font-medium`), page titles stay `text-lg`, stat numbers `text-2xl`. `<body>` uses `text-base`, so unstyled text no longer falls back to 16 px; about 160 stray `text-sm` on body text were set to `text-xs`; inputs and textareas are 12 px like the rest (no more 14 px below `md`). On touch screens (`pointer: coarse`) input, textarea and select stay at 16 px so iOS does not zoom the page when a field is focused; with a mouse they are 12 px. The image list rows are less tall. `npm run check:ui` also flags `text-sm`/`text-base` on non-title text so it does not creep back. The `src/components/ui` files are exactly what shadcn ships: the panel's adjustments (12 px fields and avatar text, the select-trigger margin fix, 16 px touch fields) live in `globals.css` keyed on shadcn's `data-slot` attributes, and the scrolling tab strip is a `ScrollableTabsList` wrapper in `components/custom` instead of an edit to the tabs component.
+- **Normal text is small everywhere, set once.** Card details, lists, rows, helper and error text had drifted to `text-sm`/16 px next to the 12 px fields and buttons (most visible in the Registry lokal card, the image list, Settings → Infrastructure and the application/database/compose pages). The scale is now defined in the theme (`globals.css`, rem untouched): `text-base` and `text-xs` are 12 px, `text-sm` is 13 px and means section/card/dialog titles (with `font-medium`), page titles stay `text-lg`, stat numbers `text-2xl`. `<body>` uses `text-base`, so unstyled text no longer falls back to 16 px; about 160 stray `text-sm` on body text were set to `text-xs`; inputs and textareas are 12 px like the rest (no more 14 px below `md`). On touch screens (`pointer: coarse`) input, textarea and select stay at 16 px so iOS does not zoom the page when a field is focused; with a mouse they are 12 px. The image list rows are less tall. `npm run check:ui` also flags `text-sm`/`text-base` on non-title text so it does not creep back. The `src/components/ui` files are exactly what shadcn ships: the panel's adjustments (12 px fields and avatar text, the select-trigger margin fix, 16 px touch fields) live in `globals.css` keyed on shadcn's `data-slot` attributes, and the scrolling tab strip is a `ScrollableTabsList` wrapper in `components/custom` instead of an edit to the tabs component.
 
-- **Adding and dropping databases moved to Ringkasan.** The "Tambah database" form and the drop button for extra databases left the Data tab and now sit next to "Koneksi untuk database" in the database's Ringkasan tab (owner/admin only, SQL and MongoDB servers that are running): a "Tambah database" button opens a dialog for the name, and the trash button beside the selector opens a confirmation dialog before dropping the selected non-primary database. The Data tab keeps its database selector.
+- **Adding and dropping databases moved to Overview.** The "Add database" form and the drop button for extra databases left the Data tab and now sit next to "Connection for database" in the database's Overview tab (owner/admin only, SQL and MongoDB servers that are running): a "Add database" button opens a dialog for the name, and the trash button beside the selector opens a confirmation dialog before dropping the selected non-primary database. The Data tab keeps its database selector.
 
-- **Every delete/destructive confirmation is one dialog now.** The browser `confirm()` pop-ups are gone: deleting a job, a stack, an account, a table row, a server proxy, leaving the swarm, dropping a database, disabling someone's 2FA and running an uploaded SQL file all use the same `ConfirmDialog` (title, what exactly is lost, Batal and a red action; the SQL import one is neutral and names the file and database). Detaching a mount asks with two clear choices, "Lepas mount saja (data tetap ada)" and "Lepas dan hapus volume (data hilang)". An API error shows inside the dialog and keeps it open, and it cannot be closed while the action runs.
+- **Every delete/destructive confirmation is one dialog now.** The browser `confirm()` pop-ups are gone: deleting a job, a stack, an account, a table row, a server proxy, leaving the swarm, dropping a database, disabling someone's 2FA and running an uploaded SQL file all use the same `ConfirmDialog` (title, what exactly is lost, Batal and a red action; the SQL import one is neutral and names the file and database). Detaching a mount asks with two clear choices, "Detach mount only (keep data)" and "Detach and delete volume (data lost)". An API error shows inside the dialog and keeps it open, and it cannot be closed while the action runs.
 
 ## [0.1.0-alpha.5] - 2026-10-02
 
 ### Added
 
-- **Monitor tab on the application page** (developers and up edit, viewers read): switch, path, interval, timeout, healthy status codes, failures before an alert, internal-address switch; the target actually used (read-only, with where it comes from and the "checked from the panel machine" caveat); status badge, last result, 24 h/7 d uptime, average and p95 latency, a 24 h latency chart with failed buckets marked, recent down incidents, and "Periksa sekarang". New `application-monitor.tsx` (no fields added to the application form).
-- **Remote servers show their status**: the server list has an up/down/not-checked badge, when it was checked, since when it is down, the error, and how many containers are monitored, read from the last check (no live call when the page opens). Applications on a remote server now show CPU/memory/network in the Deploy tab and the project's resource card. Two new notification toggles, "server remote tidak terjangkau" and "monitor HTTP gagal" (on by default, see the API changelog).
+- **Monitor tab on the application page** (developers and up edit, viewers read): switch, path, interval, timeout, healthy status codes, failures before an alert, internal-address switch; the target actually used (read-only, with where it comes from and the "checked from the panel machine" caveat); status badge, last result, 24 h/7 d uptime, average and p95 latency, a 24 h latency chart with failed buckets marked, recent down incidents, and "Check now". New `application-monitor.tsx` (no fields added to the application form).
+- **Remote servers show their status**: the server list has an up/down/not-checked badge, when it was checked, since when it is down, the error, and how many containers are monitored, read from the last check (no live call when the page opens). Applications on a remote server now show CPU/memory/network in the Deploy tab and the project's resource card. Two new notification toggles, "remote server unreachable" and "HTTP monitor failed" (on by default, see the API changelog).
 
 - **Root directory field** in the application form (create and edit, Git section) for monorepos: the folder to build (for example `apps/web`; empty = repository root), validated with
   the same rules as the API, shown in the application header as `url#branch:folder`. A switch next to it turns on "deploy only when files in this folder change" for webhook pushes.
@@ -104,7 +105,7 @@ Versions below 1.0.0 may include breaking changes in a minor release.
 
 - **Instance cards on the project page show where to open them.** Application cards list the domain(s) as `https://`/`http://` links (per the domain's HTTPS flag, with the
   proxy's port when it is not 80/443), or `host:port` when there is only a host port; stack cards list their service domains and host ports (`service · address`, one per
-  line); database cards show the published `host:port` as a copy button (toast), or "internal". Links open in a new tab (`rel="noopener noreferrer"`, `aria-label` "Buka … di tab baru")
+  line); database cards show the published `host:port` as a copy button (toast), or "internal". Links open in a new tab (`rel="noopener noreferrer"`, `aria-label` "Open … in a new tab")
   and only while the instance is `running` (otherwise the same addresses as dim text); more than two addresses collapse into "+N". `host:port` uses the host the
   panel was opened on (`useBrowserHost`), like the compose Deploy tab. Remote-server apps with only a host port show `:port (server remote)` without a link. Needs the
   `domains` field on the applications list in aoox-api. New `project-instance-card.tsx` / `instance-access.ts`.
@@ -113,10 +114,10 @@ Versions below 1.0.0 may include breaking changes in a minor release.
   dialog with its variable fields needed no change. Checked in the browser with 13 cards (all logos load, Directus dialog with six variables fits the viewport).
 
 - **Odoo Community appears in the template catalog** from the API list: card (logo, description, tags), search and the deploy dialog with its variable hint needed no change. The
-  generated master password can be read from the stack page (Pengaturan, environment, "Tampilkan nilai"), so no new UI was needed. Checked in the browser: 14 cards, Odoo logo loads, dialog
+  generated master password can be read from the stack page (Settings, environment, "Show values"), so no new UI was needed. Checked in the browser: 14 cards, Odoo logo loads, dialog
   shows the master-password hint.
 
-- **Secret source for applications (Infisical).** Settings → Integrasi has a "Secret manager" card (owner/admin): connections (name, optional URL, client ID; the client secret is write-only), add, delete and "Tes koneksi". The application's Environment tab has a "Sumber secret" section: pick a connection, project ID, environment and path (default `/`), a "Sync semua secret ke container" switch, "Simpan" and "Lihat key" (key names only, never values), plus the rules in plain words (values are read when the container is created, `${{secret.KEY}}` in env, the application's env wins on a clash, PR previews do not inherit, an unreachable secret manager fails the deployment and leaves the old container running). Without a connection it points to Settings → Integrasi (a link for owner/admin, text for others). Viewers read only. Needs the matching API (`/secret-connections`, `/applications/:id/secret-source`).
+- **Secret source for applications (Infisical).** Settings → Integrations has a "Secret manager" card (owner/admin): connections (name, optional URL, client ID; the client secret is write-only), add, delete and "Test connection". The application's Environment tab has a "Secret source" section: pick a connection, project ID, environment and path (default `/`), a "Sync all secrets to the container" switch, "Save" and "View keys" (key names only, never values), plus the rules in plain words (values are read when the container is created, `${{secret.KEY}}` in env, the application's env wins on a clash, PR previews do not inherit, an unreachable secret manager fails the deployment and leaves the old container running). Without a connection it points to Settings → Integrations (a link for owner/admin, text for others). Viewers read only. Needs the matching API (`/secret-connections`, `/applications/:id/secret-source`).
 
 ### Changed
 
@@ -134,7 +135,7 @@ Versions below 1.0.0 may include breaking changes in a minor release.
 
 ### UI UX Improvement
 
-- Three small UI fixes. **Data tab (database):** the "database baru" input + button now sit above the database select (input, then
+- Three small UI fixes. **Data tab (database):** the "new database" input + button now sit above the database select (input, then
   select, then Tabel), aligned with the select; behavior (validation, toast, owner/admin only, hidden for Redis/Valkey) is unchanged.
   **Headers:** the monospace subtitle under the database, application and compose titles is `text-sm` like the project header's
   subtitle (it was `text-xs`); the identifiers stay monospace. **Project page:** "Resource usage" is just the three CPU / Memori /
@@ -149,9 +150,9 @@ Versions below 1.0.0 may include breaking changes in a minor release.
   sheet, which is flush with the screen edge. Checked on sign-in, dashboard, projects, project/app/database/compose detail,
   registry, templates, terminal, environment, settings and audit log, light and dark, and at 375 px.
 
-- **`→` in the panel's text became icons.** Arrows on links and buttons ("Lihat audit log", "Lebih lama") are a small
+- **`→` in the panel's text became icons.** Arrows on links and buttons ("View audit log", "Older") are a small
   `ArrowRight` that nudges right on hover; arrows between the steps of a path or flow inside a sentence ("Settings → Audit log",
-  "Infrastruktur → Reverse proxy", "GitHub: Settings → Webhooks → Add webhook", "284 s → 54 s") are a small chevron on the text
+  "Infrastructure → Reverse proxy", "GitHub: Settings → Webhooks → Add webhook", "284 s → 54 s") are a small chevron on the text
   baseline. Both come from one module, `components/custom/arrows.tsx` (`LinkArrow`, `PathArrow`), instead of repeated markup.
   `PathArrow` carries a visually hidden "→" (and its own spaces, in a `relative` wrapper so the absolutely positioned text cannot widen scrolling table cells), so screen readers and copy-paste still get "Settings → Audit
   log" (checked: a selection copied from the rendered page reads `Settings → Webhooks`). Hints that were plain strings but are
@@ -168,7 +169,7 @@ Versions below 1.0.0 may include breaking changes in a minor release.
   768 and 375 px: before, `scrollWidth` exceeded `clientWidth` at every width above the mobile breakpoint; now it never does.
 
 - **Headers of the application, database, compose and project pages no longer overflow on a phone** (the application
-  page's "Hapus" button was cut off at 375 px): the title row wraps (`flex-wrap`), the block next to the back arrow can
+  page's "Delete" button was cut off at 375 px): the title row wraps (`flex-wrap`), the block next to the back arrow can
   shrink (`min-w-0`), badges wrap, and the monospace line under the title (image / git URL / slug) breaks anywhere instead
   of forcing the page wider; the project page's action buttons wrap too.
 
@@ -180,8 +181,8 @@ Versions below 1.0.0 may include breaking changes in a minor release.
   (links inside links are invalid): the name is the link to the detail page and stretches over the card, the access links sit above it, so they never open the detail page while a click
   anywhere else still does; keyboard focus shows a ring on the card.
 
-- **"Buat tabel" dialog (database Data tab) lines up.** The column header and every column row now share one grid template
-  (Kolom, Tipe, Panjang, Null, PK, Default, delete), so the headings sit exactly over their fields and every row has the same
+- **"Create table" dialog (database Data tab) lines up.** The column header and every column row now share one grid template
+  (Column, Type, Length, Null, PK, Default, delete), so the headings sit exactly over their fields and every row has the same
   widths; Null/PK toggles are centered under their headings and the delete buttons line up. Every field (table name, column name,
   Tipe, Panjang, Default) uses the default control height (28 px, no more mixed h-8 inputs and h-6 selects), the toggles and the
   delete button are vertically centered on it, and a disabled Panjang just dims instead of changing size. The dialog is wider
@@ -190,21 +191,21 @@ Versions below 1.0.0 may include breaking changes in a minor release.
   buttons stay reachable with many columns. The generated SQL, validation and PK/Null behavior are untouched (a real table was
   created through the dialog to check). Same pass: the add-member form on the project page (`project-members.tsx`) had an
   `h-8` input and select next to a short `sm` button; they are now the same height as the default controls.
-- **Fields and buttons on one row are the same height now.** Root causes: (1) a few fields carried a height override (`<Input className="h-8">` = 32 px, `h-7`) next to a `Button size="sm"` (24 px) or a default button (28 px), so the input towered over the button; (2) `Button size="sm"`/`icon-sm` sitting beside default-size fields; (3) a real bug in `SelectTrigger`: inside a `<form>` Radix appends a hidden native `<select>` as the last child, so under Tailwind v4's `space-y-*` (margin-bottom on every non-last child) the trigger got a 4 px bottom margin and a button on an `items-end` row sat 4 px below the select — the trigger now has `mb-0`. Measured in the browser (`getBoundingClientRect` of every field/button pair on the same row, all pages, their tabs, the swarm card in both states): 13 mismatched pairs before, 0 after. Fixed: Docker Swarm (Init swarm row; node label editor), Server remote proxy form, Backup instance schedule form, Audit log filter, the Jobs form on application/database/compose pages and the database Backup schedule (select + button), volume backup select + button, environment editor and project member delete buttons (`icon-sm` → `icon`), and the new-database input in the data browser. Left alone on purpose: toolbars where everything is small (Terminal/Console task select + "Sambung ulang", members list role select, `SelectTrigger size="sm"` + `icon-sm` buttons) — they are uniform. `npm run check:ui` (`scripts/check-field-heights.mjs`, no new dependency, manual, not part of the build) flags field height overrides and rows that mix control heights; the convention is in `AGENTS.md`.
+- **Fields and buttons on one row are the same height now.** Root causes: (1) a few fields carried a height override (`<Input className="h-8">` = 32 px, `h-7`) next to a `Button size="sm"` (24 px) or a default button (28 px), so the input towered over the button; (2) `Button size="sm"`/`icon-sm` sitting beside default-size fields; (3) a real bug in `SelectTrigger`: inside a `<form>` Radix appends a hidden native `<select>` as the last child, so under Tailwind v4's `space-y-*` (margin-bottom on every non-last child) the trigger got a 4 px bottom margin and a button on an `items-end` row sat 4 px below the select — the trigger now has `mb-0`. Measured in the browser (`getBoundingClientRect` of every field/button pair on the same row, all pages, their tabs, the swarm card in both states): 13 mismatched pairs before, 0 after. Fixed: Docker Swarm (Init swarm row; node label editor), Server remote proxy form, Backup instance schedule form, Audit log filter, the Jobs form on application/database/compose pages and the database Backup schedule (select + button), volume backup select + button, environment editor and project member delete buttons (`icon-sm` → `icon`), and the new-database input in the data browser. Left alone on purpose: toolbars where everything is small (Terminal/Console task select + "Reconnect", members list role select, `SelectTrigger size="sm"` + `icon-sm` buttons) — they are uniform. `npm run check:ui` (`scripts/check-field-heights.mjs`, no new dependency, manual, not part of the build) flags field height overrides and rows that mix control heights; the convention is in `AGENTS.md`.
 
 - **Template catalog cards have one height.** With 13 templates the rows took different heights depending on the description length (196 px vs 216 px); the grid now uses equal rows.
 
-- **Environment is its own tab on the application page** (after Mount): the env editor, a short explanation (applies on the next deploy, `${{project.KEY}}` and the project's `${{database.<slug>.url}}` references) and its own Simpan button, which saves only the env (`PATCH` with `{ env }`). The field is gone from the Settings form, so the two can no longer overwrite each other: saving Settings no longer sends the env at all (it used to send whatever the form held). Creating an application still has the env field. Viewers see the env read-only (values masked, nothing to add or remove).
+- **Environment is its own tab on the application page** (after Mount): the env editor, a short explanation (applies on the next deploy, `${{project.KEY}}` and the project's `${{database.<slug>.url}}` references) and its own Save button, which saves only the env (`PATCH` with `{ env }`). The field is gone from the Settings form, so the two can no longer overwrite each other: saving Settings no longer sends the env at all (it used to send whatever the form held). Creating an application still has the env field. Viewers see the env read-only (values masked, nothing to add or remove).
 
-- **The New application form is split into cards** (the same form serves Pengaturan, where what can be edited is unchanged). "Sumber" is two selectable cards (repo git / ready image) with an icon and one line each, a clear selected state and keyboard arrows, replacing the dropdown. Then a source-detail card (Repository git, or Image), "Jaringan & akses" (container port, access, health check), the create-only "Environment" card, and "Sumber daya & lanjutan" (server, swarm, CPU/memory, deployment history, previews, build args). Choosing an image now shows only the image, registry credential and auto-update fields: "Kredensial Git" no longer stays visible next to them.
+- **The New application form is split into cards** (the same form serves Settings, where what can be edited is unchanged). "Source" is two selectable cards (repo git / ready image) with an icon and one line each, a clear selected state and keyboard arrows, replacing the dropdown. Then a source-detail card (Repository git, or Image), "Network & access" (container port, access, health check), the create-only "Environment" card, and "Resources & advanced" (server, swarm, CPU/memory, deployment history, previews, build args). Choosing an image now shows only the image, registry credential and auto-update fields: "Git credentials" no longer stays visible next to them.
 
 ## [0.1.0-alpha.4] - 2026-09-29
 
 ### Added
 
-- **"Update tersedia" button at the bottom of the sidebar** (owner only, from `/auth/me`): a real link
+- **"Update available" button at the bottom of the sidebar** (owner only, from `/auth/me`): a real link
   to Settings → Update aoox with an icon, a lime dot and the new version (`v0.1.0-alpha.4`); it becomes
-  "Sedang memperbarui…" with a spinner while an update is being applied, and disappears by itself
+  "Updating…" with a spinner while an update is being applied, and disappears by itself
   once the panel is back on the new version (the update card already reloads the page). In icon mode it
   is just the icon with a tooltip; it works in the mobile sheet and in light and dark themes. Other
   roles never receive the field and never see the button. The Update aoox card now also states the
@@ -237,7 +238,7 @@ Versions below 1.0.0 may include breaking changes in a minor release.
 - Create form: choosing **Cara build → Situs statis** pre-fills **Port container** with 80 (nginx serves static
   sites on 80; the old default 3000 deployed "successfully" but the page never opened). Switching to another build
   type restores 3000, but only while the port is still an auto-filled value — a port the user typed is never
-  overwritten. A hint ("Situs statis dilayani nginx di port 80.") shows under the field in create mode, and in edit
+  overwritten. A hint ("Static sites are served by nginx on port 80.") shows under the field in create mode, and in edit
   mode when a static app's saved port isn't 80; editing never changes a saved port. Deliberately a hint, not
   validation — the API still accepts any port for static sites.
 
@@ -248,24 +249,24 @@ Versions below 1.0.0 may include breaking changes in a minor release.
   The text now says so, the Port host field explains how the change will reach the app (container
   recreated now with a brief downtime / queued config deployment for a swarm service / applied when the
   stopped app is started / first deploy), and saving shows a single toast (loading, then success or
-  error), e.g. "Port host diterapkan, container dibuat ulang.", instead of only the inline "Tersimpan.".
+  error), e.g. "Host port applied, container recreated.", instead of only the inline "Saved.".
 - Terminal on older installs: with `TERMINAL_SSH_USER` missing from `.env.dist` (installs made
   before the installer wrote it) the terminal used to fail with `TERMINAL_SSH_USER is not set`; the
   API now defaults to `root`, the Terminal settings card labels it "user default", and Settings →
-  Infrastruktur → Environment shows `root (default)` as the placeholder plus a note while the field is
+  Infrastructure → Environment shows `root (default)` as the placeholder plus a note while the field is
   empty. When the terminal cannot connect to its target (wrong host/port, key problem, auth failure),
-  the page now shows an alert linking to **Infrastruktur → Environment** (host) or **Server remote**
+  the page now shows an alert linking to **Infrastructure → Environment** (host) or **Server remote**
   (remote server) instead of only the raw error text; for admins, who cannot open the owner-only
   Environment page, it names the page instead of linking.
-- "Terapkan update" on Settings → Update aoox: a user upgrading a real VPS reported a red "Tidak
-  dapat terhubung ke server" error right after clicking it, and the card just kept showing the old
+- "Apply update" on Settings → Update aoox: a user upgrading a real VPS reported a red "Cannot
+  reach the server" error right after clicking it, and the card just kept showing the old
   version forever with no indication of what was happening — even though the update itself had
   applied successfully. The error was expected (the `api`/`web` containers were mid-restart) but
   looked like a failure, and there was previously no polling at all: the card was a single static
   "reload the page yourself, eventually" message.
-  - Clicking "Terapkan update" now opens a confirmation dialog first (panel will restart, ~1–3
+  - Clicking "Apply update" now opens a confirmation dialog first (panel will restart, ~1–3
     minutes, the page reloads itself when it's back), then the card switches to an "applying" view
-    (step list, buttons disabled, no more Cek/Terapkan) instead of the old always-visible buttons.
+    (step list, buttons disabled, no more Check/Apply) instead of the old always-visible buttons.
   - A connection failure while in that mode — a fetch failure, or the server action's own RPC
     rejecting because the web container it runs in was itself being replaced mid-request (Next
     surfaces that as a thrown rejection at the call site rather than routing it through the action's
@@ -297,7 +298,7 @@ Versions below 1.0.0 may include breaking changes in a minor release.
 
 ### Added
 
-- Registry page: new **"Hapus image"** button on each repository row (icon button next to the tag
+- Registry page: new **"Delete image"** button on each repository row (icon button next to the tag
   count) that deletes the whole repository — every tag, its storage folder, and a garbage-collect
   pass on the API side — not just one tag. The confirm dialog fetches and shows which applications'
   current/running image looks like it points at this repo before letting the delete proceed (the API
@@ -305,7 +306,7 @@ Versions below 1.0.0 may include breaking changes in a minor release.
   the action can read that `usage` array instead of only the message string. Uses `sonner` toasts
   (loading → success/error) rather than the plain inline error `delete-tag` uses, since this is a
   bigger, slower, less reversible action. The repository list also updates locally (no full refetch)
-  when a repo is removed. The stale "Tidak ada tag (manifest sudah dihapus, jalankan garbage
+  when a repo is removed. The stale "No tags (the manifests were deleted), run garbage
   collect)" hint — which didn't actually make the 0-tag repo disappear, since garbage-collect only
   reclaims blobs, never the repository's own folder — now points at this new button instead.
 - New **Console** tab on the application page (`application-tabs.tsx`, next to Webhook): an interactive
@@ -317,14 +318,14 @@ Versions below 1.0.0 may include breaking changes in a minor release.
   Hidden entirely for a project viewer (the API rejects it with 403 too; hiding the tab just avoids
   showing something guaranteed to fail). Verified in a real browser against a real container: typed
   commands echo back correctly, prompt reflects the container id.
-- Settings → Notifikasi: new **"error di log aplikasi"** toggle (off by default, like "deploy
+- Settings → Notifications: new **"errors in application log"** toggle (off by default, like "deploy
   dimulai") for the API's new `on_app_error` event, which scans running apps' container logs for
   common error shapes and notifies once per app per check.
-- Application form (Pengaturan, edit only): new **"Abaikan error di log"** switch (`ignoreErrorLogs`)
+- Application form (Settings, edit only): new **"Ignore errors in logs"** switch (`ignoreErrorLogs`)
   to opt an app out of that log scan entirely, for apps whose normal output just looks like errors.
 - Creating an application, database, compose stack (git or one-click template), or importing a
   project now shows a `toast.loading()` the moment you submit, updated in place to success/error
-  (not stacked) once the result is known, plus a spinner + "Membuat…" on the submit button and a
+  (not stacked) once the result is known, plus a spinner + "Creating…" on the submit button and a
   locked dialog (no close/cancel) while the request is in flight. The plain application/database/
   compose-from-git create actions no longer call a server-side `redirect()` on success — that would
   abort before the toast could ever resolve to success, leaving it stuck on "loading" forever after
@@ -338,7 +339,7 @@ Versions below 1.0.0 may include breaking changes in a minor release.
   since it's a key-value engine with no named tables either.
 - Create-database dialog: new engine option **MongoDB** (no Variant field — Mongo has no variants).
   Data browser (`database-data-browser.tsx`) gets a third mode alongside SQL and Redis/Valkey
-  (`isMongo`): the collection list ("Koleksi"), rows grid, column sorting, and CSV export all work,
+  (`isMongo`): the collection list ("Collections"), rows grid, column sorting, and CSV export all work,
   since the backend already supports them for Mongo; the Structure tab, "create table" dialog, row
   edit/delete, and SQL export/import are hidden (not supported by the API yet — it rejects them with
   400). Query box shows a `users.find({})` placeholder and read-only-find-only copy. Fixed a real bug
@@ -351,7 +352,7 @@ Versions below 1.0.0 may include breaking changes in a minor release.
 - **Resource usage per project**: project cards on `/projects` now show a compact "CPU 12% · RAM 340 MB ·
   ↓2.1 MB/s ↑0.4 MB/s" line (`project-card.tsx`, hidden entirely when nothing in the project is
   running) from the new `resourceUsage` field the API's `GET /projects` already returns. The project
-  detail page gets a new "Resource usage" card above the Aplikasi/Stack compose/Database sections
+  detail page gets a new "Resource usage" card above the Application/Compose stack/Database sections
   (`ProjectResourcePanel`, `project-resource-panel.tsx`) — the same CPU/Memori/Jaringan tile-plus-
   sparkline layout as the application/database `MetricsPanel`, minus the range picker (the API's
   `GET /projects/:id/resource-usage` is live-only, no stored history), polling every 15s to match the
@@ -362,14 +363,14 @@ Versions below 1.0.0 may include breaking changes in a minor release.
 
 ### Changed
 
-- "New application", "Stack compose", and "New database" on the project page are no longer dialogs —
+- "New application", "Compose stack", and "New database" on the project page are no longer dialogs —
   each is now its own full-width page (`/projects/[id]/applications/new`, `/projects/[id]/compose/new`,
-  `/projects/[id]/databases/new`) with a breadcrumb/back link to the project and a "Batal" button next
-  to submit, since the application form in particular (Sumber, Akses, Swarm, build args, …) was too
+  `/projects/[id]/databases/new`) with a breadcrumb/back link to the project and a "Cancel" button next
+  to submit, since the application form in particular (Source, Access, Swarm, build args, …) was too
   packed for a dialog's width. The buttons on the project page are now plain links instead of dialog
   triggers; `create-application-dialog.tsx`, `create-compose-dialog.tsx`, and `create-database-dialog.tsx`
   are deleted. `application-form.tsx`/`compose-form.tsx` gained an optional `cancelHref` prop (renders
-  the "Batal" link, create pages only) and are otherwise unchanged; the application page's
+  the "Cancel" link, create pages only) and are otherwise unchanged; the application page's
   create-with-domain/toast glue moved into a new `create-application-page-form.tsx` wrapper, and the
   create-database form itself was extracted out of its old dialog into a new reusable
   `database-form.tsx` (there's still no database edit form — engine/variant can't be changed after
@@ -384,7 +385,7 @@ Versions below 1.0.0 may include breaking changes in a minor release.
   logs, technical form fields) keeps its explicit `font-mono` class unchanged; the web terminal keeps
   Fira Code via `--font-terminal`, untouched.
 - Headings now carry tight letter-spacing (helipod.io-style), scaled to size: `h1`/`h2` (page
-  titles like `InfraPage`, dashboard "Total project" card, dialog headers) at `-0.03em`, `h3`/
+  titles like `InfraPage`, dashboard "Total projects" card, dialog headers) at `-0.03em`, `h3`/
   `CardTitle`/`DialogTitle`/`SheetTitle`/`AlertTitle` at `-0.015em`, and a `tracking-tighter`
   (`-0.05em`) "display" tier for the very large stat numbers on the dashboard home page. Rules
   live centrally in `globals.css` (element/`data-slot` selectors, low specificity on purpose so a
@@ -399,11 +400,11 @@ Versions below 1.0.0 may include breaking changes in a minor release.
   always sent the full parsed form (including `ignoreErrorLogs`, defaulted `false` by the zod schema
   shared with the edit form) straight to `POST /applications`, but `CreateApplicationDto` never declared
   that field (it's edit-only — see `update-application.dto.ts`) and the API's global `forbidNonWhitelisted`
-  `ValidationPipe` rejects unknown properties. Caught while manually verifying the new "Aplikasi baru"
+  `ValidationPipe` rejects unknown properties. Caught while manually verifying the new "New application"
   page above, not by `tsc`/lint/tests (the type is structurally valid, just semantically wrong for the
   create endpoint) — both actions now strip `ignoreErrorLogs` from the request body via a shared
   `omitIgnoreErrorLogs()` helper before posting.
-- Settings → Integrasi → Notifikasi: the **"DNS domain bermasalah"** toggle (`onDnsIssue`) never
+- Settings → Integrations → Notifications: the **"domain DNS problem"** toggle (`onDnsIssue`) never
   actually reached the API — `notifications-card.tsx`'s switch and `Notification` entity type already
   had it, but `notification.actions.ts`'s zod schema and form-reading code didn't, so it was silently
   dropped from every create request and the channel always ended up with whatever the API defaulted to
@@ -427,10 +428,10 @@ Versions below 1.0.0 may include breaking changes in a minor release.
   default before a custom domain is set). Now wired into every copy-to-clipboard button across the
   dashboard (account, API tokens, database connection strings, member invite links, server/terminal
   command boxes, swarm join tokens, webhook URL/secret), each with a toast on success or failure.
-- Settings → Infrastruktur → **Environment** (owner only): edit a whitelisted subset of the panel's
+- Settings → Infrastructure → **Environment** (owner only): edit a whitelisted subset of the panel's
   own env vars (SSH-to-host settings for the web terminal, `PUBLIC_IP`, `REGISTRY_PUBLIC_HOST`)
   without SSH — mirrors the Domain panel card. Saving briefly restarts the api container.
-- Application form: "Pilih dari registry" button next to the Image field (Sumber: Image) opens a
+- Application form: "Choose from registry" button next to the Image field (Source: Image) opens a
   picker (registry → repository → tag) instead of having to remember and retype the ref you just
   `docker push`ed. Reuses the same repository/tag endpoints as the Registry page's own browser.
 - Terminal page and the application deploy panel's realtime log now detect when they were opened
@@ -438,7 +439,7 @@ Versions below 1.0.0 may include breaking changes in a minor release.
   domain was set) and show a clear explanation instead of a raw "origin not allowed" error, with a
   button to open the same page on the correct domain — and skip wasting a log ticket on a
   connection the gateway will reject anyway.
-- New application dialog: an "Akses" step (IP & port / Domain / Nanti saja) between the deploy
+- New application dialog: an "Access" step (IP & port / Domain / Later) between the deploy
   source fields and the submit button, so an app doesn't silently end up with neither a host port
   nor a domain (found on a real VPS: app deployed fine but wasn't reachable — both options only
   existed in edit-only tabs discovered after the fact). "IP & port" reuses the existing `hostPort`
@@ -452,18 +453,18 @@ Versions below 1.0.0 may include breaking changes in a minor release.
   panel-domain) — the deploy panel shows the same troubleshooting warning (DNS, firewall, ACME wait)
   after creating-with-domain, and the Domain tab (`application-domains.tsx`) shows it inline after
   adding any domain from there too.
-- Application deploy panel: a callout ("Aplikasi belum punya alamat akses") appears after a
+- Application deploy panel: a callout ("This application has no access address") appears after a
   successful deploy when the app still has no host port and no domain, with buttons that jump
-  straight to the Pengaturan or Domain tab. This required converting the application detail page's
+  straight to the Settings or Domain tab. This required converting the application detail page's
   outer `Tabs` from uncontrolled to a controlled client component (`application-tabs.tsx`) so a
   button click elsewhere in the tree can switch tabs.
-- Project cards now show an amber "deploy…" badge next to any application/database/compose instance
+- Project cards now show an amber "deploying…" badge next to any application/database/compose instance
   that has a deployment/provision in flight (new `deploying` flag from `GET /projects`) — previously
   a webhook-triggered redeploy gave no indication anywhere outside the application page itself that
   anything was happening. The `/projects` page polls itself (`router.refresh()` every 4s via the new
   `ProjectsAutoRefresh` client component) only while at least one instance is deploying, and stops on
   its own once the badge clears.
-- Settings → Notifikasi: new "deploy dimulai" toggle (off by default, unlike the other event toggles)
+- Settings → Notifications: new "deploy started" toggle (off by default, unlike the other event toggles)
   for the API's new `on_deployment_started` event.
 - Application deploy panel now shows what actually queued each deployment — a webhook icon + short
   commit SHA in the history list (tooltip has the full commit message and pusher), and the same
@@ -477,12 +478,12 @@ Versions below 1.0.0 may include breaking changes in a minor release.
 
 - Registry lokal card: the domain value now renders in the accent color when set, matching the
   "Running" status color elsewhere in the dashboard.
-- The "Domain kustom" input and its buttons in the registry card were different heights
+- The "Custom domain" input and its buttons in the registry card were different heights
   (`size="sm"` buttons at 24px next to a 28px input) — buttons now use the default size to match.
 - Registry lokal card's "Alamat push" and "Login" line kept showing `localhost:5000` after setting
   a custom domain — they read `status.publicUrl` (always the pre-domain default) instead of
   `registry.url` (which the API already updates to the domain). Now uses `registry.url`, falling
-  back to `publicUrl` only before the registry is provisioned. The one-time "Registry siap" dialog
+  back to `publicUrl` only before the registry is provisioned. The one-time "Registry ready" dialog
   (shown right after provisioning, before a domain can exist) still shows `localhost:...` — that's
   correct there, since that's what actually works for `docker push` without extra config — but now
   adds a note that it only works run from the server itself, with a pointer to set a domain for
@@ -492,13 +493,13 @@ Versions below 1.0.0 may include breaking changes in a minor release.
 
 ### Added
 
-- Settings → "Domain panel" (owner only): configure a custom domain for the dashboard/API from the
+- Settings → "Panel domain" (owner only): configure a custom domain for the dashboard/API from the
   running panel, without editing `docker-compose.domain.yml`/`.env.dist` over SSH.
 - Registry → Local registry card: "Custom domain" field (owner/admin) to route the self-hosted
   registry through the built-in proxy with a real certificate.
 - Registry provisioning dialog now lets you pick a storage backend (local disk or an existing S3
   destination) before creating the self-hosted registry.
-- Settings → "Update aoox" (owner only): check for and apply updates to the panel's own
+- Settings → "aoox update" (owner only): check for and apply updates to the panel's own
   `api`/`web` images from the dashboard.
 - CI (`.github/workflows/ci.yml`): typecheck + lint + build on every pull request and push to
   `main` — previously the only workflow ran on version tags (Docker publish), so a broken PR could

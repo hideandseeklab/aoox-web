@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
+import { useTranslations } from "next-intl"
 import { io, type Socket } from "socket.io-client"
 import { createLogTicketAction } from "./application.actions"
 import {
@@ -27,6 +28,8 @@ export function useLogsSocket(
   const [error, setError] = useState<string | null>(null)
   const [reconnectKey, setReconnectKey] = useState(0)
   const socketRef = useRef<LogsSocket | null>(null)
+  const t = useTranslations("applications")
+  const connectFailed = t("logs.connectFailed")
 
   useEffect(() => {
     if (!enabled) return
@@ -41,7 +44,7 @@ export function useLogsSocket(
         reconnection: false,
       })
       s.on("error", (m) => setError(m))
-      s.on("connect_error", () => setError("Tidak dapat terhubung ke log"))
+      s.on("connect_error", () => setError(connectFailed))
       socketRef.current = s
       setSocket(s)
     })()
@@ -51,7 +54,7 @@ export function useLogsSocket(
       socketRef.current = null
       setSocket(null)
     }
-  }, [applicationId, publicApiUrl, reconnectKey, enabled])
+  }, [applicationId, publicApiUrl, reconnectKey, enabled, connectFailed])
 
   return { socket, error, reconnect: () => setReconnectKey((k) => k + 1) }
 }

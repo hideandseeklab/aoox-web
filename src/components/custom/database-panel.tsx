@@ -280,7 +280,7 @@ export function DatabasePanel({
   )
 }
 
-/** "Tambah database": creates another database on the same server (POST /databases/:id/schemas). */
+/** "Add database": creates another database on the same server (POST /databases/:id/schemas). */
 function AddDatabaseDialog({
   databaseId,
   onCreated,
@@ -406,7 +406,7 @@ function DropDatabaseDialog({
 
 /**
  * Start/Stop for the database's status strip. Shown whenever the container exists, exactly as the
- * button used to be on the Ringkasan toolbar; a failure message sits beside it.
+ * button used to be on the Overview toolbar; a failure message sits beside it.
  */
 export function DatabaseStartStop({ db }: { db: ManagedDatabaseDetail }) {
   const tc = useTranslations("common")

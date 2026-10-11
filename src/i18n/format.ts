@@ -39,7 +39,7 @@ export function formatNumber(
   return new Intl.NumberFormat(locale, options).format(value)
 }
 
-/** "5 minutes ago" / "5 menit yang lalu": the largest whole unit, never in the future. */
+/** "5 minutes ago" (en) / "5 menit yang lalu" (id locale output): the largest whole unit, never in the future. */
 export function formatRelative(
   value: DateInput,
   locale: string,

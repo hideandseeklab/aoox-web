@@ -102,7 +102,7 @@ export function ApplicationDeployPanel({
   hasAccess?: boolean
   /** The create dialog's "Domain" option had to auto-start the proxy. */
   domainProxyAutoProvisioned?: boolean
-  /** Lets the post-deploy nudge jump to the Pengaturan/Domain tab. */
+  /** Lets the post-deploy nudge jump to the Settings/Domain tab. */
   onNavigateTab?: (tab: "settings" | "domains") => void
 }) {
   const t = useTranslations("applications")

@@ -10,7 +10,7 @@ export interface InstanceUpdateStatus {
   currentVersion: string
   installDirConfigured: boolean
   checkedAt: string | null
-  /** True from the moment "Terapkan update" is confirmed until this panel is back on a new version. */
+  /** True from the moment "Apply update" is confirmed until this panel is back on a new version. */
   applying: boolean
   applyStartedAt: string | null
   api: ImageUpdateStatus
