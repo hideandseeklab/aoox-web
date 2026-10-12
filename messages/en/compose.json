@@ -71,7 +71,8 @@
     "redeploy": "Redeploy",
     "deleteTitle": "Delete stack {name}?",
     "deleteDescription": "All stack containers are stopped and removed, along with their data volumes and the checkout copy. Data in the volumes is lost permanently and this cannot be undone.",
-    "deleteConfirm": "Delete stack"
+    "deleteConfirm": "Delete stack",
+    "readOnly": "Read only"
   },
   "webhook": {
     "templateNote": "This stack was created from a template, so there is no repository to watch — pushes are ignored."

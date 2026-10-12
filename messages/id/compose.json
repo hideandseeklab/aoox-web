@@ -71,7 +71,8 @@
     "redeploy": "Deploy ulang",
     "deleteTitle": "Hapus stack {name}?",
     "deleteDescription": "Semua container stack dihentikan dan dihapus, beserta volume datanya dan salinan checkout-nya. Data di volume hilang permanen dan tidak bisa dibatalkan.",
-    "deleteConfirm": "Hapus stack"
+    "deleteConfirm": "Hapus stack",
+    "readOnly": "Baca saja"
   },
   "webhook": {
     "templateNote": "Stack ini dibuat dari template, jadi tidak ada repository yang bisa dipantau — push diabaikan."

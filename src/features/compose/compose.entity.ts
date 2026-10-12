@@ -65,6 +65,8 @@ export interface ComposeAppDetail extends ComposeApp {
   containers: ComposeContainer[]
   /** Run the logs belong to, for the history view. */
   deploymentId: string | null
+  /** The viewer's role in the owning project (UI hides what a viewer cannot do). */
+  projectRole: "admin" | "developer" | "viewer"
 }
 
 export type ComposeDeploymentAction = "deploy" | "stop" | "start" | "down"

@@ -46,61 +46,68 @@ export function ComposeStatusStrip({ info }: { info: ReactNode }) {
       }
       info={info}
       actions={
-        <>
-          <Button
-            size="sm"
-            disabled={pending || busy}
-            onClick={() => run(() => deployComposeAppAction(app.id))}
-          >
-            <Rocket data-icon="inline-start" />
-            {app.status === "idle"
-              ? t("statusStrip.deploy")
-              : t("statusStrip.redeploy")}
-          </Button>
-          {app.status === "running" && (
+        app.projectRole === "viewer" ? (
+          <Badge variant="outline">{t("statusStrip.readOnly")}</Badge>
+        ) : (
+          <>
             <Button
               size="sm"
-              variant="outline"
               disabled={pending || busy}
-              onClick={() => run(() => stopComposeAppAction(app.id))}
+              onClick={() => run(() => deployComposeAppAction(app.id))}
             >
-              <Square data-icon="inline-start" />
-              {tc("actions.stop")}
+              <Rocket data-icon="inline-start" />
+              {app.status === "idle"
+                ? t("statusStrip.deploy")
+                : t("statusStrip.redeploy")}
             </Button>
-          )}
-          {app.status === "stopped" && (
-            <Button
-              size="sm"
-              variant="outline"
-              disabled={pending || busy}
-              onClick={() => run(() => startComposeAppAction(app.id))}
-            >
-              <Play data-icon="inline-start" />
-              {tc("actions.start")}
-            </Button>
-          )}
-          <ConfirmDialog
-            trigger={
+            {app.status === "running" && (
               <Button
                 size="sm"
-                variant="destructive"
+                variant="outline"
                 disabled={pending || busy}
+                onClick={() => run(() => stopComposeAppAction(app.id))}
               >
-                <Trash2 data-icon="inline-start" />
-                {tc("actions.delete")}
+                <Square data-icon="inline-start" />
+                {tc("actions.stop")}
               </Button>
-            }
-            title={t("statusStrip.deleteTitle", { name: app.name })}
-            description={t("statusStrip.deleteDescription")}
-            confirmLabel={t("statusStrip.deleteConfirm")}
-            onConfirm={() => deleteComposeAppAction(app.id, app.projectId)}
-          />
-          {error && (
-            <span className="self-center text-xs text-destructive" role="alert">
-              {error}
-            </span>
-          )}
-        </>
+            )}
+            {app.status === "stopped" && (
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={pending || busy}
+                onClick={() => run(() => startComposeAppAction(app.id))}
+              >
+                <Play data-icon="inline-start" />
+                {tc("actions.start")}
+              </Button>
+            )}
+            <ConfirmDialog
+              trigger={
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  disabled={pending || busy}
+                >
+                  <Trash2 data-icon="inline-start" />
+                  {tc("actions.delete")}
+                </Button>
+              }
+              title={t("statusStrip.deleteTitle", { name: app.name })}
+              description={t("statusStrip.deleteDescription")}
+              confirmLabel={t("statusStrip.deleteConfirm")}
+              onConfirm={() => deleteComposeAppAction(app.id, app.projectId)}
+            />
+            {error && (
+              <span
+                className="self-center text-xs text-destructive"
+                role="alert"
+              >
+                {error}
+              </span>
+            )}
+          </>
+        )
       }
     />
   )
