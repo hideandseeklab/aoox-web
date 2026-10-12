@@ -238,6 +238,28 @@ export async function updateApplicationAction(
   return { values, saved: true }
 }
 
+/**
+ * Saves only the container port (PATCH with `{ containerPort }`), from the
+ * "image exposes another port" warning. The API recreates a running container
+ * so the proxy follows the new port.
+ */
+export async function setContainerPortAction(
+  id: string,
+  containerPort: number
+): Promise<ActionResult> {
+  try {
+    await api<Application>(`/applications/${id}`, {
+      method: "PATCH",
+      body: { containerPort },
+      token: await requireToken(),
+    })
+    revalidatePath(`/applications/${id}`)
+    return { ok: true, data: undefined }
+  } catch (err) {
+    return await fail(err)
+  }
+}
+
 /** Saves only the environment (PATCH with `{ env }`), from the Environment tab. */
 export async function updateApplicationEnvAction(
   id: string,

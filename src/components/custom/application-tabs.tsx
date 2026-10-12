@@ -217,6 +217,8 @@ export function ApplicationTabs({
           canEdit={canEdit}
           proxy={proxy}
           deployed={!!app.currentImage}
+          containerPort={app.containerPort}
+          exposedPorts={app.exposedPorts}
           dnsConnections={dnsConnections}
           proxyDnsEnabled={proxyDnsEnabled}
         />
@@ -400,6 +402,12 @@ export function ApplicationTabs({
               swarmActive={swarmActive}
               swarmNodes={swarmNodes}
               readOnly={!canEdit}
+              exposedPortAlert={{
+                applicationId: app.id,
+                containerPort: app.containerPort,
+                exposedPorts: app.exposedPorts,
+                canEdit,
+              }}
             />
           </CardContent>
         </Card>

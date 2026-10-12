@@ -85,6 +85,11 @@ export interface Application {
 }
 
 export interface ApplicationDetail extends Application {
+  /**
+   * TCP ports the running image declares with EXPOSE; null when unknown
+   * (never deployed, image gone from the daemon, daemon unreachable); [] = none.
+   */
+  exposedPorts?: number[] | null
   /** Where secrets come from (secret manager), or null/absent when the app has none. */
   secretSource?:
     | import("@/features/secret-connection/secret-connection.entity").SecretSource

@@ -43,6 +43,7 @@ import { PageTabsTrigger } from "@/components/custom/page-tabs-trigger"
 import { Network, Globe, Clock } from "lucide-react"
 import { Textarea } from "@/components/ui/textarea"
 import { EnvEditor } from "@/components/custom/env-editor"
+import { ExposedPortAlert } from "@/components/custom/exposed-port-alert"
 import { EnvRefsHint } from "@/components/custom/application-environment"
 import { ImagePickerDialog } from "@/components/custom/image-picker-dialog"
 import { useBrowserHost } from "@/components/custom/use-browser-host"
@@ -120,6 +121,7 @@ export function ApplicationForm({
   hostPortApply,
   cancelHref,
   readOnly = false,
+  exposedPortAlert,
 }: {
   action: (
     prev: ApplicationFormState,
@@ -131,6 +133,13 @@ export function ApplicationForm({
   submitLabel: string
   /** Project viewers: show every value but disable all fields and hide Save. */
   readOnly?: boolean
+  /** Edit mode: warns when the image's EXPOSE ports exclude the saved Container port. */
+  exposedPortAlert?: {
+    applicationId: string
+    containerPort: number
+    exposedPorts: number[] | null | undefined
+    canEdit: boolean
+  }
   credentials: GitCredential[]
   /** Managed database slugs in this project, for the reference hint. */
   databaseSlugs?: string[]
@@ -693,6 +702,12 @@ export function ApplicationForm({
               </CardHeader>
               <CardContent>
                 <FieldGroup>
+                  {mode === "edit" && exposedPortAlert && (
+                    <ExposedPortAlert
+                      {...exposedPortAlert}
+                      onApplied={(port) => setContainerPort(String(port))}
+                    />
+                  )}
                   <div
                     className={
                       mode === "create"

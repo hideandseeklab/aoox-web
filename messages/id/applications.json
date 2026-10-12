@@ -724,5 +724,11 @@
     "description": "Tindakan yang tidak bisa dibatalkan untuk aplikasi ini.",
     "deleteTitle": "Hapus aplikasi ini",
     "deleteDescription": "Menghapus aplikasi beserta container, domain, job, preview, dan riwayat deploy-nya. Tindakan ini tidak bisa dibatalkan."
+  },
+  "exposedPort": {
+    "single": "Image ini mendengarkan port {exposed} (EXPOSE), tetapi Container port diatur ke {port}. Permintaan lewat domain akan gagal dengan Bad Gateway kecuali aplikasi memang mendengarkan port {port}.",
+    "multiple": "Image ini membuka port {exposed} (EXPOSE), tetapi Container port diatur ke {port}. Permintaan lewat domain akan gagal dengan Bad Gateway kecuali aplikasi memang mendengarkan port {port}.",
+    "useButton": "Pakai port {exposed}",
+    "applied": "Container port diubah ke {port}. Container sedang dibuat ulang."
   }
 }

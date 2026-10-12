@@ -30,6 +30,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
+import { ExposedPortAlert } from "@/components/custom/exposed-port-alert"
 import { DomainMiddlewaresDialog } from "@/components/custom/domain-middlewares-dialog"
 import {
   addDomainAction,
@@ -75,6 +76,8 @@ export function ApplicationDomains({
   canEdit,
   proxy,
   deployed,
+  containerPort,
+  exposedPorts,
   dnsConnections,
   proxyDnsEnabled,
 }: {
@@ -86,6 +89,9 @@ export function ApplicationDomains({
   canEdit: boolean
   proxy: ProxyStatus
   deployed: boolean
+  containerPort: number
+  /** Ports the image declares with EXPOSE (null = unknown). */
+  exposedPorts?: number[] | null
   /** DNS provider connections a domain can use to get its record created. */
   dnsConnections: DnsConnection[]
   /** The proxy serving this application has DNS-01 (wildcard certificates). */
@@ -358,6 +364,13 @@ export function ApplicationDomains({
           {error}
         </p>
       )}
+      <ExposedPortAlert
+        applicationId={applicationId}
+        containerPort={containerPort}
+        exposedPorts={exposedPorts}
+        canEdit={canEdit}
+        className="max-w-3xl"
+      />
 
       {domains.length === 0 ? (
         <EmptyState icon={Globe} compact>

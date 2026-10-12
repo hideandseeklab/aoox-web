@@ -8,6 +8,14 @@ Versions below 1.0.0 may include breaking changes in a minor release.
 
 ## [Unreleased]
 
+### Added
+
+- **Warning when the image listens on another port.** If the image declares `EXPOSE` ports and the Container port is none of them, the Settings tab (above the port field) and the Domains tab (above the table) show an amber alert explaining the likely "Bad Gateway". Developers and owners get a one-click "Use port N" button when the image exposes exactly one port; viewers only see the warning.
+
+### UI UX Improvement
+
+- **Exposed-port alert.** Compact amber alert (`exposed-port-alert.tsx`) shared by the Settings and Domains tabs, in English and Indonesian.
+
 ### Fixed
 
 - **Update aoox no longer freezes after "Apply update".** The page used to poll through a server action, which stops existing once the web container is replaced by the new version, so it kept "waiting" until the 5-minute timeout. It now polls the public `/.well-known/aoox.json` and the API's `GET /` with plain requests and reloads by itself as soon as both report the new version.

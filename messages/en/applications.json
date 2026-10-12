@@ -724,5 +724,11 @@
     "description": "Irreversible actions for this application.",
     "deleteTitle": "Delete this application",
     "deleteDescription": "Removes the application with its container, domains, jobs, previews and deployment history. This cannot be undone."
+  },
+  "exposedPort": {
+    "single": "This image listens on port {exposed} (EXPOSE), but Container port is {port}. Requests through a domain will fail with Bad Gateway unless the app really listens on {port}.",
+    "multiple": "This image exposes ports {exposed} (EXPOSE), but Container port is {port}. Requests through a domain will fail with Bad Gateway unless the app really listens on {port}.",
+    "useButton": "Use port {exposed}",
+    "applied": "Container port set to {port}. The container is being recreated."
   }
 }
