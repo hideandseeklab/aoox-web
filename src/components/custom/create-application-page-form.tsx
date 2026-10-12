@@ -14,6 +14,7 @@ import type { GitCredential } from "@/features/git-credential/git-credential.ent
 import type { ProxyStatus } from "@/features/proxy/proxy.entity"
 import type { Registry } from "@/features/registry/registry.entity"
 import type { Server } from "@/features/server/server.entity"
+import type { EnvironmentOption } from "@/features/project/project-environment.entity"
 
 /**
  * Standalone "New application" page's form — same "Domain" access glue the
@@ -25,12 +26,16 @@ export function CreateApplicationPageForm({
   credentials,
   servers,
   registries,
+  environments,
+  canLinkProtected,
   proxy,
 }: {
   projectId: string
   credentials: GitCredential[]
   servers: Server[]
   registries: Registry[]
+  environments: EnvironmentOption[]
+  canLinkProtected: boolean
   proxy: ProxyStatus
 }) {
   const t = useTranslations("applications")
@@ -87,6 +92,8 @@ export function CreateApplicationPageForm({
       credentials={credentials}
       servers={servers}
       registries={registries}
+      environments={environments}
+      canLinkProtected={canLinkProtected}
       proxy={proxy}
       onCreateWithDomain={createWithDomain}
       cancelHref={`/projects/${projectId}`}

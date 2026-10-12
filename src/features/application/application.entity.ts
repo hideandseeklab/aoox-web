@@ -59,6 +59,8 @@ export interface Application {
   memoryMb: number | null
   deploymentKeep: number
   env: string
+  /** Project environment whose variables the container receives. */
+  environmentId: string
   /** `KEY=VALUE` lines passed as Docker build args (not secrets). */
   buildArgs: string
   /** `dockerfile` builds the repo's Dockerfile; `nixpacks` auto-detects the stack. */

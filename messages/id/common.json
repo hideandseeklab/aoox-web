@@ -98,7 +98,10 @@
     "valueAria": "Nilai {n}",
     "removeAria": "Hapus {name}",
     "rowFallback": "baris {n}",
-    "addVariable": "Tambah variabel"
+    "addVariable": "Tambah variabel",
+    "secret": "Rahasia",
+    "secretAria": "Rahasia: {name}",
+    "secretHint": "Variabel rahasia selalu disamarkan di log deployment. Variabel lain disamarkan hanya jika nilainya tampak seperti rahasia."
   },
   "metrics": {
     "range": {

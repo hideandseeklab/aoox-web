@@ -46,7 +46,7 @@
     },
     "settings": {
       "title": "Pengaturan",
-      "description": "Nama, deskripsi, dan environment bersama untuk semua aplikasi."
+      "description": "Nama dan deskripsi."
     },
     "counts": "{apps} aplikasi · {stacks} stack · {dbs} database",
     "dangerZone": {
@@ -57,9 +57,7 @@
     }
   },
   "form": {
-    "namePlaceholder": "my-app",
-    "envLabel": "Environment bersama",
-    "envHint": "Diwarisi semua aplikasi di project ini (env aplikasi menang bila key sama). Aplikasi bisa merujuknya sebagai <code>{ref}</code>. Berlaku pada deploy berikutnya."
+    "namePlaceholder": "my-app"
   },
   "validation": {
     "nameRequired": "Nama wajib diisi",
@@ -107,8 +105,8 @@
   "export": {
     "label": "Ekspor konfigurasi (JSON)",
     "withoutSecrets": "Tanpa rahasia",
-    "withoutSecretsHint": "Password database dikosongkan, dibuat baru saat impor",
-    "withSecrets": "Dengan password database",
+    "withoutSecretsHint": "Password database dan variabel environment dikosongkan (password dibuat baru saat impor)",
+    "withSecrets": "Dengan password database dan variabel environment",
     "withSecretsHint": "Simpan file ini seperti rahasia lain"
   },
   "import": {
@@ -126,5 +124,98 @@
     "created": "Dibuat: {applications} aplikasi, {databases} database, {composeApps} compose, {domains} domain, {mounts} mount, {jobs} job.",
     "needsReview": "Perlu diperiksa",
     "openProject": "Buka project"
+  },
+  "environments": {
+    "title": "Environment",
+    "description": "Variabel yang dipakai bersama oleh aplikasi dan stack project ini, satu set per environment. Tiap aplikasi memilih satu di Pengaturannya.",
+    "add": "Tambah environment",
+    "addTitle": "Tambah environment",
+    "addDescription": "Set variabel baru yang kosong, misalnya salinan preview atau QA.",
+    "namePlaceholder": "qa",
+    "nameHint": "Huruf kecil, angka, dan tanda hubung, maksimal 32 karakter.",
+    "addSubmit": "Tambah",
+    "protected": "Terlindungi",
+    "variableCount": "{count, plural, =0 {Belum ada variabel} other {# variabel}}",
+    "unused": "Belum dipakai aplikasi mana pun",
+    "usedBy": "Dipakai oleh",
+    "empty": "Belum ada variabel di environment ini.",
+    "reveal": "Tampilkan dan ubah",
+    "revealing": "Menampilkan…",
+    "revealNote": "Menampilkan nilai dicatat di audit log.",
+    "viewerNote": "Viewer hanya bisa melihat nama variabel.",
+    "protectedNote": "Hanya admin project yang bisa menampilkan atau mengubah nilai {name}.",
+    "editorHint": "Aplikasi merujuknya sebagai <code>{ref}</code>. Berlaku pada deploy berikutnya.",
+    "applyNote": "Perubahan berlaku untuk aplikasi dan stack pada deploy berikutnya, bukan pada container yang sedang berjalan.",
+    "saved": "{name} disimpan",
+    "tooLong": "Variabel dibatasi 20.000 karakter",
+    "delete": "Hapus",
+    "deleteTitle": "Hapus {name}?",
+    "deleteDescription": "Variabel di environment ini dihapus permanen. Tidak ada yang memakainya.",
+    "deleteInUse": "Masih dipakai {apps}. Pindahkan ke environment lain dulu.",
+    "secretBadge": "Rahasia",
+    "secretNote": "Variabel rahasia selalu disamarkan di log deployment.",
+    "history": {
+      "button": "Riwayat",
+      "title": "Riwayat {name}",
+      "description": "Setiap perubahan pada variabel environment ini. Nilainya tidak pernah ditampilkan di sini.",
+      "keepNote": "{count} versi terakhir disimpan.",
+      "loading": "Memuat riwayat…",
+      "empty": "Belum ada perubahan tercatat. Perubahan pertama akan membuat versi.",
+      "current": "Saat ini",
+      "system": "Sebelum perubahan pertama yang tercatat",
+      "viaToken": "Token API",
+      "action": {
+        "edit": "Diubah",
+        "set": "Diatur dari CLI",
+        "unset": "Dihapus dari CLI",
+        "push": "Di-push dari CLI",
+        "restore": "Memulihkan versi lama",
+        "promote": "Dipromosikan dari {name}",
+        "baseline": "Isi sebelum perubahan pertama yang tercatat"
+      },
+      "added": "Ditambah",
+      "changed": "Diubah",
+      "removed": "Dihapus",
+      "flags": "Tanda rahasia berubah",
+      "onlyComments": "Hanya komentar atau urutan yang berubah",
+      "restore": "Pulihkan versi ini",
+      "restoreTitle": "Pulihkan versi ini?",
+      "restoreBody": "{name} akan memakai variabel yang dimilikinya pada {when}. Ini disimpan sebagai versi baru, jadi tidak ada yang hilang dan bisa dibatalkan dari riwayat ini.",
+      "restoreNow": "Pulihkan",
+      "restoring": "Memulihkan…",
+      "restored": "{name} dipulihkan",
+      "back": "Kembali",
+      "viewerNote": "Viewer bisa membaca riwayat tetapi tidak bisa memulihkan versi.",
+      "protectedNote": "Hanya admin project yang bisa memulihkan versi {name}.",
+      "load": "Riwayat tidak bisa dimuat."
+    },
+    "compare": {
+      "button": "Bandingkan",
+      "title": "Bandingkan environment",
+      "description": "Bandingkan dua environment variabel demi variabel. Hanya nama yang ditampilkan, tidak pernah nilainya.",
+      "from": "Dari",
+      "to": "Ke",
+      "choose": "Pilih environment",
+      "sameEnv": "Pilih dua environment yang berbeda.",
+      "loading": "Membandingkan…",
+      "onlyInFrom": "Hanya di {name}",
+      "onlyInTo": "Hanya di {name}",
+      "different": "Nilai berbeda",
+      "sameCount": "{count, plural, =0 {Tidak ada variabel dengan nilai yang sama di kedua sisi} other {# variabel sama di kedua sisi}}",
+      "identical": "Kedua environment identik.",
+      "notComparable": "Nilai tidak dibandingkan karena Anda tidak bisa membaca kedua environment. Hanya nama yang ada di satu sisi yang ditampilkan, dan tidak ada yang bisa dipromosikan.",
+      "selectAll": "Pilih semua",
+      "clear": "Kosongkan",
+      "selected": "{count} dipilih",
+      "promote": "Promosikan ke {name}",
+      "confirmTitle": "Promosikan ke {name}?",
+      "confirmBody": "Variabel ini disalin dari {from} ke {to}. Variabel yang sudah ada di {to} mendapat nilai baru; komentar dan urutan di {to} tetap, dan variabel baru ditambahkan di akhir. Ini disimpan sebagai versi baru.",
+      "promoting": "Mempromosikan…",
+      "promoted": "{count, plural, other {# variabel dipromosikan}} ke {name}",
+      "back": "Kembali",
+      "confirm": "Promosikan",
+      "nothing": "Tidak ada perbedaan yang bisa dipromosikan.",
+      "loadFailed": "Tidak bisa membandingkan."
+    }
   }
 }

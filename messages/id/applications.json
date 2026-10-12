@@ -108,7 +108,7 @@
     },
     "env": {
       "label": "Variabel environment",
-      "description": "Berlaku pada deploy berikutnya, di atas env bersama project."
+      "description": "Berlaku pada deploy berikutnya, di atas environment project yang dipilih."
     },
     "advanced": {
       "title": "Sumber daya & lanjutan",
@@ -150,6 +150,15 @@
       "domainPlaceholder": "preview.example.com (opsional; default PREVIEW_DOMAIN API)",
       "domainAria": "Domain preview",
       "help": "Preview dapat diakses di <code>'<app>'-pr'<N>'.'<domain preview>'</code> (butuh DNS wildcard ke host ini). PR dari fork selalu diabaikan — branch PR adalah kode arbitrer. Maks 5 preview terbuka per aplikasi. Aktifkan event <em>Pull requests</em> di webhook provider."
+    },
+    "environment": {
+      "title": "Environment project",
+      "label": "Environment",
+      "hint": "Variabel environment ini ditambahkan ke container dan <code>{ref}</code> dibaca darinya. Berlaku pada deploy berikutnya. Kelola environment di halaman project.",
+      "switchNote": "Pindah ditolak jika aplikasi merujuk variabel yang tidak ada di environment baru.",
+      "lockedNote": "Ini terhubung ke environment terlindungi \"{name}\"; hanya admin project yang bisa memindahkannya.",
+      "restrictedNote": "Environment terlindungi hanya bisa dipilih admin project.",
+      "restrictedCreateNote": "Environment terlindungi hanya bisa dipilih admin project. Resource baru dimulai di \"{name}\"."
     }
   },
   "page": {
@@ -182,7 +191,7 @@
   },
   "environment": {
     "title": "Environment",
-    "description": "Variabel env aplikasi ini. Berlaku pada deploy berikutnya (nilai dibaca saat container dibuat), di atas env bersama project: bila key sama, yang ini menang.",
+    "description": "Variabel env aplikasi ini. Berlaku pada deploy berikutnya (nilai dibaca saat container dibuat), di atas environment project yang terhubung: bila key sama, yang ini menang.",
     "saving": "Menyimpan environment…",
     "saved": "Environment disimpan",
     "readOnly": "Hanya developer ke atas yang bisa mengubah environment."

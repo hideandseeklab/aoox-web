@@ -9,8 +9,12 @@ import { Card, CardContent } from "@/components/ui/card"
 import { listGitCredentials } from "@/features/git-credential/git-credential.queries"
 import { listRegistries } from "@/features/registry/registry.queries"
 import { listServers } from "@/features/server/server.queries"
-import { getProject } from "@/features/project/project.queries"
+import {
+  getProject,
+  listProjectEnvironments,
+} from "@/features/project/project.queries"
 import { getProxyStatus } from "@/features/proxy/proxy.queries"
+import { listProjectMembers } from "@/features/project-member/project-member.queries"
 
 export default async function NewApplicationPage({
   params,
@@ -23,13 +27,16 @@ export default async function NewApplicationPage({
   const project = await getProject(id)
   if (!project) notFound()
 
-  const [credentials, servers, registries, proxy] = await Promise.all([
-    listGitCredentials(),
-    // Members get 403 here; they can still create apps on the host.
-    listServers().catch(() => []),
-    listRegistries().catch(() => []),
-    getProxyStatus(),
-  ])
+  const [credentials, servers, registries, proxy, environments, members] =
+    await Promise.all([
+      listGitCredentials(),
+      // Members get 403 here; they can still create apps on the host.
+      listServers().catch(() => []),
+      listRegistries().catch(() => []),
+      getProxyStatus(),
+      listProjectEnvironments(project.id).catch(() => []),
+      listProjectMembers(project.id).catch(() => null),
+    ])
 
   return (
     <>
@@ -64,6 +71,9 @@ export default async function NewApplicationPage({
             credentials={credentials}
             servers={servers}
             registries={registries}
+            environments={environments}
+            // Unknown role: the API decides (it answers 403 if not allowed).
+            canLinkProtected={members ? members.myRole === "admin" : true}
             proxy={proxy}
           />
         </CardContent>

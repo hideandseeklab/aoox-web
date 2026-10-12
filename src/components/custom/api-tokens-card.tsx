@@ -47,6 +47,10 @@ const EXPIRY: { labelKey: string; days: number | null }[] = [
   { labelKey: "never", days: null },
 ]
 
+const STANDARD_ENVIRONMENTS = ["development", "staging", "production"]
+/** Same shape the API accepts for an environment name. */
+const ENV_NAME = /^[a-z0-9-]{1,32}$/
+
 function fmt(d: string | null, locale: string) {
   return d
     ? formatDateTime(d, locale, {
@@ -82,6 +86,9 @@ export function ApiTokensCard({
   const [readOnly, setReadOnly] = useState(false)
   // Empty = every project the user may see (and platform settings stay usable).
   const [scopeProjects, setScopeProjects] = useState<string[]>([])
+  // Empty = every environment the user may reach.
+  const [scopeEnvs, setScopeEnvs] = useState<string[]>([])
+  const [customEnv, setCustomEnv] = useState("")
   const [copied, setCopied] = useState(false)
   const [loginCopied, setLoginCopied] = useState(false)
   // Address the user opened the dashboard with (what `aoox login --url` needs);
@@ -102,6 +109,12 @@ export function ApiTokensCard({
     } else {
       toast.error(t("tokens.copyFailed"))
     }
+  }
+
+  const addCustomEnv = () => {
+    if (!ENV_NAME.test(customEnv)) return
+    setScopeEnvs((cur) => (cur.includes(customEnv) ? cur : [...cur, customEnv]))
+    setCustomEnv("")
   }
 
   const loginCommand = `aoox login --url ${dashboardUrl} --token ${created ?? ""}`
@@ -149,9 +162,12 @@ export function ApiTokensCard({
               const expired =
                 tok.expiresAt && new Date(tok.expiresAt).getTime() < now
               return (
-                <li key={tok.id} className="flex items-center gap-3 px-3 py-2">
+                <li
+                  key={tok.id}
+                  className="flex flex-wrap items-center gap-x-3 gap-y-1.5 px-3 py-2"
+                >
                   <KeySquare className="size-4 shrink-0 text-muted-foreground" />
-                  <span className="min-w-0 flex-1">
+                  <span className="min-w-40 flex-1">
                     <span className="block truncate font-medium">
                       {tok.name}
                     </span>
@@ -184,6 +200,19 @@ export function ApiTokensCard({
                       })}
                     </Badge>
                   )}
+                  {tok.environments && (
+                    <Badge
+                      variant="outline"
+                      className="max-w-40 min-w-0"
+                      title={tok.environments.join(", ")}
+                    >
+                      <span className="truncate">
+                        {t("tokens.environmentsBadge", {
+                          names: tok.environments.join(", "),
+                        })}
+                      </span>
+                    </Badge>
+                  )}
                   {expired && (
                     <Badge variant="destructive">
                       {t("tokens.expiredBadge")}
@@ -192,6 +221,7 @@ export function ApiTokensCard({
                   <Button
                     variant="ghost"
                     size="icon-sm"
+                    className="ml-auto"
                     aria-label={t("tokens.revoke")}
                     disabled={pending}
                     onClick={() =>
@@ -219,7 +249,11 @@ export function ApiTokensCard({
               const r = await createApiTokenAction(
                 name.trim(),
                 expiry === "never" ? null : Number(expiry),
-                { readOnly, projectIds: scopeProjects }
+                {
+                  readOnly,
+                  projectIds: scopeProjects,
+                  environments: scopeEnvs,
+                }
               )
               if (!r.ok) setError(r.error)
               else {
@@ -228,6 +262,8 @@ export function ApiTokensCard({
                 setName("")
                 setReadOnly(false)
                 setScopeProjects([])
+                setScopeEnvs([])
+                setCustomEnv("")
               }
             })
           }}
@@ -306,6 +342,63 @@ export function ApiTokensCard({
               </p>
             </div>
           )}
+          <div className="w-full space-y-1">
+            <Label htmlFor="pat-env-custom">{t("tokens.envScopeLabel")}</Label>
+            <div className="flex flex-wrap items-center gap-2">
+              {[...new Set([...STANDARD_ENVIRONMENTS, ...scopeEnvs])].map(
+                (name) => {
+                  const on = scopeEnvs.includes(name)
+                  return (
+                    <button
+                      key={name}
+                      type="button"
+                      aria-pressed={on}
+                      onClick={() =>
+                        setScopeEnvs((cur) =>
+                          on ? cur.filter((n) => n !== name) : [...cur, name]
+                        )
+                      }
+                      className={`rounded-full border px-3 py-1 text-xs ${
+                        on
+                          ? "border-primary bg-primary text-primary-foreground"
+                          : "text-muted-foreground hover:bg-muted"
+                      }`}
+                    >
+                      {name}
+                    </button>
+                  )
+                }
+              )}
+            </div>
+            <div className="mt-2 flex items-center gap-2">
+              <Input
+                id="pat-env-custom"
+                value={customEnv}
+                onChange={(e) => setCustomEnv(e.target.value.toLowerCase())}
+                onKeyDown={(e) => {
+                  if (e.key !== "Enter") return
+                  e.preventDefault()
+                  addCustomEnv()
+                }}
+                placeholder={t("tokens.envCustomPlaceholder")}
+                maxLength={32}
+                autoComplete="off"
+                className="w-44 font-mono"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                disabled={!ENV_NAME.test(customEnv)}
+                onClick={addCustomEnv}
+              >
+                <Plus data-icon="inline-start" />
+                {t("tokens.envAdd")}
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {t("tokens.envScopeHelp")}
+            </p>
+          </div>
           <Button type="submit" disabled={pending}>
             <Plus data-icon="inline-start" />
             {pending ? c("states.creating") : t("tokens.create")}
@@ -365,7 +458,9 @@ export function ApiTokensCard({
             <p className="text-xs text-muted-foreground">
               {t.rich("tokens.created.cliHint", {
                 code: (chunks) => (
-                  <code className="font-mono [overflow-wrap:anywhere]">{chunks}</code>
+                  <code className="font-mono [overflow-wrap:anywhere]">
+                    {chunks}
+                  </code>
                 ),
               })}
             </p>

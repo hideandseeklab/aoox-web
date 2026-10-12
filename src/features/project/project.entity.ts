@@ -2,8 +2,6 @@ export interface Project {
   id: string
   name: string
   description: string | null
-  /** Shared `KEY=VALUE` lines inherited by every application. */
-  env: string
   ownerId: string
   createdAt: string
   updatedAt: string

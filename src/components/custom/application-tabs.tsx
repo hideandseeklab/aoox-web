@@ -29,6 +29,7 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { Tabs, TabsContent } from "@/components/ui/tabs"
+import type { EnvironmentOption } from "@/features/project/project-environment.entity"
 import { ScrollableTabsList } from "@/components/custom/scrollable-tabs-list"
 import { PageTabsTrigger } from "@/components/custom/page-tabs-trigger"
 import {
@@ -101,6 +102,7 @@ export function ApplicationTabs({
   alerts,
   secretConnections,
   servers,
+  environments,
   previews,
   dnsConnections,
   proxyDnsEnabled,
@@ -134,6 +136,7 @@ export function ApplicationTabs({
   alerts: ResourceAlertsView | null
   secretConnections: SecretConnection[]
   servers: Server[]
+  environments: EnvironmentOption[]
   previews: PreviewDeployment[]
   /** DNS provider connections a domain can use (names only). */
   dnsConnections: DnsConnection[]
@@ -346,6 +349,7 @@ export function ApplicationTabs({
               action={updateApplicationAction.bind(null, app.id)}
               defaultValues={{
                 name: app.name,
+                environmentId: app.environmentId,
                 gitUrl: app.gitUrl ?? "",
                 sourceType: app.sourceType,
                 imageRef: app.imageRef ?? "",
@@ -399,6 +403,8 @@ export function ApplicationTabs({
               registries={registries}
               databaseSlugs={databaseSlugs}
               servers={servers}
+              environments={environments}
+              canLinkProtected={app.projectRole === "admin"}
               swarmActive={swarmActive}
               swarmNodes={swarmNodes}
               readOnly={!canEdit}

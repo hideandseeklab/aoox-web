@@ -1,6 +1,9 @@
 import { z } from "zod"
 
-type Translator = (key: string, values?: Record<string, string | number>) => string
+type Translator = (
+  key: string,
+  values?: Record<string, string | number>
+) => string
 
 /** Built per request/render with a translator for the `projects` namespace. */
 export const createProjectSchema = (t: Translator) =>
@@ -14,11 +17,6 @@ export const createProjectSchema = (t: Translator) =>
       .string()
       .trim()
       .max(500, t("validation.maxChars", { max: 500 }))
-      .optional(),
-    // Only present on the project settings form (create has no env field).
-    env: z
-      .string()
-      .max(20_000, t("validation.maxChars", { max: 20000 }))
       .optional(),
   })
 

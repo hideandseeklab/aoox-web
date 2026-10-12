@@ -43,6 +43,8 @@ import { PageTabsTrigger } from "@/components/custom/page-tabs-trigger"
 import { Network, Globe, Clock } from "lucide-react"
 import { Textarea } from "@/components/ui/textarea"
 import { EnvEditor } from "@/components/custom/env-editor"
+import { EnvironmentSelect } from "@/components/custom/environment-select"
+import type { EnvironmentOption } from "@/features/project/project-environment.entity"
 import { ExposedPortAlert } from "@/components/custom/exposed-port-alert"
 import { EnvRefsHint } from "@/components/custom/application-environment"
 import { ImagePickerDialog } from "@/components/custom/image-picker-dialog"
@@ -81,6 +83,7 @@ const EMPTY: Values = {
   memoryMb: "",
   deploymentKeep: "10",
   env: "",
+  environmentId: "",
   buildArgs: "",
   buildType: "dockerfile",
   sourceType: "git",
@@ -112,6 +115,8 @@ export function ApplicationForm({
   credentials,
   databaseSlugs,
   servers = [],
+  environments = [],
+  canLinkProtected = true,
   registries = [],
   swarmActive = false,
   swarmNodes = [],
@@ -147,6 +152,10 @@ export function ApplicationForm({
   registries?: Registry[]
   /** Remote servers (Settings); empty = only the aoox host. */
   servers?: Server[]
+  /** Environments of the project, for the Environment select. */
+  environments?: EnvironmentOption[]
+  /** Project admins only may link to / from a protected environment. */
+  canLinkProtected?: boolean
   /** Host is a swarm manager: offer deployMode 'service' + replicas. */
   swarmActive?: boolean
   /** Nodes to pin a service to (from the swarm status). */
@@ -938,6 +947,25 @@ export function ApplicationForm({
                       </FieldDescription>
                       <FieldError errors={errs("env")} />
                     </Field>
+                  </FieldGroup>
+                </CardContent>
+              </Card>
+            )}
+
+            {environments.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>{t("form.environment.title")}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <FieldGroup>
+                    <EnvironmentSelect
+                      namespace="applications"
+                      environments={environments}
+                      value={v.environmentId}
+                      id="app-environment"
+                      canLinkProtected={canLinkProtected}
+                    />
                   </FieldGroup>
                 </CardContent>
               </Card>

@@ -12,7 +12,6 @@ import {
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { EnvEditor } from "@/components/custom/env-editor"
 import type { ProjectFormState } from "@/features/project/project.actions"
 
 interface ProjectFormProps {
@@ -20,11 +19,9 @@ interface ProjectFormProps {
     prev: ProjectFormState,
     formData: FormData
   ) => Promise<ProjectFormState>
-  defaultValues?: { name: string; description: string; env?: string }
+  defaultValues?: { name: string; description: string }
   submitLabel: string
   onSuccess?: () => void
-  /** Show the shared environment editor (project settings only). */
-  showEnv?: boolean
   /** Project viewers: show every value but disable all fields and hide Save. */
   readOnly?: boolean
 }
@@ -33,7 +30,6 @@ export function ProjectForm({
   action,
   defaultValues,
   submitLabel,
-  showEnv,
   readOnly = false,
 }: ProjectFormProps) {
   const t = useTranslations("projects")
@@ -79,26 +75,6 @@ export function ProjectForm({
             }))}
           />
         </Field>
-
-        {showEnv && (
-          <Field data-invalid={!!state.fieldErrors?.env || undefined}>
-            <FieldLabel>{t("form.envLabel")}</FieldLabel>
-            <EnvEditor
-              name="env"
-              defaultValue={values?.env ?? ""}
-              readOnly={readOnly}
-            />
-            <FieldDescription>
-              {t.rich("form.envHint", {
-                ref: "${{project.KEY}}",
-                code: (chunks) => <code>{chunks}</code>,
-              })}
-            </FieldDescription>
-            <FieldError
-              errors={state.fieldErrors?.env?.map((message) => ({ message }))}
-            />
-          </Field>
-        )}
 
         {state.error && (
           <FieldDescription className="text-destructive" role="alert">

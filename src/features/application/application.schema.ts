@@ -103,6 +103,11 @@ const createBaseSchema = (t: Translator) =>
       .transform((v) => (v === "" ? null : v)),
     deploymentKeep: z.coerce.number().int().min(1).max(100).default(10),
     env: z.string().max(20_000).optional(),
+    // Empty string = production (the API default); the field is omitted then.
+    environmentId: z
+      .string()
+      .trim()
+      .transform((v) => (v ? v : undefined)),
     buildArgs: z.string().max(5_000).optional(),
     buildType: z
       .enum(["dockerfile", "nixpacks", "railpack", "static"])

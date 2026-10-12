@@ -40,6 +40,7 @@ type Field =
   | "composePath"
   | "gitCredentialId"
   | "env"
+  | "environmentId"
   | "composeContent"
 
 export interface ComposeFormState {
@@ -62,6 +63,7 @@ function readForm(formData: FormData): Record<Field, string> {
     gitCredentialId:
       get("gitCredentialId") === "none" ? "" : get("gitCredentialId"),
     env: get("env"),
+    environmentId: get("environmentId"),
     composeContent: get("composeContent"),
   }
 }

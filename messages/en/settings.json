@@ -122,7 +122,12 @@
     "copied": "Token copied",
     "copyFailed": "Failed to copy token",
     "copyAria": "Copy token",
-    "done": "Done"
+    "done": "Done",
+    "environmentsBadge": "env: {names}",
+    "envScopeLabel": "Limit to environments (optional)",
+    "envCustomPlaceholder": "other environment",
+    "envAdd": "Add",
+    "envScopeHelp": "With no selection the token may read and change the variables of every environment you can. With a selection it can only use environments with these names (it never gets more than your own access). A read-only token may still read variables: reading is audited but changes nothing."
   },
   "members": {
     "title": "Members",
@@ -328,6 +333,10 @@
       "patchProjects": "Update project",
       "deleteProjects": "Delete project",
       "postProjectsImport": "Import project",
+      "postProjectsEnvironments": "Add project environment",
+      "postProjectsEnvironmentsReveal": "Reveal environment variables",
+      "putProjectsEnvironments": "Edit environment variables",
+      "deleteProjectsEnvironments": "Delete project environment",
       "postProjectsMembers": "Add project member",
       "patchProjectsMembers": "Change project member role",
       "deleteProjectsMembers": "Remove project member",
@@ -466,7 +475,10 @@
       "patchInstanceBackupSettings": "Change instance backup schedule",
       "patchInstanceDomain": "Set panel domain",
       "patchInstanceEnv": "Change instance environment",
-      "postInstanceUpdateApply": "Apply aoox update"
+      "postInstanceUpdateApply": "Apply aoox update",
+      "postProjectsEnvironmentsVersionsReveal": "Reveal an earlier version of environment variables",
+      "postProjectsEnvironmentsVersionsRestore": "Restore an earlier version of environment variables",
+      "postProjectsEnvironmentsPromote": "Promote environment variables"
     }
   }
 }

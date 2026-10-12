@@ -52,6 +52,7 @@ type Field =
   | "memoryMb"
   | "deploymentKeep"
   | "env"
+  | "environmentId"
   | "buildArgs"
   | "buildType"
   | "sourceType"
@@ -103,6 +104,7 @@ function readForm(formData: FormData): Record<Field, string> {
     memoryMb: get("memoryMb"),
     deploymentKeep: get("deploymentKeep") || "10",
     env: get("env"),
+    environmentId: get("environmentId"),
     buildArgs: get("buildArgs"),
     buildType: get("buildType") || "dockerfile",
     sourceType: get("sourceType") || "git",

@@ -14,6 +14,7 @@ import { DeleteProjectButton } from "@/components/custom/delete-project-button"
 import { ResourceHeader } from "@/components/custom/resource-header"
 import { ExportProjectButton } from "@/components/custom/export-project-button"
 import { ProjectForm } from "@/components/custom/project-form"
+import { ProjectEnvironments } from "@/components/custom/project-environments"
 import { ProjectMembers } from "@/components/custom/project-members"
 import {
   ApplicationInstanceCard,
@@ -38,6 +39,7 @@ import { updateProjectAction } from "@/features/project/project.actions"
 import {
   getProject,
   getProjectResourceUsage,
+  listProjectEnvironments,
 } from "@/features/project/project.queries"
 import { listProjectMembers } from "@/features/project-member/project-member.queries"
 import { getSession } from "@/features/auth/auth.session"
@@ -66,6 +68,7 @@ export default async function ProjectDetailPage({
     members,
     resourceUsage,
     proxyStatus,
+    environments,
   ] = await Promise.all([
     listApplications(project.id),
     listDatabases(project.id),
@@ -79,6 +82,7 @@ export default async function ProjectDetailPage({
     })),
     // Only for the port of a domain link (dev proxies listen on 8088/8443).
     getProxyStatus().catch(() => null),
+    listProjectEnvironments(project.id).catch(() => []),
   ])
   const proxy = proxyStatus
     ? { httpPort: proxyStatus.httpPort, httpsPort: proxyStatus.httpsPort }
@@ -252,6 +256,12 @@ export default async function ProjectDetailPage({
               </div>
             )}
           </section>
+
+          <ProjectEnvironments
+            projectId={project.id}
+            environments={environments}
+            role={members?.myRole ?? null}
+          />
         </div>
 
         <div className="space-y-6 lg:sticky lg:top-6">
@@ -268,10 +278,8 @@ export default async function ProjectDetailPage({
                 defaultValues={{
                   name: project.name,
                   description: project.description ?? "",
-                  env: project.env,
                 }}
                 submitLabel={tc("actions.save")}
-                showEnv
                 readOnly={!canWrite}
               />
             </CardContent>

@@ -5,7 +5,10 @@ import {
   Timer,
   Settings,
 } from "lucide-react"
-import { getProject } from "@/features/project/project.queries"
+import {
+  getProject,
+  listProjectEnvironments,
+} from "@/features/project/project.queries"
 import { SetBreadcrumb } from "@/components/custom/breadcrumb-store"
 import { getTranslations } from "next-intl/server"
 import { notFound } from "next/navigation"
@@ -68,6 +71,7 @@ export default async function ComposeAppPage({
     mounts,
     session,
     metrics,
+    environments,
   ] = await Promise.all([
     listGitCredentials(),
     listDatabases(app.projectId),
@@ -79,6 +83,7 @@ export default async function ComposeAppPage({
     listMounts({ kind: "compose", id: app.id }),
     getVerifiedSession(),
     fetchMetricsAction("compose", app.id),
+    listProjectEnvironments(app.projectId).catch(() => []),
   ])
   const canBind = session ? canUseTerminal(session.user) : false
   const canEdit = app.projectRole !== "viewer"
@@ -190,12 +195,15 @@ export default async function ComposeAppPage({
                     composePath: app.composePath,
                     gitCredentialId: app.gitCredentialId ?? "",
                     env: app.env,
+                    environmentId: app.environmentId,
                     composeContent: app.composeContent ?? "",
                   }}
                   source={app.source}
                   submitLabel={tc("actions.save")}
                   credentials={credentials}
                   databaseSlugs={databases.map((d) => d.slug)}
+                  environments={environments}
+                  canLinkProtected={app.projectRole === "admin"}
                   readOnly={!canEdit}
                 />
               </CardContent>

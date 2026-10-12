@@ -1,5 +1,6 @@
 import { requireToken } from "@/features/auth/auth.session"
 import { api, ApiError } from "@/lib/api"
+import type { ProjectEnvironment } from "./project-environment.entity"
 import type {
   Project,
   ProjectListItem,
@@ -38,6 +39,15 @@ export async function getProjectResourceUsage(
   id: string
 ): Promise<ProjectResourceUsageResponse> {
   return api<ProjectResourceUsageResponse>(`/projects/${id}/resource-usage`, {
+    token: await requireToken(),
+  })
+}
+
+/** Names, protection, variable names and users of each environment (never values). */
+export async function listProjectEnvironments(
+  projectId: string
+): Promise<ProjectEnvironment[]> {
+  return api<ProjectEnvironment[]>(`/projects/${projectId}/environments`, {
     token: await requireToken(),
   })
 }

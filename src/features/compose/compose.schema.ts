@@ -30,6 +30,11 @@ export const createComposeAppSchema = (t: Translator) =>
       .trim()
       .transform((v) => (v ? v : null)),
     env: z.string().max(20_000).optional(),
+    // Empty string = production (the API default); the field is omitted then.
+    environmentId: z
+      .string()
+      .trim()
+      .transform((v) => (v ? v : undefined)),
   })
 
 export type ComposeAppInput = z.infer<ReturnType<typeof createComposeAppSchema>>
@@ -43,4 +48,9 @@ export const createComposeTemplateSchema = (t: Translator) =>
       .min(1, t("validation.composeRequired"))
       .max(200_000, t("validation.tooLong")),
     env: z.string().max(20_000).optional(),
+    // Empty string = production (the API default); the field is omitted then.
+    environmentId: z
+      .string()
+      .trim()
+      .transform((v) => (v ? v : undefined)),
   })

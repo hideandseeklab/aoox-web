@@ -45,6 +45,16 @@ export const ACTION_KEY: Record<string, string> = {
   "PATCH /projects/:id": "patchProjects",
   "DELETE /projects/:id": "deleteProjects",
   "POST /projects/import": "postProjectsImport",
+  "POST /projects/:id/environments": "postProjectsEnvironments",
+  "POST /projects/:id/environments/:envId/reveal": "postProjectsEnvironmentsReveal",
+  "PUT /projects/:id/environments/:envId": "putProjectsEnvironments",
+  "DELETE /projects/:id/environments/:envId": "deleteProjectsEnvironments",
+  "POST /projects/:id/environments/:envId/versions/:versionId/reveal":
+    "postProjectsEnvironmentsVersionsReveal",
+  "POST /projects/:id/environments/:envId/versions/:versionId/restore":
+    "postProjectsEnvironmentsVersionsRestore",
+  "POST /projects/:id/environments/:envId/promote":
+    "postProjectsEnvironmentsPromote",
   "POST /projects/:id/members": "postProjectsMembers",
   "PATCH /projects/:id/members/:userId": "patchProjectsMembers",
   "DELETE /projects/:id/members/:userId": "deleteProjectsMembers",

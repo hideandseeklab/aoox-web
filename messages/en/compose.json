@@ -34,6 +34,15 @@
       "checkForm": "Check the form fields",
       "creating": "Creating stack {name}…",
       "newName": "new"
+    },
+    "environment": {
+      "title": "Project environment",
+      "label": "Environment",
+      "hint": "Variables of this environment are added to the container and <code>{ref}</code> resolves from it. Applied on the next deploy. Manage environments on the project page.",
+      "switchNote": "Switching is refused if the application references a variable the new environment lacks.",
+      "lockedNote": "This is linked to the protected \"{name}\" environment; only project admins can move it.",
+      "restrictedNote": "Protected environments can only be chosen by project admins.",
+      "restrictedCreateNote": "Protected environments can only be chosen by project admins. New resources start in \"{name}\"."
     }
   },
   "history": {

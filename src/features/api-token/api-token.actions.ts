@@ -20,7 +20,11 @@ async function fail(err: unknown): Promise<{ ok: false; error: string }> {
 export async function createApiTokenAction(
   name: string,
   expiresInDays: number | null,
-  scope: { readOnly?: boolean; projectIds?: string[] } = {}
+  scope: {
+    readOnly?: boolean
+    projectIds?: string[]
+    environments?: string[]
+  } = {}
 ): Promise<ActionResult<CreatedApiToken>> {
   try {
     const data = await api<CreatedApiToken>("/api-tokens", {
@@ -30,6 +34,9 @@ export async function createApiTokenAction(
         ...(expiresInDays ? { expiresInDays } : {}),
         ...(scope.readOnly ? { readOnly: true } : {}),
         ...(scope.projectIds?.length ? { projectIds: scope.projectIds } : {}),
+        ...(scope.environments?.length
+          ? { environments: scope.environments }
+          : {}),
       },
       token: await requireToken(),
     })

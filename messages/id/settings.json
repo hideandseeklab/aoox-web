@@ -122,7 +122,12 @@
     "copied": "Token disalin",
     "copyFailed": "Gagal menyalin token",
     "copyAria": "Salin token",
-    "done": "Selesai"
+    "done": "Selesai",
+    "environmentsBadge": "env: {names}",
+    "envScopeLabel": "Batasi ke environment (opsional)",
+    "envCustomPlaceholder": "environment lain",
+    "envAdd": "Tambah",
+    "envScopeHelp": "Tanpa pilihan, token boleh membaca dan mengubah variabel semua environment yang boleh kamu akses. Dengan pilihan, token hanya bisa memakai environment dengan nama itu (tidak pernah lebih luas dari aksesmu sendiri). Token baca saja tetap boleh membaca variabel: pembacaan dicatat di audit log tetapi tidak mengubah apa pun."
   },
   "members": {
     "title": "Anggota",
@@ -328,6 +333,10 @@
       "patchProjects": "Ubah project",
       "deleteProjects": "Hapus project",
       "postProjectsImport": "Impor project",
+      "postProjectsEnvironments": "Tambah environment project",
+      "postProjectsEnvironmentsReveal": "Tampilkan variabel environment",
+      "putProjectsEnvironments": "Ubah variabel environment",
+      "deleteProjectsEnvironments": "Hapus environment project",
       "postProjectsMembers": "Tambah anggota project",
       "patchProjectsMembers": "Ubah peran anggota project",
       "deleteProjectsMembers": "Keluarkan anggota project",
@@ -466,7 +475,10 @@
       "patchInstanceBackupSettings": "Ubah jadwal backup instance",
       "patchInstanceDomain": "Atur domain panel",
       "patchInstanceEnv": "Ubah environment instance",
-      "postInstanceUpdateApply": "Terapkan update aoox"
+      "postInstanceUpdateApply": "Terapkan update aoox",
+      "postProjectsEnvironmentsVersionsReveal": "Tampilkan versi lama variabel environment",
+      "postProjectsEnvironmentsVersionsRestore": "Pulihkan versi lama variabel environment",
+      "postProjectsEnvironmentsPromote": "Promosikan variabel environment"
     }
   }
 }

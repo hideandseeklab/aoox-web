@@ -34,6 +34,15 @@
       "checkForm": "Periksa isian form",
       "creating": "Membuat stack {name}…",
       "newName": "baru"
+    },
+    "environment": {
+      "title": "Environment project",
+      "label": "Environment",
+      "hint": "Variabel environment ini ditambahkan ke container dan <code>{ref}</code> dibaca darinya. Berlaku pada deploy berikutnya. Kelola environment di halaman project.",
+      "switchNote": "Pindah ditolak jika aplikasi merujuk variabel yang tidak ada di environment baru.",
+      "lockedNote": "Ini terhubung ke environment terlindungi \"{name}\"; hanya admin project yang bisa memindahkannya.",
+      "restrictedNote": "Environment terlindungi hanya bisa dipilih admin project.",
+      "restrictedCreateNote": "Environment terlindungi hanya bisa dipilih admin project. Resource baru dimulai di \"{name}\"."
     }
   },
   "history": {

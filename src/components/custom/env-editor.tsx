@@ -5,7 +5,9 @@ import { useTranslations } from "next-intl"
 import { useId, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
+import { SECRET_NAME } from "@/features/project/project-environment.entity"
 
 interface Row {
   id: number
@@ -31,6 +33,18 @@ function toRows(text: string): Row[] {
   return rows
 }
 
+/**
+ * Secret flags for the project environment editor. `initial*` are the flags
+ * the API reported when the values were revealed; the editor submits only the
+ * ones the user changed (JSON `{NAME: boolean}` in the hidden field `name`).
+ */
+export interface SecretFlagsConfig {
+  /** Name of the hidden field that carries the JSON of the changed flags. */
+  name: string
+  secretKeys: string[]
+  plainKeys: string[]
+}
+
 function toText(rows: Row[]): string {
   return rows
     .filter((r) => r.key.trim())
@@ -48,10 +62,13 @@ export function EnvEditor({
   defaultValue,
   placeholder,
   readOnly = false,
+  secrets,
 }: {
   name: string
   defaultValue: string
   placeholder?: string
+  /** Shows a Secret switch per variable (project environments only). */
+  secrets?: SecretFlagsConfig
   /** Viewers: values stay masked/revealable, nothing can be edited, added or removed. */
   readOnly?: boolean
 }) {
@@ -61,6 +78,39 @@ export function EnvEditor({
   const [mode, setMode] = useState<"rows" | "text">("rows")
   const [revealed, setRevealed] = useState(false)
   const baseId = useId()
+  // Secret flags: what the user changed (name -> flag). A variable that was
+  // not in the revealed text starts as secret when its name looks like one,
+  // which is also what the API does when no flag is sent.
+  const [touched, setTouched] = useState<Record<string, boolean>>({})
+  const [initial] = useState(() => ({
+    keys: new Set(toRows(defaultValue).map((r) => r.key)),
+    secret: new Set(secrets?.secretKeys ?? []),
+    plain: new Set(secrets?.plainKeys ?? []),
+  }))
+  const defaultSecret = (key: string) =>
+    initial.secret.has(key)
+      ? true
+      : initial.plain.has(key) || initial.keys.has(key)
+        ? false
+        : SECRET_NAME.test(key)
+  const isSecret = (key: string) => touched[key] ?? defaultSecret(key)
+  const toggleSecret = (key: string) => {
+    const next = !isSecret(key)
+    setTouched((prev) => {
+      const copy = { ...prev }
+      if (next === defaultSecret(key)) delete copy[key]
+      else copy[key] = next
+      return copy
+    })
+  }
+  // Only flags of variables that are in the final text are submitted.
+  const flagsJson = (() => {
+    if (!secrets) return ""
+    const present = new Set(toRows(text).map((r) => r.key))
+    const out: Record<string, boolean> = {}
+    for (const [k, v] of Object.entries(touched)) if (present.has(k)) out[k] = v
+    return JSON.stringify(out)
+  })()
 
   const updateRows = (next: Row[]) => {
     setRows(next)
@@ -74,6 +124,7 @@ export function EnvEditor({
   return (
     <div className="space-y-2">
       <input type="hidden" name={name} value={text} />
+      {secrets && <input type="hidden" name={secrets.name} value={flagsJson} />}
       <div className="flex items-center justify-between gap-2">
         <div className="flex gap-1 text-xs">
           <Button
@@ -120,7 +171,14 @@ export function EnvEditor({
       ) : (
         <div className="space-y-1.5">
           {rows.map((row, i) => (
-            <div key={row.id} className="flex items-center gap-1.5">
+            <div
+              key={row.id}
+              className={
+                secrets
+                  ? "flex flex-wrap items-center gap-1.5 sm:flex-nowrap"
+                  : "flex items-center gap-1.5"
+              }
+            >
               <Input
                 aria-label={t("keyAria", { n: i + 1 })}
                 id={`${baseId}-k-${row.id}`}
@@ -134,7 +192,11 @@ export function EnvEditor({
                 }
                 placeholder="KEY"
                 readOnly={readOnly}
-                className="w-2/5 max-w-sm font-mono text-xs"
+                className={
+                  secrets
+                    ? "w-full font-mono text-xs sm:w-2/5 sm:max-w-sm"
+                    : "w-2/5 max-w-sm font-mono text-xs"
+                }
                 autoComplete="off"
                 spellCheck={false}
               />
@@ -152,10 +214,26 @@ export function EnvEditor({
                 }
                 placeholder="value"
                 readOnly={readOnly}
-                className="flex-1 font-mono text-xs"
+                className={
+                  secrets
+                    ? "min-w-0 flex-1 basis-40 font-mono text-xs"
+                    : "flex-1 font-mono text-xs"
+                }
                 autoComplete="off"
                 spellCheck={false}
               />
+              {secrets && row.key.trim() && (
+                <label className="flex shrink-0 items-center gap-1.5 text-xs text-muted-foreground">
+                  <Switch
+                    size="sm"
+                    checked={isSecret(row.key.trim())}
+                    onCheckedChange={() => toggleSecret(row.key.trim())}
+                    disabled={readOnly}
+                    aria-label={t("secretAria", { name: row.key.trim() })}
+                  />
+                  {t("secret")}
+                </label>
+              )}
               {!readOnly && (
                 <Button
                   type="button"
@@ -188,6 +266,11 @@ export function EnvEditor({
               <Plus data-icon="inline-start" />
               {t("addVariable")}
             </Button>
+          )}
+          {secrets && (
+            <p className="pt-1 text-xs text-muted-foreground">
+              {t("secretHint")}
+            </p>
           )}
         </div>
       )}

@@ -98,7 +98,10 @@
     "valueAria": "Value {n}",
     "removeAria": "Remove {name}",
     "rowFallback": "row {n}",
-    "addVariable": "Add variable"
+    "addVariable": "Add variable",
+    "secret": "Secret",
+    "secretAria": "Secret: {name}",
+    "secretHint": "Secret variables are always masked in deployment logs. Other variables are masked only when their value looks like a secret."
   },
   "metrics": {
     "range": {

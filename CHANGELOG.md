@@ -10,10 +10,26 @@ Versions below 1.0.0 may include breaking changes in a minor release.
 
 ### Added
 
+
+- **API tokens can be limited to environments.** The token form has a "Limit to environments (optional)" row: chips for development, staging and production, plus a field to add another name; the token list shows an `env: …` badge with the names. With a restriction the token can only reveal or change the variables of those environments (the API answers 403 for others); a read-only token may still read variables.
+- **The environment editor saves against the version it read.** Reveal now keeps the `updatedAt` it received and the save sends it back, so a save over someone else's newer edit (the CLI, another tab) is refused with the API's message instead of overwriting it.
+- Project export "With database passwords" now also includes the environment variables (they are no longer always exported).
+- Audit log entries for adding, editing, revealing and deleting environments.
+
 - **Warning when the image listens on another port.** If the image declares `EXPOSE` ports and the Container port is none of them, the Settings tab (above the port field) and the Domains tab (above the table) show an amber alert explaining the likely "Bad Gateway". Developers and owners get a one-click "Use port N" button when the image exposes exactly one port; viewers only see the warning.
 
 ### UI UX Improvement
 
+- **Environment history.** Each environment has a **History** button: a list of every change with who made it (dashboard or API token), when, and which variable names were added, changed or removed. **Restore this version** (behind a confirm step) writes the old content as a new version, so nothing is lost; it follows the editing rule (a protected environment needs a project admin).
+- **Compare and promote environments.** A **Compare** button next to Add environment compares two environments variable by variable (names only) and lets you select variables to copy from one into the other, with a confirm step that names the variables and the target.
+- **Secret switch per variable.** The environment editor has a Secret switch on every row; secret variables are always masked in deployment logs, and the list shows a Secret badge.
+- **History, Compare and Secret controls are laid out for narrow screens.** The environment card header wraps Compare and Add environment under the description on a phone; the history and compare dialogs scroll their lists inside the dialog; with the Secret switch the editor rows put the key on its own line below 640 px and keep value, switch and delete on the next one.
+
+- **The Environment select of applications and stacks follows the protection rule.** For anyone who is not a project admin the protected environments (with the lock) are disabled, new resources start in `development` instead of `production`, and an application or stack already linked to a protected environment cannot be moved away from it (only its own option stays selectable); a one-line note explains why. Admins see no change.
+- **Token rows wrap on narrow screens.** The name no longer collapses to one letter when a token has several badges (read-only, projects, environments): the badges move to a second line.
+- **Tab strips show the active tab on narrow screens.** A strip that opens on a tab near its end (the project's `production` environment) scrolls it into view on load instead of leaving it cut off at the edge.
+
+- **Project environments.** The project page has an **Environments** section (replacing the "Shared environment" field of the Settings card) with one tab per environment (development, staging, production, and any you add). Each tab lists the variable names with masked values; **Reveal and edit** opens the values in the usual rows/text editor and is recorded in the audit log. `production` shows a **Protected** badge: only project admins can reveal or edit it (developers see a short explanation, viewers see names and counts only). Developers can add environments, project admins can delete them (not production, and not one that is still used; the dialog names the applications). Applications and compose stacks have a **Project environment** select (default production) in Settings and in the create forms; switching to an environment that lacks a `${{project.KEY}}` the app uses is refused with the API's message. Changes apply on the next deploy.
 - **Exposed-port alert.** Compact amber alert (`exposed-port-alert.tsx`) shared by the Settings and Domains tabs, in English and Indonesian.
 
 ### Fixed

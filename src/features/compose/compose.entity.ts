@@ -44,6 +44,8 @@ export interface ComposeApp {
   gitCredentialId: string | null
   composePath: string
   env: string
+  /** Project environment whose variables the stack's .aoox.env is built from. */
+  environmentId: string
   status: ComposeAppStatus
   errorMessage: string | null
   deployedAt: string | null

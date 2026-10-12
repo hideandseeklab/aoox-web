@@ -15,8 +15,8 @@ import { createProjectSchema } from "./project.schema"
 
 export interface ProjectFormState {
   error?: string
-  fieldErrors?: Partial<Record<"name" | "description" | "env", string[]>>
-  values?: { name: string; description: string; env?: string }
+  fieldErrors?: Partial<Record<"name" | "description", string[]>>
+  values?: { name: string; description: string }
 }
 
 async function parseForm(formData: FormData) {
@@ -24,8 +24,6 @@ async function parseForm(formData: FormData) {
   const values = {
     name: String(formData.get("name") ?? ""),
     description: String(formData.get("description") ?? ""),
-    // The create dialog has no env field; omit it so the API's whitelist passes.
-    ...(formData.has("env") ? { env: String(formData.get("env") ?? "") } : {}),
   }
   const parsed = createProjectSchema(t).safeParse(values)
   if (parsed.success)
@@ -33,7 +31,7 @@ async function parseForm(formData: FormData) {
 
   const fieldErrors: ProjectFormState["fieldErrors"] = {}
   for (const issue of parsed.error.issues) {
-    const key = issue.path[0] as "name" | "description" | "env"
+    const key = issue.path[0] as "name" | "description"
     ;(fieldErrors[key] ??= []).push(issue.message)
   }
   return { values, data: undefined, fieldErrors }
