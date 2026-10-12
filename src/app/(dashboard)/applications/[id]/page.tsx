@@ -23,6 +23,10 @@ import {
   listPreviews,
 } from "@/features/application/application.queries"
 import { listBackupDestinations } from "@/features/backup-destination/backup-destination.queries"
+import {
+  getDomainDnsOptions,
+  listDnsConnections,
+} from "@/features/dns/dns.queries"
 import { listCertificates } from "@/features/certificate/certificate.queries"
 import { listJobs } from "@/features/job/job.queries"
 import { listVolumeBackups } from "@/features/volume-backup/volume-backup.queries"
@@ -75,6 +79,8 @@ export default async function ApplicationPage({
     previews,
     session,
     swarm,
+    dnsConnections,
+    dnsOptions,
   ] = await Promise.all([
     listDeployments(app.id),
     listDomains(app.id),
@@ -102,6 +108,9 @@ export default async function ApplicationPage({
     getVerifiedSession(),
     // Owner/admin only; members keep container mode.
     getSwarmStatus().catch(() => null),
+    // Names only; [] on an older API without DNS providers.
+    listDnsConnections().catch(() => []),
+    getDomainDnsOptions(app.id).catch(() => ({ proxyDnsEnabled: false })),
   ])
   // Bind mounts expose the host filesystem: same roles as the host shell.
   const canBind = session ? canUseTerminal(session.user) : false
@@ -163,6 +172,8 @@ export default async function ApplicationPage({
         secretConnections={secretConnections}
         servers={servers}
         previews={previews}
+        dnsConnections={dnsConnections}
+        proxyDnsEnabled={dnsOptions.proxyDnsEnabled}
         canBind={canBind}
         swarmActive={swarm?.state === "active" && swarm.isManager}
         swarmNodes={swarm?.nodes ?? []}
@@ -232,7 +243,12 @@ export default async function ApplicationPage({
             }
             actions={
               <>
-                <ApplicationStatusActions app={app} deployments={deployments} />
+                {app.projectRole !== "viewer" && (
+                  <ApplicationStatusActions
+                    app={app}
+                    deployments={deployments}
+                  />
+                )}
                 {app.projectRole === "viewer" ? (
                   <Badge variant="outline">{t("page.readOnly")}</Badge>
                 ) : (

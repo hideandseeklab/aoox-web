@@ -39,7 +39,13 @@ Versions below 1.0.0 may include breaking changes in a minor release.
 
 ### UI UX Improvement
 
+- **DNS provider connections (Settings, Integrations).** A "DNS provider" card adds, tests and deletes Cloudflare API tokens (write-only; a test shows the zones the token can see).
+- **DNS record and certificate mode per domain (application Domains tab).** The add-domain form and each domain row can attach a DNS connection (with the proxied and overwrite options), show the last sync result with a sync button, and pick the certificate mode (automatic, DNS-01 per host, DNS-01 wildcard) when the proxy has DNS-01. A DNS problem shows as a warning; the domain is still added.
+- **DNS-01 certificates card (Infrastructure, Reverse proxy).** Enables or disables DNS-01 for the aoox host or a remote server proxy, asks before recreating a running proxy and lists what depends on it. The Webhook tab previews card has a switch for one wildcard certificate for previews. English and Bahasa Indonesia in the new `dns` namespace.
+
 - **Maintenance mode in Settings.** A new "Maintenance mode" card at the top of an application's Settings tab: an Enabled switch (publishes at once) and a plain-text page message (up to 280 characters, saved with its own button, empty = the default text). Viewers see the state and the text without the controls. The application header shows a "Maintenance" badge while it is on. Copy in English and Indonesian.
+
+- **Domains tab is read-only for viewers.** Project viewers no longer see the add-domain form (with its DNS and HTTPS hints) or the delete button on each domain; the API already refused both with 403. The DNS check button stays. The Indonesian DNS error badge now reads "DNS gagal". The same goes for the page headers: viewers no longer see Deploy and Stop/Start on an application, or Stop/Start and "Delete database" on a database; the database header shows the same "Read only" badge as the application header.
 
 - **Resource alerts card lines up with the HTTP monitor.** Its threshold and duration selects use the same four-column grid as the HTTP monitor card above it (two columns at 375 px), and they show their value in the first server render instead of appearing empty until the page hydrates.
 

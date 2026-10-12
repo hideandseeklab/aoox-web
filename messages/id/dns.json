@@ -1,0 +1,80 @@
+{
+  "errors": {
+    "unreachable": "Tidak dapat terhubung ke server"
+  },
+  "validation": {
+    "nameRequired": "Nama wajib diisi",
+    "tokenRequired": "Tempel API token Cloudflare",
+    "tokenChars": "Token mengandung karakter yang tidak valid",
+    "accountId": "ID akun terdiri dari 32 karakter heksadesimal"
+  },
+  "connections": {
+    "title": "Penyedia DNS",
+    "description": "API token Cloudflare. aoox dapat membuatkan record DNS sebuah domain dan menjawab tantangan ACME DNS-01 untuk sertifikat wildcard. Token membutuhkan Zone:Zone:Read dan Zone:DNS:Edit, disimpan terenkripsi, dan tidak dapat dilihat lagi.",
+    "empty": "Belum ada koneksi. Record DNS tetap Anda atur sendiri.",
+    "testAria": "Uji koneksi {name}",
+    "deleteAria": "Hapus {name}",
+    "dialogTitle": "Koneksi Cloudflare baru",
+    "dialogDescription": "Buat API token di Cloudflare (My Profile, API Tokens) dengan Zone:Zone:Read dan Zone:DNS:Edit untuk zona yang dipakai, lalu tempel di sini.",
+    "apiToken": "API token",
+    "tokenHelp": "Tidak dapat dilihat lagi setelah disimpan.",
+    "accountIdOptional": "ID akun (opsional)",
+    "accountIdHelp": "Hanya untuk token milik akun; kosongkan untuk token pengguna biasa.",
+    "zonesCount": "{count, plural, other {# zona}}",
+    "testing": "Menguji"
+  },
+  "domain": {
+    "dnsSection": "DNS",
+    "manageLabel": "Record DNS",
+    "manual": "Saya atur DNS sendiri",
+    "viaConnection": "Cloudflare: {name}",
+    "proxied": "Proxied (awan oranye)",
+    "proxiedHelp": "Mati secara default: proxy perlu melihat host asli dan menjawab tantangan sertifikat. Nyalakan hanya jika Anda memang ingin Cloudflare di depan.",
+    "overwrite": "Ganti record yang sudah ada dengan isi berbeda",
+    "syncAria": "Sinkronkan record DNS {host}",
+    "syncing": "Menyinkronkan",
+    "statusOk": "DNS ok",
+    "statusWarning": "Peringatan DNS",
+    "statusError": "DNS gagal",
+    "addedWithWarning": "Domain ditambahkan, tetapi DNS perlu diperiksa: {message}",
+    "certLabel": "Mode sertifikat",
+    "certHttp": "Otomatis (HTTP-01)",
+    "certDns": "DNS-01 untuk host ini",
+    "certDnsWildcard": "Wildcard DNS-01 (*.{base})",
+    "certModeAria": "Mode sertifikat {host}",
+    "dnsConnectionAria": "Koneksi DNS {host}",
+    "needsProxyDns": "DNS-01 belum diaktifkan pada proxy ini (Infrastruktur, Proxy)."
+  },
+  "proxy": {
+    "title": "Sertifikat DNS-01",
+    "description": "Menambahkan resolver ACME kedua yang membuktikan kepemilikan domain lewat penyedia DNS Anda. Cocok untuk sertifikat wildcard (misalnya preview pull request) tanpa host perlu terjangkau di port 80.",
+    "proxyOn": "Proxy di",
+    "hostOption": "Host aoox",
+    "selectProxy": "Pilih proxy",
+    "connection": "Koneksi DNS",
+    "chooseConnection": "Pilih koneksi",
+    "noConnections": "Belum ada koneksi DNS. Tambahkan di Pengaturan, Integrasi.",
+    "enable": "Aktifkan DNS-01",
+    "disable": "Nonaktifkan",
+    "working": "Memproses",
+    "stateActive": "Aktif",
+    "stateInactive": "Mati",
+    "statePending": "Belum diterapkan",
+    "stateProxyDown": "Proxy tidak berjalan",
+    "usingConnection": "Memakai {name}",
+    "needsEmail": "Atur email ACME untuk proxy ini dulu: DNS-01 memakai email akun ACME yang sama.",
+    "usedBy": "Dipakai oleh: {list}",
+    "tokenNote": "Token diteruskan ke container proxy sebagai variabel lingkungan, sehingga terlihat oleh siapa pun yang bisa menjalankan docker inspect di mesin itu, seperti rahasia lain yang aoox berikan ke container.",
+    "recreateTitle": "Buat ulang proxy?",
+    "recreateDescription": "Mengubah DNS-01 membuat ulang proxy: beberapa detik tanpa layanan untuk semua domain di dalamnya. Sertifikat dan rute lain tetap ada.",
+    "recreateConfirm": "Buat ulang dan lanjutkan",
+    "enabled": "DNS-01 diaktifkan",
+    "disabled": "DNS-01 dinonaktifkan"
+  },
+  "previews": {
+    "wildcardLabel": "Sertifikat wildcard untuk preview",
+    "wildcardHelp": "Terbitkan satu sertifikat DNS-01 untuk *.{domain}, bukan satu per pull request. Perlu DNS-01 pada proxy dan record DNS wildcard.",
+    "wildcardNeedsDns": "Aktifkan DNS-01 pada proxy dulu (Infrastruktur, Proxy).",
+    "wildcardNeedsDomain": "Atur domain preview di Pengaturan dulu."
+  }
+}

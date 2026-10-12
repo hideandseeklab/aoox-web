@@ -366,16 +366,23 @@ export async function addDomainAction(
   applicationId: string,
   host: string,
   https: boolean,
-  certificateId?: string | null
+  certificateId?: string | null,
+  dns?: {
+    certMode?: "http" | "dns" | "dns-wildcard"
+    dnsConnectionId?: string | null
+    dnsProxied?: boolean
+    dnsOverwrite?: boolean
+  }
 ): Promise<ActionResult<Domain>> {
   try {
     // The API returns `{ domain, proxyAutoProvisioned }`, not a bare Domain —
     // flattened here so `Domain.proxyAutoProvisioned` stays the one place
     // callers read it from, matching how `proxyAutoProvisioned` is already
     // modeled on the type.
-    const { domain, proxyAutoProvisioned } = await api<{
+    const { domain, proxyAutoProvisioned, dnsWarning } = await api<{
       domain: Domain
       proxyAutoProvisioned: boolean
+      dnsWarning?: string | null
     }>(`/applications/${applicationId}/domains`, {
       method: "POST",
       body: {
@@ -383,11 +390,28 @@ export async function addDomainAction(
         https,
         // Only meaningful for https; omitted = automatic Let's Encrypt.
         ...(https && certificateId ? { certificateId } : {}),
+        ...(https && dns?.certMode && dns.certMode !== "http"
+          ? { certMode: dns.certMode }
+          : {}),
+        ...(dns?.dnsConnectionId
+          ? {
+              dnsConnectionId: dns.dnsConnectionId,
+              dnsProxied: dns.dnsProxied ?? false,
+              dnsOverwrite: dns.dnsOverwrite ?? false,
+            }
+          : {}),
       },
       token: await requireToken(),
     })
     revalidatePath(`/applications/${applicationId}`)
-    return { ok: true, data: { ...domain, proxyAutoProvisioned } }
+    return {
+      ok: true,
+      data: {
+        ...domain,
+        proxyAutoProvisioned,
+        dnsWarning: dnsWarning ?? null,
+      },
+    }
   } catch (err) {
     return await fail(err)
   }

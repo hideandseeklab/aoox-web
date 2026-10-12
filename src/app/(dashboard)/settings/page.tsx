@@ -5,6 +5,7 @@ import { AccountCard } from "@/components/custom/account-card"
 import { ApiTokensCard } from "@/components/custom/api-tokens-card"
 import { BackupDestinationsCard } from "@/components/custom/backup-destinations-card"
 import { GitCredentialsCard } from "@/components/custom/git-credentials-card"
+import { DnsConnectionsCard } from "@/components/custom/dns-connections-card"
 import { SecretConnectionsCard } from "@/components/custom/secret-connections-card"
 import { CertificatesCard } from "@/components/custom/certificates-card"
 import { MembersCard } from "@/components/custom/members-card"
@@ -21,6 +22,7 @@ import { listInvitations, listMembers } from "@/features/member/member.queries"
 import { listNotifications } from "@/features/notification/notification.queries"
 import { listProjects } from "@/features/project/project.queries"
 import { listCertificates } from "@/features/certificate/certificate.queries"
+import { listDnsConnections } from "@/features/dns/dns.queries"
 import { listSecretConnections } from "@/features/secret-connection/secret-connection.queries"
 import { publicApiUrl } from "@/lib/api"
 
@@ -43,6 +45,7 @@ export default async function SettingsPage() {
     invitations,
     destinations,
     secretConnections,
+    dnsConnections,
     certificates,
   ] = canManage
     ? await Promise.all([
@@ -52,10 +55,11 @@ export default async function SettingsPage() {
         listBackupDestinations(),
         // An older API without the secret manager answers 404: no card then.
         listSecretConnections().catch(() => null),
+        listDnsConnections().catch(() => null),
         // Same for certificates: an API without them just hides the card.
         listCertificates().catch(() => null),
       ])
-    : [null, null, null, null, null, null]
+    : [null, null, null, null, null, null, null]
 
   return (
     <>
@@ -120,6 +124,9 @@ export default async function SettingsPage() {
               )}
               {secretConnections && (
                 <SecretConnectionsCard connections={secretConnections} />
+              )}
+              {dnsConnections && (
+                <DnsConnectionsCard connections={dnsConnections} />
               )}
               {certificates && <CertificatesCard certificates={certificates} />}
             </div>

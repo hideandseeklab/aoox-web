@@ -11,7 +11,8 @@
       "backups": "Backups ({count})",
       "mounts": "Mounts ({count})",
       "jobs": "Jobs ({count})"
-    }
+    },
+    "readOnly": "Read only"
   },
   "form": {
     "fields": {

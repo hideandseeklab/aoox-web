@@ -32,6 +32,7 @@ export const NAMESPACES = [
   "terminal",
   "templates",
   "alerts",
+  "dns",
 ] as const
 
 export type Namespace = (typeof NAMESPACES)[number]

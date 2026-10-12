@@ -6,4 +6,6 @@ export interface ProxyStatus {
   httpPort: number
   httpsPort: number
   acmeEmail: string | null
+  /** The running proxy has the DNS-01 resolver. */
+  dnsChallenge?: boolean
 }

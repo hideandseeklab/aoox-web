@@ -424,6 +424,14 @@ Read `AGENTS.md` — this version of Next.js has breaking changes; check `node_m
 - `components/custom/inbox-bell.tsx` in `app-navbar.tsx`: `GET /inbox` via a server action, polling every 30 seconds only while the tab is visible + on navigation (no Socket.IO); "Mark all as read". Each row's title/summary is composed by `describeInboxItem()` (`features/inbox/inbox.describe.ts`) from the `event` + `params` from the API, see the i18n section.
 - `components/custom/onboarding-checklist.tsx` on the dashboard: rendered only when `getOnboarding()` (owner) returns `visible`; "Hide" = `dismissOnboardingAction`. Audit log: `POST /inbox/read` and `POST /onboarding/dismiss` are in `audit-log.format.ts`.
 
+## DNS provider and DNS-01 (Cloudflare)
+
+- `src/features/dns/` (`dns.entity.ts`, `dns.queries.ts`, `dns.actions.ts`), new i18n namespace **`dns`** (`connections`, `domain`, `proxy`, `previews`, `validation`, `errors`).
+- `dns-connections-card.tsx` in Settings → Integrations (owner/admin; hidden when the API answers an error, like the other optional cards): add (name, API token write-only, optional account ID), test (shows the zones the token can see), delete (the API refuses while it is in use and says where).
+- Domains tab (`application-domains.tsx`): the add form gets a DNS connection select (+ proxied and overwrite switches, with the explanation why proxied is off by default) and, when `GET /applications/:id/dns-options` says the proxy has DNS-01, a certificate mode select (automatic, DNS-01 per host, DNS-01 wildcard `*.<parent>`). Each row has a DNS line (connection select, status badge, proxied switch, sync button, the last message) and a certificate-mode line; viewers see them read-only. A DNS problem arrives as `dnsWarning` after the domain was added and is shown as a toast.
+- `proxy-dns-card.tsx` on Infrastructure → Reverse proxy (owner/admin read, owner writes; same `?server=` as the dynamic config card): bind/unbind a connection, state badge (active / not applied yet / proxy not running / off), what depends on it, and a confirmation before a running proxy is recreated (the web always sends `acceptProxyRestart: true` after that confirmation). The Webhook tab previews card has the wildcard-certificate switch (only when the proxy has DNS-01 or it is already on, disabled without a preview domain).
+- Select values are rendered with explicit `SelectValue` children (no empty flash). Measured in headless Chrome (Chrome DevTools Protocol; desktop 1366 and 375 px, light and dark, English and Indonesian, owner and project viewer): controls 28 px in the add form, 24 px (`size="sm"`) in rows and the proxy card, body text 12 px, card titles 13 px, card padding 16 px and card width equal to the sibling cards, no horizontal scroll.
+
 <!-- BEGIN:nextjs-agent-rules -->
 
 # This is NOT the Next.js you know

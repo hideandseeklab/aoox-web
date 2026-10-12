@@ -72,6 +72,8 @@ export interface Application {
   previewsEnabled: boolean
   /** Base for `<appName>-pr<N>.<domain>`; null = PREVIEW_DOMAIN of the API. */
   previewDomain: string | null
+  /** One wildcard DNS-01 certificate for all previews. */
+  previewWildcardCert?: boolean
   /** Maintenance mode: every domain shows a 503 page instead (routing only). */
   maintenanceEnabled: boolean
   /** Text of the maintenance page; null = the default message. */
@@ -175,6 +177,16 @@ export interface Domain {
   certificateName?: string | null
   /** Traefik middlewares (`name@file`) in front of this host, in the order they run. */
   middlewares?: string[]
+  /** ACME mode of an https host without an uploaded certificate. */
+  certMode?: "http" | "dns" | "dns-wildcard"
+  /** DNS connection managing the record of this host. */
+  dnsConnectionId?: string | null
+  dnsConnectionName?: string | null
+  dnsProxied?: boolean
+  dnsStatus?: "ok" | "warning" | "error" | null
+  dnsMessage?: string | null
+  /** Set by add-domain when the record could not be created as asked (the domain was added anyway). */
+  dnsWarning?: string | null
   createdAt: string
   /**
    * True when the proxy wasn't running and the API started it automatically

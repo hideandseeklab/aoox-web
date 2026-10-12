@@ -11,7 +11,8 @@
       "backups": "Backup ({count})",
       "mounts": "Mount ({count})",
       "jobs": "Job ({count})"
-    }
+    },
+    "readOnly": "Baca saja"
   },
   "form": {
     "fields": {

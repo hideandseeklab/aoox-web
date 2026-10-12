@@ -1,8 +1,10 @@
 import { getTranslations } from "next-intl/server"
 import { ProxyCard } from "@/components/custom/proxy-card"
+import { ProxyDnsCard } from "@/components/custom/proxy-dns-card"
 import { ProxyConfigCard } from "@/components/custom/proxy-config-card"
 import { canUseTerminal } from "@/features/auth/auth.entity"
 import { getVerifiedSession } from "@/features/auth/auth.session"
+import { getProxyDns, listDnsConnections } from "@/features/dns/dns.queries"
 import { getProxyStatus } from "@/features/proxy/proxy.queries"
 import {
   listProxyConfig,
@@ -30,9 +32,19 @@ export default async function ProxyPage({
   const canManage = session ? canUseTerminal(session.user) : false
   // The dynamic-config editor is owner/admin only (the API enforces it as well).
   const config = canManage ? await loadConfig(sp.server) : null
+  // An older API without DNS providers answers 404: no card then.
+  const dns = config ? await loadDns(config.serverId) : null
   return (
     <InfraPage title={t("title")} description={t("description")}>
       <ProxyCard status={status} canManage={canManage} />
+      {config && dns && (
+        <ProxyDnsCard
+          {...dns}
+          servers={config.servers}
+          serverId={config.serverId}
+          isOwner={session?.user.role === "owner"}
+        />
+      )}
       {config && (
         <ProxyConfigCard {...config} isOwner={session?.user.role === "owner"} />
       )}
@@ -48,4 +60,16 @@ async function loadConfig(server: string | undefined) {
     listProxyPresets(),
   ])
   return { files, presets, servers, serverId }
+}
+
+async function loadDns(serverId: string | null) {
+  try {
+    const [state, connections] = await Promise.all([
+      getProxyDns(serverId ?? undefined),
+      listDnsConnections(),
+    ])
+    return { state, connections }
+  } catch {
+    return null
+  }
 }

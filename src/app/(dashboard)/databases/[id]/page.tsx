@@ -153,7 +153,13 @@ export default async function DatabasePage({
               {ENGINE_LABEL[db.engine]} {db.imageTag} · {db.slug}
             </span>
           }
-          actions={<DatabaseStartStop db={db} />}
+          actions={
+            db.projectRole === "viewer" ? (
+              <Badge variant="outline">{t("page.readOnly")}</Badge>
+            ) : (
+              <DatabaseStartStop db={db} />
+            )
+          }
         />
         <TabsContent value="overview" className="space-y-4 pt-4">
           <MetricsPanel

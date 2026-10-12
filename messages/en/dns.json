@@ -1,0 +1,80 @@
+{
+  "errors": {
+    "unreachable": "Cannot reach the server"
+  },
+  "validation": {
+    "nameRequired": "Name is required",
+    "tokenRequired": "Paste the Cloudflare API token",
+    "tokenChars": "The token has unexpected characters",
+    "accountId": "The account ID is 32 hexadecimal characters"
+  },
+  "connections": {
+    "title": "DNS provider",
+    "description": "Cloudflare API tokens. aoox can create the DNS record of a domain for you and answer ACME DNS-01 challenges for wildcard certificates. The token needs Zone:Zone:Read and Zone:DNS:Edit, and is stored encrypted: it cannot be viewed again.",
+    "empty": "No connections yet. DNS records stay up to you.",
+    "testAria": "Test connection {name}",
+    "deleteAria": "Delete {name}",
+    "dialogTitle": "New Cloudflare connection",
+    "dialogDescription": "Create an API token in Cloudflare (My Profile, API Tokens) with Zone:Zone:Read and Zone:DNS:Edit for the zones you use, then paste it here.",
+    "apiToken": "API token",
+    "tokenHelp": "Cannot be viewed again after saving.",
+    "accountIdOptional": "Account ID (optional)",
+    "accountIdHelp": "Only for account-owned tokens; leave empty for a normal user token.",
+    "zonesCount": "{count, plural, one {# zone} other {# zones}}",
+    "testing": "Testing"
+  },
+  "domain": {
+    "dnsSection": "DNS",
+    "manageLabel": "DNS record",
+    "manual": "I manage DNS myself",
+    "viaConnection": "Cloudflare: {name}",
+    "proxied": "Proxied (orange cloud)",
+    "proxiedHelp": "Off by default: the proxy needs to see the real host and answer certificate challenges. Turn on only if you know you want Cloudflare in front.",
+    "overwrite": "Replace an existing record with different content",
+    "syncAria": "Sync the DNS record of {host}",
+    "syncing": "Syncing",
+    "statusOk": "DNS ok",
+    "statusWarning": "DNS warning",
+    "statusError": "DNS error",
+    "addedWithWarning": "Domain added, but DNS needs attention: {message}",
+    "certLabel": "Certificate mode",
+    "certHttp": "Automatic (HTTP-01)",
+    "certDns": "DNS-01 for this host",
+    "certDnsWildcard": "DNS-01 wildcard (*.{base})",
+    "certModeAria": "Certificate mode of {host}",
+    "dnsConnectionAria": "DNS connection of {host}",
+    "needsProxyDns": "DNS-01 is not enabled on this proxy yet (Infrastructure, Proxy)."
+  },
+  "proxy": {
+    "title": "DNS-01 certificates",
+    "description": "Adds a second ACME resolver that proves domain ownership through your DNS provider. It issues wildcard certificates (for example for pull request previews) without the host being reachable on port 80.",
+    "proxyOn": "Proxy on",
+    "hostOption": "aoox host",
+    "selectProxy": "Choose the proxy",
+    "connection": "DNS connection",
+    "chooseConnection": "Choose a connection",
+    "noConnections": "No DNS connection yet. Add one in Settings, Integrations.",
+    "enable": "Enable DNS-01",
+    "disable": "Disable",
+    "working": "Working",
+    "stateActive": "Active",
+    "stateInactive": "Off",
+    "statePending": "Not applied yet",
+    "stateProxyDown": "Proxy not running",
+    "usingConnection": "Using {name}",
+    "needsEmail": "Set an ACME email for this proxy first: DNS-01 uses the same ACME account email.",
+    "usedBy": "Used by: {list}",
+    "tokenNote": "The token is passed to the proxy container as an environment variable, so it is visible to anyone who can run docker inspect on that machine, like other secrets aoox hands to containers.",
+    "recreateTitle": "Recreate the proxy?",
+    "recreateDescription": "Changing DNS-01 recreates the proxy: a few seconds without service for every domain on it. Certificates and other routes stay.",
+    "recreateConfirm": "Recreate and continue",
+    "enabled": "DNS-01 enabled",
+    "disabled": "DNS-01 disabled"
+  },
+  "previews": {
+    "wildcardLabel": "Wildcard certificate for previews",
+    "wildcardHelp": "Issue one DNS-01 certificate for *.{domain} instead of one per pull request. Needs DNS-01 on the proxy and a wildcard DNS record.",
+    "wildcardNeedsDns": "Enable DNS-01 on the proxy first (Infrastructure, Proxy).",
+    "wildcardNeedsDomain": "Set a preview domain in Settings first."
+  }
+}

@@ -14,6 +14,7 @@ import { ApplicationSecretSource } from "@/components/custom/application-secret-
 import { ApplicationMonitor } from "@/components/custom/application-monitor"
 import { ApplicationMaintenance } from "@/components/custom/application-maintenance"
 import { ResourceAlertsCard } from "@/components/custom/resource-alerts-card"
+import type { DnsConnection } from "@/features/dns/dns.entity"
 import type { ResourceAlertsView } from "@/features/resource-alert/resource-alert.entity"
 import { MetricsPanel } from "@/components/custom/metrics-panel"
 import { PreviewsPanel } from "@/components/custom/previews-panel"
@@ -87,6 +88,8 @@ export function ApplicationTabs({
   secretConnections,
   servers,
   previews,
+  dnsConnections,
+  proxyDnsEnabled,
   canBind,
   swarmActive,
   swarmNodes,
@@ -119,6 +122,10 @@ export function ApplicationTabs({
   secretConnections: SecretConnection[]
   servers: Server[]
   previews: PreviewDeployment[]
+  /** DNS provider connections a domain can use (names only). */
+  dnsConnections: DnsConnection[]
+  /** The proxy serving this app has DNS-01 (wildcard certificates). */
+  proxyDnsEnabled: boolean
   canBind: boolean
   swarmActive: boolean
   swarmNodes: SwarmNode[]
@@ -187,6 +194,8 @@ export function ApplicationTabs({
           canEdit={app.projectRole !== "viewer"}
           proxy={proxy}
           deployed={!!app.currentImage}
+          dnsConnections={dnsConnections}
+          proxyDnsEnabled={proxyDnsEnabled}
         />
       </TabsContent>
       <TabsContent value="mounts" className="pt-4">
@@ -251,6 +260,10 @@ export function ApplicationTabs({
             enabled={app.previewsEnabled}
             initial={previews}
             proxyHttpPort={proxy.httpPort}
+            previewDomain={app.previewDomain}
+            wildcardCert={app.previewWildcardCert ?? false}
+            proxyDnsEnabled={proxyDnsEnabled}
+            canEdit={app.projectRole !== "viewer"}
           />
         </div>
       </TabsContent>

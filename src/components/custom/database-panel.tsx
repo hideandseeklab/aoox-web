@@ -111,7 +111,9 @@ export function DatabasePanel({
       {(schemas.length > 1 || canManageDatabases) && (
         <div className="flex flex-wrap items-center gap-2 text-xs">
           <Database className="size-4 text-muted-foreground" />
-          <span className="text-muted-foreground">{t("panel.connectionFor")}</span>
+          <span className="text-muted-foreground">
+            {t("panel.connectionFor")}
+          </span>
           <Select value={selected ?? ""} onValueChange={setSelected}>
             <SelectTrigger size="sm" className="w-64 font-mono text-xs">
               <SelectValue />
@@ -156,7 +158,9 @@ export function DatabasePanel({
         <CardContent className="grid gap-x-8 gap-y-6 lg:grid-cols-2">
           <section className="min-w-0 space-y-3">
             <div className="space-y-1">
-              <h3 className="text-sm font-medium">{t("panel.internal.title")}</h3>
+              <h3 className="text-sm font-medium">
+                {t("panel.internal.title")}
+              </h3>
               <p className="text-xs/relaxed text-muted-foreground">
                 {t.rich("panel.internal.description", {
                   code: (chunks) => <code>{chunks}</code>,
@@ -165,7 +169,11 @@ export function DatabasePanel({
             </div>
             <DetailList
               items={[
-                { label: tc("labels.host"), value: connection.internalHost, mono: true },
+                {
+                  label: tc("labels.host"),
+                  value: connection.internalHost,
+                  mono: true,
+                },
                 {
                   label: tc("labels.port"),
                   value: String(connection.internalPort),
@@ -180,7 +188,11 @@ export function DatabasePanel({
                       },
                     ]
                   : []),
-                { label: t("panel.fields.user"), value: connection.username, mono: true },
+                {
+                  label: t("panel.fields.user"),
+                  value: connection.username,
+                  mono: true,
+                },
                 {
                   label: tc("labels.password"),
                   value: reveal ? connection.password : "••••••••",
@@ -198,7 +210,9 @@ export function DatabasePanel({
           </section>
           <section className="min-w-0 space-y-3">
             <div className="space-y-1">
-              <h3 className="text-sm font-medium">{t("panel.external.title")}</h3>
+              <h3 className="text-sm font-medium">
+                {t("panel.external.title")}
+              </h3>
               <p className="text-xs/relaxed text-muted-foreground">
                 {connection.externalUrl
                   ? t("panel.external.published", {
@@ -237,45 +251,49 @@ export function DatabasePanel({
         </CardContent>
       </Card>
 
-      <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
-        <DialogTrigger asChild>
-          <Button variant="destructive" size="sm">
-            <Trash2 data-icon="inline-start" />
-            {t("panel.delete.trigger")}
-          </Button>
-        </DialogTrigger>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>{t("panel.delete.title", { name: db.name })}</DialogTitle>
-            <DialogDescription>
-              {t("panel.delete.description")}
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setDeleteOpen(false)}>
-              {tc("actions.cancel")}
+      {db.projectRole !== "viewer" && (
+        <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+          <DialogTrigger asChild>
+            <Button variant="destructive" size="sm">
+              <Trash2 data-icon="inline-start" />
+              {t("panel.delete.trigger")}
             </Button>
-            <Button
-              variant="outline"
-              disabled={pending}
-              onClick={() =>
-                start(() => deleteDatabaseAction(db.id, db.projectId, false))
-              }
-            >
-              {t("panel.delete.keepData")}
-            </Button>
-            <Button
-              variant="destructive"
-              disabled={pending}
-              onClick={() =>
-                start(() => deleteDatabaseAction(db.id, db.projectId, true))
-              }
-            >
-              {t("panel.delete.withData")}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>
+                {t("panel.delete.title", { name: db.name })}
+              </DialogTitle>
+              <DialogDescription>
+                {t("panel.delete.description")}
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter className="gap-2">
+              <Button variant="outline" onClick={() => setDeleteOpen(false)}>
+                {tc("actions.cancel")}
+              </Button>
+              <Button
+                variant="outline"
+                disabled={pending}
+                onClick={() =>
+                  start(() => deleteDatabaseAction(db.id, db.projectId, false))
+                }
+              >
+                {t("panel.delete.keepData")}
+              </Button>
+              <Button
+                variant="destructive"
+                disabled={pending}
+                onClick={() =>
+                  start(() => deleteDatabaseAction(db.id, db.projectId, true))
+                }
+              >
+                {t("panel.delete.withData")}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   )
 }
@@ -327,9 +345,7 @@ function AddDatabaseDialog({
       <DialogContent className="sm:max-w-sm">
         <DialogHeader>
           <DialogTitle>{t("panel.add.title")}</DialogTitle>
-          <DialogDescription>
-            {t("panel.add.description")}
-          </DialogDescription>
+          <DialogDescription>{t("panel.add.description")}</DialogDescription>
         </DialogHeader>
         <form
           className="space-y-3"

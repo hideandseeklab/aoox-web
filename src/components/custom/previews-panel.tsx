@@ -6,6 +6,7 @@ import { useEffect, useState, useTransition } from "react"
 import { LogViewer } from "@/components/custom/log-viewer"
 import { EmptyState } from "@/components/custom/empty-state"
 import { Badge } from "@/components/ui/badge"
+import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -18,6 +19,8 @@ import {
   deletePreviewAction,
   fetchPreviewsAction,
 } from "@/features/application/application.actions"
+import { Switch } from "@/components/ui/switch"
+import { setPreviewWildcardAction } from "@/features/dns/dns.actions"
 import type { PreviewDeployment } from "@/features/application/preview.entity"
 
 const POLL_MS = 5_000
@@ -31,13 +34,25 @@ export function PreviewsPanel({
   enabled,
   initial,
   proxyHttpPort,
+  previewDomain,
+  wildcardCert,
+  proxyDnsEnabled,
+  canEdit,
 }: {
   applicationId: string
   enabled: boolean
   initial: PreviewDeployment[]
   proxyHttpPort: number
+  /** Base domain of the previews; null = the API default (PREVIEW_DOMAIN). */
+  previewDomain: string | null
+  wildcardCert: boolean
+  /** The proxy serving this app has DNS-01. */
+  proxyDnsEnabled: boolean
+  canEdit: boolean
 }) {
   const t = useTranslations("applications")
+  const td = useTranslations("dns.previews")
+  const [wildcard, setWildcard] = useState(wildcardCert)
   const [previews, setPreviews] = useState(initial)
   const [open, setOpen] = useState<string | null>(null)
   const [pending, start] = useTransition()
@@ -65,6 +80,14 @@ export function PreviewsPanel({
       else setPreviews(await fetchPreviewsAction(applicationId))
     })
 
+  const toggleWildcard = (next: boolean) =>
+    start(async () => {
+      setError(null)
+      const r = await setPreviewWildcardAction(applicationId, next)
+      if (!r.ok) return void toast.error(r.error)
+      setWildcard(next)
+    })
+
   return (
     <Card>
       <CardHeader>
@@ -76,6 +99,23 @@ export function PreviewsPanel({
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-2 text-xs">
+        {(proxyDnsEnabled || wildcard) && (
+          <div className="space-y-1 rounded-md border px-3 py-2">
+            <label className="flex items-center gap-2">
+              <Switch
+                checked={wildcard}
+                disabled={!canEdit || pending || (!previewDomain && !wildcard)}
+                onCheckedChange={toggleWildcard}
+              />
+              {td("wildcardLabel")}
+            </label>
+            <p className="text-muted-foreground">
+              {previewDomain
+                ? td("wildcardHelp", { domain: previewDomain })
+                : td("wildcardNeedsDomain")}
+            </p>
+          </div>
+        )}
         {previews.length === 0 ? (
           <EmptyState icon={GitPullRequest} compact>
             {t("previews.empty")}
@@ -101,7 +141,9 @@ export function PreviewsPanel({
                             : "secondary"
                       }
                     >
-                      {p.status === "building" ? t("previews.building") : p.status}
+                      {p.status === "building"
+                        ? t("previews.building")
+                        : p.status}
                     </Badge>
                     <span className="ms-auto" />
                     {href && p.status === "running" && (
