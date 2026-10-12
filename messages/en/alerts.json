@@ -1,0 +1,41 @@
+{
+  "title": "Resource alerts",
+  "description": "Sends a notification when CPU or memory stays above a threshold for a set time, and again when it is back to normal. Checked once a minute from the stored metrics.",
+  "active": "Active",
+  "metrics": {
+    "cpu": "CPU",
+    "memory": "Memory"
+  },
+  "hint": {
+    "cpu": "Percent of one CPU core, so it can go above 100 on several cores.",
+    "cpuLimit": "Percent of one CPU core. The container is limited to {cores} cores.",
+    "memory": "Percent of the memory limit. No limit is set, so this is the host's RAM.",
+    "memoryLimit": "Percent of the {limit} MB memory limit."
+  },
+  "fields": {
+    "threshold": "Above",
+    "duration": "For",
+    "percent": "{n}%",
+    "minutes": "{n} min"
+  },
+  "state": {
+    "disabled": "disabled",
+    "ok": "normal",
+    "pending": "checking",
+    "alerting": "alerting"
+  },
+  "reading": {
+    "none": "No reading yet",
+    "last": "Last reading {value}%",
+    "since": "Alerting since {when}"
+  },
+  "note": "No alerts are sent while it is stopped or deploying. A reminder is sent every 6 hours while the value stays high.",
+  "toast": {
+    "saving": "Saving alerts…",
+    "saved": "Alert rules saved",
+    "enabling": "Enabling alert…",
+    "enabled": "Alert enabled",
+    "disabling": "Disabling alert…",
+    "disabled": "Alert disabled"
+  }
+}

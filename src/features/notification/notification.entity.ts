@@ -20,6 +20,7 @@ export interface Notification {
   onAppError: boolean
   onServerDown: boolean
   onHttpDown: boolean
+  onResourceAlert: boolean
   createdAt: string
 }
 

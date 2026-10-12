@@ -224,7 +224,8 @@
   "status": {
     "notDeployed": "belum deploy",
     "service": "layanan {running}/{desired}",
-    "serviceUpdating": "layanan {running}/{desired} · {state}"
+    "serviceUpdating": "layanan {running}/{desired} · {state}",
+    "maintenance": "Perawatan"
   },
   "shared": {
     "envRefs": "Nilai bisa merujuk <code>{projectRef}</code> dan <code>{databaseRef}</code>.",
@@ -555,6 +556,24 @@
       "removed": "Sumber secret dihapus",
       "fetchingKeys": "Mengambil daftar key…",
       "keyCount": "{count} key"
+    }
+  },
+  "maintenance": {
+    "title": "Mode perawatan",
+    "description": "Menampilkan halaman perawatan dengan HTTP 503 di setiap domain aplikasi ini. Container tetap berjalan; yang berubah hanya routing.",
+    "switch": "Aktif",
+    "message": "Pesan halaman",
+    "placeholder": "Kami sedang melakukan perawatan terjadwal. Silakan cek kembali sebentar lagi.",
+    "messageHint": "Teks biasa, maksimal {max} karakter. Kosongkan untuk memakai pesan standar.",
+    "counter": "{count}/{max}",
+    "save": "Simpan pesan",
+    "remote": "Belum tersedia untuk aplikasi di server remote.",
+    "scope": "Preview deployment dan akses langsung lewat port host tidak terpengaruh.",
+    "toast": {
+      "on": "Mode perawatan dinyalakan",
+      "off": "Mode perawatan dimatikan",
+      "saved": "Pesan perawatan disimpan",
+      "saving": "Menyimpan…"
     }
   },
   "webhook": {

@@ -519,6 +519,30 @@ export async function setWebhookSecretAction(
   }
 }
 
+/** Maintenance mode state as the API answers it (the message is plain text). */
+export interface MaintenanceState {
+  enabled: boolean
+  message: string | null
+  effectiveMessage: string
+}
+
+/** PUT: switches maintenance mode and saves the page text (developers and owners). */
+export async function setMaintenanceAction(
+  applicationId: string,
+  input: { enabled: boolean; message: string }
+): Promise<ActionResult<MaintenanceState>> {
+  try {
+    const data = await api<MaintenanceState>(
+      `/applications/${applicationId}/maintenance`,
+      { method: "PUT", body: input, token: await requireToken() }
+    )
+    revalidatePath(`/applications/${applicationId}`)
+    return { ok: true, data }
+  } catch (err) {
+    return await fail(err)
+  }
+}
+
 /** Polled by the previews panel while a preview is building. */
 export async function fetchPreviewsAction(
   applicationId: string

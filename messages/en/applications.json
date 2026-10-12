@@ -224,7 +224,8 @@
   "status": {
     "notDeployed": "not deployed",
     "service": "service {running}/{desired}",
-    "serviceUpdating": "service {running}/{desired} · {state}"
+    "serviceUpdating": "service {running}/{desired} · {state}",
+    "maintenance": "Maintenance"
   },
   "shared": {
     "envRefs": "Values can reference <code>{projectRef}</code> and <code>{databaseRef}</code>.",
@@ -555,6 +556,24 @@
       "removed": "Secret source removed",
       "fetchingKeys": "Fetching the key list…",
       "keyCount": "{count, plural, one {# key} other {# keys}}"
+    }
+  },
+  "maintenance": {
+    "title": "Maintenance mode",
+    "description": "Shows a maintenance page with HTTP 503 on every domain of this application. The container keeps running; only the routing changes.",
+    "switch": "Enabled",
+    "message": "Page message",
+    "placeholder": "We are performing scheduled maintenance. Please check back shortly.",
+    "messageHint": "Plain text, up to {max} characters. Leave it empty for the default message.",
+    "counter": "{count}/{max}",
+    "save": "Save message",
+    "remote": "Not available for applications on a remote server yet.",
+    "scope": "Preview deployments and direct access through the host port are not affected.",
+    "toast": {
+      "on": "Maintenance mode is on",
+      "off": "Maintenance mode is off",
+      "saved": "Maintenance message saved",
+      "saving": "Saving…"
     }
   },
   "webhook": {

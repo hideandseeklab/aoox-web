@@ -1,0 +1,41 @@
+{
+  "title": "Peringatan sumber daya",
+  "description": "Mengirim notifikasi saat CPU atau memori bertahan di atas ambang selama waktu tertentu, dan sekali lagi saat sudah kembali normal. Dicek setiap menit dari metrik yang tersimpan.",
+  "active": "Aktif",
+  "metrics": {
+    "cpu": "CPU",
+    "memory": "Memori"
+  },
+  "hint": {
+    "cpu": "Persen dari satu core CPU, jadi bisa lebih dari 100 pada beberapa core.",
+    "cpuLimit": "Persen dari satu core CPU. Kontainer dibatasi hingga {cores} core.",
+    "memory": "Persen dari batas memori. Batas belum diatur, jadi ini RAM host.",
+    "memoryLimit": "Persen dari batas memori {limit} MB."
+  },
+  "fields": {
+    "threshold": "Di atas",
+    "duration": "Selama",
+    "percent": "{n}%",
+    "minutes": "{n} mnt"
+  },
+  "state": {
+    "disabled": "nonaktif",
+    "ok": "normal",
+    "pending": "memeriksa",
+    "alerting": "memperingatkan"
+  },
+  "reading": {
+    "none": "Belum ada pembacaan",
+    "last": "Pembacaan terakhir {value}%",
+    "since": "Memperingatkan sejak {when}"
+  },
+  "note": "Peringatan tidak dikirim saat berhenti atau sedang deploy. Pengingat dikirim setiap 6 jam selama nilainya tetap tinggi.",
+  "toast": {
+    "saving": "Menyimpan peringatan…",
+    "saved": "Aturan peringatan disimpan",
+    "enabling": "Mengaktifkan peringatan…",
+    "enabled": "Peringatan diaktifkan",
+    "disabling": "Menonaktifkan peringatan…",
+    "disabled": "Peringatan dinonaktifkan"
+  }
+}

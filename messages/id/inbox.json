@@ -105,6 +105,16 @@
         "summary": "{downFor, select, none {Kembali online.} other {Mati selama {downFor}}}"
       }
     },
+    "resourceAlert": {
+      "alert": {
+        "title": "{reminder, select, true {{metric, select, cpu {CPU masih tinggi} other {Memori masih tinggi}}: {name}} other {{metric, select, cpu {CPU tinggi} other {Memori tinggi}}: {name}}}",
+        "summary": "{project, select, none {} other {{project} · }}{value, select, none {} other {{value}% · }}di atas {threshold}% selama {minutes} mnt"
+      },
+      "recovered": {
+        "title": "{metric, select, cpu {CPU kembali normal} other {Memori kembali normal}}: {name}",
+        "summary": "{project, select, none {} other {{project} · }}{duration, select, none {Sudah di bawah ambang lagi.} other {Tinggi selama {duration}}}"
+      }
+    },
     "httpDown": {
       "down": {
         "title": "{reminder, select, true {Cek HTTP masih gagal: {application}} other {Cek HTTP gagal: {application}}}",

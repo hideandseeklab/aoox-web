@@ -165,7 +165,8 @@
       "onContainerDown": "container mati",
       "onAppError": "error di log aplikasi",
       "onServerDown": "server remote tidak terjangkau",
-      "onHttpDown": "monitor HTTP gagal"
+      "onHttpDown": "monitor HTTP gagal",
+      "onResourceAlert": "peringatan CPU atau memori"
     },
     "hints": {
       "telegram": "Buat bot lewat @BotFather, tambahkan ke grup/chat, lalu isi token dan chat ID (grup biasanya negatif).",
@@ -330,6 +331,8 @@
       "patchApplicationsBackupSchedule": "Ubah jadwal backup volume",
       "postApplicationsJobs": "Buat job",
       "putApplicationsMonitor": "Atur monitor HTTP",
+      "putApplicationsAlerts": "Atur peringatan sumber daya aplikasi",
+      "putDatabasesAlerts": "Atur peringatan sumber daya database",
       "postApplicationsMonitorCheck": "Periksa monitor HTTP",
       "putApplicationsSecretSource": "Atur sumber secret",
       "postApplicationsSecretSourcePreview": "Lihat key sumber secret",

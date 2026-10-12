@@ -72,6 +72,7 @@ const EVENTS: Array<keyof Notification & `on${string}`> = [
   "onAppError",
   "onServerDown",
   "onHttpDown",
+  "onResourceAlert",
 ]
 
 /** `onDeploymentStarted` and `onAppError` default off (API default too) —

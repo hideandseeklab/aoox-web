@@ -31,6 +31,8 @@ import {
 } from "@/features/database-companion/database-companion.queries"
 import { listJobs } from "@/features/job/job.queries"
 import { fetchMetricsAction } from "@/features/monitoring/monitoring.actions"
+import { getResourceAlerts } from "@/features/resource-alert/resource-alert.queries"
+import { ResourceAlertsCard } from "@/components/custom/resource-alerts-card"
 import { ENGINE_LABEL } from "@/features/managed-database/managed-database.entity"
 import {
   getDatabase,
@@ -61,6 +63,7 @@ export default async function DatabasePage({
     jobs,
     companion,
     companionTools,
+    alerts,
   ] = await Promise.all([
     getDatabaseCredentials(db.id),
     listBackups(db.id),
@@ -75,6 +78,7 @@ export default async function DatabasePage({
     listJobs({ kind: "database", id: db.id }),
     getCompanion(db.id),
     listCompanionOptions(db.id),
+    getResourceAlerts("database", db.id).catch(() => null),
   ])
   // Same roles that may write through the data browser / add bind mounts (owner/admin).
   const canWrite = session ? canUseTerminal(session.user) : false
@@ -158,6 +162,14 @@ export default async function DatabasePage({
             initial={metrics}
             running={running}
           />
+          {alerts && (
+            <ResourceAlertsCard
+              kind="database"
+              id={db.id}
+              initial={alerts}
+              canEdit={db.projectRole !== "viewer"}
+            />
+          )}
           <DatabasePanel
             db={db}
             connection={connection}

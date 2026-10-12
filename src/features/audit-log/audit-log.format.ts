@@ -69,6 +69,8 @@ export const ACTION_KEY: Record<string, string> = {
   "PATCH /applications/:id/backup-schedule": "patchApplicationsBackupSchedule",
   "POST /applications/:id/jobs": "postApplicationsJobs",
   "PUT /applications/:id/monitor": "putApplicationsMonitor",
+  "PUT /applications/:id/alerts": "putApplicationsAlerts",
+  "PUT /databases/:id/alerts": "putDatabasesAlerts",
   "POST /applications/:id/monitor/check": "postApplicationsMonitorCheck",
   "PUT /applications/:id/secret-source": "putApplicationsSecretSource",
   "POST /applications/:id/secret-source/preview":

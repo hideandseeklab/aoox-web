@@ -105,6 +105,16 @@
         "summary": "{downFor, select, none {Back online.} other {Down for {downFor}}}"
       }
     },
+    "resourceAlert": {
+      "alert": {
+        "title": "{reminder, select, true {{metric, select, cpu {CPU still high} other {Memory still high}}: {name}} other {{metric, select, cpu {CPU high} other {Memory high}}: {name}}}",
+        "summary": "{project, select, none {} other {{project} · }}{value, select, none {} other {{value}% · }}above {threshold}% for {minutes} min"
+      },
+      "recovered": {
+        "title": "{metric, select, cpu {CPU back to normal} other {Memory back to normal}}: {name}",
+        "summary": "{project, select, none {} other {{project} · }}{duration, select, none {Below the threshold again.} other {High for {duration}}}"
+      }
+    },
     "httpDown": {
       "down": {
         "title": "{reminder, select, true {HTTP check still failing: {application}} other {HTTP check failing: {application}}}",

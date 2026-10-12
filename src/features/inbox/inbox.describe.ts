@@ -241,6 +241,36 @@ const BUILDERS: Record<string, Builder> = {
       failedChecks: orNone(num(p, "failedChecks")),
     }
   },
+  "resourceAlert.alert": (p) => {
+    const name = str(p, "name")
+    const metric = str(p, "metric")
+    const threshold = num(p, "threshold")
+    const minutes = num(p, "durationMinutes")
+    if (!name || (metric !== "cpu" && metric !== "memory") || threshold === null || minutes === null)
+      return null
+    return {
+      name,
+      metric,
+      kind: str(p, "kind") === "database" ? "database" : "application",
+      project: orNone(str(p, "project")),
+      value: orNone(num(p, "value")),
+      threshold,
+      minutes,
+      reminder: flag(p, "reminder"),
+    }
+  },
+  "resourceAlert.recovered": (p, ctx) => {
+    const name = str(p, "name")
+    const metric = str(p, "metric")
+    if (!name || (metric !== "cpu" && metric !== "memory")) return null
+    return {
+      name,
+      metric,
+      project: orNone(str(p, "project")),
+      threshold: orNone(num(p, "threshold")),
+      duration: orNone(duration(num(p, "breachSeconds"), ctx)),
+    }
+  },
   "httpDown.recovered": (p, ctx) => {
     const application = str(p, "application")
     if (!application) return null

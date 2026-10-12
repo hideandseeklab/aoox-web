@@ -72,6 +72,10 @@ export interface Application {
   previewsEnabled: boolean
   /** Base for `<appName>-pr<N>.<domain>`; null = PREVIEW_DOMAIN of the API. */
   previewDomain: string | null
+  /** Maintenance mode: every domain shows a 503 page instead (routing only). */
+  maintenanceEnabled: boolean
+  /** Text of the maintenance page; null = the default message. */
+  maintenanceMessage: string | null
   status: ApplicationStatus
   currentImage: string | null
   createdAt: string

@@ -86,6 +86,7 @@ const base = (t: Translate) =>
     onAppError: z.boolean(),
     onServerDown: z.boolean(),
     onHttpDown: z.boolean(),
+    onResourceAlert: z.boolean(),
   })
 
 type Fields =
@@ -143,6 +144,7 @@ export async function createNotificationAction(
     onAppError: formData.get("onAppError") === "on",
     onServerDown: formData.get("onServerDown") === "on",
     onHttpDown: formData.get("onHttpDown") === "on",
+    onResourceAlert: formData.get("onResourceAlert") === "on",
   })
   const parsedType = schema(t).safeParse({
     ...values,

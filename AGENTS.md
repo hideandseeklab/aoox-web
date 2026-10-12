@@ -127,7 +127,7 @@ Read `AGENTS.md` — this version of Next.js has breaking changes; check `node_m
   of them (a dynamic import with a static prefix, so the bundler includes every file, nothing is read from disk at runtime) and merges them into `{ [namespace]: content }`.
   Nested keys are fine (`groups.platform`); camelCase leaf names; ICU placeholders (`{count}`, `{version}`) must be identical in both languages. English is the reference file.
   - Namespaces: `nav`, `breadcrumb`, `inbox`, `commandPalette`, `userMenu` (shell), `common` (shared buttons, states, labels, generic messages: reuse these before adding a key elsewhere),
-    `logViewer`, `validation` (zod and server-action messages), `auth`, `dashboard`, `projects`, `applications`, `compose`, `database`, `settings`, `infra`, `docker`, `registry`,
+    `logViewer`, `validation` (zod and server-action messages), `alerts` (resource alert rules card), `auth`, `dashboard`, `projects`, `applications`, `compose`, `database`, `settings`, `infra`, `docker`, `registry`,
     `terminal`, `templates`. An empty `{}` file is a namespace nobody has filled yet.
   - To add text: put the key in the right namespace file in **both** languages (one area = one owner, so parallel work does not touch the same file), then
     `useTranslations("namespace")` (client or server component) / `getTranslations` (async server code) and `t("key", { count })`.
@@ -201,6 +201,7 @@ Read `AGENTS.md` — this version of Next.js has breaking changes; check `node_m
   and a Settings tab (`application-form.tsx`, also used for create). The application tabs (Deploy/Domain/Mount/Jobs/Webhook/Settings) are now rendered by
   `application-tabs.tsx` (client, **controlled** `Tabs` via `useState`) instead of `<Tabs defaultValue>` directly in `page.tsx` — this is needed so that the button in
   `application-deploy-panel.tsx` (access nudge) can switch tabs from outside.
+- **Maintenance mode card** (`application-maintenance.tsx`, first card of the Settings tab, `setMaintenanceAction` → `PUT /applications/:id/maintenance`): the switch publishes at once with the text in the box, the message has its own Save button (280 characters, plain text). Viewers see the state read-only; remote-server apps show a note (the API refuses them). The status strip shows a "Maintenance" badge while `maintenanceEnabled` is true. Routing lives in the API (see aoox-api AGENTS "Maintenance mode"), not in the web.
 - **Access step on create** (`application-form.tsx`, prop `mode: "create" | "edit"` — only create shows this; edit keeps the Host port field + the separate Domain tab as before): a segmented tab (shadcn `Tabs`, same pattern as `compose-domains.tsx`) **IP & port** / **Domain** / **`"Later"`**. "IP & port" reuses the same `hostPort` field (same field name, only moved during create). "Domain" (host + HTTPS switch, disabled without `proxy.acmeEmail`) cannot go through the create DTO (there is no domain field there yet) — its form bypasses the normal `formAction` itself (custom `onSubmit`, not `action={formAction}`) and calls the
   `onCreateWithDomain` prop (implemented by `create-application-page-form.tsx`): `createApplicationForAccessAction` (a variant of `createApplicationAction` that does **not** `redirect()`, so it can go on to call `addDomainAction`) → `addDomainAction` → `router.push` to the application page (with `?domainProxyAutoProvisioned=1`
   when `addDomainAction` reports that). The API `POST /applications/:id/domains` now replies with `{domain, proxyAutoProvisioned}` (not a plain `Domain`) — `addDomainAction`
@@ -410,6 +411,10 @@ Read `AGENTS.md` — this version of Next.js has breaking changes; check `node_m
 
 - Application form: the **Railpack (auto-detect, build cache)** option in the "Build method" select + an explanation (cache between deploys, needs BuildKit on the host, not for remote servers).
   The Disk card shows the results of the BuildKit cache prune (`CleanupReport.buildkitCache`).
+
+## Resource alerts card
+
+- `components/custom/resource-alerts-card.tsx` (client, `kind: "application" | "database"`): CPU and memory rule per section (switch + state badge + last reading, "Above" and "For" selects, a hint that says what the percentage refers to). Switches save at once (`saveResourceAlertsAction` → `PUT /applications|databases/:id/alerts`), the selects need Save; viewers (`projectRole === "viewer"`) get disabled controls and no Save. Mounted under the HTTP monitor on the application's Monitor tab (`application-tabs.tsx`, prop `alerts`, null when the API lacks the endpoint) and on the database Overview tab. Data: `features/resource-alert/`. Messages: namespace `alerts`. A threshold that is not a preset (an imported rule) is added to the select. Inbox: `resourceAlert.alert|recovered` in `inbox.describe.ts` + `inbox.json`; audit-log keys `putApplicationsAlerts`/`putDatabasesAlerts`.
 
 ## Deploy stepper, notification bell, onboarding checklist
 

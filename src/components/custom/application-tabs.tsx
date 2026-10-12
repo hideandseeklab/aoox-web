@@ -12,6 +12,9 @@ import { ConsoleView } from "@/components/custom/console-view"
 import { ApplicationEnvironment } from "@/components/custom/application-environment"
 import { ApplicationSecretSource } from "@/components/custom/application-secret-source"
 import { ApplicationMonitor } from "@/components/custom/application-monitor"
+import { ApplicationMaintenance } from "@/components/custom/application-maintenance"
+import { ResourceAlertsCard } from "@/components/custom/resource-alerts-card"
+import type { ResourceAlertsView } from "@/features/resource-alert/resource-alert.entity"
 import { MetricsPanel } from "@/components/custom/metrics-panel"
 import { PreviewsPanel } from "@/components/custom/previews-panel"
 import { VolumeBackups } from "@/components/custom/volume-backups"
@@ -80,6 +83,7 @@ export function ApplicationTabs({
   databaseSlugs,
   metrics,
   monitor,
+  alerts,
   secretConnections,
   servers,
   previews,
@@ -110,6 +114,8 @@ export function ApplicationTabs({
   metrics: MetricsResponse
   /** null when the monitor could not be loaded: the tab is then hidden. */
   monitor: HttpMonitorView | null
+  /** CPU / memory alert rules; null when they could not be loaded (older API). */
+  alerts: ResourceAlertsView | null
   secretConnections: SecretConnection[]
   servers: Server[]
   previews: PreviewDeployment[]
@@ -214,13 +220,21 @@ export function ApplicationTabs({
         />
       </TabsContent>
       {monitor && (
-        <TabsContent value="monitor" className="pt-4">
+        <TabsContent value="monitor" className="space-y-4 pt-4">
           <ApplicationMonitor
             applicationId={app.id}
             initial={monitor}
             canEdit={app.projectRole !== "viewer"}
             running={running}
           />
+          {alerts && (
+            <ResourceAlertsCard
+              kind="application"
+              id={app.id}
+              initial={alerts}
+              canEdit={app.projectRole !== "viewer"}
+            />
+          )}
         </TabsContent>
       )}
       <TabsContent value="jobs" className="pt-4">
@@ -267,7 +281,14 @@ export function ApplicationTabs({
           </Card>
         </TabsContent>
       )}
-      <TabsContent value="settings" className="pt-4">
+      <TabsContent value="settings" className="space-y-4 pt-4">
+        <ApplicationMaintenance
+          applicationId={app.id}
+          enabled={app.maintenanceEnabled}
+          message={app.maintenanceMessage}
+          canEdit={app.projectRole !== "viewer"}
+          remote={!!app.serverId}
+        />
         <Card>
           <CardHeader>
             <CardTitle>{t("tabs.settingsTitle")}</CardTitle>

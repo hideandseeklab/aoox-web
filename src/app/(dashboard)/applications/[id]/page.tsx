@@ -30,6 +30,7 @@ import { listRegistries } from "@/features/registry/registry.queries"
 import { listGitCredentials } from "@/features/git-credential/git-credential.queries"
 import { listDatabases } from "@/features/managed-database/managed-database.queries"
 import { getHttpMonitor } from "@/features/http-monitor/http-monitor.queries"
+import { getResourceAlerts } from "@/features/resource-alert/resource-alert.queries"
 import { listSecretConnections } from "@/features/secret-connection/secret-connection.queries"
 import { fetchMetricsAction } from "@/features/monitoring/monitoring.actions"
 import { listServers } from "@/features/server/server.queries"
@@ -68,6 +69,7 @@ export default async function ApplicationPage({
     databases,
     metrics,
     monitor,
+    alerts,
     secretConnections,
     servers,
     previews,
@@ -91,6 +93,7 @@ export default async function ApplicationPage({
     listDatabases(app.projectId),
     fetchMetricsAction("application", app.id),
     getHttpMonitor(app.id).catch(() => null),
+    getResourceAlerts("application", app.id).catch(() => null),
     // Names only, for the secret source picker; [] when the API has none.
     listSecretConnections().catch(() => []),
     // Members get 403 here; they simply cannot move apps between servers.
@@ -156,6 +159,7 @@ export default async function ApplicationPage({
         databaseSlugs={databases.map((d) => d.slug)}
         metrics={metrics}
         monitor={monitor}
+        alerts={alerts}
         secretConnections={secretConnections}
         servers={servers}
         previews={previews}
@@ -175,6 +179,9 @@ export default async function ApplicationPage({
                     ? app.container.state
                     : t("status.notDeployed")}
                 </Badge>
+                {app.maintenanceEnabled && (
+                  <Badge variant="secondary">{t("status.maintenance")}</Badge>
+                )}
                 {server && <Badge variant="outline">{server.name}</Badge>}
                 {app.service && (
                   <Badge

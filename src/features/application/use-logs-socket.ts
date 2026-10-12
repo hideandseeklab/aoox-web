@@ -29,7 +29,7 @@ export function useLogsSocket(
   const [reconnectKey, setReconnectKey] = useState(0)
   const socketRef = useRef<LogsSocket | null>(null)
   const t = useTranslations("applications")
-  const connectFailed = t("logs.connectFailed")
+  const connectFailed = t("deploy.logs.connectFailed")
 
   useEffect(() => {
     if (!enabled) return

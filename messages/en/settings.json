@@ -165,7 +165,8 @@
       "onContainerDown": "container down",
       "onAppError": "errors in application log",
       "onServerDown": "remote server unreachable",
-      "onHttpDown": "HTTP monitor failed"
+      "onHttpDown": "HTTP monitor failed",
+      "onResourceAlert": "CPU or memory alert"
     },
     "hints": {
       "telegram": "Create a bot via @BotFather, add it to the group/chat, then enter the token and chat ID (groups are usually negative).",
@@ -330,6 +331,8 @@
       "patchApplicationsBackupSchedule": "Change volume backup schedule",
       "postApplicationsJobs": "Create job",
       "putApplicationsMonitor": "Configure HTTP monitor",
+      "putApplicationsAlerts": "Configure application resource alerts",
+      "putDatabasesAlerts": "Configure database resource alerts",
       "postApplicationsMonitorCheck": "Run HTTP monitor check",
       "putApplicationsSecretSource": "Configure secret source",
       "postApplicationsSecretSourcePreview": "View secret source keys",
