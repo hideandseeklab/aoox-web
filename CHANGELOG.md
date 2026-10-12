@@ -8,6 +8,8 @@ Versions below 1.0.0 may include breaking changes in a minor release.
 
 ## [Unreleased]
 
+## [0.1.0-alpha.7] - 2026-10-12
+
 ### Added
 
 - **Resource alerts card.** The application Monitor tab (below the HTTP monitor) and the database Overview tab have a "Resource alerts" card with a switch, a threshold (percent) and a duration (minutes) for CPU and for memory, the current state (normal, checking, alerting) and the last reading. Developers and up edit (switches save at once, the selects with Save); viewers see it read-only. The new "CPU or memory alert" event can be switched on per notification channel, and the bell shows these alerts in the active language. Texts live in the new `alerts` message namespace. Needs the matching API (`GET`/`PUT /applications/:id/alerts`, `/databases/:id/alerts`).
@@ -533,7 +535,8 @@ Versions below 1.0.0 may include breaking changes in a minor release.
   backups, notifications, and account/instance settings.
 - A web terminal (shell on the host or inside the API container) over WebSocket.
 
-[Unreleased]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.0-alpha.6...HEAD
+[Unreleased]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.0-alpha.7...HEAD
+[0.1.0-alpha.7]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.0-alpha.6...v0.1.0-alpha.7
 [0.1.0-alpha.6]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.0-alpha.5...v0.1.0-alpha.6
 [0.1.0-alpha.5]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.0-alpha.4...v0.1.0-alpha.5
 [0.1.0-alpha.4]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.0-alpha.3...v0.1.0-alpha.4
