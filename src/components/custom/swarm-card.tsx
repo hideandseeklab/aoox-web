@@ -89,7 +89,7 @@ export function SwarmCard({
           )}
         </div>
       </CardHeader>
-      <CardContent className="space-y-3 text-xs">
+      <CardContent className="space-y-6 text-xs">
         {status.error && <p className="text-destructive">{status.error}</p>}
 
         {status.state !== "active" && isOwner && (
@@ -118,111 +118,123 @@ export function SwarmCard({
 
         {status.isManager && (
           <>
-            <ul className="divide-y rounded-md border">
-              {status.nodes.map((n) => (
-                <li key={n.id} className="flex items-center gap-2 px-3 py-2">
-                  <div className="min-w-0 flex-1">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="font-medium">{n.hostname}</span>
-                      <Badge variant="outline">{n.role}</Badge>
-                      {n.leader && <Badge variant="outline">{t("leader")}</Badge>}
-                      <Badge
-                        variant={
-                          n.state === "ready" && n.availability === "active"
-                            ? "secondary"
-                            : "destructive"
-                        }
-                      >
-                        {n.state}
-                        {n.availability !== "active" && ` · ${n.availability}`}
-                      </Badge>
+            <section className="space-y-2">
+              <h3 className="text-xs font-medium">
+                {t("nodesTitle")} ({status.nodes.length})
+              </h3>
+              <ul className="divide-y rounded-md border">
+                {status.nodes.map((n) => (
+                  <li key={n.id} className="flex items-center gap-3 px-4 py-3">
+                    <div className="min-w-0 flex-1 space-y-1.5">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="font-medium">{n.hostname}</span>
+                        <Badge variant="outline">{n.role}</Badge>
+                        {n.leader && (
+                          <Badge variant="outline">{t("leader")}</Badge>
+                        )}
+                        <Badge
+                          variant={
+                            n.state === "ready" && n.availability === "active"
+                              ? "secondary"
+                              : "destructive"
+                          }
+                        >
+                          {n.state}
+                          {n.availability !== "active" &&
+                            ` · ${n.availability}`}
+                        </Badge>
+                      </div>
+                      <p className="truncate font-mono text-xs text-muted-foreground">
+                        {n.addr} · {n.cpus} CPU · {gb(n.memoryBytes)} ·{" "}
+                        {t("engine", { version: n.engineVersion })}
+                        {n.message && ` · ${n.message}`}
+                      </p>
+                      {isOwner ? (
+                        <NodeLabels
+                          node={n}
+                          disabled={pending}
+                          onSave={(labels) =>
+                            run(() => updateNodeAction(n.id, { labels }))
+                          }
+                        />
+                      ) : (
+                        Object.keys(n.labels).length > 0 && (
+                          <p className="font-mono text-xs text-muted-foreground">
+                            {Object.entries(n.labels)
+                              .map(([k, v]) => `${k}=${v}`)
+                              .join(" ")}
+                          </p>
+                        )
+                      )}
                     </div>
-                    <p className="truncate font-mono text-xs text-muted-foreground">
-                      {n.addr} · {n.cpus} CPU · {gb(n.memoryBytes)} ·{" "}
-                      {t("engine", { version: n.engineVersion })}
-                      {n.message && ` · ${n.message}`}
-                    </p>
-                    {isOwner ? (
-                      <NodeLabels
-                        node={n}
-                        disabled={pending}
-                        onSave={(labels) =>
-                          run(() => updateNodeAction(n.id, { labels }))
-                        }
-                      />
-                    ) : (
-                      Object.keys(n.labels).length > 0 && (
-                        <p className="font-mono text-xs text-muted-foreground">
-                          {Object.entries(n.labels)
-                            .map(([k, v]) => `${k}=${v}`)
-                            .join(" ")}
-                        </p>
-                      )
-                    )}
-                  </div>
-                  {isOwner && (
-                    <>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        disabled={pending}
-                        onClick={() =>
-                          run(() =>
-                            updateNodeAction(n.id, {
-                              availability:
-                                n.availability === "active"
-                                  ? "drain"
-                                  : "active",
-                            })
-                          )
-                        }
-                      >
-                        {n.availability === "active" ? t("drain") : t("activate")}
-                      </Button>
-                      {n.id !== status.nodeId && (
+                    {isOwner && (
+                      <>
                         <Button
                           variant="ghost"
-                          size="icon-sm"
-                          aria-label={t("removeNode")}
+                          size="sm"
                           disabled={pending}
                           onClick={() =>
                             run(() =>
-                              removeNodeAction(n.id, n.state !== "down")
+                              updateNodeAction(n.id, {
+                                availability:
+                                  n.availability === "active"
+                                    ? "drain"
+                                    : "active",
+                              })
                             )
                           }
                         >
-                          <Trash2 />
+                          {n.availability === "active"
+                            ? t("drain")
+                            : t("activate")}
                         </Button>
-                      )}
-                    </>
-                  )}
-                </li>
-              ))}
-            </ul>
+                        {n.id !== status.nodeId && (
+                          <Button
+                            variant="ghost"
+                            size="icon-sm"
+                            aria-label={t("removeNode")}
+                            disabled={pending}
+                            onClick={() =>
+                              run(() =>
+                                removeNodeAction(n.id, n.state !== "down")
+                              )
+                            }
+                          >
+                            <Trash2 />
+                          </Button>
+                        )}
+                      </>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </section>
 
             {status.joinTokens && (
-              <div className="space-y-1">
-                <p className="text-muted-foreground">
-                  {t("addNode")}
-                </p>
-                {(["worker", "manager"] as const).map((kind) => (
-                  <div key={kind} className="flex items-center gap-2">
-                    <code className="min-w-0 flex-1 truncate rounded bg-muted px-2 py-1 text-xs">
-                      {joinCmd(status.joinTokens![kind])}
-                    </code>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() =>
-                        copy(kind, joinCmd(status.joinTokens![kind]))
-                      }
-                    >
-                      <Copy data-icon="inline-start" />
-                      {copied === kind ? t("copiedShort") : kind}
-                    </Button>
-                  </div>
-                ))}
-              </div>
+              <section className="space-y-2">
+                <h3 className="text-xs font-medium">{t("joinTitle")}</h3>
+                <p className="text-muted-foreground">{t("addNode")}</p>
+                <div className="space-y-2 pt-1">
+                  {(["worker", "manager"] as const).map((kind) => (
+                    <div key={kind} className="flex items-center gap-2">
+                      <code className="min-w-0 flex-1 truncate rounded-md bg-muted px-3 py-1.5 text-xs">
+                        {joinCmd(status.joinTokens![kind])}
+                      </code>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-24 justify-center"
+                        onClick={() =>
+                          copy(kind, joinCmd(status.joinTokens![kind]))
+                        }
+                      >
+                        <Copy data-icon="inline-start" />
+                        {copied === kind ? t("copiedShort") : t(kind)}
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </section>
             )}
 
             {status.nodes.length > 1 && !status.registry.reachableFromNodes && (
@@ -233,7 +245,7 @@ export function SwarmCard({
                 })}
               </p>
             )}
-            <div className="flex flex-wrap items-center gap-3">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-t pt-4">
               <span className="text-muted-foreground">
                 {t("serviceApps", { count: status.serviceApps })}
               </span>
@@ -245,9 +257,7 @@ export function SwarmCard({
                       size="sm"
                       disabled={pending || status.serviceApps > 0}
                       title={
-                        status.serviceApps > 0
-                          ? t("leaveBlocked")
-                          : undefined
+                        status.serviceApps > 0 ? t("leaveBlocked") : undefined
                       }
                     >
                       {t("leave")}
@@ -291,7 +301,7 @@ function NodeLabels({
   const dirty = text.trim() !== initial
   return (
     <form
-      className="mt-1 flex items-center gap-1"
+      className="flex items-center gap-2 pt-1"
       onSubmit={(e) => {
         e.preventDefault()
         const labels: Record<string, string> = {}

@@ -303,7 +303,7 @@
     "drain": "Drain",
     "activate": "Activate",
     "removeNode": "Remove node",
-    "addNode": "Add a node: run this on another server (with Docker installed). Extra nodes cannot run aoox apps yet (the registry and volumes are still local) — a later stage.",
+    "addNode": "Run this on another server (with Docker installed). Applications can then run on that node: pick it per application, or let the swarm schedule them. Applications with mounts stay on this host, and images built by aoox need a registry address every node can reach.",
     "copiedShort": "Copied",
     "registryWarning": "The local registry address is <code>{url}</code> — other nodes cannot pull built images. Set <code>REGISTRY_PUBLIC_HOST</code> to a host address reachable by all nodes (and <code>insecure-registries</code> or TLS on each daemon), then re-enable the registry. Public images (Docker Hub, GHCR) are not affected.",
     "serviceApps": "{count, plural, one {# application runs as a service.} other {# applications run as services.}}",
@@ -313,7 +313,9 @@
     "leaveDescription": "This node leaves the swarm: services running there disappear, and the swarm overlay network is removed. The proxy will be reinstalled without swarm mode.",
     "labelsPlaceholder": "labels: zone=eu tier=db",
     "labelsAria": "Labels of node {hostname}",
-    "save": "Save"
+    "save": "Save",
+    "nodesTitle": "Nodes",
+    "joinTitle": "Add a node"
   },
   "update": {
     "timeoutToast": "The update is not finished after 5 minutes — the panel may need manual attention.",

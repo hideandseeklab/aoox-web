@@ -303,7 +303,7 @@
     "drain": "Drain",
     "activate": "Aktifkan",
     "removeNode": "Hapus node",
-    "addNode": "Tambah node: jalankan di server lain (Docker terpasang). Node tambahan belum bisa menjalankan app aoox (registry & volume masih lokal) — tahap berikutnya.",
+    "addNode": "Jalankan di server lain (Docker terpasang). Setelah itu aplikasi bisa berjalan di node tersebut: pilih per aplikasi, atau biarkan swarm yang menjadwalkan. Aplikasi yang punya mount tetap di host ini, dan image yang di-build aoox butuh alamat registry yang bisa dijangkau semua node.",
     "copiedShort": "Tersalin",
     "registryWarning": "Registry lokal beralamat <code>{url}</code> — node lain tidak bisa menarik image hasil build. Set <code>REGISTRY_PUBLIC_HOST</code> ke alamat host yang dijangkau semua node (dan <code>insecure-registries</code> atau TLS di tiap daemon), lalu aktifkan ulang registry. Image publik (Docker Hub, GHCR) tidak terpengaruh.",
     "serviceApps": "{count} aplikasi berjalan sebagai service.",
@@ -313,7 +313,9 @@
     "leaveDescription": "Node ini meninggalkan swarm: service yang berjalan di sana hilang, dan jaringan overlay swarm dihapus. Proxy akan dipasang ulang tanpa mode swarm.",
     "labelsPlaceholder": "label: zone=eu tier=db",
     "labelsAria": "Label node {hostname}",
-    "save": "Simpan"
+    "save": "Simpan",
+    "nodesTitle": "Node",
+    "joinTitle": "Tambah node"
   },
   "update": {
     "timeoutToast": "Update belum selesai setelah 5 menit — panel mungkin butuh perhatian manual.",

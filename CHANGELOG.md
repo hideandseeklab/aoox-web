@@ -8,6 +8,10 @@ Versions below 1.0.0 may include breaking changes in a minor release.
 
 ## [Unreleased]
 
+### UI UX Improvement
+
+- **Docker Swarm page breathes.** The card is split into "Nodes" and "Add a node" sections with headings and more space between them, node rows have more padding, the join commands sit in roomier rows, and the leave action sits on its own footer line. The Worker and Manager copy buttons have the same width and their labels are translated, and the add-node hint now says that applications can run on other nodes (applications with mounts stay on the host; built images need a registry every node can reach).
+
 ## [0.1.0-alpha.7] - 2026-10-12
 
 ### Added
