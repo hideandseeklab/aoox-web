@@ -8,12 +8,17 @@ Versions below 1.0.0 may include breaking changes in a minor release.
 
 ## [Unreleased]
 
+## [0.1.0-alpha.8] - 2026-10-12
+
 ### Added
 
 - **Edit your name and email.** The Account card shows your name and email with an Edit profile dialog; the current password field appears only when the email changes. Owners get an edit (pencil) action on each non-owner row of the Team card. Both refresh the session so the sidebar shows the new name immediately.
 
-- The CLI hint under a new API token now says `aoox update` (and `npm i -g @hideandseeklab/aoox` for a first install) instead of the `@latest` tag.
-- **CLI sign-in help.** The dialog that shows a new API token now also shows a copy-ready `aoox login --url <dashboard address> --token <token>` line with a copy button, and a hint to install or update the CLI (`npm i -g @hideandseeklab/aoox@latest`). The dashboard also serves a small public discovery document at `/.well-known/aoox.json` (`apiUrl`, `webUrl`, `version`; nothing secret) so the CLI only needs the dashboard address and finds the API itself.
+- **CLI sign-in help.** The dialog that shows a new API token now also shows a copy-ready `aoox login --url <dashboard address> --token <token>` line with a copy button, and a hint to install or update the CLI (`aoox update`, or `npm i -g @hideandseeklab/aoox` for a first install). The dashboard also serves a small public discovery document at `/.well-known/aoox.json` (`apiUrl`, `webUrl`, `version`; nothing secret) so the CLI only needs the dashboard address and finds the API itself.
+
+### Fixed
+
+- Detail pages no longer trigger 404 prefetches of `/applications`, `/databases` and `/compose`: the breadcrumb shown before a page publishes its own crumbs no longer links to these folders, which have no page.
 
 ### UI UX Improvement
 
@@ -23,6 +28,7 @@ Versions below 1.0.0 may include breaking changes in a minor release.
 - **Template card buttons on the right.** The footer buttons are right-aligned with Deploy last (website, docs, Deploy), and each has a tooltip saying what it does; a disabled Deploy explains that a project is needed first.
 - **Smaller terminal text.** The host Terminal and the application Console use 12 px text like the log viewer (was 13 px) with a tighter line height, so the text and the block cursor are in proportion with the rest of the page.
 - **Delete moved to a Danger zone.** On the application page the Delete button left the header for a red-tinted **Danger zone** card at the bottom of the Settings tab; on the project page it moved to a Danger zone under the Members card (admins only, as before). Both use the new shared `DangerZone` component.
+- **Terminal access menu.** The Infrastructure entry for the terminal's SSH settings is now called **Terminal access** (Indonesian: Akses terminal), so the sidebar no longer shows two items named "Terminal".
 - **Project page uses the resource header card.** The project title sits in the same header card as applications, databases and stacks (back button, icon tile, a line with the number of applications, stacks and databases and the creation date, Export on the right). The page no longer scrolls sideways at 375 px when a stack shows a long repository address.
 - The S3 hint in the "Enable local registry" dialog and the localhost note in the "Registry ready" dialog are shown as info alerts.
 
@@ -561,7 +567,8 @@ Versions below 1.0.0 may include breaking changes in a minor release.
   backups, notifications, and account/instance settings.
 - A web terminal (shell on the host or inside the API container) over WebSocket.
 
-[Unreleased]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.0-alpha.7...HEAD
+[Unreleased]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.0-alpha.8...HEAD
+[0.1.0-alpha.8]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.0-alpha.7...v0.1.0-alpha.8
 [0.1.0-alpha.7]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.0-alpha.6...v0.1.0-alpha.7
 [0.1.0-alpha.6]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.0-alpha.5...v0.1.0-alpha.6
 [0.1.0-alpha.5]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.0-alpha.4...v0.1.0-alpha.5
