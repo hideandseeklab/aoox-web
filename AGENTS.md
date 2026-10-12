@@ -167,6 +167,7 @@ Read `AGENTS.md` — this version of Next.js has breaking changes; check `node_m
 
 ## Principles
 
+- Tab strips use `ScrollableTabsList` + `PageTabsTrigger` (`components/custom/`) with a lucide icon per tab (same concept = same icon on every page); never put `ui/tabs` `TabsTrigger` in a strip directly.
 - Always follow the official documentation (Next.js in `node_modules/next/dist/docs/`, shadcn, etc.) for package selection and code patterns.
 
 ## Field and button height (one row)

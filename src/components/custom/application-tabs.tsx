@@ -26,8 +26,20 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs"
+import { Tabs, TabsContent } from "@/components/ui/tabs"
 import { ScrollableTabsList } from "@/components/custom/scrollable-tabs-list"
+import { PageTabsTrigger } from "@/components/custom/page-tabs-trigger"
+import {
+  Rocket,
+  Globe,
+  HardDrive,
+  KeyRound,
+  Timer,
+  Activity,
+  Webhook,
+  SquareTerminal,
+  Settings,
+} from "lucide-react"
 import { updateApplicationAction } from "@/features/application/application.actions"
 import type {
   ApplicationDetail,
@@ -148,25 +160,37 @@ export function ApplicationTabs({
   return (
     <Tabs value={tab} onValueChange={(v) => setTab(v as ApplicationTab)}>
       <ScrollableTabsList>
-        <TabsTrigger value="deploy">{t("tabs.deploy")}</TabsTrigger>
-        <TabsTrigger value="domains">
+        <PageTabsTrigger icon={Rocket} value="deploy">
+          {t("tabs.deploy")}
+        </PageTabsTrigger>
+        <PageTabsTrigger icon={Globe} value="domains">
           {t("tabs.domains", { count: domains.length })}
-        </TabsTrigger>
-        <TabsTrigger value="mounts">
+        </PageTabsTrigger>
+        <PageTabsTrigger icon={HardDrive} value="mounts">
           {t("tabs.mounts", { count: mounts.length })}
-        </TabsTrigger>
-        <TabsTrigger value="environment">{t("tabs.environment")}</TabsTrigger>
-        <TabsTrigger value="jobs">
+        </PageTabsTrigger>
+        <PageTabsTrigger icon={KeyRound} value="environment">
+          {t("tabs.environment")}
+        </PageTabsTrigger>
+        <PageTabsTrigger icon={Timer} value="jobs">
           {t("tabs.jobs", { count: jobs.length })}
-        </TabsTrigger>
+        </PageTabsTrigger>
         {monitor && (
-          <TabsTrigger value="monitor">{t("tabs.monitor")}</TabsTrigger>
+          <PageTabsTrigger icon={Activity} value="monitor">
+            {t("tabs.monitor")}
+          </PageTabsTrigger>
         )}
-        <TabsTrigger value="webhook">{t("tabs.webhook")}</TabsTrigger>
+        <PageTabsTrigger icon={Webhook} value="webhook">
+          {t("tabs.webhook")}
+        </PageTabsTrigger>
         {canUseConsole && (
-          <TabsTrigger value="console">{t("tabs.console")}</TabsTrigger>
+          <PageTabsTrigger icon={SquareTerminal} value="console">
+            {t("tabs.console")}
+          </PageTabsTrigger>
         )}
-        <TabsTrigger value="settings">{t("tabs.settings")}</TabsTrigger>
+        <PageTabsTrigger icon={Settings} value="settings">
+          {t("tabs.settings")}
+        </PageTabsTrigger>
       </ScrollableTabsList>
       {statusStrip}
       <TabsContent value="deploy" className="space-y-4 pt-4">

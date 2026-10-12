@@ -1,7 +1,7 @@
 "use client"
 
 import { PathArrow } from "@/components/custom/arrows"
-import { ExternalLink, Plus, Trash2 } from "lucide-react"
+import { ExternalLink, Plus, Trash2, Network, Globe } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { useState, useTransition } from "react"
 import { Badge } from "@/components/ui/badge"
@@ -16,8 +16,9 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
-import { Tabs, TabsTrigger } from "@/components/ui/tabs"
+import { Tabs } from "@/components/ui/tabs"
 import { ScrollableTabsList } from "@/components/custom/scrollable-tabs-list"
+import { PageTabsTrigger } from "@/components/custom/page-tabs-trigger"
 import {
   updateServiceDomainsAction,
   updateServicePortsAction,
@@ -228,8 +229,20 @@ export function ComposeAccess({
         <>
         <Tabs value={mode} onValueChange={(v) => setMode(v as Mode)}>
           <ScrollableTabsList>
-            <TabsTrigger value="domain">{t("access.tabDomain")}</TabsTrigger>
-            <TabsTrigger value="port">{t("access.ipPort")}</TabsTrigger>
+            <PageTabsTrigger
+              icon={Globe}
+              value="domain"
+              className="py-1.5"
+            >
+              {t("access.tabDomain")}
+            </PageTabsTrigger>
+            <PageTabsTrigger
+              icon={Network}
+              value="port"
+              className="py-1.5"
+            >
+              {t("access.ipPort")}
+            </PageTabsTrigger>
           </ScrollableTabsList>
         </Tabs>
 

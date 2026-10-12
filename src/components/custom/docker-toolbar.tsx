@@ -5,6 +5,8 @@ import { usePathname } from "next/navigation"
 import { useState } from "react"
 import { DockerQueryContext, DockerSearch } from "@/components/custom/docker-ui"
 import { ScrollableTabsList } from "@/components/custom/scrollable-tabs-list"
+import { PageTabsTrigger } from "@/components/custom/page-tabs-trigger"
+import { Container, Layers, HardDrive, Network } from "lucide-react"
 import {
   Select,
   SelectContent,
@@ -12,12 +14,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Tabs, TabsTrigger } from "@/components/ui/tabs"
+import { Tabs } from "@/components/ui/tabs"
 import { DOCKER_TABS, type DockerTab } from "@/features/docker/docker.entity"
 import type { Server } from "@/features/server/server.entity"
 import { useRouter } from "@/lib/use-router"
 
 const HOST = "host"
+
+const DOCKER_TAB_ICONS = {
+  containers: Container,
+  images: Layers,
+  volumes: HardDrive,
+  networks: Network,
+} as const
 
 /**
  * One toolbar row: server picker, tabs, and the search box at the right edge
@@ -76,11 +85,16 @@ export function DockerToolbar({
           onValueChange={(v) => go(serverId, v as DockerTab)}
           className="max-w-full"
         >
-          <ScrollableTabsList className="group-data-horizontal/tabs:h-7">
+          <ScrollableTabsList>
             {DOCKER_TABS.map((name) => (
-              <TabsTrigger key={name} value={name}>
+              <PageTabsTrigger
+                key={name}
+                value={name}
+                icon={DOCKER_TAB_ICONS[name]}
+                className="py-1.5"
+              >
                 {t(`tabs.${name}`)}
-              </TabsTrigger>
+              </PageTabsTrigger>
             ))}
           </ScrollableTabsList>
         </Tabs>

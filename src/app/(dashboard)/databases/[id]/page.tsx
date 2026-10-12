@@ -1,4 +1,11 @@
-import { ArrowLeft } from "lucide-react"
+import {
+  ArrowLeft,
+  LayoutDashboard,
+  Table2,
+  ArchiveRestore,
+  HardDrive,
+  Timer,
+} from "lucide-react"
 import { getProject } from "@/features/project/project.queries"
 import { SetBreadcrumb } from "@/components/custom/breadcrumb-store"
 import { EngineIcon } from "@/components/custom/brand-icon"
@@ -19,8 +26,9 @@ import { MetricsPanel } from "@/components/custom/metrics-panel"
 import { StatusStrip } from "@/components/custom/status-strip"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs"
+import { Tabs, TabsContent } from "@/components/ui/tabs"
 import { ScrollableTabsList } from "@/components/custom/scrollable-tabs-list"
+import { PageTabsTrigger } from "@/components/custom/page-tabs-trigger"
 import { canUseTerminal } from "@/features/auth/auth.entity"
 import { getVerifiedSession } from "@/features/auth/auth.session"
 import { listBackupDestinations } from "@/features/backup-destination/backup-destination.queries"
@@ -115,17 +123,21 @@ export default async function DatabasePage({
       </div>
       <Tabs defaultValue="overview">
         <ScrollableTabsList>
-          <TabsTrigger value="overview">{t("page.tabs.overview")}</TabsTrigger>
-          <TabsTrigger value="data">{t("page.tabs.data")}</TabsTrigger>
-          <TabsTrigger value="backups">
+          <PageTabsTrigger icon={LayoutDashboard} value="overview">
+            {t("page.tabs.overview")}
+          </PageTabsTrigger>
+          <PageTabsTrigger icon={Table2} value="data">
+            {t("page.tabs.data")}
+          </PageTabsTrigger>
+          <PageTabsTrigger icon={ArchiveRestore} value="backups">
             {t("page.tabs.backups", { count: backups.length })}
-          </TabsTrigger>
-          <TabsTrigger value="mounts">
+          </PageTabsTrigger>
+          <PageTabsTrigger icon={HardDrive} value="mounts">
             {t("page.tabs.mounts", { count: mounts.length })}
-          </TabsTrigger>
-          <TabsTrigger value="jobs">
+          </PageTabsTrigger>
+          <PageTabsTrigger icon={Timer} value="jobs">
             {t("page.tabs.jobs", { count: jobs.length })}
-          </TabsTrigger>
+          </PageTabsTrigger>
         </ScrollableTabsList>
         <StatusStrip
           className="pt-4"

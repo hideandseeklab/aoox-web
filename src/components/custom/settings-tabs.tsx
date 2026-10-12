@@ -3,12 +3,20 @@
 import { useTranslations } from "next-intl"
 import { usePathname, useSearchParams } from "next/navigation"
 import { useRouter } from "@/lib/use-router"
-import { Tabs, TabsTrigger } from "@/components/ui/tabs"
+import { Tabs } from "@/components/ui/tabs"
 import { ScrollableTabsList } from "@/components/custom/scrollable-tabs-list"
+import { PageTabsTrigger } from "@/components/custom/page-tabs-trigger"
+import { Plug, User, Users } from "lucide-react"
 import { SetBreadcrumb } from "./breadcrumb-store"
 
 export const SETTINGS_TABS = ["account", "team", "integrations"] as const
 export type SettingsTab = (typeof SETTINGS_TABS)[number]
+
+const SETTINGS_TAB_ICONS = {
+  account: User,
+  team: Users,
+  integrations: Plug,
+} as const
 
 /**
  * Controlled tabs whose value lives in `?tab=`, so the sidebar's Settings
@@ -41,9 +49,13 @@ export function SettingsTabs({
       />
       <ScrollableTabsList>
         {tabs.map((tab) => (
-          <TabsTrigger key={tab.value} value={tab.value}>
+          <PageTabsTrigger
+            key={tab.value}
+            value={tab.value}
+            icon={SETTINGS_TAB_ICONS[tab.value]}
+          >
             {tab.label}
-          </TabsTrigger>
+          </PageTabsTrigger>
         ))}
       </ScrollableTabsList>
       {children}

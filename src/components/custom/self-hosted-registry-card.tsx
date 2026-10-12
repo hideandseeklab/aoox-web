@@ -1,6 +1,6 @@
 "use client"
 
-import { Copy, Play, Trash2, Trash } from "lucide-react"
+import { Copy, Info, Play, Trash2, Trash } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { useState, useTransition } from "react"
 import { toast } from "sonner"
@@ -243,9 +243,7 @@ export function SelfHostedRegistryCard({
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>{t("provision.title")}</DialogTitle>
-            <DialogDescription>
-              {t("provision.description")}
-            </DialogDescription>
+            <DialogDescription>{t("provision.description")}</DialogDescription>
           </DialogHeader>
           <div className="space-y-1.5">
             <Label htmlFor="registry-storage">{t("storage")}</Label>
@@ -254,7 +252,9 @@ export function SelfHostedRegistryCard({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent position="popper">
-                <SelectItem value="local">{t("provision.localDisk")}</SelectItem>
+                <SelectItem value="local">
+                  {t("provision.localDisk")}
+                </SelectItem>
                 {destinations.map((d) => (
                   <SelectItem key={d.id} value={d.id}>
                     {t("provision.s3Option", { name: d.name })}
@@ -262,12 +262,15 @@ export function SelfHostedRegistryCard({
                 ))}
               </SelectContent>
             </Select>
-            {destinations.length === 0 && (
-              <p className="text-xs text-muted-foreground">
-                {t("provision.noDestinations")}
-              </p>
-            )}
           </div>
+          {destinations.length === 0 && (
+            <Alert>
+              <Info />
+              <AlertDescription>
+                {t("provision.noDestinations")}
+              </AlertDescription>
+            </Alert>
+          )}
           <DialogFooter>
             <Button variant="outline" onClick={() => setProvisionOpen(false)}>
               {t("cancel")}
@@ -298,9 +301,7 @@ export function SelfHostedRegistryCard({
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>{t("ready.title")}</DialogTitle>
-            <DialogDescription>
-              {t("ready.description")}
-            </DialogDescription>
+            <DialogDescription>{t("ready.description")}</DialogDescription>
           </DialogHeader>
           {creds && (
             <div className="space-y-2 text-xs">
@@ -311,15 +312,18 @@ export function SelfHostedRegistryCard({
                 label={t("login")}
                 value={`docker login ${creds.registry.url} -u ${creds.username}`}
               />
-              {creds.registry.url.startsWith("localhost:") && (
-                <p className="text-xs text-muted-foreground">
-                  {t.rich("ready.localhostNote", {
-                    code: (c) => <code>{c}</code>,
-                    b: (c) => <strong>{c}</strong>,
-                  })}
-                </p>
-              )}
             </div>
+          )}
+          {creds?.registry.url.startsWith("localhost:") && (
+            <Alert>
+              <Info />
+              <AlertDescription>
+                {t.rich("ready.localhostNote", {
+                  code: (c) => <code>{c}</code>,
+                  b: (c) => <strong>{c}</strong>,
+                })}
+              </AlertDescription>
+            </Alert>
           )}
           <DialogFooter>
             <Button onClick={() => setCreds(null)}>{t("ready.saved")}</Button>

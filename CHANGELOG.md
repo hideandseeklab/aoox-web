@@ -10,6 +10,7 @@ Versions below 1.0.0 may include breaking changes in a minor release.
 
 ### UI UX Improvement
 
+- **One tab style with icons.** Every tab strip (application, database, compose stack, registry, settings, Docker, and the small Access switches in forms) now has an icon next to each label, no background, and a 2px accent underline under the active tab that sits on a full-width bottom border.
 - **Select menus open beside their field.** Every select dropdown opens below its trigger (or above it when there is no room) and is as wide as the field, instead of covering the field. `npm run check:ui` enforces `position="popper"` on every `SelectContent`.
 - **Docker Swarm page breathes.** The card is split into "Nodes" and "Add a node" sections with headings and more space between them, node rows have more padding, the join commands sit in roomier rows, and the leave action sits on its own footer line. The Worker and Manager copy buttons have the same width and their labels are translated, and the add-node hint now says that applications can run on other nodes (applications with mounts stay on the host; built images need a registry every node can reach).
 

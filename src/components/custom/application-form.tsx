@@ -37,8 +37,10 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
-import { Tabs, TabsTrigger } from "@/components/ui/tabs"
+import { Tabs } from "@/components/ui/tabs"
 import { ScrollableTabsList } from "@/components/custom/scrollable-tabs-list"
+import { PageTabsTrigger } from "@/components/custom/page-tabs-trigger"
+import { Network, Globe, Clock } from "lucide-react"
 import { Textarea } from "@/components/ui/textarea"
 import { EnvEditor } from "@/components/custom/env-editor"
 import { EnvRefsHint } from "@/components/custom/application-environment"
@@ -770,15 +772,27 @@ export function ApplicationForm({
                         onValueChange={(next) => setAccess(next as Access)}
                       >
                         <ScrollableTabsList>
-                          <TabsTrigger value="port">
+                          <PageTabsTrigger
+                            icon={Network}
+                            value="port"
+                            className="py-1.5"
+                          >
                             {t("form.access.tabPort")}
-                          </TabsTrigger>
-                          <TabsTrigger value="domain">
+                          </PageTabsTrigger>
+                          <PageTabsTrigger
+                            icon={Globe}
+                            value="domain"
+                            className="py-1.5"
+                          >
                             {t("form.access.tabDomain")}
-                          </TabsTrigger>
-                          <TabsTrigger value="later">
+                          </PageTabsTrigger>
+                          <PageTabsTrigger
+                            icon={Clock}
+                            value="later"
+                            className="py-1.5"
+                          >
                             {t("form.access.tabLater")}
-                          </TabsTrigger>
+                          </PageTabsTrigger>
                         </ScrollableTabsList>
                       </Tabs>
                       {access === "port" && (

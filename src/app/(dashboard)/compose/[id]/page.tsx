@@ -1,4 +1,11 @@
-import { ArrowLeft } from "lucide-react"
+import {
+  ArrowLeft,
+  Rocket,
+  History,
+  HardDrive,
+  Timer,
+  Settings,
+} from "lucide-react"
 import { getProject } from "@/features/project/project.queries"
 import { SetBreadcrumb } from "@/components/custom/breadcrumb-store"
 import { ComposeSourceIcon } from "@/components/custom/brand-icon"
@@ -24,8 +31,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs"
+import { Tabs, TabsContent } from "@/components/ui/tabs"
 import { ScrollableTabsList } from "@/components/custom/scrollable-tabs-list"
+import { PageTabsTrigger } from "@/components/custom/page-tabs-trigger"
 import { canUseTerminal } from "@/features/auth/auth.entity"
 import { getVerifiedSession } from "@/features/auth/auth.session"
 import { listMounts } from "@/features/application/application.queries"
@@ -119,19 +127,21 @@ export default async function ComposeAppPage({
       <ComposeLiveProvider initial={app}>
         <Tabs defaultValue="deploy">
           <ScrollableTabsList>
-            <TabsTrigger value="deploy">{t("page.tabs.deploy")}</TabsTrigger>
-            <TabsTrigger value="history">
+            <PageTabsTrigger icon={Rocket} value="deploy">
+              {t("page.tabs.deploy")}
+            </PageTabsTrigger>
+            <PageTabsTrigger icon={History} value="history">
               {t("page.tabs.history", { count: runs.length })}
-            </TabsTrigger>
-            <TabsTrigger value="mounts">
+            </PageTabsTrigger>
+            <PageTabsTrigger icon={HardDrive} value="mounts">
               {t("page.tabs.mounts", { count: mounts.length })}
-            </TabsTrigger>
-            <TabsTrigger value="jobs">
+            </PageTabsTrigger>
+            <PageTabsTrigger icon={Timer} value="jobs">
               {t("page.tabs.jobs", { count: jobs.length })}
-            </TabsTrigger>
-            <TabsTrigger value="settings">
+            </PageTabsTrigger>
+            <PageTabsTrigger icon={Settings} value="settings">
               {t("page.tabs.settings")}
-            </TabsTrigger>
+            </PageTabsTrigger>
           </ScrollableTabsList>
           <ComposeStatusStrip
             info={

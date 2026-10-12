@@ -2,8 +2,10 @@ import { getTranslations } from "next-intl/server"
 import { ExternalRegistries } from "@/components/custom/external-registries"
 import { RegistryRepositories } from "@/components/custom/registry-repositories"
 import { SelfHostedRegistryCard } from "@/components/custom/self-hosted-registry-card"
-import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs"
+import { Tabs, TabsContent } from "@/components/ui/tabs"
 import { ScrollableTabsList } from "@/components/custom/scrollable-tabs-list"
+import { PageTabsTrigger } from "@/components/custom/page-tabs-trigger"
+import { Server, Cloud } from "lucide-react"
 import { canUseTerminal } from "@/features/auth/auth.entity"
 import { getVerifiedSession } from "@/features/auth/auth.session"
 import { listBackupDestinations } from "@/features/backup-destination/backup-destination.queries"
@@ -43,10 +45,12 @@ export default async function RegistryPage() {
 
       <Tabs defaultValue="local">
         <ScrollableTabsList>
-          <TabsTrigger value="local">{t("local")}</TabsTrigger>
-          <TabsTrigger value="external">
+          <PageTabsTrigger icon={Server} value="local">
+            {t("local")}
+          </PageTabsTrigger>
+          <PageTabsTrigger icon={Cloud} value="external">
             {t("external", { count: external.length })}
-          </TabsTrigger>
+          </PageTabsTrigger>
         </ScrollableTabsList>
         <TabsContent value="local" className="space-y-4 pt-4">
           <SelfHostedRegistryCard
