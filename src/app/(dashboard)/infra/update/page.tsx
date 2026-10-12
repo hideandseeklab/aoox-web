@@ -3,6 +3,7 @@ import { notFound } from "next/navigation"
 import { InstanceUpdateCard } from "@/components/custom/instance-update-card"
 import { getVerifiedSession } from "@/features/auth/auth.session"
 import { getInstanceUpdateStatus } from "@/features/instance-update/instance-update.queries"
+import { publicApiUrl } from "@/lib/api"
 import { InfraPage } from "../infra-page"
 
 export async function generateMetadata() {
@@ -18,7 +19,7 @@ export default async function InstanceUpdatePage() {
   const status = await getInstanceUpdateStatus()
   return (
     <InfraPage title={t("title")} description={t("description")}>
-      <InstanceUpdateCard status={status} />
+      <InstanceUpdateCard status={status} apiUrl={publicApiUrl()} />
     </InfraPage>
   )
 }

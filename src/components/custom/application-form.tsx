@@ -196,10 +196,16 @@ export function ApplicationForm({
   const [domainHttps, setDomainHttps] = useState(false)
   const [domainPending, setDomainPending] = useState(false)
   const [domainError, setDomainError] = useState<string | null>(null)
+  // The "Domain" create path submits outside the form action, so its field
+  // errors are kept here and shown under the same fields as the action's.
+  const [domainFieldErrors, setDomainFieldErrors] =
+    useState<ApplicationFormState["fieldErrors"]>(undefined)
   const browserHost = useBrowserHost()
+  const domainMode = mode === "create" && access === "domain"
+  const fieldErrors = domainMode ? domainFieldErrors : state.fieldErrors
   const errs = (k: keyof Values) =>
-    state.fieldErrors?.[k]?.map((message) => ({ message }))
-  const invalid = (k: keyof Values) => !!state.fieldErrors?.[k] || undefined
+    fieldErrors?.[k]?.map((message) => ({ message }))
+  const invalid = (k: keyof Values) => !!fieldErrors?.[k] || undefined
   // The API doesn't (yet) shape port-conflict errors as a field error, so a
   // generic create/update failure that mentions "port" is shown next to the
   // host port input instead of the generic banner at the bottom.
@@ -207,7 +213,6 @@ export function ApplicationForm({
     !!state.error &&
     /port/i.test(state.error) &&
     (mode === "edit" || access === "port")
-  const domainMode = mode === "create" && access === "domain"
 
   // Plain create (IP+port / later): the action no longer redirects itself
   // (a server `redirect()` would abort before this toast could be resolved,
@@ -308,11 +313,14 @@ export function ApplicationForm({
     formData.set("domainHost", domainHost.trim())
     formData.set("domainHttps", domainHttps ? "on" : "")
     setDomainError(null)
+    setDomainFieldErrors(undefined)
     setDomainPending(true)
     const toastId = toast.loading(creatingMessage(formData))
     onCreateWithDomain(formData, toastId).then((r) => {
       setDomainPending(false)
-      if (!r.ok) setDomainError(r.error)
+      if (r.ok) return
+      if (r.fieldErrors) setDomainFieldErrors(r.fieldErrors)
+      else setDomainError(r.error)
     })
   }
 
@@ -384,7 +392,8 @@ export function ApplicationForm({
               <CardContent>
                 <FieldGroup>
                   {sourceType === "image" && (
-                    <div className="grid gap-4 sm:grid-cols-[1fr_auto]">
+                    // One column: image + picker, then credentials under them, then auto-update.
+                    <div className="grid gap-4">
                       <Field data-invalid={invalid("imageRef")}>
                         <FieldLabel htmlFor="app-image">
                           {t("form.image.label")}
@@ -424,7 +433,7 @@ export function ApplicationForm({
                         >
                           <SelectTrigger
                             id="app-image-registry"
-                            className="w-48"
+                            className="w-full sm:w-72"
                           >
                             <SelectValue />
                           </SelectTrigger>
@@ -440,10 +449,7 @@ export function ApplicationForm({
                           </SelectContent>
                         </Select>
                       </Field>
-                      <Field
-                        className="sm:col-span-2"
-                        data-invalid={invalid("autoUpdateIntervalMinutes")}
-                      >
+                      <Field data-invalid={invalid("autoUpdateIntervalMinutes")}>
                         <FieldLabel>{t("form.image.autoUpdate")}</FieldLabel>
                         <div className="flex flex-wrap items-center gap-3 text-xs">
                           <label className="flex items-center gap-2">

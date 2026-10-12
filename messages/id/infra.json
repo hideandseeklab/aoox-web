@@ -318,10 +318,6 @@
     "joinTitle": "Tambah node"
   },
   "update": {
-    "timeoutToast": "Update belum selesai setelah 5 menit — panel mungkin butuh perhatian manual.",
-    "doneToast": "Update selesai — versi {version}.",
-    "sendingToast": "Mengirim perintah update…",
-    "restartingToast": "Mengunduh image & me-restart panel…",
     "title": "Update aoox",
     "description": "Cek dan terapkan update untuk panel ini sendiri — versi berjalan <code>{version}</code>.",
     "installDirTitle": "INSTALL_DIR belum diisi",
@@ -348,14 +344,34 @@
       "upToDate": "Sudah versi terbaru yang dipublikasikan (<code>v{latest}</code>).",
       "lastChecked": "Terakhir dicek {time}"
     },
-    "progress": {
-      "sending": "Mengirim perintah update",
-      "restarting": "Mengunduh image & me-restart panel, lalu menunggu panel kembali"
-    },
     "image": {
       "newBaseline": "baseline baru",
       "available": "Update tersedia",
       "latest": "Terbaru"
+    },
+    "updatedToast": "aoox diperbarui ke v{version}",
+    "changelog": "Changelog",
+    "overlay": {
+      "title": "Memperbarui aoox",
+      "versions": "{from} → {to}",
+      "unknownTarget": "versi baru",
+      "elapsed": "Berjalan {time}",
+      "steps": {
+        "download": "Mengunduh versi baru",
+        "restart": "Me-restart panel",
+        "back": "Panel sudah kembali, memuat ulang…"
+      },
+      "explain": "Panel tidak dapat diakses sekitar satu menit selama restart. Ini wajar. Halaman ini memuat ulang sendiri, dan aplikasi yang sudah di-deploy tetap berjalan.",
+      "waiting": "Menunggu panel kembali…",
+      "slow": "Ini lebih lama dari biasanya. Anda bisa memuat ulang sekarang, atau cek dari terminal dengan <code>aoox update panel</code>.",
+      "reloadNow": "Muat ulang sekarang",
+      "failed": {
+        "title": "Panel belum kembali",
+        "body": "Sudah lebih dari 5 menit. Cek container di server, misalnya:",
+        "logs": "Kalau ada container yang hilang atau terus restart, lognya biasanya menjelaskan sebabnya. Halaman ini terus mengecek dan memuat ulang sendiri jika panel kembali.",
+        "reload": "Muat ulang",
+        "close": "Tutup"
+      }
     }
   },
   "validation": {

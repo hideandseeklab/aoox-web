@@ -318,10 +318,6 @@
     "joinTitle": "Add a node"
   },
   "update": {
-    "timeoutToast": "The update is not finished after 5 minutes — the panel may need manual attention.",
-    "doneToast": "Update finished — version {version}.",
-    "sendingToast": "Sending the update command…",
-    "restartingToast": "Pulling images & restarting the panel…",
     "title": "aoox update",
     "description": "Check and apply updates for this panel itself — running version <code>{version}</code>.",
     "installDirTitle": "INSTALL_DIR is not set",
@@ -348,14 +344,34 @@
       "upToDate": "You are on the latest published version (<code>v{latest}</code>).",
       "lastChecked": "Last checked {time}"
     },
-    "progress": {
-      "sending": "Sending the update command",
-      "restarting": "Pulling images & restarting the panel, then waiting for it to come back"
-    },
     "image": {
       "newBaseline": "new baseline",
       "available": "Update available",
       "latest": "Latest"
+    },
+    "updatedToast": "aoox updated to v{version}",
+    "changelog": "Changelog",
+    "overlay": {
+      "title": "Updating aoox",
+      "versions": "{from} → {to}",
+      "unknownTarget": "the new version",
+      "elapsed": "Elapsed {time}",
+      "steps": {
+        "download": "Downloading the new version",
+        "restart": "Restarting the panel",
+        "back": "Panel is back, reloading…"
+      },
+      "explain": "The panel is unavailable for about a minute while it restarts. This is normal. This page reloads by itself, and your deployed applications keep running.",
+      "waiting": "Waiting for the panel to come back…",
+      "slow": "This is taking longer than usual. You can reload now, or check from a terminal with <code>aoox update panel</code>.",
+      "reloadNow": "Reload now",
+      "failed": {
+        "title": "The panel did not come back",
+        "body": "It has been more than 5 minutes. Check the containers on the server, for example:",
+        "logs": "If a container is missing or keeps restarting, its log usually says why. This page keeps checking and reloads by itself if the panel returns.",
+        "reload": "Reload",
+        "close": "Close"
+      }
     }
   },
   "validation": {

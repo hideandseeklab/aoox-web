@@ -43,7 +43,10 @@ export function CreateApplicationPageForm({
   ): Promise<ActionResult> => {
     const created = await createApplicationForAccessAction(projectId, formData)
     if (!created.ok) {
-      toast.error(created.error, { id: toastId })
+      toast.error(
+        created.fieldErrors ? t("form.toast.checkFields") : created.error,
+        { id: toastId }
+      )
       return created
     }
     const app = created.data

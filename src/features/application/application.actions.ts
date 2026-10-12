@@ -23,7 +23,13 @@ import type { PreviewDeployment } from "./preview.entity"
 import type { LogTicket } from "./logs.protocol"
 
 export type ActionResult<T = undefined> =
-  { ok: true; data: T } | { ok: false; error: string }
+  | { ok: true; data: T }
+  | {
+      ok: false
+      error: string
+      /** Set by `createApplicationForAccessAction` so the form shows each error under its field. */
+      fieldErrors?: ApplicationFormState["fieldErrors"]
+    }
 
 async function fail(err: unknown): Promise<{ ok: false; error: string }> {
   if (err instanceof ApiError) return { ok: false, error: err.message }
@@ -192,11 +198,7 @@ export async function createApplicationForAccessAction(
   const { data, fieldErrors } = await parse(values)
   if (!data) {
     const t = await getTranslations("applications")
-    const message =
-      Object.values(fieldErrors ?? {})
-        .flat()
-        .join("; ") || t("actions.invalidData")
-    return { ok: false, error: message }
+    return { ok: false, error: t("actions.invalidData"), fieldErrors }
   }
   try {
     const app = await api<Application>("/applications", {

@@ -8,6 +8,18 @@ Versions below 1.0.0 may include breaking changes in a minor release.
 
 ## [Unreleased]
 
+### Fixed
+
+- **Update aoox no longer freezes after "Apply update".** The page used to poll through a server action, which stops existing once the web container is replaced by the new version, so it kept "waiting" until the 5-minute timeout. It now polls the public `/.well-known/aoox.json` and the API's `GET /` with plain requests and reloads by itself as soon as both report the new version.
+
+- **The update overlay works from any dashboard address.** The API version is now asked through the same-origin route `/api/panel-version` (the web server calls the API's `GET /` internally) instead of from the browser, which the API's CORS refused when the dashboard was opened from an address other than `WEB_ORIGIN`, such as the server IP after a panel domain is set; the overlay then ended in "not back after 5 minutes" although the update had worked.
+- **New application with a Domain: field errors show under their field.** With the Domain access option, a missing name or git URL used to appear as one message under the Hostname field; they now show under Name and Git repository like the other access options, with a "Check the form fields" toast.
+
+### UI UX Improvement
+
+- **Ready-made image form in one column.** Credentials now sit under the Image field and its "Choose from registry" button instead of beside them, followed by Auto update.
+- **Update overlay.** While an update is applied, a full-screen overlay shows the versions (from → to), three steps (downloading, restarting, panel back), an elapsed timer, and a note that the panel is unavailable for about a minute while deployed applications keep running. An unreachable panel is shown as "Waiting for the panel to come back…", after 2 minutes there is a Reload now button and the `aoox update panel` hint, and after 5 minutes a failure state with the container log commands. After the reload a toast says "aoox updated to vX" with a link to the changelog.
+
 ## [0.1.0-alpha.8] - 2026-10-12
 
 ### Added
