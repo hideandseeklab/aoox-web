@@ -231,7 +231,7 @@ export function ResourceAlertsCard({
                         {t("fields.percent", { n: f.thresholdPercent })}
                       </SelectValue>
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent position="popper">
                       {withCurrent(options, f.thresholdPercent).map((n) => (
                         <SelectItem key={n} value={String(n)}>
                           {t("fields.percent", { n })}
@@ -259,7 +259,7 @@ export function ResourceAlertsCard({
                         {t("fields.minutes", { n: f.durationMinutes })}
                       </SelectValue>
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent position="popper">
                       {withCurrent(DURATION_OPTIONS, f.durationMinutes).map(
                         (n) => (
                           <SelectItem key={n} value={String(n)}>

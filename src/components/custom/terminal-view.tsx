@@ -266,7 +266,7 @@ export function TerminalView({
               <SelectTrigger size="sm" aria-label={t("targetLabel")}>
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent position="popper">
                 <SelectItem value={LOCAL_TARGET}>{t("hostAoox")}</SelectItem>
                 {servers.map((s) => (
                   <SelectItem key={s.id} value={s.id}>

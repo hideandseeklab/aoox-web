@@ -247,7 +247,7 @@ function AddNotificationDialog() {
                 <SelectTrigger id="ntf-type">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent position="popper">
                   {(Object.keys(TYPE_LABEL) as NotificationType[]).map((k) => (
                     <SelectItem key={k} value={k}>
                       {TYPE_LABEL[k]}

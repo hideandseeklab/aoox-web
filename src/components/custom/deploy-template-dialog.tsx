@@ -134,7 +134,7 @@ export function DeployTemplateDialog({
                     <SelectTrigger id="tpl-project">
                       <SelectValue placeholder={t("projectPlaceholder")} />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent position="popper">
                       {projects.map((p) => (
                         <SelectItem key={p.id} value={p.id}>
                           {p.name}

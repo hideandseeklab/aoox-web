@@ -62,7 +62,7 @@ export function DockerToolbar({
           <SelectTrigger className="w-44" aria-label={t("pickServer")}>
             <SelectValue />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent position="popper">
             <SelectItem value={HOST}>{t("host")}</SelectItem>
             {servers.map((s) => (
               <SelectItem key={s.id} value={s.id}>

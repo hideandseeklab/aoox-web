@@ -236,7 +236,7 @@ export function InstanceBackupCard({
               <SelectTrigger id="ib-preset" className="w-56">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent position="popper">
                 {PRESETS.map((p) => (
                   <SelectItem key={p.cron} value={p.cron}>
                     {t(`presets.${p.labelKey}`)}
@@ -275,7 +275,7 @@ export function InstanceBackupCard({
               <SelectTrigger id="ib-dest" className="w-56">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent position="popper">
                 <SelectItem value="local">{t("localOnly")}</SelectItem>
                 {destinations.map((d) => (
                   <SelectItem key={d.id} value={d.id}>

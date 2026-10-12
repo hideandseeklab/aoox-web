@@ -145,7 +145,7 @@ export function ApplicationMounts({
                   <SelectTrigger id="mt-type" className="w-36">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent position="popper">
                     <SelectItem value="volume">{t("mounts.type.volume")}</SelectItem>
                     <SelectItem value="bind" disabled={!canBind}>
                       {t("mounts.type.bind")}

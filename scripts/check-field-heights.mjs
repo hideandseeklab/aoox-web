@@ -17,6 +17,9 @@
 // `font-medium`/`font-semibold` or is a CardTitle counts as a title; app-sidebar, user-menu and
 // live-clock (chrome, not content) are exempt.
 //
+// It also flags every `<SelectContent` outside src/components/ui/ that has no `position="popper"`:
+// the select menu must open as a popper below its field (flipping up when there is no room), not cover it.
+// The tag is parsed as an AST node, so a tag that spans several lines is checked as a whole.
 //   npm run check:ui          (manual: a heuristic, so it is not part of build/CI)
 //
 // Reads the TSX with the `typescript` package that is already installed; no extra dependency.
@@ -110,6 +113,8 @@ for (const file of walk(SRC)) {
       const tag = tagOf(n)
       if (FIELD_TAGS.has(tag) && HEIGHT_CLASS.test(classOf(n)) && !ignored(n))
         findings.push({ rel, line: line(n), msg: `<${tag}> overrides its height (${classOf(n).match(HEIGHT_CLASS)[0].replace(/["'`]/g, "").trim()}); fields use the default h-7` })
+      if (tag === "SelectContent" && attrText(n, "position") !== '"popper"' && !ignored(n))
+        findings.push({ rel, line: line(n), msg: '<SelectContent> without position="popper" (the menu would cover its field)' })
       if (isRow(n)) {
         const controls = controlsOf(n)
         const hasField = controls.some((c) => FIELD_TAGS.has(tagOf(c)))

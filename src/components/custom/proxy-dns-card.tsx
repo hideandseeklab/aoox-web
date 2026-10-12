@@ -126,7 +126,7 @@ export function ProxyDnsCard({
             >
               <SelectValue>{proxyLabel}</SelectValue>
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent position="popper">
               <SelectItem value={HOST}>{t("hostOption")}</SelectItem>
               {servers.map((s) => (
                 <SelectItem key={s.id} value={s.id}>
@@ -172,7 +172,7 @@ export function ProxyDnsCard({
                     {chosen?.name}
                   </SelectValue>
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent position="popper">
                   {connections.map((c) => (
                     <SelectItem key={c.id} value={c.id}>
                       {c.name}

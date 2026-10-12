@@ -81,7 +81,7 @@ function LogsDialog({
             <SelectTrigger className="w-32" aria-label={t("lineCount")}>
               <SelectValue />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent position="popper">
               {TAILS.map((n) => (
                 <SelectItem key={n} value={n}>
                   {t("lines", { count: n })}

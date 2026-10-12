@@ -107,7 +107,7 @@ export function ProjectMembers({
                     <SelectTrigger className="w-32" aria-label={t("members.roleAria")}>
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent position="popper">
                       {ROLES.map((r) => (
                         <SelectItem key={r} value={r}>
                           {t(`members.roles.${r}`)}
@@ -162,7 +162,7 @@ export function ProjectMembers({
               <SelectTrigger className="w-32" aria-label={t("members.newRoleAria")}>
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent position="popper">
                 {ROLES.map((r) => (
                   <SelectItem key={r} value={r}>
                     {t(`members.roles.${r}`)}

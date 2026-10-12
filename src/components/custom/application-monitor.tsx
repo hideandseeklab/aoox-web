@@ -247,7 +247,7 @@ export function ApplicationMonitor({
               <SelectTrigger id={ids.interval} className="w-full">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent position="popper">
                 {INTERVAL_OPTIONS.map((n) => (
                   <SelectItem key={n} value={String(n)}>
                     {t("monitor.fields.minutes", { n })}
@@ -268,7 +268,7 @@ export function ApplicationMonitor({
               <SelectTrigger id={ids.timeout} className="w-full">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent position="popper">
                 {TIMEOUT_OPTIONS.map((n) => (
                   <SelectItem key={n} value={String(n)}>
                     {t("monitor.fields.seconds", { n })}
@@ -289,7 +289,7 @@ export function ApplicationMonitor({
               <SelectTrigger id={ids.threshold} className="w-full">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent position="popper">
                 {THRESHOLD_OPTIONS.map((n) => (
                   <SelectItem key={n} value={String(n)}>
                     {t("monitor.fields.beforeAlert", { n })}

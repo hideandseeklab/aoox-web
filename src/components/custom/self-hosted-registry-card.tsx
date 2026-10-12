@@ -253,7 +253,7 @@ export function SelfHostedRegistryCard({
               <SelectTrigger id="registry-storage" className="w-full">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent position="popper">
                 <SelectItem value="local">{t("provision.localDisk")}</SelectItem>
                 {destinations.map((d) => (
                   <SelectItem key={d.id} value={d.id}>

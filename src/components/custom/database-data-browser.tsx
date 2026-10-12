@@ -348,7 +348,7 @@ export function DatabaseDataBrowser({
                   >
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent position="popper">
                     {(
                       schemas ?? [{ name: db.databaseName, isPrimary: true }]
                     ).map((s) => (

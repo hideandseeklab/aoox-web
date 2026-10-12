@@ -183,7 +183,7 @@ export function CreateTableDialog({
                       >
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent position="popper">
                         {types.map((o) => (
                           <SelectItem key={o.value} value={o.value}>
                             {o.label}

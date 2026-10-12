@@ -185,7 +185,7 @@ function AddCredentialDialog() {
                 <SelectTrigger id="cred-provider">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent position="popper">
                   <SelectItem value="github">GitHub</SelectItem>
                   <SelectItem value="gitlab">GitLab</SelectItem>
                   <SelectItem value="generic">

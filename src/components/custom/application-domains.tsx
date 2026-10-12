@@ -232,7 +232,7 @@ export function ApplicationDomains({
                   <SelectTrigger id="domain-cert" className="w-56">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent position="popper">
                     <SelectItem value={AUTO}>
                       {t("domains.certAuto")}
                     </SelectItem>
@@ -261,7 +261,7 @@ export function ApplicationDomains({
                       {certModeLabelWith(td, certMode, host.trim())}
                     </SelectValue>
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent position="popper">
                     <SelectItem value="http">{td("certHttp")}</SelectItem>
                     <SelectItem value="dns">{td("certDns")}</SelectItem>
                     <SelectItem
@@ -289,7 +289,7 @@ export function ApplicationDomains({
                           })}
                     </SelectValue>
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent position="popper">
                     <SelectItem value={MANUAL}>{td("manual")}</SelectItem>
                     {dnsConnections.map((c) => (
                       <SelectItem key={c.id} value={c.id}>
@@ -551,7 +551,7 @@ function CertificateRow({
           >
             <SelectValue />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent position="popper">
             <SelectItem value={AUTO}>{t("domains.certAuto")}</SelectItem>
             {certificates.map((c) => {
               const covers = coversHost(c, domain.host)
@@ -632,7 +632,7 @@ function CertModeRow({
               {certModeLabelWith(td, mode, domain.host)}
             </SelectValue>
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent position="popper">
             <SelectItem value="http">{td("certHttp")}</SelectItem>
             <SelectItem value="dns">{td("certDns")}</SelectItem>
             <SelectItem
@@ -701,7 +701,7 @@ function DnsRow({
             >
               <SelectValue>{label}</SelectValue>
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent position="popper">
               <SelectItem value={MANUAL}>{td("manual")}</SelectItem>
               {connections.map((c) => (
                 <SelectItem key={c.id} value={c.id}>

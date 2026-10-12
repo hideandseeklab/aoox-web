@@ -274,7 +274,7 @@ export function DatabaseBackups({
                 <SelectTrigger id="bk-preset" className="w-56">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent position="popper">
                   {PRESETS.map((p) => (
                     <SelectItem key={p.cron} value={p.cron}>
                       {t(`backups.presets.${p.key}`)}
@@ -313,7 +313,7 @@ export function DatabaseBackups({
                 <SelectTrigger id="bk-dest" className="w-56">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent position="popper">
                   <SelectItem value="local">{t("backups.schedule.localOnly")}</SelectItem>
                   {destinations.map((d) => (
                     <SelectItem key={d.id} value={d.id}>

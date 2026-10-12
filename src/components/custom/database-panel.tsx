@@ -118,7 +118,7 @@ export function DatabasePanel({
             <SelectTrigger size="sm" className="w-64 font-mono text-xs">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent position="popper">
               {schemas.map((s) => (
                 <SelectItem key={s.name} value={s.name}>
                   {s.name}

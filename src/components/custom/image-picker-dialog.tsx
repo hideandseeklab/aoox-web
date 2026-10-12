@@ -126,7 +126,7 @@ export function ImagePickerDialog({
               <SelectTrigger className="w-full">
                 <SelectValue placeholder={t("imagePicker.pickRegistry")} />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent position="popper">
                 {registries.map((r) => (
                   <SelectItem key={r.id} value={r.id}>
                     {r.name} · {r.url}
@@ -157,7 +157,7 @@ export function ImagePickerDialog({
                     }
                   />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent position="popper">
                   {(repositories ?? []).map((repo) => (
                     <SelectItem key={repo.name} value={repo.name}>
                       {repo.name}{" "}
@@ -192,7 +192,7 @@ export function ImagePickerDialog({
                     }
                   />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent position="popper">
                   {(tags ?? []).map((tg) => (
                     <SelectItem key={tg.name} value={tg.name}>
                       {tg.name}{" "}

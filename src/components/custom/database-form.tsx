@@ -129,7 +129,7 @@ export function DatabaseForm({
             <SelectTrigger id="db-engine">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent position="popper">
               {(Object.keys(ENGINE_LABEL) as DatabaseEngine[]).map((e) => (
                 <SelectItem key={e} value={e}>
                   {ENGINE_LABEL[e]}
@@ -153,7 +153,7 @@ export function DatabaseForm({
               <SelectTrigger id="db-variant">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent position="popper">
                 <SelectItem value={NO_VARIANT}>{t("form.variants.none")}</SelectItem>
                 {(
                   Object.keys(POSTGRES_VARIANT_INFO) as Array<

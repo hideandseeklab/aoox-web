@@ -221,7 +221,7 @@ export function ConsoleView({
               <SelectTrigger size="sm" aria-label={t("console.task")}>
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent position="popper">
                 {tasks.map((tk) => (
                   <SelectItem key={tk.containerId} value={tk.containerId}>
                     {tk.label}

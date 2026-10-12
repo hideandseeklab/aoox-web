@@ -206,7 +206,7 @@ export function ComposeForm({
                 <SelectTrigger id="cmp-cred">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent position="popper">
                   <SelectItem value="none">{t("form.noCredential")}</SelectItem>
                   {credentials.map((c) => (
                     <SelectItem key={c.id} value={c.id}>

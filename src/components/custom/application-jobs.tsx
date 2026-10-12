@@ -171,7 +171,7 @@ export function ApplicationJobs({
                     <SelectTrigger id="job-service">
                       <SelectValue placeholder={t("jobs.new.deployFirst")} />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent position="popper">
                       {(services ?? []).map((sv) => (
                         <SelectItem key={sv} value={sv}>
                           {sv}
@@ -190,7 +190,7 @@ export function ApplicationJobs({
                   <SelectTrigger id="job-target">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent position="popper">
                     <SelectItem value="container">
                       {t("jobs.new.targetContainer")}
                     </SelectItem>
@@ -221,7 +221,7 @@ export function ApplicationJobs({
                   <SelectTrigger id="job-preset" className="w-48">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent position="popper">
                     {PRESETS.map((p) => (
                       <SelectItem key={p.cron} value={p.cron}>
                         {t(`jobs.preset.${p.key}`)}

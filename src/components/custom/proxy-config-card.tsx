@@ -144,7 +144,7 @@ export function ProxyConfigCard({
             <SelectTrigger size="sm" className="w-56" aria-label={t("selectProxy")}>
               <SelectValue />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent position="popper">
               <SelectItem value={HOST}>{t("hostOption")}</SelectItem>
               {servers.map((s) => (
                 <SelectItem key={s.id} value={s.id}>

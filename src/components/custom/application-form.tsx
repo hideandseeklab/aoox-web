@@ -426,7 +426,7 @@ export function ApplicationForm({
                           >
                             <SelectValue />
                           </SelectTrigger>
-                          <SelectContent>
+                          <SelectContent position="popper">
                             <SelectItem value="public">
                               {t("form.image.public")}
                             </SelectItem>
@@ -526,7 +526,7 @@ export function ApplicationForm({
                           <SelectTrigger id="app-build-type">
                             <SelectValue />
                           </SelectTrigger>
-                          <SelectContent>
+                          <SelectContent position="popper">
                             <SelectItem value="dockerfile">
                               {t("form.git.buildTypes.dockerfile")}
                             </SelectItem>
@@ -658,7 +658,7 @@ export function ApplicationForm({
                         <SelectTrigger id="app-cred">
                           <SelectValue />
                         </SelectTrigger>
-                        <SelectContent>
+                        <SelectContent position="popper">
                           <SelectItem value="none">
                             {t("form.git.credentialNone")}
                           </SelectItem>
@@ -926,7 +926,7 @@ export function ApplicationForm({
                         <SelectTrigger id="app-server">
                           <SelectValue />
                         </SelectTrigger>
-                        <SelectContent>
+                        <SelectContent position="popper">
                           <SelectItem value="local">
                             {t("form.advanced.localHost")}
                           </SelectItem>
@@ -961,7 +961,7 @@ export function ApplicationForm({
                           <SelectTrigger id="app-deploy-mode">
                             <SelectValue />
                           </SelectTrigger>
-                          <SelectContent>
+                          <SelectContent position="popper">
                             <SelectItem value="container">
                               {t("form.advanced.modeContainer")}
                             </SelectItem>
@@ -1059,7 +1059,7 @@ export function ApplicationForm({
                               <SelectTrigger id="app-upd-order">
                                 <SelectValue />
                               </SelectTrigger>
-                              <SelectContent>
+                              <SelectContent position="popper">
                                 <SelectItem value="auto">
                                   {t("form.advanced.orderAuto")}
                                 </SelectItem>
@@ -1086,7 +1086,7 @@ export function ApplicationForm({
                             <SelectTrigger id="app-swarm-node">
                               <SelectValue />
                             </SelectTrigger>
-                            <SelectContent>
+                            <SelectContent position="popper">
                               <SelectItem value="any">
                                 {t("form.advanced.placementAny")}
                               </SelectItem>

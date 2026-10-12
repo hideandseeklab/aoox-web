@@ -227,7 +227,7 @@ export function ApiTokensCard({
               <SelectTrigger id="pat-expiry" className="w-44">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent position="popper">
                 {EXPIRY.map((e) => (
                   <SelectItem
                     key={String(e.days)}

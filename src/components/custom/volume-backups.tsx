@@ -148,7 +148,7 @@ export function VolumeBackups({
                     <SelectTrigger className="w-40" aria-label={t("volumeBackups.volume")}>
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent position="popper">
                       {volumes.map((m) => (
                         <SelectItem key={m.id} value={m.id}>
                           {m.name}
@@ -296,7 +296,7 @@ export function VolumeBackups({
                   <SelectTrigger id="vbk-preset" className="w-56">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent position="popper">
                     {PRESETS.map((p) => (
                       <SelectItem key={p.cron} value={p.cron}>
                         {t(`volumeBackups.preset.${p.key}`)}
@@ -335,7 +335,7 @@ export function VolumeBackups({
                   <SelectTrigger id="vbk-dest" className="w-56">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent position="popper">
                     <SelectItem value="local">
                       {t("volumeBackups.schedule.localOnly")}
                     </SelectItem>

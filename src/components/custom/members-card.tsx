@@ -139,7 +139,7 @@ export function MembersCard({
                   >
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent position="popper">
                     {(Object.keys(ROLE_LABEL) as UserRole[]).map((r) => (
                       <SelectItem key={r} value={r}>
                         {ROLE_LABEL[r]}
@@ -346,7 +346,7 @@ function InviteDialog({ isOwner }: { isOwner: boolean }) {
                   <SelectTrigger id="inv-role">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent position="popper">
                     <SelectItem value="member">
                       {t("members.invite.roleMember")}
                     </SelectItem>

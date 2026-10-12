@@ -155,7 +155,7 @@ export function ComposeMounts({
                   <SelectTrigger id="cmt-type" className="w-36">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent position="popper">
                     <SelectItem value="volume">
                       {t("mounts.type.volume")}
                     </SelectItem>

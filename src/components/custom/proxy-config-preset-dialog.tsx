@@ -155,7 +155,7 @@ export function ProxyConfigPresetDialog({
                 <SelectTrigger id="preset-id">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent position="popper">
                   {presets.map((p) => (
                     <SelectItem key={p.id} value={p.id}>
                       {presetText(p).label}
@@ -237,7 +237,7 @@ function PresetInput({
           <SelectTrigger id={id}>
             <SelectValue />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent position="popper">
             {(field.options ?? []).map((o) => (
               <SelectItem key={o} value={o}>
                 {o}

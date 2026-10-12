@@ -181,7 +181,7 @@ export function ApplicationSecretSource({
                   <SelectTrigger id={ids.connection} className="w-full">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent position="popper">
                     <SelectItem value={NONE}>{t("secretSource.notUsed")}</SelectItem>
                     {connections.map((c) => (
                       <SelectItem key={c.id} value={c.id}>
