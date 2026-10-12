@@ -276,6 +276,7 @@ export default async function ProjectDetailPage({
                 }}
                 submitLabel={tc("actions.save")}
                 showEnv
+                readOnly={!canWrite}
               />
             </CardContent>
           </Card>

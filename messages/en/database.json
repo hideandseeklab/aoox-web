@@ -253,6 +253,7 @@
       "hintSql": "One statement per run; SELECT without LIMIT is capped at 500 rows, 15 second timeout.",
       "writeHint": "You can write (INSERT/UPDATE/DELETE/DDL). Be careful, there is no undo.",
       "readOnlyHint": "This session is read-only; only owners and admins can change data.",
+      "viewerHint": "Project viewers can browse tables but cannot run queries.",
       "run": "Run",
       "summary": "{count, plural, one {# row} other {# rows}} · {ms} ms",
       "truncated": "truncated at 500"

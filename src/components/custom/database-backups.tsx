@@ -47,7 +47,7 @@ import {
 import type { BackupDestination } from "@/features/backup-destination/backup-destination.entity"
 import type {
   DatabaseBackup,
-  ManagedDatabase,
+  ManagedDatabaseDetail,
 } from "@/features/managed-database/managed-database.entity"
 import { formatDateTime, formatNumber } from "@/i18n/format"
 import { useLocale, useTranslations } from "next-intl"
@@ -81,13 +81,14 @@ export function DatabaseBackups({
   running,
   destinations,
 }: {
-  db: ManagedDatabase
+  db: ManagedDatabaseDetail
   backups: DatabaseBackup[]
   running: boolean
   destinations: BackupDestination[]
 }) {
   const t = useTranslations("database")
   const tc = useTranslations("common")
+  const canEdit = db.projectRole !== "viewer"
   const locale = useLocale()
   const router = useRouter()
   const [pending, start] = useTransition()
@@ -138,6 +139,7 @@ export function DatabaseBackups({
                 )}
               </CardDescription>
             </div>
+            {canEdit && (
             <Button
               size="sm"
               disabled={pending || !running}
@@ -146,6 +148,7 @@ export function DatabaseBackups({
               <HardDriveDownload data-icon="inline-start" />
               {pending ? tc("states.working") : t("backups.backupNow")}
             </Button>
+            )}
           </div>
         </CardHeader>
         <CardContent className="space-y-3">
@@ -210,6 +213,7 @@ export function DatabaseBackups({
                           <Download />
                         </a>
                       </Button>
+                      {canEdit && (
                       <Button
                         variant="ghost"
                         size="icon-sm"
@@ -219,8 +223,10 @@ export function DatabaseBackups({
                       >
                         <RotateCcw />
                       </Button>
+                      )}
                     </>
                   )}
+                  {canEdit && (
                   <Button
                     variant="ghost"
                     size="icon-sm"
@@ -230,6 +236,7 @@ export function DatabaseBackups({
                   >
                     <Trash2 />
                   </Button>
+                  )}
                 </li>
               ))}
             </ul>
@@ -260,6 +267,7 @@ export function DatabaseBackups({
               )
             }}
           >
+            <fieldset disabled={!canEdit} className="contents">
             <div className="space-y-1">
               <Label htmlFor="bk-preset">{t("backups.schedule.frequency")}</Label>
               <Select value={mode} onValueChange={setMode}>
@@ -325,9 +333,12 @@ export function DatabaseBackups({
                 <Label htmlFor="bk-all">{t("backups.schedule.allDatabases")}</Label>
               </div>
             )}
+            {canEdit && (
             <Button type="submit" variant="outline" disabled={pending}>
               {tc("actions.save")}
             </Button>
+            )}
+            </fieldset>
             <span className="text-xs text-muted-foreground">
               {t("backups.schedule.current")}{" "}
               {db.backupCron ? (

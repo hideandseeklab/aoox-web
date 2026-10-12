@@ -79,9 +79,12 @@ export function ApplicationJobs({
   owner,
   jobs,
   services,
+  canEdit = true,
 }: {
   owner: JobOwner
   jobs: Job[]
+  /** False for project viewers: jobs and their run history are read-only. */
+  canEdit?: boolean
   /** Compose: service names to pick from. */
   services?: string[]
 }) {
@@ -107,9 +110,10 @@ export function ApplicationJobs({
         </EmptyState>
       )}
       {jobs.map((j) => (
-        <JobRow key={j.id} owner={owner} job={j} />
+        <JobRow key={j.id} owner={owner} job={j} canEdit={canEdit} />
       ))}
 
+      {canEdit && (
       <Card>
         <CardHeader>
           <CardTitle>{t("jobs.new.title")}</CardTitle>
@@ -264,11 +268,20 @@ export function ApplicationJobs({
           </form>
         </CardContent>
       </Card>
+      )}
     </div>
   )
 }
 
-function JobRow({ owner, job }: { owner: JobOwner; job: Job }) {
+function JobRow({
+  owner,
+  job,
+  canEdit,
+}: {
+  owner: JobOwner
+  job: Job
+  canEdit: boolean
+}) {
   const t = useTranslations("applications")
   const tc = useTranslations("common")
   const locale = useLocale()
@@ -345,13 +358,14 @@ function JobRow({ owner, job }: { owner: JobOwner; job: Job }) {
           <label className="flex items-center gap-2 text-xs">
             <Switch
               checked={job.enabled}
-              disabled={pending}
+              disabled={pending || !canEdit}
               onCheckedChange={(enabled) =>
                 act(() => updateJobAction(owner, job.id, { enabled }))
               }
             />
             {t("jobs.row.active")}
           </label>
+          {canEdit && (
           <Button
             size="sm"
             variant="outline"
@@ -370,6 +384,8 @@ function JobRow({ owner, job }: { owner: JobOwner; job: Job }) {
             <Play data-icon="inline-start" />
             {t("jobs.row.runNow")}
           </Button>
+          )}
+          {canEdit && (
           <ConfirmDialog
             trigger={
               <Button
@@ -386,6 +402,7 @@ function JobRow({ owner, job }: { owner: JobOwner; job: Job }) {
             confirmLabel={tc("actions.delete")}
             onConfirm={() => deleteJobAction(owner, job.id)}
           />
+          )}
         </div>
         {error && (
           <p className="text-xs text-destructive" role="alert">

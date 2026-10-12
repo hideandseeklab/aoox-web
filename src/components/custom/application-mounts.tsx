@@ -54,10 +54,13 @@ export function ApplicationMounts({
   owner,
   mounts,
   canBind,
+  canEdit = true,
 }: {
   owner: MountOwner
   mounts: Mount[]
   canBind: boolean
+  /** False for project viewers: the list is read-only. */
+  canEdit?: boolean
 }) {
   const t = useTranslations("applications")
   const tc = useTranslations("common")
@@ -94,11 +97,12 @@ export function ApplicationMounts({
       {mounts.length > 0 && (
         <div className="space-y-3">
           {mounts.map((m) => (
-            <MountRow key={m.id} owner={owner} mount={m} />
+            <MountRow key={m.id} owner={owner} mount={m} canEdit={canEdit} />
           ))}
         </div>
       )}
 
+      {canEdit && (
       <Card>
         <CardHeader>
           <CardTitle>{t("mounts.add.title")}</CardTitle>
@@ -223,11 +227,20 @@ export function ApplicationMounts({
           </form>
         </CardContent>
       </Card>
+      )}
     </div>
   )
 }
 
-function MountRow({ owner, mount }: { owner: MountOwner; mount: Mount }) {
+function MountRow({
+  owner,
+  mount,
+  canEdit,
+}: {
+  owner: MountOwner
+  mount: Mount
+  canEdit: boolean
+}) {
   const t = useTranslations("applications")
   const tc = useTranslations("common")
   const [content, setContent] = useState(mount.content ?? "")
@@ -265,6 +278,7 @@ function MountRow({ owner, mount }: { owner: MountOwner; mount: Mount }) {
           </div>
           <Badge variant="outline">{t(`mounts.type.${mount.type}`)}</Badge>
           {mount.readOnly && <Badge variant="secondary">{t("mounts.row.ro")}</Badge>}
+          {canEdit && (
           <ConfirmDialog
             trigger={
               <Button
@@ -300,6 +314,7 @@ function MountRow({ owner, mount }: { owner: MountOwner; mount: Mount }) {
                 : undefined
             }
           />
+          )}
         </div>
       </CardHeader>
       {mount.type === "file" && (
@@ -309,9 +324,11 @@ function MountRow({ owner, mount }: { owner: MountOwner; mount: Mount }) {
             onChange={(e) => setContent(e.target.value)}
             rows={Math.min(20, Math.max(4, content.split("\n").length + 1))}
             spellCheck={false}
+            readOnly={!canEdit}
             className="font-mono text-xs"
             aria-label={t("mounts.row.contentAria", { name: mount.name ?? "" })}
           />
+          {canEdit && (
           <div className="flex items-center justify-end gap-3">
             {error && (
               <p className="text-xs text-destructive" role="alert">
@@ -330,6 +347,7 @@ function MountRow({ owner, mount }: { owner: MountOwner; mount: Mount }) {
               {pending ? t("mounts.applying") : t("mounts.row.saveApply")}
             </Button>
           </div>
+          )}
         </CardContent>
       )}
       {mount.type !== "file" && error && (

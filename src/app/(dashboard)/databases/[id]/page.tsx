@@ -196,19 +196,26 @@ export default async function DatabasePage({
           />
         </TabsContent>
         <TabsContent value="data" className="pt-4">
-          <DatabaseDataBrowser db={db} running={running} canWrite={canWrite} />
+          <DatabaseDataBrowser
+            db={db}
+            running={running}
+            canWrite={canWrite}
+            canQuery={db.projectRole !== "viewer"}
+          />
         </TabsContent>
         <TabsContent value="mounts" className="pt-4">
           <ApplicationMounts
             owner={{ kind: "database", id: db.id }}
             mounts={mounts}
             canBind={canWrite}
+            canEdit={db.projectRole !== "viewer"}
           />
         </TabsContent>
         <TabsContent value="jobs" className="pt-4">
           <ApplicationJobs
             owner={{ kind: "database", id: db.id }}
             jobs={jobs}
+            canEdit={db.projectRole !== "viewer"}
           />
         </TabsContent>
         <TabsContent value="backups" className="pt-4">

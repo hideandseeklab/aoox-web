@@ -399,7 +399,7 @@ Read `AGENTS.md` — this version of Next.js has breaking changes; check `node_m
   an add form by e-mail + role — only when `myRole === "admin"`; the Delete project button is also admin-only. Data from `listProjectMembers` (`src/features/project-member/`).
   The project list & summary are already filtered by access in the API, so the web does not need to filter again.
 - Viewer: the project page hides the create buttons (app/compose/template/database) and Delete (`canWrite = myRole !== "viewer"`); the application page shows a "Read only" badge
-  instead of the Delete button (`ApplicationDetail.projectRole`, also present in the database detail). Other panels do not yet hide actions — the API rejects with 403 and a clear message.
+  instead of the Delete button (`ApplicationDetail.projectRole`, also present in the database detail). **All panels follow the same convention**: the page derives `canEdit = projectRole !== "viewer"` (project page: `canWrite`) and passes it down (`canEdit` prop, default `true`); write buttons/forms are hidden, settings forms take `readOnly` (`ApplicationForm`, `ComposeForm`, `ProjectForm`: a `<fieldset disabled className="contents">` around the fields, Save hidden, so values stay visible); the data browser takes `canQuery` (query box disabled with a note — POST /query is 403 for viewers). Console tab is hidden. New write controls must follow this.
 
 ## Metrics history
 

@@ -12,14 +12,17 @@ import type { WebhookInfo } from "@/features/application/application.entity"
 export function ComposeWebhook({
   composeAppId,
   webhook,
+  canEdit = true,
 }: {
   composeAppId: string
   webhook: WebhookInfo & { supported: boolean }
+  canEdit?: boolean
 }) {
   const t = useTranslations("compose")
   return (
     <WebhookCard
       webhook={webhook}
+      canEdit={canEdit}
       regenerate={() => regenerateComposeWebhookAction(composeAppId)}
       setSecret={(enabled) =>
         setComposeWebhookSecretAction(composeAppId, enabled)

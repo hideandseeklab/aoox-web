@@ -75,11 +75,14 @@ export function VolumeBackups({
   mounts,
   backups,
   destinations,
+  canEdit = true,
 }: {
   app: Application
   mounts: Mount[]
   backups: VolumeBackup[]
   destinations: BackupDestination[]
+  /** False for project viewers: no backup, restore, delete or schedule change. */
+  canEdit?: boolean
 }) {
   const t = useTranslations("applications")
   const tc = useTranslations("common")
@@ -138,7 +141,7 @@ export function VolumeBackups({
                 })}
               </CardDescription>
             </div>
-            {volumes.length > 0 && (
+            {canEdit && volumes.length > 0 && (
               <div className="flex items-center gap-2">
                 {volumes.length > 1 && (
                   <Select value={mountId} onValueChange={setMountId}>
@@ -228,6 +231,7 @@ export function VolumeBackups({
                           <Download />
                         </a>
                       </Button>
+                      {canEdit && (
                       <Button
                         variant="ghost"
                         size="icon-sm"
@@ -239,8 +243,10 @@ export function VolumeBackups({
                       >
                         <RotateCcw />
                       </Button>
+                      )}
                     </>
                   )}
+                  {canEdit && (
                   <Button
                     variant="ghost"
                     size="icon-sm"
@@ -252,6 +258,7 @@ export function VolumeBackups({
                   >
                     <Trash2 />
                   </Button>
+                  )}
                 </li>
               ))}
             </ul>
@@ -282,6 +289,7 @@ export function VolumeBackups({
                 )
               }}
             >
+              <fieldset disabled={!canEdit} className="contents">
               <div className="space-y-1">
                 <Label htmlFor="vbk-preset">{t("volumeBackups.schedule.frequency")}</Label>
                 <Select value={mode} onValueChange={setMode}>
@@ -339,9 +347,12 @@ export function VolumeBackups({
                   </SelectContent>
                 </Select>
               </div>
+              {canEdit && (
               <Button type="submit" variant="outline" disabled={pending}>
                 {tc("actions.save")}
               </Button>
+              )}
+              </fieldset>
               <span className="text-xs text-muted-foreground">
                 {t("volumeBackups.schedule.current")}{" "}
                 {app.backupCron ? (

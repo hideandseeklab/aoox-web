@@ -143,6 +143,7 @@ export function ApplicationTabs({
   // Console is developer+ (see AGENTS.md "Console container") — the API
   // enforces this too, but hiding the tab keeps a viewer from hitting a 403.
   const canUseConsole = app.projectRole !== "viewer"
+  const canEdit = app.projectRole !== "viewer"
 
   return (
     <Tabs value={tab} onValueChange={(v) => setTab(v as ApplicationTab)}>
@@ -191,7 +192,7 @@ export function ApplicationTabs({
           domains={domains}
           certificates={certificates}
           middlewareOptions={middlewareOptions}
-          canEdit={app.projectRole !== "viewer"}
+          canEdit={canEdit}
           proxy={proxy}
           deployed={!!app.currentImage}
           dnsConnections={dnsConnections}
@@ -203,6 +204,7 @@ export function ApplicationTabs({
           owner={{ kind: "application", id: app.id }}
           mounts={mounts}
           canBind={canBind}
+          canEdit={canEdit}
         />
         <div className="mt-4">
           <VolumeBackups
@@ -210,6 +212,7 @@ export function ApplicationTabs({
             mounts={mounts}
             backups={volumeBackups}
             destinations={destinations}
+            canEdit={canEdit}
           />
         </div>
       </TabsContent>
@@ -218,13 +221,13 @@ export function ApplicationTabs({
           applicationId={app.id}
           env={app.env}
           databaseSlugs={databaseSlugs}
-          canEdit={app.projectRole !== "viewer"}
+          canEdit={canEdit}
         />
         <ApplicationSecretSource
           applicationId={app.id}
           source={app.secretSource ?? null}
           connections={secretConnections}
-          canEdit={app.projectRole !== "viewer"}
+          canEdit={canEdit}
           canManageConnections={canBind}
         />
       </TabsContent>
@@ -233,7 +236,7 @@ export function ApplicationTabs({
           <ApplicationMonitor
             applicationId={app.id}
             initial={monitor}
-            canEdit={app.projectRole !== "viewer"}
+            canEdit={canEdit}
             running={running}
           />
           {alerts && (
@@ -241,7 +244,7 @@ export function ApplicationTabs({
               kind="application"
               id={app.id}
               initial={alerts}
-              canEdit={app.projectRole !== "viewer"}
+              canEdit={canEdit}
             />
           )}
         </TabsContent>
@@ -250,11 +253,16 @@ export function ApplicationTabs({
         <ApplicationJobs
           owner={{ kind: "application", id: app.id }}
           jobs={jobs}
+          canEdit={canEdit}
         />
       </TabsContent>
       <TabsContent value="webhook" className="pt-4">
         <div className="space-y-4">
-          <ApplicationWebhook applicationId={app.id} webhook={webhook} />
+          <ApplicationWebhook
+            applicationId={app.id}
+            webhook={webhook}
+            canEdit={canEdit}
+          />
           <PreviewsPanel
             applicationId={app.id}
             enabled={app.previewsEnabled}
@@ -263,7 +271,7 @@ export function ApplicationTabs({
             previewDomain={app.previewDomain}
             wildcardCert={app.previewWildcardCert ?? false}
             proxyDnsEnabled={proxyDnsEnabled}
-            canEdit={app.projectRole !== "viewer"}
+            canEdit={canEdit}
           />
         </div>
       </TabsContent>
@@ -299,7 +307,7 @@ export function ApplicationTabs({
           applicationId={app.id}
           enabled={app.maintenanceEnabled}
           message={app.maintenanceMessage}
-          canEdit={app.projectRole !== "viewer"}
+          canEdit={canEdit}
           remote={!!app.serverId}
         />
         <Card>
@@ -369,6 +377,7 @@ export function ApplicationTabs({
               servers={servers}
               swarmActive={swarmActive}
               swarmNodes={swarmNodes}
+              readOnly={!canEdit}
             />
           </CardContent>
         </Card>

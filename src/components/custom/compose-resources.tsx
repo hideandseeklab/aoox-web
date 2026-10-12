@@ -25,9 +25,12 @@ import type { ComposeServiceResources } from "@/features/compose/compose.entity"
 export function ComposeResources({
   appId,
   resources,
+  canEdit = true,
 }: {
   appId: string
   resources: ComposeServiceResources[]
+  /** False for project viewers: list only, no add/remove. */
+  canEdit?: boolean
 }) {
   const t = useTranslations("compose")
   const tc = useTranslations("common")
@@ -67,6 +70,8 @@ export function ComposeResources({
   const remove = (svc: string) =>
     save(resources.filter((r) => r.service !== svc))
 
+  if (!canEdit && resources.length === 0) return null
+
   return (
     <Card>
       <CardHeader>
@@ -92,6 +97,7 @@ export function ComposeResources({
                     ? t("resources.memoryLimit", { value: String(r.memoryMb) })
                     : t("resources.ramUnlimited")}
                 </span>
+                {canEdit && (
                 <Button
                   variant="ghost"
                   size="icon-sm"
@@ -101,10 +107,12 @@ export function ComposeResources({
                 >
                   <Trash2 />
                 </Button>
+                )}
               </li>
             ))}
           </ul>
         )}
+        {canEdit && (
         <form className="flex flex-wrap items-end gap-3" onSubmit={add}>
           <div className="min-w-32 flex-1 space-y-1">
             <Label htmlFor="res-service">{t("access.service")}</Label>
@@ -149,6 +157,7 @@ export function ComposeResources({
             {pending ? tc("states.saving") : t("resources.submit")}
           </Button>
         </form>
+        )}
         {error && (
           <p className="text-xs text-destructive" role="alert">
             {error}

@@ -43,6 +43,7 @@ export function ComposeAccess({
   ports,
   proxy,
   suggestions,
+  canEdit = true,
 }: {
   appId: string
   domains: ComposeServiceDomain[]
@@ -50,6 +51,8 @@ export function ComposeAccess({
   proxy: ProxyStatus
   /** `service:port` pairs the template exposes (free text otherwise). */
   suggestions: { service: string; port: number; label: string }[]
+  /** False for project viewers: list only, no add/remove. */
+  canEdit?: boolean
 }) {
   const t = useTranslations("compose")
   const tc = useTranslations("common")
@@ -111,6 +114,8 @@ export function ComposeAccess({
     }
   }
 
+  if (!canEdit && domains.length === 0 && ports.length === 0) return null
+
   return (
     <Card>
       <CardHeader>
@@ -166,6 +171,7 @@ export function ComposeAccess({
                 <Badge variant={d.https ? "default" : "outline"}>
                   {d.https ? "https" : "http"}
                 </Badge>
+                {canEdit && (
                 <Button
                   variant="ghost"
                   size="icon-sm"
@@ -175,6 +181,7 @@ export function ComposeAccess({
                 >
                   <Trash2 />
                 </Button>
+                )}
               </li>
             ))}
             {ports.map((p, i) => (
@@ -201,6 +208,7 @@ export function ComposeAccess({
                   </span>
                 </span>
                 <Badge variant="secondary">{t("access.ipPort")}</Badge>
+                {canEdit && (
                 <Button
                   variant="ghost"
                   size="icon-sm"
@@ -210,11 +218,14 @@ export function ComposeAccess({
                 >
                   <Trash2 />
                 </Button>
+                )}
               </li>
             ))}
           </ul>
         )}
 
+        {canEdit && (
+        <>
         <Tabs value={mode} onValueChange={(v) => setMode(v as Mode)}>
           <ScrollableTabsList>
             <TabsTrigger value="domain">{t("access.tabDomain")}</TabsTrigger>
@@ -299,6 +310,8 @@ export function ComposeAccess({
           <p className="text-xs text-destructive" role="alert">
             {error}
           </p>
+        )}
+        </>
         )}
       </CardContent>
     </Card>

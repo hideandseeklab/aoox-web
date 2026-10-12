@@ -107,6 +107,7 @@ export function ApplicationDeployPanel({
 }) {
   const t = useTranslations("applications")
   const tc = useTranslations("common")
+  const canEdit = app.projectRole !== "viewer"
   const locale = useLocale()
   const router = useRouter()
   const browserOrigin = useBrowserOrigin()
@@ -307,6 +308,7 @@ export function ApplicationDeployPanel({
           <AlertTitle>{t("deploy.noAccess.title")}</AlertTitle>
           <AlertDescription className="space-y-2">
             <p>{t("deploy.noAccess.body")}</p>
+            {canEdit && (
             <div className="flex gap-2">
               <Button
                 variant="outline"
@@ -323,6 +325,7 @@ export function ApplicationDeployPanel({
                 {t("deploy.noAccess.addDomain")}
               </Button>
             </div>
+            )}
           </AlertDescription>
         </Alert>
       )}
@@ -385,7 +388,7 @@ export function ApplicationDeployPanel({
         </div>
       )}
       <div className="flex flex-wrap items-center gap-2">
-        {app.sourceType === "image" && (
+        {canEdit && app.sourceType === "image" && (
           <Button
             variant="outline"
             disabled={pending || active}
@@ -577,7 +580,8 @@ export function ApplicationDeployPanel({
                 </span>
               )}
             </h3>
-            {selected?.status === "success" &&
+            {canEdit &&
+              selected?.status === "success" &&
               selected.imageRef &&
               selected.imageRef !== app.currentImage && (
                 <Button

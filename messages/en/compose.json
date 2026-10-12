@@ -26,7 +26,7 @@
     "noCredential": "None (public repo)",
     "env": "Environment (.env)",
     "envHint": "Written to <code>.aoox.env</code> and used as the source for <code>{varExample}</code> interpolation in the compose file (not passed into containers automatically — use <code>environment:</code> or <code>env_file: .aoox.env</code>). Supports <code>{projectRef}</code>.",
-    "envHintDb": "Written to <code>.aoox.env</code> and used as the source for <code>{varExample}</code> interpolation in the compose file (not passed into containers automatically — use <code>environment:</code> or <code>env_file: .aoox.env</code>). Supports <code>{projectRef}</code> and {databases}.",
+    "envHintDb": "Written to <code>.aoox.env</code> and used as the source for <code>{varExample}</code> interpolation in the compose file (not passed into containers automatically — use <code>environment:</code> or <code>env_file: .aoox.env</code>). Supports <code>{projectRef}</code> and <databases></databases>.",
     "saved": "Saved — applies on the next deploy.",
     "createStack": "Create stack",
     "toast": {

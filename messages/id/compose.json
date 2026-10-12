@@ -26,7 +26,7 @@
     "noCredential": "Tidak ada (repo publik)",
     "env": "Environment (.env)",
     "envHint": "Ditulis ke <code>.aoox.env</code> dan dipakai sebagai sumber interpolasi <code>{varExample}</code> di file compose (tidak otomatis masuk ke container — pakai <code>environment:</code> atau <code>env_file: .aoox.env</code>). Mendukung <code>{projectRef}</code>.",
-    "envHintDb": "Ditulis ke <code>.aoox.env</code> dan dipakai sebagai sumber interpolasi <code>{varExample}</code> di file compose (tidak otomatis masuk ke container — pakai <code>environment:</code> atau <code>env_file: .aoox.env</code>). Mendukung <code>{projectRef}</code> dan {databases}.",
+    "envHintDb": "Ditulis ke <code>.aoox.env</code> dan dipakai sebagai sumber interpolasi <code>{varExample}</code> di file compose (tidak otomatis masuk ke container — pakai <code>environment:</code> atau <code>env_file: .aoox.env</code>). Mendukung <code>{projectRef}</code> dan <databases></databases>.",
     "saved": "Tersimpan — berlaku pada deploy berikutnya.",
     "createStack": "Buat stack",
     "toast": {

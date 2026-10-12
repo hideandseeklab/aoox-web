@@ -55,10 +55,13 @@ export function ComposeMounts({
   appId,
   mounts,
   canBind,
+  canEdit = true,
 }: {
   appId: string
   mounts: Mount[]
   canBind: boolean
+  /** False for project viewers: the list is read-only. */
+  canEdit?: boolean
 }) {
   const t = useTranslations("compose")
   const tc = useTranslations("common")
@@ -97,11 +100,12 @@ export function ComposeMounts({
       {mounts.length > 0 && (
         <div className="space-y-3">
           {mounts.map((m) => (
-            <MountRow key={m.id} owner={owner} mount={m} />
+            <MountRow key={m.id} owner={owner} mount={m} canEdit={canEdit} />
           ))}
         </div>
       )}
 
+      {canEdit && (
       <Card>
         <CardHeader>
           <CardTitle>{t("mounts.addTitle")}</CardTitle>
@@ -235,6 +239,7 @@ export function ComposeMounts({
           </form>
         </CardContent>
       </Card>
+      )}
     </div>
   )
 }
@@ -242,9 +247,11 @@ export function ComposeMounts({
 function MountRow({
   owner,
   mount,
+  canEdit,
 }: {
   owner: { kind: "compose"; id: string }
   mount: Mount
+  canEdit: boolean
 }) {
   const t = useTranslations("compose")
   const tc = useTranslations("common")
@@ -284,6 +291,7 @@ function MountRow({
           <Badge variant="secondary">{mount.service}</Badge>
           <Badge variant="outline">{t(`mounts.type.${mount.type}`)}</Badge>
           {mount.readOnly && <Badge variant="secondary">ro</Badge>}
+          {canEdit && (
           <ConfirmDialog
             trigger={
               <Button
@@ -319,6 +327,7 @@ function MountRow({
                 : undefined
             }
           />
+          )}
         </div>
       </CardHeader>
       {mount.type === "file" && (
@@ -328,9 +337,11 @@ function MountRow({
             onChange={(e) => setContent(e.target.value)}
             rows={Math.min(20, Math.max(4, content.split("\n").length + 1))}
             spellCheck={false}
+            readOnly={!canEdit}
             className="font-mono text-xs"
             aria-label={t("mounts.contentAria", { name: mount.name ?? "" })}
           />
+          {canEdit && (
           <div className="flex items-center justify-end gap-3">
             {error && (
               <p className="text-xs text-destructive" role="alert">
@@ -349,6 +360,7 @@ function MountRow({
               {pending ? tc("states.saving") : tc("actions.save")}
             </Button>
           </div>
+          )}
         </CardContent>
       )}
       {mount.type !== "file" && error && (

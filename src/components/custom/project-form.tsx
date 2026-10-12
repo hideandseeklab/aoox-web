@@ -25,6 +25,8 @@ interface ProjectFormProps {
   onSuccess?: () => void
   /** Show the shared environment editor (project settings only). */
   showEnv?: boolean
+  /** Project viewers: show every value but disable all fields and hide Save. */
+  readOnly?: boolean
 }
 
 export function ProjectForm({
@@ -32,6 +34,7 @@ export function ProjectForm({
   defaultValues,
   submitLabel,
   showEnv,
+  readOnly = false,
 }: ProjectFormProps) {
   const t = useTranslations("projects")
   const tc = useTranslations("common")
@@ -42,6 +45,7 @@ export function ProjectForm({
 
   return (
     <form action={formAction} noValidate>
+      <fieldset disabled={readOnly} className="contents">
       <FieldGroup>
         <Field data-invalid={!!state.fieldErrors?.name || undefined}>
           <FieldLabel htmlFor="name">{tc("labels.name")}</FieldLabel>
@@ -79,7 +83,11 @@ export function ProjectForm({
         {showEnv && (
           <Field data-invalid={!!state.fieldErrors?.env || undefined}>
             <FieldLabel>{t("form.envLabel")}</FieldLabel>
-            <EnvEditor name="env" defaultValue={values?.env ?? ""} />
+            <EnvEditor
+              name="env"
+              defaultValue={values?.env ?? ""}
+              readOnly={readOnly}
+            />
             <FieldDescription>
               {t.rich("form.envHint", {
                 ref: "${{project.KEY}}",
@@ -98,12 +106,15 @@ export function ProjectForm({
           </FieldDescription>
         )}
 
+        {!readOnly && (
         <div className="flex justify-end">
           <Button type="submit" disabled={pending}>
             {pending ? tc("states.saving") : submitLabel}
           </Button>
         </div>
+        )}
       </FieldGroup>
+      </fieldset>
     </form>
   )
 }

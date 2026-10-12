@@ -117,6 +117,7 @@ export function ApplicationForm({
   onPendingChange,
   hostPortApply,
   cancelHref,
+  readOnly = false,
 }: {
   action: (
     prev: ApplicationFormState,
@@ -126,6 +127,8 @@ export function ApplicationForm({
   mode?: "create" | "edit"
   defaultValues?: Partial<Values>
   submitLabel: string
+  /** Project viewers: show every value but disable all fields and hide Save. */
+  readOnly?: boolean
   credentials: GitCredential[]
   /** Managed database slugs in this project, for the reference hint. */
   databaseSlugs?: string[]
@@ -319,6 +322,7 @@ export function ApplicationForm({
       }
       noValidate
     >
+      <fieldset disabled={readOnly} className="contents">
       <FieldGroup className="@container">
         <Field data-invalid={invalid("name")}>
           <FieldLabel htmlFor="app-name">{tc("labels.name")}</FieldLabel>
@@ -888,7 +892,11 @@ export function ApplicationForm({
                   <FieldGroup>
                     <Field data-invalid={invalid("env")}>
                       <FieldLabel>{t("form.env.label")}</FieldLabel>
-                      <EnvEditor name="env" defaultValue={v.env} />
+                      <EnvEditor
+                        name="env"
+                        defaultValue={v.env}
+                        readOnly={readOnly}
+                      />
                       <FieldDescription>
                         {t("form.env.description")}{" "}
                         <EnvRefsHint databaseSlugs={databaseSlugs} />
@@ -1227,6 +1235,7 @@ export function ApplicationForm({
           <FieldDescription>{t("form.toast.saved")}</FieldDescription>
         )}
 
+        {!readOnly && (
         <div className="flex justify-end gap-2">
           {cancelHref && (
             <Button asChild variant="outline">
@@ -1244,7 +1253,9 @@ export function ApplicationForm({
               : submitLabel}
           </Button>
         </div>
+        )}
       </FieldGroup>
+      </fieldset>
     </form>
   )
 }

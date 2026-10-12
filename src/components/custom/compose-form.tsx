@@ -49,6 +49,7 @@ export function ComposeForm({
   source = "git",
   onPendingChange,
   cancelHref,
+  readOnly = false,
 }: {
   action: (
     prev: ComposeFormState,
@@ -57,6 +58,8 @@ export function ComposeForm({
   /** Create mode shows a "creating…" toast and navigates on success instead of staying put. */
   mode?: "create" | "edit"
   defaultValues?: Partial<Values>
+  /** Project viewers: show every value but disable all fields and hide Save. */
+  readOnly?: boolean
   submitLabel: string
   credentials: GitCredential[]
   databaseSlugs?: string[]
@@ -129,6 +132,7 @@ export function ComposeForm({
       noValidate
     >
       <input type="hidden" name="source" value={source} />
+      <fieldset disabled={readOnly} className="contents">
       <FieldGroup>
         <Field data-invalid={invalid("name")}>
           <FieldLabel htmlFor="cmp-name">{tc("labels.name")}</FieldLabel>
@@ -217,7 +221,11 @@ export function ComposeForm({
 
         <Field data-invalid={invalid("env")}>
           <FieldLabel>{t("form.env")}</FieldLabel>
-          <EnvEditor name="env" defaultValue={v.env} />
+          <EnvEditor
+            name="env"
+            defaultValue={v.env}
+            readOnly={readOnly}
+          />
           <FieldDescription>
             {t.rich(databaseSlugs?.length ? "form.envHintDb" : "form.envHint", {
               varExample: "${VAR}",
@@ -249,6 +257,7 @@ export function ComposeForm({
           </FieldDescription>
         )}
 
+        {!readOnly && (
         <div className="flex justify-end gap-2">
           {cancelHref && (
             <Button asChild variant="outline">
@@ -266,7 +275,9 @@ export function ComposeForm({
               : submitLabel}
           </Button>
         </div>
+        )}
       </FieldGroup>
+      </fieldset>
     </form>
   )
 }

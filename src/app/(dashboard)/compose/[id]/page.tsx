@@ -77,6 +77,7 @@ export default async function ComposeAppPage({
     fetchMetricsAction("compose", app.id),
   ])
   const canBind = session ? canUseTerminal(session.user) : false
+  const canEdit = app.projectRole !== "viewer"
   // Service names come from the running stack; a never-deployed stack has none yet.
   const services = [...new Set(app.containers.map((c) => c.service))].filter(
     Boolean
@@ -154,18 +155,28 @@ export default async function ComposeAppPage({
             <ComposeHistory appId={app.id} initial={runs} />
           </TabsContent>
           <TabsContent value="mounts" className="pt-4">
-            <ComposeMounts appId={app.id} mounts={mounts} canBind={canBind} />
+            <ComposeMounts
+              appId={app.id}
+              mounts={mounts}
+              canBind={canBind}
+              canEdit={canEdit}
+            />
           </TabsContent>
           <TabsContent value="jobs" className="pt-4">
             <ApplicationJobs
               owner={{ kind: "compose", id: app.id }}
               jobs={jobs}
               services={services}
+              canEdit={canEdit}
             />
           </TabsContent>
           <TabsContent value="settings" className="space-y-4 pt-4">
             {webhook && (
-              <ComposeWebhook composeAppId={app.id} webhook={webhook} />
+              <ComposeWebhook
+                composeAppId={app.id}
+                webhook={webhook}
+                canEdit={canEdit}
+              />
             )}
             <ComposeAccess
               appId={app.id}
@@ -173,8 +184,13 @@ export default async function ComposeAppPage({
               ports={app.servicePorts}
               proxy={proxy}
               suggestions={template?.services ?? []}
+              canEdit={canEdit}
             />
-            <ComposeResources appId={app.id} resources={app.serviceResources} />
+            <ComposeResources
+              appId={app.id}
+              resources={app.serviceResources}
+              canEdit={canEdit}
+            />
             <Card>
               <CardHeader>
                 <CardTitle>{t("page.settingsTitle")}</CardTitle>
@@ -198,6 +214,7 @@ export default async function ComposeAppPage({
                   submitLabel={tc("actions.save")}
                   credentials={credentials}
                   databaseSlugs={databases.map((d) => d.slug)}
+                  readOnly={!canEdit}
                 />
               </CardContent>
             </Card>

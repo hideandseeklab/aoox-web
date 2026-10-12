@@ -32,12 +32,15 @@ export function WebhookCard({
   regenerate,
   setSecret,
   note,
+  canEdit = true,
 }: {
   webhook: WebhookInfo
   regenerate: () => WebhookResult
   setSecret: (enabled: boolean) => WebhookResult
   /** Extra line under the description (e.g. a template stack has no repo). */
   note?: React.ReactNode
+  /** False for project viewers: URL and secret stay visible, no rotate/regenerate. */
+  canEdit?: boolean
 }) {
   const t = useTranslations("applications")
   const [pending, start] = useTransition()
@@ -145,6 +148,7 @@ export function WebhookCard({
               </Button>
             </div>
           )}
+          {canEdit && (
           <div className="flex items-center gap-2">
             <Button
               variant="outline"
@@ -165,8 +169,10 @@ export function WebhookCard({
               </Button>
             )}
           </div>
+          )}
         </div>
 
+        {canEdit && (
         <div className="flex items-center gap-3">
           <Button
             variant="outline"
@@ -181,6 +187,7 @@ export function WebhookCard({
             {t("webhook.regenerateNote")}
           </span>
         </div>
+        )}
         {error && (
           <p className="text-destructive" role="alert">
             {error}

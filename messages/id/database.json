@@ -253,6 +253,7 @@
       "hintSql": "Satu statement per eksekusi; SELECT tanpa LIMIT dibatasi 500 baris, timeout 15 detik.",
       "writeHint": "Kamu bisa menulis (INSERT/UPDATE/DELETE/DDL) — hati-hati, tidak ada undo.",
       "readOnlyHint": "Sesi ini read-only; hanya owner/admin yang bisa mengubah data.",
+      "viewerHint": "Viewer proyek bisa melihat tabel tetapi tidak bisa menjalankan query.",
       "run": "Jalankan",
       "summary": "{count} baris · {ms} ms",
       "truncated": "dipotong 500"

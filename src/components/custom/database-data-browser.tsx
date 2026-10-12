@@ -72,10 +72,13 @@ export function DatabaseDataBrowser({
   db,
   running,
   canWrite,
+  canQuery = true,
 }: {
   db: ManagedDatabase
   running: boolean
   canWrite: boolean
+  /** False for project viewers: the API rejects POST /query even for SELECT. */
+  canQuery?: boolean
 }) {
   const t = useTranslations("database")
   const tc = useTranslations("common")
@@ -465,7 +468,7 @@ export function DatabaseDataBrowser({
                     : t("browser.query.titleSql")}
               </CardTitle>
               <div className="flex items-center gap-1">
-                <QueryHistoryMenu databaseId={db.id} onPick={setSql} />
+                {canQuery && <QueryHistoryMenu databaseId={db.id} onPick={setSql} />}
                 {!isRedis && !isMongo && (
                   <Button asChild variant="outline" size="sm">
                     <a
@@ -508,10 +511,12 @@ export function DatabaseDataBrowser({
                 : isMongo
                   ? t("browser.query.hintMongo")
                   : t("browser.query.hintSql")}{" "}
-              {!isMongo &&
-                (canWrite
-                  ? t("browser.query.writeHint")
-                  : t("browser.query.readOnlyHint"))}
+              {!canQuery
+                ? t("browser.query.viewerHint")
+                : !isMongo &&
+                  (canWrite
+                    ? t("browser.query.writeHint")
+                    : t("browser.query.readOnlyHint"))}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-2">
@@ -533,9 +538,14 @@ export function DatabaseDataBrowser({
               }
               className="min-h-24 font-mono text-xs"
               spellCheck={false}
+              disabled={!canQuery}
             />
             <div className="flex items-center gap-3">
-              <Button size="sm" disabled={pending || !sql.trim()} onClick={run}>
+              <Button
+                size="sm"
+                disabled={pending || !sql.trim() || !canQuery}
+                onClick={run}
+              >
                 <Play data-icon="inline-start" />
                 {t("browser.query.run")}
               </Button>
