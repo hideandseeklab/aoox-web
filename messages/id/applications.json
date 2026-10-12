@@ -285,7 +285,6 @@
       "open": "Buka halaman ini di {origin}"
     },
     "history": {
-      "title": "Deployment",
       "empty": "Belum pernah deploy."
     },
     "kind": {
@@ -300,6 +299,10 @@
       "title": "Log deployment",
       "label": "Log deployment",
       "select": "Pilih deployment."
+    },
+    "section": {
+      "title": "Deployment",
+      "description": "{count, plural, =0 {Belum pernah di-deploy} other {# deployment}} · Pilih salah satu untuk membaca lognya."
     }
   },
   "stepper": {
@@ -365,6 +368,20 @@
       "warn": "Sertifikat {when}",
       "today": "berakhir hari ini",
       "daysLeft": "{days} hari lagi"
+    },
+    "section": {
+      "title": "Domain",
+      "description": "{count, plural, =0 {Belum ada domain} other {# domain}} · Setiap host diarahkan ke aplikasi ini oleh reverse proxy."
+    },
+    "add": {
+      "title": "Tambah domain",
+      "description": "Arahkan sebuah hostname ke aplikasi ini lewat reverse proxy."
+    },
+    "columns": {
+      "host": "Domain",
+      "certificate": "Sertifikat",
+      "dns": "DNS",
+      "middleware": "Middleware"
     }
   },
   "middlewares": {
@@ -424,6 +441,17 @@
       "output": "Keluaran",
       "outputLabel": "Output job",
       "noOutput": "(tidak ada output)"
+    },
+    "section": {
+      "title": "Job",
+      "description": "{count, plural, =0 {Belum ada job} other {# job}} · Jalankan perintah terjadwal atau sesuai permintaan."
+    },
+    "columns": {
+      "name": "Job",
+      "schedule": "Jadwal",
+      "runIn": "Dijalankan di",
+      "lastRun": "Terakhir jalan",
+      "active": "Aktif"
     }
   },
   "monitor": {
@@ -530,6 +558,16 @@
       "detachKeep": "Lepas mount saja (data tetap ada)",
       "contentAria": "Isi {name}",
       "saveApply": "Simpan & terapkan"
+    },
+    "section": {
+      "title": "Mount",
+      "description": "{count, plural, =0 {Belum ada mount} other {# mount}} · Perubahan membuat ulang kontainer; data di volume tetap aman."
+    },
+    "columns": {
+      "path": "Path di kontainer",
+      "source": "Sumber",
+      "type": "Tipe",
+      "actions": "Aksi"
     }
   },
   "secretSource": {
@@ -671,6 +709,20 @@
     "restoreDialog": {
       "title": "Pulihkan volume?",
       "description": "Isi volume <strong>{volume}</strong> akan dihapus dan diganti dengan <code>{file}</code>. Container dihentikan selama proses. Tidak bisa dibatalkan."
+    },
+    "columns": {
+      "file": "Berkas",
+      "volume": "Volume",
+      "created": "Dibuat",
+      "size": "Ukuran",
+      "trigger": "Pemicu",
+      "status": "Status"
     }
+  },
+  "dangerZone": {
+    "title": "Zona berbahaya",
+    "description": "Tindakan yang tidak bisa dibatalkan untuk aplikasi ini.",
+    "deleteTitle": "Hapus aplikasi ini",
+    "deleteDescription": "Menghapus aplikasi beserta container, domain, job, preview, dan riwayat deploy-nya. Tindakan ini tidak bisa dibatalkan."
   }
 }

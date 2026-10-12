@@ -10,7 +10,19 @@ import {
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useState, useTransition } from "react"
+import {
+  DataActions,
+  DataActionsHead,
+  DataCell,
+  DataHead,
+  DataRow,
+  DataTable,
+  DataTableBody,
+  DataTableHeader,
+  IconButton,
+} from "@/components/custom/data-table"
 import { EmptyState } from "@/components/custom/empty-state"
+import { SectionHeader } from "@/components/custom/section-header"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -120,76 +132,99 @@ export function DatabaseBackups({
 
   return (
     <div className="space-y-4">
-      <Card>
-        <CardHeader>
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <CardTitle>{t("backups.title")}</CardTitle>
-              <CardDescription>
-                {t.rich(
-                  db.backupDestinationId
-                    ? "backups.descriptionWithDestination"
-                    : "backups.description",
-                  {
-                    code: (chunks) => <code>{chunks}</code>,
-                    destination:
-                      destinationName(db.backupDestinationId) ??
-                      t("backups.s3Destination"),
-                  }
-                )}
-              </CardDescription>
-            </div>
-            {canEdit && (
+      <SectionHeader
+        title={t("backups.title")}
+        description={t.rich(
+          db.backupDestinationId
+            ? "backups.descriptionWithDestination"
+            : "backups.description",
+          {
+            code: (chunks) => <code>{chunks}</code>,
+            destination:
+              destinationName(db.backupDestinationId) ??
+              t("backups.s3Destination"),
+          }
+        )}
+        action={
+          canEdit && (
             <Button
-              size="sm"
               disabled={pending || !running}
               onClick={() => run(() => createBackupAction(db.id))}
             >
               <HardDriveDownload data-icon="inline-start" />
               {pending ? tc("states.working") : t("backups.backupNow")}
             </Button>
-            )}
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {error && (
-            <p className="text-xs text-destructive" role="alert">
-              {error}
-            </p>
-          )}
-          {backups.length === 0 ? (
-            <EmptyState icon={Archive} compact>
-              {t("backups.empty")}
-            </EmptyState>
-          ) : (
-            <ul className="divide-y rounded-md border text-xs">
-              {backups.map((b) => (
-                <li key={b.id} className="flex items-center gap-3 px-3 py-2">
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate font-mono text-xs">
-                      {b.filename.split("/").pop()}
-                    </span>
-                    <span className="text-xs text-muted-foreground tabular-nums">
-                      {formatDateTime(b.createdAt, locale, {
-                        dateStyle: "medium",
-                        timeStyle: "short",
-                      })}{" "}
-                      · {formatBytes(b.sizeBytes, locale)} ·{" "}
-                      {t(`backups.trigger.${b.trigger}`)}
-                      {b.remoteKey &&
-                        ` · ${b.local ? t("backups.s3") : t("backups.s3Only")}`}
-                      {b.scope === "all" && ` · ${t("backups.allDatabases")}`}
-                      {b.errorMessage && ` · ${b.errorMessage}`}
-                    </span>
-                  </span>
-                  {b.remoteKey && (
-                    <CloudUpload
-                      className="size-4 shrink-0 text-muted-foreground"
-                      aria-label={t("backups.copiedTo", {
-                        destination: destinationName(b.destinationId) ?? "S3",
-                      })}
-                    />
+          )
+        }
+      />
+      {error && (
+        <p className="text-xs text-destructive" role="alert">
+          {error}
+        </p>
+      )}
+      {backups.length === 0 ? (
+        <EmptyState icon={Archive} compact>
+          {t("backups.empty")}
+        </EmptyState>
+      ) : (
+        <DataTable minWidth="min-w-[48rem]">
+          <DataTableHeader>
+            <DataHead>{t("backups.columns.file")}</DataHead>
+            <DataHead>{t("backups.columns.created")}</DataHead>
+            <DataHead>{t("backups.columns.size")}</DataHead>
+            <DataHead>{t("backups.columns.trigger")}</DataHead>
+            <DataHead>{t("backups.columns.status")}</DataHead>
+            <DataActionsHead label={tc("labels.actions")} />
+          </DataTableHeader>
+          <DataTableBody>
+            {backups.map((b) => (
+              <DataRow key={b.id}>
+                <DataCell mono className="max-w-64">
+                  <div
+                    className="truncate"
+                    title={b.filename.split("/").pop()}
+                  >
+                    {b.filename.split("/").pop()}
+                  </div>
+                  {(b.remoteKey || b.scope === "all") && (
+                    <div className="flex items-center gap-1.5 font-sans text-muted-foreground">
+                      {b.remoteKey && (
+                        <span
+                          className="inline-flex items-center gap-1"
+                          title={t("backups.copiedTo", {
+                            destination:
+                              destinationName(b.destinationId) ?? "S3",
+                          })}
+                        >
+                          <CloudUpload className="size-3" />
+                          {b.local ? t("backups.s3") : t("backups.s3Only")}
+                        </span>
+                      )}
+                      {b.remoteKey && b.scope === "all" && (
+                        <span aria-hidden>·</span>
+                      )}
+                      {b.scope === "all" && <span>{t("backups.allDatabases")}</span>}
+                    </div>
                   )}
+                  {b.errorMessage && (
+                    <div className="font-sans text-wrap text-destructive">
+                      {b.errorMessage}
+                    </div>
+                  )}
+                </DataCell>
+                <DataCell className="text-muted-foreground tabular-nums">
+                  {formatDateTime(b.createdAt, locale, {
+                    dateStyle: "medium",
+                    timeStyle: "short",
+                  })}
+                </DataCell>
+                <DataCell mono className="tabular-nums">
+                  {formatBytes(b.sizeBytes, locale)}
+                </DataCell>
+                <DataCell className="text-muted-foreground">
+                  {t(`backups.trigger.${b.trigger}`)}
+                </DataCell>
+                <DataCell>
                   <Badge
                     variant={
                       b.status === "success"
@@ -201,48 +236,41 @@ export function DatabaseBackups({
                   >
                     {t(`status.backup.${b.status}`)}
                   </Badge>
+                </DataCell>
+                <DataActions>
                   {b.status === "success" && (
                     <>
-                      <Button
-                        asChild
-                        variant="ghost"
-                        size="icon-sm"
-                        aria-label={tc("actions.download")}
-                      >
+                      <IconButton asChild label={tc("actions.download")}>
                         <a href={`/api/backups/${b.id}/download`}>
                           <Download />
                         </a>
-                      </Button>
+                      </IconButton>
                       {canEdit && (
-                      <Button
-                        variant="ghost"
-                        size="icon-sm"
-                        aria-label={t("backups.restore")}
-                        disabled={pending || !running}
-                        onClick={() => setRestoreTarget(b)}
-                      >
-                        <RotateCcw />
-                      </Button>
+                        <IconButton
+                          label={t("backups.restore")}
+                          disabled={pending || !running}
+                          onClick={() => setRestoreTarget(b)}
+                        >
+                          <RotateCcw />
+                        </IconButton>
                       )}
                     </>
                   )}
                   {canEdit && (
-                  <Button
-                    variant="ghost"
-                    size="icon-sm"
-                    aria-label={t("backups.deleteAria")}
-                    disabled={pending}
-                    onClick={() => run(() => deleteBackupAction(db.id, b.id))}
-                  >
-                    <Trash2 />
-                  </Button>
+                    <IconButton
+                      label={t("backups.deleteAria")}
+                      disabled={pending}
+                      onClick={() => run(() => deleteBackupAction(db.id, b.id))}
+                    >
+                      <Trash2 />
+                    </IconButton>
                   )}
-                </li>
-              ))}
-            </ul>
-          )}
-        </CardContent>
-      </Card>
+                </DataActions>
+              </DataRow>
+            ))}
+          </DataTableBody>
+        </DataTable>
+      )}
 
       <Card>
         <CardHeader>

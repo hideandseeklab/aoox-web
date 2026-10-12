@@ -2,10 +2,13 @@
 
 import { Play, Rocket, Square, Trash2 } from "lucide-react"
 import { useTranslations } from "next-intl"
-import type { ReactNode } from "react"
+import { ComposeSourceIcon } from "@/components/custom/brand-icon"
 import { ConfirmDialog } from "@/components/custom/confirm-dialog"
 import { useComposeLive } from "@/components/custom/compose-live"
-import { StatusStrip } from "@/components/custom/status-strip"
+import {
+  ResourceHeader,
+  ResourceStatus,
+} from "@/components/custom/resource-header"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -16,42 +19,69 @@ import {
 } from "@/features/compose/compose.actions"
 
 /**
- * The compose page's status line under the tabs: the live status badge, the `compose` badge and the
- * source line (`info`, built by the page) on the left; Deploy, Stop/Start and Delete on the right,
- * exactly the buttons and rules the Deploy tab's toolbar had.
+ * The compose page's header card. It reads the live stack from `ComposeLiveProvider`, so the
+ * status badge and the Deploy, Stop/Start and Delete buttons follow every action and poll.
  */
-export function ComposeStatusStrip({ info }: { info: ReactNode }) {
+export function ComposeHeader({
+  backHref,
+  backLabel,
+}: {
+  backHref: string
+  backLabel: string
+}) {
   const t = useTranslations("compose")
   const tc = useTranslations("common")
   const { app, pending, busy, error, run } = useComposeLive()
 
   return (
-    <StatusStrip
-      className="pt-4"
-      status={
+    <ResourceHeader
+      backHref={backHref}
+      backLabel={backLabel}
+      icon={
+        <ComposeSourceIcon
+          source={app.source}
+          gitUrl={app.gitUrl}
+          className="size-5"
+        />
+      }
+      title={app.name}
+      badges={
         <>
-          <Badge
-            variant={
+          <ResourceStatus
+            tone={
               app.status === "running"
-                ? "default"
+                ? "success"
                 : app.status === "error"
-                  ? "destructive"
-                  : "secondary"
+                  ? "danger"
+                  : app.status === "deploying"
+                    ? "warning"
+                    : "neutral"
             }
           >
             {t(`statusStrip.status.${app.status}`)}
-          </Badge>
+          </ResourceStatus>
           <Badge variant="outline">compose</Badge>
+          {app.projectRole === "viewer" && (
+            <Badge variant="outline">{t("statusStrip.readOnly")}</Badge>
+          )}
         </>
       }
-      info={info}
+      meta={[
+        <span key="s" className="font-mono">
+          {app.source === "template"
+            ? t("page.templateInfo", { id: app.templateId ?? "" })
+            : `${(app.gitUrl ?? "").replace(/^https?:\/\//, "")}#${app.gitBranch}`}
+        </span>,
+        app.source !== "template" && (
+          <span key="p" className="font-mono">
+            {app.composePath}
+          </span>
+        ),
+      ]}
       actions={
-        app.projectRole === "viewer" ? (
-          <Badge variant="outline">{t("statusStrip.readOnly")}</Badge>
-        ) : (
+        app.projectRole !== "viewer" && (
           <>
             <Button
-              size="sm"
               disabled={pending || busy}
               onClick={() => run(() => deployComposeAppAction(app.id))}
             >
@@ -62,7 +92,6 @@ export function ComposeStatusStrip({ info }: { info: ReactNode }) {
             </Button>
             {app.status === "running" && (
               <Button
-                size="sm"
                 variant="outline"
                 disabled={pending || busy}
                 onClick={() => run(() => stopComposeAppAction(app.id))}
@@ -73,7 +102,6 @@ export function ComposeStatusStrip({ info }: { info: ReactNode }) {
             )}
             {app.status === "stopped" && (
               <Button
-                size="sm"
                 variant="outline"
                 disabled={pending || busy}
                 onClick={() => run(() => startComposeAppAction(app.id))}
@@ -84,11 +112,7 @@ export function ComposeStatusStrip({ info }: { info: ReactNode }) {
             )}
             <ConfirmDialog
               trigger={
-                <Button
-                  size="sm"
-                  variant="destructive"
-                  disabled={pending || busy}
-                >
+                <Button variant="destructive" disabled={pending || busy}>
                   <Trash2 data-icon="inline-start" />
                   {tc("actions.delete")}
                 </Button>

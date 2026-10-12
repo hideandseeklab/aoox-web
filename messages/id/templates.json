@@ -264,7 +264,10 @@
       }
     },
     "docs": "Dokumentasi",
-    "deploy": "Deploy"
+    "deploy": "Deploy",
+    "deployHint": "Deploy {name} sebagai stack compose di salah satu proyek Anda",
+    "docsHint": "Buka dokumentasi {name} di tab baru",
+    "websiteHint": "Buka situs {name} di tab baru"
   },
   "dialog": {
     "creating": "Membuat stack {name}…",

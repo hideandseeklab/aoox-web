@@ -9,6 +9,8 @@ import { ApplicationJobs } from "@/components/custom/application-jobs"
 import { ApplicationMounts } from "@/components/custom/application-mounts"
 import { ApplicationWebhook } from "@/components/custom/application-webhook"
 import { ConsoleView } from "@/components/custom/console-view"
+import { DangerZone } from "@/components/custom/danger-zone"
+import { DeleteApplicationButton } from "@/components/custom/delete-application-button"
 import { ApplicationEnvironment } from "@/components/custom/application-environment"
 import { ApplicationSecretSource } from "@/components/custom/application-secret-source"
 import { ApplicationMonitor } from "@/components/custom/application-monitor"
@@ -108,7 +110,6 @@ export function ApplicationTabs({
   publicApiUrl,
   webOrigin,
   domainProxyAutoProvisioned,
-  statusStrip,
 }: {
   app: ApplicationDetail
   deployments: DeploymentSummary[]
@@ -145,8 +146,6 @@ export function ApplicationTabs({
   webOrigin: string
   /** Came from the create dialog's "Domain" option; see applications/[id]/page.tsx. */
   domainProxyAutoProvisioned: boolean
-  /** Status line shown under the tab list on every tab (rendered by the page). */
-  statusStrip?: React.ReactNode
 }) {
   const t = useTranslations("applications")
   const tc = useTranslations("common")
@@ -192,7 +191,6 @@ export function ApplicationTabs({
           {t("tabs.settings")}
         </PageTabsTrigger>
       </ScrollableTabsList>
-      {statusStrip}
       <TabsContent value="deploy" className="space-y-4 pt-4">
         <MetricsPanel
           target="application"
@@ -405,6 +403,25 @@ export function ApplicationTabs({
             />
           </CardContent>
         </Card>
+        {canEdit && (
+          <DangerZone
+            title={t("dangerZone.title")}
+            description={t("dangerZone.description")}
+            items={[
+              {
+                title: t("dangerZone.deleteTitle"),
+                description: t("dangerZone.deleteDescription"),
+                action: (
+                  <DeleteApplicationButton
+                    id={app.id}
+                    projectId={app.projectId}
+                    name={app.name}
+                  />
+                ),
+              },
+            ]}
+          />
+        )}
       </TabsContent>
     </Tabs>
   )

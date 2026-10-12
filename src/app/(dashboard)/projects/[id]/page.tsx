@@ -1,7 +1,7 @@
 import {
-  ArrowLeft,
   Boxes,
   Database,
+  FolderKanban,
   Layers,
   LayoutTemplate,
   Plus,
@@ -9,7 +9,9 @@ import {
 import { SetBreadcrumb } from "@/components/custom/breadcrumb-store"
 import Link from "next/link"
 import { notFound } from "next/navigation"
+import { DangerZone } from "@/components/custom/danger-zone"
 import { DeleteProjectButton } from "@/components/custom/delete-project-button"
+import { ResourceHeader } from "@/components/custom/resource-header"
 import { ExportProjectButton } from "@/components/custom/export-project-button"
 import { ProjectForm } from "@/components/custom/project-form"
 import { ProjectMembers } from "@/components/custom/project-members"
@@ -91,40 +93,34 @@ export default async function ProjectDetailPage({
           { label: project.name },
         ]}
       />
-      <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-3">
-        <div className="flex min-w-0 items-start gap-3">
-          <Button asChild variant="ghost" size="icon" className="mt-0.5">
-            <Link href="/projects" aria-label={t("detail.backToProjects")}>
-              <ArrowLeft />
-            </Link>
-          </Button>
-          <div className="min-w-0">
-            <h1 className="text-lg font-semibold break-words">
-              {project.name}
-            </h1>
-            <p className="text-xs text-muted-foreground">
-              {t("detail.created", {
-                date: formatDateTime(project.createdAt, locale, {
-                  dateStyle: "medium",
-                  timeStyle: "short",
-                }),
-              })}
-            </p>
-          </div>
-        </div>
-        <div className="flex flex-wrap gap-2">
+      <ResourceHeader
+        backHref="/projects"
+        backLabel={t("detail.backToProjects")}
+        icon={<FolderKanban className="size-5" />}
+        title={project.name}
+        meta={[
+          t("detail.counts", {
+            apps: applications.length,
+            stacks: composeApps.length,
+            dbs: databases.length,
+          }),
+          t("detail.created", {
+            date: formatDateTime(project.createdAt, locale, {
+              dateStyle: "medium",
+              timeStyle: "short",
+            }),
+          }),
+        ]}
+        actions={
           <ExportProjectButton
             id={project.id}
             canExportSecrets={session?.user.role === "owner"}
           />
-          {members?.myRole === "admin" && (
-            <DeleteProjectButton id={project.id} name={project.name} />
-          )}
-        </div>
-      </div>
+        }
+      />
 
       {/* Resources on the left, project settings on the right (stacked on small screens). */}
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_400px] lg:items-start">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_400px] lg:items-start">
         <div className="space-y-6">
           <section className="space-y-3">
             <h2 className="text-sm font-medium">{t("detail.sections.resourceUsage")}</h2>
@@ -281,6 +277,21 @@ export default async function ProjectDetailPage({
             </CardContent>
           </Card>
           {members && <ProjectMembers projectId={project.id} data={members} />}
+          {members?.myRole === "admin" && (
+            <DangerZone
+              title={t("detail.dangerZone.title")}
+              description={t("detail.dangerZone.description")}
+              items={[
+                {
+                  title: t("detail.dangerZone.deleteTitle"),
+                  description: t("detail.dangerZone.deleteDescription"),
+                  action: (
+                    <DeleteProjectButton id={project.id} name={project.name} />
+                  ),
+                },
+              ]}
+            />
+          )}
         </div>
       </div>
     </>

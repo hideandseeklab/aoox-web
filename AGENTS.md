@@ -55,6 +55,7 @@ Read `AGENTS.md` — this version of Next.js has breaking changes; check `node_m
 - Sign-in calls `POST /auth/sign-in` on the API through a server action (`src/features/auth/auth.actions.ts`),
   then stores `{ token, user }` in the httpOnly cookie `aoox_session` (`auth.session.ts`).
 - `src/proxy.ts` only does an optimistic redirect based on the presence of the cookie (`/sign-in`, `/setup`, and `/invite/` are public).
+- Profile: `src/features/user/user.actions.ts` — `updateOwnProfileAction` (`PATCH /users/me`, also rewrites the user in the `aoox_session` cookie via `setSession`) and `updateUserProfileAction` (owner, `PATCH /users/:id`). `account-card.tsx` has a Profile section + Edit profile dialog (the current password field is rendered only when the email differs); `members-card.tsx` has a pencil action per non-owner row opening `EditMemberDialog`.
 - Members: `src/features/member/` (entity/queries/actions) + `members-card.tsx` in Settings (user list with a role select and delete for owners, pending invitations,
   an **Invite** dialog that shows the link once — copy it manually) and the public page `/invite/[token]` (`accept-invite-form.tsx`: email/role preview from the API,
   name+password form, then `setSession` + redirect to `/`). All members see all projects; roles only restrict Settings/terminal.
@@ -153,7 +154,7 @@ Read `AGENTS.md` — this version of Next.js has breaking changes; check `node_m
 ## Shared UI components (status, logo, empty state, log, charts)
 
 - `status-dot.tsx` `StatusDot` + `statusTone()`: one meaning for status colors across all lists/cards (lime `bg-primary` = running/active, pulsing amber = transitioning, `bg-destructive` = error/failed, muted = other);
-  `showLabel` shows a small text label; without it only the dot + `sr-only`. Detail pages (`StatusStrip`) keep using `Badge`. Do not create new status dots/colors per component.
+  `showLabel` shows a small text label; without it only the dot + `sr-only`. Detail pages (`ResourceHeader`) use `ResourceStatus` (outlined badge with a coloured dot). Do not create new status dots/colors per component.
 - `brand-icon.tsx` (+ `brand-paths.ts`, inline simple-icons CC0 paths, `currentColor`, no CDN/dependencies): `EngineIcon`, `SourceIcon`, `GitProviderIcon`, `ImageRegistryIcon`, `ComposeSourceIcon`.
   Valkey is not in simple-icons → lucide icon. Adding a new brand = adding an entry in `brand-paths.ts`.
 - `empty-state.tsx` `EmptyState` (lucide icon + one sentence + optional action; `compact` inside a card/tab). Actions are rendered only when the equivalent button actually exists for that role.
@@ -168,6 +169,9 @@ Read `AGENTS.md` — this version of Next.js has breaking changes; check `node_m
 ## Principles
 
 - Tab strips use `ScrollableTabsList` + `PageTabsTrigger` (`components/custom/`) with a lucide icon per tab (same concept = same icon on every page); never put `ui/tabs` `TabsTrigger` in a strip directly.
+- Detail pages (application, database, compose) start with **one `ResourceHeader`** (`components/custom/resource-header.tsx`): back button, icon tile, name + badges (`ResourceStatus` for the main status; viewers get a "Read only" badge and no actions), ONE muted meta line of short facts, actions on the right (default-size buttons, wrap under the title on narrow screens). It sits directly above the tab strip; do not add a second title row or a status line under the tabs. Compose uses `ComposeHeader` (client, reads `ComposeLiveProvider`).
+- A tab's main section opens with **`SectionHeader`** (`section-header.tsx`): `text-sm` title + one muted line (count and/or hint) on the left, the primary action on the right. A single-card section puts the action in the `CardHeader` instead (`CardAction`, e.g. environment Save) so there is no second title.
+- **List tabs = table + add dialog** (domains, mounts, jobs, volume/database backups, compose History): the list is a `DataTable` (`data-table.tsx`: bordered rounded box that scrolls horizontally inside itself via a per-table `minWidth`, `DataHead` small uppercase muted column titles, `DataRow`/`DataCell` with `mono` for hosts/paths/cron/sizes, `DataActions`/`DataActionsHead` for the trailing icon-only column, `DataDetailRow` for expanded history/logs, `IconButton` = ghost `icon-sm` with `aria-label` + `title`). The add form lives in `AddDialog` (`add-dialog.tsx`; the "+ Add" button sits in the `SectionHeader` action slot; it owns pending + the error line, closes on success, and `onOpenChange` is where the caller resets its fields). File mounts open `MountContentDialog` from the row (edit for developers, read-only for viewers). Viewers get no Add button and no write icons (`canEdit`). Backups keep their one-click "Back up" button in the header (no form); the schedule card stays below the table.
 - Always follow the official documentation (Next.js in `node_modules/next/dist/docs/`, shadcn, etc.) for package selection and code patterns.
 
 ## Field and button height (one row)

@@ -15,6 +15,11 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 import type { Project } from "@/features/project/project.entity"
 import type { ProxyStatus } from "@/features/proxy/proxy.entity"
 import type { Template } from "@/features/template/template.entity"
@@ -110,35 +115,61 @@ export function TemplatesCatalog({
                 ))}
               </div>
             </CardContent>
-            <CardFooter className="gap-2">
-              <Button
-                size="sm"
-                disabled={projects.length === 0}
-                onClick={() => setSelected(t)}
-              >
-                <Rocket data-icon="inline-start" />
-                {tr("deploy")}
-              </Button>
-              {t.links.docs && (
-                <Button asChild size="sm" variant="ghost">
-                  <a href={t.links.docs} target="_blank" rel="noreferrer">
-                    <BookOpen data-icon="inline-start" />
-                    {tr("docs")}
-                  </a>
-                </Button>
-              )}
+            <CardFooter className="justify-end gap-2">
               {t.links.website && (
-                <Button
-                  asChild
-                  size="icon-sm"
-                  variant="ghost"
-                  aria-label={tr("website")}
-                >
-                  <a href={t.links.website} target="_blank" rel="noreferrer">
-                    <ExternalLink />
-                  </a>
-                </Button>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      asChild
+                      size="icon-sm"
+                      variant="ghost"
+                      aria-label={tr("website")}
+                    >
+                      <a href={t.links.website} target="_blank" rel="noreferrer">
+                        <ExternalLink />
+                      </a>
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    {tr("websiteHint", { name: t.name })}
+                  </TooltipContent>
+                </Tooltip>
               )}
+              {t.links.docs && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button asChild size="sm" variant="ghost">
+                      <a href={t.links.docs} target="_blank" rel="noreferrer">
+                        <BookOpen data-icon="inline-start" />
+                        {tr("docs")}
+                      </a>
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    {tr("docsHint", { name: t.name })}
+                  </TooltipContent>
+                </Tooltip>
+              )}
+              <Tooltip>
+                {/* A disabled button fires no pointer events, so the span carries the tooltip. */}
+                <TooltipTrigger asChild>
+                  <span tabIndex={projects.length === 0 ? 0 : -1}>
+                    <Button
+                      size="sm"
+                      disabled={projects.length === 0}
+                      onClick={() => setSelected(t)}
+                    >
+                      <Rocket data-icon="inline-start" />
+                      {tr("deploy")}
+                    </Button>
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent>
+                  {projects.length === 0
+                    ? tr("needProject")
+                    : tr("deployHint", { name: t.name })}
+                </TooltipContent>
+              </Tooltip>
             </CardFooter>
           </Card>
         ))}

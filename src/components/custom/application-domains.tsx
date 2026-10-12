@@ -1,20 +1,25 @@
 "use client"
 
-import {
-  ExternalLink,
-  Globe,
-  Plus,
-  Radar,
-  RefreshCw,
-  Trash2,
-} from "lucide-react"
+import { ExternalLink, Globe, Radar, RefreshCw, Trash2 } from "lucide-react"
 import { useTranslations } from "next-intl"
+import { SectionHeader } from "@/components/custom/section-header"
 import { useState, useTransition } from "react"
 import { toast } from "sonner"
+import { AddDialog } from "@/components/custom/add-dialog"
+import {
+  DataActions,
+  DataActionsHead,
+  DataCell,
+  DataHead,
+  DataRow,
+  DataTable,
+  DataTableBody,
+  DataTableHeader,
+  IconButton,
+} from "@/components/custom/data-table"
 import { EmptyState } from "@/components/custom/empty-state"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
@@ -128,8 +133,188 @@ export function ApplicationDomains({
     return isDefault ? "" : `:${port}`
   }
 
+  const resetForm = () => {
+    setHost("")
+    setHttps(false)
+    setCertId(AUTO)
+    setCertMode("http")
+    setDnsConn(MANUAL)
+    setDnsProxied(false)
+    setDnsOverwrite(false)
+  }
+
+  const addDomain = async () => {
+    const r = await addDomainAction(
+      applicationId,
+      host,
+      https,
+      https && certId !== AUTO ? certId : null,
+      {
+        certMode: https && certId === AUTO ? certMode : "http",
+        dnsConnectionId: dnsConn === MANUAL ? null : dnsConn,
+        dnsProxied,
+        dnsOverwrite,
+      }
+    )
+    if (!r.ok) return r
+    if (r.data.dnsWarning) {
+      toast.warning(td("addedWithWarning", { message: r.data.dnsWarning }))
+    }
+    setJustAutoProvisioned(r.data.proxyAutoProvisioned ? host : null)
+    return r
+  }
+
   return (
     <div className="space-y-4">
+      <SectionHeader
+        title={t("domains.section.title")}
+        description={t("domains.section.description", { count: domains.length })}
+        action={
+          canEdit && (
+            <AddDialog
+              title={t("domains.add.title")}
+              description={t("domains.add.description")}
+              submitDisabled={!host.trim()}
+              onOpenChange={resetForm}
+              onSubmit={addDomain}
+            >
+              <div className="space-y-1">
+                <Label htmlFor="domain-host">{t("domains.form.hostname")}</Label>
+                <Input
+                  id="domain-host"
+                  value={host}
+                  onChange={(e) => setHost(e.target.value)}
+                  placeholder="app.example.com"
+                  className="font-mono"
+                  required
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <Switch
+                  id="domain-https"
+                  checked={https}
+                  onCheckedChange={setHttps}
+                  disabled={!proxy.acmeEmail}
+                />
+                <Label htmlFor="domain-https">HTTPS</Label>
+              </div>
+              {!proxy.acmeEmail && (
+                <p className="text-xs text-muted-foreground">
+                  {t.rich("domains.httpsNeedsEmail", {
+                    code: (chunks) => <code>{chunks}</code>,
+                  })}
+                </p>
+              )}
+              {https && certificates.length > 0 && (
+                <div className="space-y-1">
+                  <Label htmlFor="domain-cert">
+                    {t("domains.form.certificate")}
+                  </Label>
+                  <Select value={certId} onValueChange={setCertId}>
+                    <SelectTrigger id="domain-cert" className="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent position="popper">
+                      <SelectItem value={AUTO}>
+                        {t("domains.certAuto")}
+                      </SelectItem>
+                      {certificates.map((c) => {
+                        const covers = !host.trim() || coversHost(c, host.trim())
+                        return (
+                          <SelectItem
+                            key={c.id}
+                            value={c.id}
+                            disabled={!covers}
+                          >
+                            {c.name}
+                            {!covers && ` · ${t("domains.notCovered")}`}
+                          </SelectItem>
+                        )
+                      })}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+              {https && certId === AUTO && proxyDnsEnabled && (
+                <div className="space-y-1">
+                  <Label htmlFor="domain-certmode">{td("certLabel")}</Label>
+                  <Select
+                    value={certMode}
+                    onValueChange={(v) => setCertMode(v as CertMode)}
+                  >
+                    <SelectTrigger id="domain-certmode" className="w-full">
+                      <SelectValue>
+                        {certModeLabelWith(td, certMode, host.trim())}
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent position="popper">
+                      <SelectItem value="http">{td("certHttp")}</SelectItem>
+                      <SelectItem value="dns">{td("certDns")}</SelectItem>
+                      <SelectItem
+                        value="dns-wildcard"
+                        disabled={!wildcardBase(host.trim())}
+                      >
+                        {certModeLabelWith(td, "dns-wildcard", host.trim())}
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+              {dnsConnections.length > 0 && (
+                <div className="space-y-1">
+                  <Label htmlFor="domain-dns">{td("manageLabel")}</Label>
+                  <Select value={dnsConn} onValueChange={setDnsConn}>
+                    <SelectTrigger id="domain-dns" className="w-full">
+                      <SelectValue>
+                        {dnsConn === MANUAL
+                          ? td("manual")
+                          : td("viaConnection", {
+                              name:
+                                dnsConnections.find((c) => c.id === dnsConn)
+                                  ?.name ?? "",
+                            })}
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent position="popper">
+                      <SelectItem value={MANUAL}>{td("manual")}</SelectItem>
+                      {dnsConnections.map((c) => (
+                        <SelectItem key={c.id} value={c.id}>
+                          {td("viaConnection", { name: c.name })}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+              {dnsConn !== MANUAL && (
+                <>
+                  <div className="flex items-center gap-2">
+                    <Switch
+                      id="domain-dns-proxied"
+                      checked={dnsProxied}
+                      onCheckedChange={setDnsProxied}
+                    />
+                    <Label htmlFor="domain-dns-proxied">{td("proxied")}</Label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Switch
+                      id="domain-dns-overwrite"
+                      checked={dnsOverwrite}
+                      onCheckedChange={setDnsOverwrite}
+                    />
+                    <Label htmlFor="domain-dns-overwrite">
+                      {td("overwrite")}
+                    </Label>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {td("proxiedHelp")}
+                  </p>
+                </>
+              )}
+            </AddDialog>
+          )
+        }
+      />
       {!proxy.running && (
         <Alert className="max-w-3xl">
           <AlertTitle>{t("domains.proxyStopped.title")}</AlertTitle>
@@ -168,179 +353,6 @@ export function ApplicationDomains({
           </AlertDescription>
         </Alert>
       )}
-
-      {canEdit && (
-        <>
-          <form
-            className="flex max-w-3xl flex-wrap items-end gap-3"
-            onSubmit={(e) => {
-              e.preventDefault()
-              start(async () => {
-                setError(null)
-                const r = await addDomainAction(
-                  applicationId,
-                  host,
-                  https,
-                  https && certId !== AUTO ? certId : null,
-                  {
-                    certMode: https && certId === AUTO ? certMode : "http",
-                    dnsConnectionId: dnsConn === MANUAL ? null : dnsConn,
-                    dnsProxied,
-                    dnsOverwrite,
-                  }
-                )
-                if (!r.ok) return setError(r.error)
-                if (r.data.dnsWarning) {
-                  toast.warning(
-                    td("addedWithWarning", { message: r.data.dnsWarning })
-                  )
-                }
-                setJustAutoProvisioned(
-                  r.data.proxyAutoProvisioned ? host : null
-                )
-                setHost("")
-                setCertId(AUTO)
-                setCertMode("http")
-              })
-            }}
-          >
-            <div className="min-w-64 flex-1 space-y-1">
-              <Label htmlFor="domain-host">{t("domains.form.hostname")}</Label>
-              <Input
-                id="domain-host"
-                value={host}
-                onChange={(e) => setHost(e.target.value)}
-                placeholder="app.example.com"
-                required
-              />
-            </div>
-            <div className="flex items-center gap-2 pb-1.5">
-              <Switch
-                id="domain-https"
-                checked={https}
-                onCheckedChange={setHttps}
-                disabled={!proxy.acmeEmail}
-              />
-              <Label htmlFor="domain-https">HTTPS</Label>
-            </div>
-            {https && certificates.length > 0 && (
-              <div className="space-y-1">
-                <Label htmlFor="domain-cert">
-                  {t("domains.form.certificate")}
-                </Label>
-                <Select value={certId} onValueChange={setCertId}>
-                  <SelectTrigger id="domain-cert" className="w-56">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent position="popper">
-                    <SelectItem value={AUTO}>
-                      {t("domains.certAuto")}
-                    </SelectItem>
-                    {certificates.map((c) => {
-                      const covers = !host.trim() || coversHost(c, host.trim())
-                      return (
-                        <SelectItem key={c.id} value={c.id} disabled={!covers}>
-                          {c.name}
-                          {!covers && ` · ${t("domains.notCovered")}`}
-                        </SelectItem>
-                      )
-                    })}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-            {https && certId === AUTO && proxyDnsEnabled && (
-              <div className="space-y-1">
-                <Label htmlFor="domain-certmode">{td("certLabel")}</Label>
-                <Select
-                  value={certMode}
-                  onValueChange={(v) => setCertMode(v as CertMode)}
-                >
-                  <SelectTrigger id="domain-certmode" className="w-56">
-                    <SelectValue>
-                      {certModeLabelWith(td, certMode, host.trim())}
-                    </SelectValue>
-                  </SelectTrigger>
-                  <SelectContent position="popper">
-                    <SelectItem value="http">{td("certHttp")}</SelectItem>
-                    <SelectItem value="dns">{td("certDns")}</SelectItem>
-                    <SelectItem
-                      value="dns-wildcard"
-                      disabled={!wildcardBase(host.trim())}
-                    >
-                      {certModeLabelWith(td, "dns-wildcard", host.trim())}
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-            {dnsConnections.length > 0 && (
-              <div className="space-y-1">
-                <Label htmlFor="domain-dns">{td("manageLabel")}</Label>
-                <Select value={dnsConn} onValueChange={setDnsConn}>
-                  <SelectTrigger id="domain-dns" className="w-56">
-                    <SelectValue>
-                      {dnsConn === MANUAL
-                        ? td("manual")
-                        : td("viaConnection", {
-                            name:
-                              dnsConnections.find((c) => c.id === dnsConn)
-                                ?.name ?? "",
-                          })}
-                    </SelectValue>
-                  </SelectTrigger>
-                  <SelectContent position="popper">
-                    <SelectItem value={MANUAL}>{td("manual")}</SelectItem>
-                    {dnsConnections.map((c) => (
-                      <SelectItem key={c.id} value={c.id}>
-                        {td("viaConnection", { name: c.name })}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-            {dnsConn !== MANUAL && (
-              <>
-                <div className="flex items-center gap-2 pb-1.5">
-                  <Switch
-                    id="domain-dns-proxied"
-                    checked={dnsProxied}
-                    onCheckedChange={setDnsProxied}
-                  />
-                  <Label htmlFor="domain-dns-proxied">{td("proxied")}</Label>
-                </div>
-                <div className="flex items-center gap-2 pb-1.5">
-                  <Switch
-                    id="domain-dns-overwrite"
-                    checked={dnsOverwrite}
-                    onCheckedChange={setDnsOverwrite}
-                  />
-                  <Label htmlFor="domain-dns-overwrite">
-                    {td("overwrite")}
-                  </Label>
-                </div>
-              </>
-            )}
-            <Button type="submit" disabled={pending || !host.trim()}>
-              <Plus data-icon="inline-start" />
-              {tc("actions.add")}
-            </Button>
-          </form>
-          {dnsConn !== MANUAL && (
-            <p className="max-w-3xl text-xs text-muted-foreground">
-              {td("proxiedHelp")}
-            </p>
-          )}
-          {!proxy.acmeEmail && (
-            <p className="text-xs text-muted-foreground">
-              {t.rich("domains.httpsNeedsEmail", {
-                code: (chunks) => <code>{chunks}</code>,
-              })}
-            </p>
-          )}
-        </>
-      )}
       {error && (
         <p className="text-xs text-destructive" role="alert">
           {error}
@@ -352,166 +364,194 @@ export function ApplicationDomains({
           {t("domains.empty")}
         </EmptyState>
       ) : (
-        <ul className="divide-y rounded-lg border">
-          {domains.map((d) => {
-            const url = `${d.https ? "https" : "http"}://${d.host}${portSuffix(d.https)}`
-            const check = dns[d.id]
-            return (
-              <li key={d.id} className="space-y-1 px-4 py-2 text-xs">
-                <div className="flex items-center gap-3">
-                  <a
-                    href={url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="flex min-w-0 items-center gap-1 font-mono hover:underline"
-                  >
-                    <span className="truncate">{d.host}</span>
-                    <ExternalLink className="size-3 shrink-0 text-muted-foreground" />
-                  </a>
-                  {d.https && <Badge variant="secondary">https</Badge>}
-                  {check && (
-                    <Badge
-                      variant={
-                        check.status === "ok"
-                          ? "default"
-                          : check.status === "mismatch"
-                            ? "destructive"
-                            : "secondary"
-                      }
-                    >
-                      {t("domains.dns.badge", {
-                        status: t(`domains.dns.${check.status}`),
-                      })}
-                    </Badge>
-                  )}
-                  <span className="ms-auto" />
-                  <Button
-                    variant="ghost"
-                    size="icon-sm"
-                    aria-label={t("domains.dns.checkAria", { host: d.host })}
-                    disabled={pending}
-                    onClick={() => checkDns(d.id)}
-                  >
-                    <Radar />
-                  </Button>
-                  {canEdit && (
-                    <Button
-                      variant="ghost"
-                      size="icon-sm"
-                      aria-label={t("domains.deleteAria", { host: d.host })}
-                      disabled={pending}
-                      onClick={() =>
-                        start(async () => {
-                          const r = await deleteDomainAction(
-                            applicationId,
-                            d.id
-                          )
-                          if (!r.ok) setError(r.error)
-                        })
-                      }
-                    >
-                      <Trash2 />
-                    </Button>
-                  )}
-                </div>
-                {d.https &&
-                  !d.certificateId &&
-                  (proxyDnsEnabled || (d.certMode ?? "http") !== "http") && (
-                    <CertModeRow
-                      domain={d}
-                      canEdit={canEdit}
-                      pending={pending}
-                      onChange={(mode) =>
-                        start(async () => {
-                          setError(null)
-                          const r = await updateDomainDnsAction(
-                            applicationId,
-                            d.id,
-                            { certMode: mode }
-                          )
-                          if (!r.ok) setError(r.error)
-                        })
-                      }
-                    />
-                  )}
-                {(canEdit && dnsConnections.length > 0) || d.dnsConnectionId ? (
-                  <DnsRow
-                    domain={d}
-                    connections={dnsConnections}
-                    canEdit={canEdit}
-                    pending={pending}
-                    onPatch={(patch) =>
-                      start(async () => {
-                        setError(null)
-                        const r = await updateDomainDnsAction(
-                          applicationId,
-                          d.id,
-                          patch
-                        )
-                        if (!r.ok) setError(r.error)
-                      })
-                    }
-                    onSync={() =>
-                      start(async () => {
-                        setError(null)
-                        const r = await syncDomainDnsAction(
-                          applicationId,
-                          d.id,
-                          false
-                        )
-                        if (!r.ok) setError(r.error)
-                      })
-                    }
-                  />
-                ) : null}
-                {d.https && (
-                  <CertificateRow
-                    domain={d}
-                    certificates={certificates}
-                    canEdit={canEdit}
-                    pending={pending}
-                    onChange={(value) => setCertificate(d.id, value)}
-                  />
-                )}
-                {(canEdit || (d.middlewares ?? []).length > 0) && (
-                  <div className="flex flex-wrap items-center gap-2 text-muted-foreground">
-                    <span>{t("domains.middleware")}</span>
-                    {(d.middlewares ?? []).length === 0 ? (
-                      <span>{tc("states.none").toLowerCase()}</span>
+        <DataTable minWidth="min-w-[62rem]">
+          <DataTableHeader>
+            <DataHead>{t("domains.columns.host")}</DataHead>
+            <DataHead>{t("domains.columns.certificate")}</DataHead>
+            <DataHead>{t("domains.columns.dns")}</DataHead>
+            <DataHead>{t("domains.columns.middleware")}</DataHead>
+            <DataActionsHead label={tc("labels.actions")} />
+          </DataTableHeader>
+          <DataTableBody>
+            {domains.map((d) => {
+              const url = `${d.https ? "https" : "http"}://${d.host}${portSuffix(d.https)}`
+              const check = dns[d.id]
+              const showCertMode =
+                d.https &&
+                !d.certificateId &&
+                (proxyDnsEnabled || (d.certMode ?? "http") !== "http")
+              const showDns =
+                (canEdit && dnsConnections.length > 0) || !!d.dnsConnectionId
+              return (
+                <DataRow key={d.id} className="align-top">
+                  <DataCell className="max-w-72">
+                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                      <a
+                        href={url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="flex min-w-0 items-center gap-1 font-mono hover:underline"
+                      >
+                        <span className="truncate">{d.host}</span>
+                        <ExternalLink className="size-3 shrink-0 text-muted-foreground" />
+                      </a>
+                      {d.https && <Badge variant="secondary">https</Badge>}
+                      {check && (
+                        <Badge
+                          variant={
+                            check.status === "ok"
+                              ? "default"
+                              : check.status === "mismatch"
+                                ? "destructive"
+                                : "secondary"
+                          }
+                        >
+                          {t("domains.dns.badge", {
+                            status: t(`domains.dns.${check.status}`),
+                          })}
+                        </Badge>
+                      )}
+                    </div>
+                    {check && (
+                      <p className="mt-1 text-wrap text-muted-foreground">
+                        {check.message}
+                        {check.expectedSource === "detected" &&
+                          ` · ${t("domains.dns.detected")}`}
+                      </p>
+                    )}
+                  </DataCell>
+                  <DataCell>
+                    {d.https ? (
+                      <div className="space-y-1.5">
+                        <CertificateCell
+                          domain={d}
+                          certificates={certificates}
+                          canEdit={canEdit}
+                          pending={pending}
+                          onChange={(value) => setCertificate(d.id, value)}
+                        />
+                        {showCertMode && (
+                          <CertModeCell
+                            domain={d}
+                            canEdit={canEdit}
+                            pending={pending}
+                            onChange={(mode) =>
+                              start(async () => {
+                                setError(null)
+                                const r = await updateDomainDnsAction(
+                                  applicationId,
+                                  d.id,
+                                  { certMode: mode }
+                                )
+                                if (!r.ok) setError(r.error)
+                              })
+                            }
+                          />
+                        )}
+                      </div>
                     ) : (
-                      (d.middlewares ?? []).map((m) => (
+                      <span className="text-muted-foreground">—</span>
+                    )}
+                  </DataCell>
+                  <DataCell>
+                    {showDns ? (
+                      <DnsCell
+                        domain={d}
+                        connections={dnsConnections}
+                        canEdit={canEdit}
+                        pending={pending}
+                        onPatch={(patch) =>
+                          start(async () => {
+                            setError(null)
+                            const r = await updateDomainDnsAction(
+                              applicationId,
+                              d.id,
+                              patch
+                            )
+                            if (!r.ok) setError(r.error)
+                          })
+                        }
+                      />
+                    ) : (
+                      <span className="text-muted-foreground">—</span>
+                    )}
+                  </DataCell>
+                  <DataCell>
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      {(d.middlewares ?? []).length === 0 && !canEdit && (
+                        <span className="text-muted-foreground">—</span>
+                      )}
+                      {(d.middlewares ?? []).map((m) => (
                         <Badge key={m} variant="outline" className="font-mono">
                           {m}
                         </Badge>
-                      ))
+                      ))}
+                      {canEdit && (
+                        <DomainMiddlewaresDialog
+                          applicationId={applicationId}
+                          domain={d}
+                          options={middlewareOptions}
+                        />
+                      )}
+                    </div>
+                  </DataCell>
+                  <DataActions>
+                    <IconButton
+                      label={t("domains.dns.checkAria", { host: d.host })}
+                      disabled={pending}
+                      onClick={() => checkDns(d.id)}
+                    >
+                      <Radar />
+                    </IconButton>
+                    {canEdit && d.dnsConnectionId && (
+                      <IconButton
+                        label={td("syncAria", { host: d.host })}
+                        disabled={pending}
+                        onClick={() =>
+                          start(async () => {
+                            setError(null)
+                            const r = await syncDomainDnsAction(
+                              applicationId,
+                              d.id,
+                              false
+                            )
+                            if (!r.ok) setError(r.error)
+                          })
+                        }
+                      >
+                        <RefreshCw />
+                      </IconButton>
                     )}
                     {canEdit && (
-                      <DomainMiddlewaresDialog
-                        applicationId={applicationId}
-                        domain={d}
-                        options={middlewareOptions}
-                      />
+                      <IconButton
+                        label={t("domains.deleteAria", { host: d.host })}
+                        disabled={pending}
+                        onClick={() =>
+                          start(async () => {
+                            const r = await deleteDomainAction(
+                              applicationId,
+                              d.id
+                            )
+                            if (!r.ok) setError(r.error)
+                          })
+                        }
+                      >
+                        <Trash2 />
+                      </IconButton>
                     )}
-                  </div>
-                )}
-                {check && (
-                  <p className="text-xs text-muted-foreground">
-                    {check.message}
-                    {check.expectedSource === "detected" &&
-                      ` · ${t("domains.dns.detected")}`}
-                  </p>
-                )}
-              </li>
-            )
-          })}
-        </ul>
+                  </DataActions>
+                </DataRow>
+              )
+            })}
+          </DataTableBody>
+        </DataTable>
       )}
     </div>
   )
 }
 
 /** Which SSL certificate an https domain uses, with a picker (developer+) and an expiry warning. */
-function CertificateRow({
+function CertificateCell({
   domain,
   certificates,
   canEdit,
@@ -536,8 +576,7 @@ function CertificateRow({
   const label = domain.certificateName ?? current?.name ?? null
 
   return (
-    <div className="flex flex-wrap items-center gap-2 text-muted-foreground">
-      <span>{t("domains.form.certificate")}</span>
+    <div className="flex flex-wrap items-center gap-2">
       {canEdit && (certificates.length > 0 || domain.certificateId) ? (
         <Select
           value={domain.certificateId ?? AUTO}
@@ -546,7 +585,7 @@ function CertificateRow({
         >
           <SelectTrigger
             size="sm"
-            className="w-56"
+            className="w-44"
             aria-label={t("domains.certFor", { host: domain.host })}
           >
             <SelectValue />
@@ -570,9 +609,7 @@ function CertificateRow({
           </SelectContent>
         </Select>
       ) : (
-        <span className="text-foreground">
-          {label ?? t("domains.certAuto")}
-        </span>
+        <span>{label ?? t("domains.certAuto")}</span>
       )}
       {current && state && state !== "ok" && (
         <span
@@ -601,7 +638,7 @@ function certModeLabelWith(td: DnsT, mode: CertMode, host: string): string {
 }
 
 /** ACME mode of an https domain (HTTP-01, DNS-01, DNS-01 wildcard) with a picker for developers. */
-function CertModeRow({
+function CertModeCell({
   domain,
   canEdit,
   pending,
@@ -615,8 +652,7 @@ function CertModeRow({
   const td = useTranslations("dns.domain")
   const mode: CertMode = domain.certMode ?? "http"
   return (
-    <div className="flex flex-wrap items-center gap-2 text-muted-foreground">
-      <span>{td("certLabel")}</span>
+    <div className="flex flex-wrap items-center gap-2">
       {canEdit ? (
         <Select
           value={mode}
@@ -625,7 +661,7 @@ function CertModeRow({
         >
           <SelectTrigger
             size="sm"
-            className="w-56"
+            className="w-44"
             aria-label={td("certModeAria", { host: domain.host })}
           >
             <SelectValue>
@@ -644,7 +680,7 @@ function CertModeRow({
           </SelectContent>
         </Select>
       ) : (
-        <span className="text-foreground">
+        <span className="text-muted-foreground">
           {certModeLabelWith(td, mode, domain.host)}
         </span>
       )}
@@ -652,14 +688,13 @@ function CertModeRow({
   )
 }
 
-/** DNS record management of one domain: connection, proxied flag, last sync result, sync button. */
-function DnsRow({
+/** DNS record management of one domain: connection, proxied flag and the last sync result. */
+function DnsCell({
   domain,
   connections,
   canEdit,
   pending,
   onPatch,
-  onSync,
 }: {
   domain: Domain
   connections: DnsConnection[]
@@ -669,7 +704,6 @@ function DnsRow({
     dnsConnectionId?: string | null
     dnsProxied?: boolean
   }) => void
-  onSync: () => void
 }) {
   const td = useTranslations("dns.domain")
   const current = domain.dnsConnectionId ?? MANUAL
@@ -683,9 +717,8 @@ function DnsRow({
       : td("viaConnection", { name: currentName })
   const status = domain.dnsStatus
   return (
-    <div className="space-y-1">
-      <div className="flex flex-wrap items-center gap-2 text-muted-foreground">
-        <span>{td("manageLabel")}</span>
+    <div className="space-y-1.5">
+      <div className="flex flex-wrap items-center gap-2">
         {canEdit ? (
           <Select
             value={current}
@@ -696,7 +729,7 @@ function DnsRow({
           >
             <SelectTrigger
               size="sm"
-              className="w-56"
+              className="w-44"
               aria-label={td("dnsConnectionAria", { host: domain.host })}
             >
               <SelectValue>{label}</SelectValue>
@@ -717,54 +750,41 @@ function DnsRow({
             </SelectContent>
           </Select>
         ) : (
-          <span className="text-foreground">{label}</span>
+          <span>{label}</span>
         )}
-        {domain.dnsConnectionId && (
-          <>
-            {status && (
-              <Badge
-                variant={
-                  status === "ok"
-                    ? "default"
-                    : status === "error"
-                      ? "destructive"
-                      : "secondary"
-                }
-              >
-                {status === "ok"
-                  ? td("statusOk")
-                  : status === "warning"
-                    ? td("statusWarning")
-                    : td("statusError")}
-              </Badge>
-            )}
-            <label className="flex items-center gap-2">
-              <Switch
-                checked={domain.dnsProxied ?? false}
-                disabled={!canEdit || pending}
-                onCheckedChange={(v) => onPatch({ dnsProxied: v })}
-              />
-              {td("proxied")}
-            </label>
-            {canEdit && (
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                aria-label={td("syncAria", { host: domain.host })}
-                disabled={pending}
-                onClick={onSync}
-              >
-                <RefreshCw />
-              </Button>
-            )}
-          </>
+        {domain.dnsConnectionId && status && (
+          <Badge
+            variant={
+              status === "ok"
+                ? "default"
+                : status === "error"
+                  ? "destructive"
+                  : "secondary"
+            }
+          >
+            {status === "ok"
+              ? td("statusOk")
+              : status === "warning"
+                ? td("statusWarning")
+                : td("statusError")}
+          </Badge>
         )}
       </div>
+      {domain.dnsConnectionId && (
+        <label className="flex items-center gap-2 text-muted-foreground">
+          <Switch
+            checked={domain.dnsProxied ?? false}
+            disabled={!canEdit || pending}
+            onCheckedChange={(v) => onPatch({ dnsProxied: v })}
+          />
+          {td("proxied")}
+        </label>
+      )}
       {domain.dnsConnectionId && domain.dnsMessage && (
         <p
-          className={
+          className={`max-w-64 text-wrap ${
             status === "ok" ? "text-muted-foreground" : "text-destructive"
-          }
+          }`}
         >
           {domain.dnsMessage}
         </p>

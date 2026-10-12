@@ -47,6 +47,13 @@
     "settings": {
       "title": "Settings",
       "description": "Name, description, and the environment shared by all applications."
+    },
+    "counts": "{apps, plural, one {# application} other {# applications}} · {stacks, plural, one {# stack} other {# stacks}} · {dbs, plural, one {# database} other {# databases}}",
+    "dangerZone": {
+      "title": "Danger zone",
+      "description": "Irreversible actions for this project.",
+      "deleteTitle": "Delete this project",
+      "deleteDescription": "Permanently deletes the project and everything listed in it. This cannot be undone."
     }
   },
   "form": {

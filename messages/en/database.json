@@ -125,6 +125,13 @@
       "title": "Restore backup?",
       "description": "The current data of <b>{name}</b> will be overwritten with the contents of <code>{file}</code>. This cannot be undone; create a backup first if unsure.",
       "restoring": "Restoring…"
+    },
+    "columns": {
+      "file": "File",
+      "created": "Created",
+      "size": "Size",
+      "trigger": "Trigger",
+      "status": "Status"
     }
   },
   "validation": {

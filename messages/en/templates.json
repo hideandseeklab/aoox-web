@@ -264,7 +264,10 @@
       }
     },
     "docs": "Docs",
-    "deploy": "Deploy"
+    "deploy": "Deploy",
+    "deployHint": "Deploy {name} as a compose stack in one of your projects",
+    "docsHint": "Open the {name} documentation in a new tab",
+    "websiteHint": "Open the {name} website in a new tab"
   },
   "dialog": {
     "creating": "Creating stack {name}…",

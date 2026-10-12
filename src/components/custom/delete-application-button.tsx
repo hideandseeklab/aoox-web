@@ -32,7 +32,7 @@ export function DeleteApplicationButton({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="destructive" size="sm">
+        <Button variant="destructive">
           <Trash2 data-icon="inline-start" />
           {tc("actions.delete")}
         </Button>

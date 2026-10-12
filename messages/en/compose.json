@@ -48,6 +48,20 @@
       "stop": "stop",
       "start": "start",
       "down": "down"
+    },
+    "section": {
+      "title": "History",
+      "description": "{count, plural, =0 {No runs yet} one {# run} other {# runs}} · Every deploy, stop and start of this stack."
+    },
+    "columns": {
+      "action": "Action",
+      "commit": "Commit",
+      "started": "Started",
+      "duration": "Duration",
+      "status": "Status"
+    },
+    "status": {
+      "success": "Success"
     }
   },
   "panel": {
@@ -115,7 +129,18 @@
     "detachAndDelete": "Detach and delete volume (data lost)",
     "detach": "Detach mount",
     "detachKeepData": "Detach mount only (keep data)",
-    "contentAria": "Contents of {name}"
+    "contentAria": "Contents of {name}",
+    "section": {
+      "title": "Mounts",
+      "description": "{count, plural, =0 {No mounts yet} one {# mount} other {# mounts}} · Applied on the next deploy; data in volumes is kept."
+    },
+    "columns": {
+      "service": "Service",
+      "path": "Container path",
+      "source": "Source",
+      "type": "Type",
+      "actions": "Actions"
+    }
   },
   "resources": {
     "title": "Resource limits",

@@ -38,6 +38,7 @@ import { DeployStepper } from "./deploy-stepper"
 import { useBrowserOrigin } from "./use-browser-host"
 import { formatDateTime, formatTime } from "@/i18n/format"
 import { useLocale, useTranslations } from "next-intl"
+import { SectionHeader } from "@/components/custom/section-header"
 
 const STATUS_VARIANT: Record<
   DeploymentSummary["status"],
@@ -387,74 +388,86 @@ export function ApplicationDeployPanel({
           </ul>
         </div>
       )}
-      <div className="flex flex-wrap items-center gap-2">
-        {canEdit && app.sourceType === "image" && (
-          <Button
-            variant="outline"
-            disabled={pending || active}
-            onClick={() =>
-              run(async () => {
-                setImageNote(null)
-                const r = await checkImageUpdateAction(app.id, true)
-                if (r.ok) {
-                  const d = r.data
-                  setImageNote(
-                    d.remoteDigest === null
-                      ? t("deploy.image.pinned")
-                      : d.baseline
-                        ? t("deploy.image.baseline", {
-                            digest: d.remoteDigest.slice(7, 19),
-                          })
-                        : d.changed
-                          ? t(
-                              d.deploymentId
-                                ? "deploy.image.changedStarted"
-                                : "deploy.image.changedBusy",
-                              { digest: d.remoteDigest.slice(7, 19) }
-                            )
-                          : t("deploy.image.upToDate", {
-                              digest: d.remoteDigest.slice(7, 19),
-                            })
-                  )
-                  if (d.deploymentId) selectDeployment(d.deploymentId)
+      <SectionHeader
+        title={t("deploy.section.title")}
+        description={t("deploy.section.description", {
+          count: deployments.length,
+        })}
+        action={
+          <>
+            {canEdit && app.sourceType === "image" && (
+              <Button
+                variant="outline"
+                disabled={pending || active}
+                onClick={() =>
+                  run(async () => {
+                    setImageNote(null)
+                    const r = await checkImageUpdateAction(app.id, true)
+                    if (r.ok) {
+                      const d = r.data
+                      setImageNote(
+                        d.remoteDigest === null
+                          ? t("deploy.image.pinned")
+                          : d.baseline
+                            ? t("deploy.image.baseline", {
+                                digest: d.remoteDigest.slice(7, 19),
+                              })
+                            : d.changed
+                              ? t(
+                                  d.deploymentId
+                                    ? "deploy.image.changedStarted"
+                                    : "deploy.image.changedBusy",
+                                  { digest: d.remoteDigest.slice(7, 19) }
+                                )
+                              : t("deploy.image.upToDate", {
+                                  digest: d.remoteDigest.slice(7, 19),
+                                })
+                      )
+                      if (d.deploymentId) selectDeployment(d.deploymentId)
+                    }
+                    return r
+                  })
                 }
-                return r
-              })
-            }
-          >
-            <RefreshCw data-icon="inline-start" />
-            {t("deploy.image.check")}
-          </Button>
-        )}
-        <Button
-          variant={following ? "secondary" : "ghost"}
-          size="sm"
-          disabled={!app.container || !socket}
-          onClick={() => {
-            setContainerLogs("")
-            setFollowing((f) => !f)
-          }}
-        >
-          <Radio data-icon="inline-start" />
-          {following ? t("deploy.logs.stopFollow") : t("deploy.logs.follow")}
-        </Button>
-        {imageNote && !shownError && (
-          <span className="text-xs text-muted-foreground">{imageNote}</span>
-        )}
-        {shownError && (
-          <span
-            className="flex items-center gap-2 text-xs text-destructive"
-            role="alert"
-          >
-            {shownError}
-            {socketError && (
-              <Button variant="link" size="sm" onClick={reconnect}>
-                {t("deploy.reconnect")}
+              >
+                <RefreshCw data-icon="inline-start" />
+                {t("deploy.image.check")}
               </Button>
             )}
-          </span>
-        )}
-      </div>
+            <Button
+              variant={following ? "secondary" : "ghost"}
+              size="sm"
+              disabled={!app.container || !socket}
+              onClick={() => {
+                setContainerLogs("")
+                setFollowing((f) => !f)
+              }}
+            >
+              <Radio data-icon="inline-start" />
+              {following ? t("deploy.logs.stopFollow") : t("deploy.logs.follow")}
+            </Button>
+          </>
+        }
+      />
+      {(shownError || imageNote) && (
+        <div className="flex flex-wrap items-center gap-2">
+          {imageNote && !shownError && (
+            <span className="text-xs text-muted-foreground">{imageNote}</span>
+          )}
+          {shownError && (
+            <span
+              className="flex items-center gap-2 text-xs text-destructive"
+              role="alert"
+            >
+              {shownError}
+              {socketError && (
+                <Button variant="link" size="sm" onClick={reconnect}>
+                  {t("deploy.reconnect")}
+                </Button>
+              )}
+            </span>
+          )}
+        </div>
+      )}
 
       {originMismatch && (
         <Alert variant="destructive">
@@ -491,7 +504,6 @@ export function ApplicationDeployPanel({
 
       <div className="grid gap-4 lg:grid-cols-[16rem_1fr]">
         <div className="space-y-1">
-          <h3 className="text-sm font-medium">{t("deploy.history.title")}</h3>
           {deployments.length === 0 && (
             <EmptyState icon={Rocket} compact>
               {t("deploy.history.empty")}

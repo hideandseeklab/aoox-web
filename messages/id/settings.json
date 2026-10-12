@@ -46,6 +46,15 @@
   },
   "account": {
     "title": "Akun",
+    "profile": {
+      "title": "Profil",
+      "noName": "Belum diisi",
+      "edit": "Ubah profil",
+      "dialogTitle": "Ubah profil",
+      "dialogDescription": "Ubah nama yang ditampilkan dan email yang kamu pakai untuk masuk.",
+      "passwordHint": "Diperlukan untuk mengganti email.",
+      "saved": "Profil diperbarui."
+    },
     "changePassword": "Ganti password",
     "currentPassword": "Password sekarang",
     "newPassword": "Password baru (min. 8)",
@@ -119,6 +128,14 @@
     "title": "Anggota",
     "description": "Semua anggota melihat semua project. Owner/admin mengelola komponen platform; hanya owner yang mengubah peran.",
     "you": "(kamu)",
+    "editAria": "Ubah {email}",
+    "editTitle": "Ubah nama dan email",
+    "edit": {
+      "title": "Ubah anggota",
+      "description": "Ubah nama atau email {email}. Setelah ini ia masuk dengan email baru; password tidak diperlukan.",
+      "emailHint": "Masuk berikutnya harus memakai email ini.",
+      "saved": "Anggota diperbarui."
+    },
     "roleAria": "Peran {email}",
     "setPasswordAria": "Atur kata sandi {email}",
     "setPasswordTitle": "Set password baru (reset)",

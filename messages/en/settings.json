@@ -46,6 +46,15 @@
   },
   "account": {
     "title": "Account",
+    "profile": {
+      "title": "Profile",
+      "noName": "Not set",
+      "edit": "Edit profile",
+      "dialogTitle": "Edit profile",
+      "dialogDescription": "Change how your name appears and the email you sign in with.",
+      "passwordHint": "Required to change your email.",
+      "saved": "Profile updated."
+    },
     "changePassword": "Change password",
     "currentPassword": "Current password",
     "newPassword": "New password (min. 8)",
@@ -119,6 +128,14 @@
     "title": "Members",
     "description": "All members see all projects. Owners/admins manage platform components; only the owner changes roles.",
     "you": "(you)",
+    "editAria": "Edit {email}",
+    "editTitle": "Edit name and email",
+    "edit": {
+      "title": "Edit member",
+      "description": "Change the name or email of {email}. They sign in with the new email afterwards; no password is needed.",
+      "emailHint": "Their next sign-in must use this email.",
+      "saved": "Member updated."
+    },
     "roleAria": "Role of {email}",
     "setPasswordAria": "Set password {email}",
     "setPasswordTitle": "Set a new password (reset)",

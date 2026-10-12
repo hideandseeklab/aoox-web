@@ -116,7 +116,7 @@ export function TerminalView({
           .getPropertyValue("--font-terminal")
           .trim() || "ui-monospace"
       const fontFamily = `${family}, "Fira Code", ui-monospace, monospace`
-      const fontSize = 13
+      const fontSize = 12
       // Bounded wait: a slow/blocked font download must not hold the shell.
       await Promise.race([
         document.fonts.load(`${fontSize}px ${family}`).catch(() => []),
@@ -128,8 +128,8 @@ export function TerminalView({
         cursorBlink: true,
         fontFamily,
         fontSize,
-        // A little air between lines; the shell is easier to scan.
-        lineHeight: 1.4,
+        // 12 px like the log viewer; a tighter line keeps the block cursor close to the glyph shape.
+        lineHeight: 1.25,
         theme: { background: "#0a0a0a" },
         scrollback: 5000,
       })

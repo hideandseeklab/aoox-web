@@ -3,7 +3,19 @@
 import { Archive, Download, HardDriveDownload, RotateCcw, Trash2 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useState, useTransition } from "react"
+import {
+  DataActions,
+  DataActionsHead,
+  DataCell,
+  DataHead,
+  DataRow,
+  DataTable,
+  DataTableBody,
+  DataTableHeader,
+  IconButton,
+} from "@/components/custom/data-table"
 import { EmptyState } from "@/components/custom/empty-state"
+import { SectionHeader } from "@/components/custom/section-header"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -122,92 +134,113 @@ export function VolumeBackups({
 
   return (
     <div className="space-y-4">
-      <Card>
-        <CardHeader>
-          <div className="flex flex-wrap items-start justify-between gap-4">
-            <div>
-              <CardTitle>{t("volumeBackups.title")}</CardTitle>
-              <CardDescription>
-                {t.rich("volumeBackups.description", {
-                  code: (chunks) => <code>{chunks}</code>,
-                  copied: app.backupDestinationId
-                    ? t("volumeBackups.copiedTo", {
-                        name:
-                          destinations.find(
-                            (d) => d.id === app.backupDestinationId
-                          )?.name ?? t("volumeBackups.s3Destination"),
-                      })
-                    : "",
-                })}
-              </CardDescription>
-            </div>
-            {canEdit && volumes.length > 0 && (
-              <div className="flex items-center gap-2">
-                {volumes.length > 1 && (
-                  <Select value={mountId} onValueChange={setMountId}>
-                    <SelectTrigger className="w-40" aria-label={t("volumeBackups.volume")}>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent position="popper">
-                      {volumes.map((m) => (
-                        <SelectItem key={m.id} value={m.id}>
-                          {m.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-                <Button
-                  disabled={pending || !mountId}
-                  onClick={() =>
-                    run(() => createVolumeBackupAction(app.id, mountId))
-                  }
-                >
-                  <HardDriveDownload data-icon="inline-start" />
-                  {pending
-                    ? t("volumeBackups.processing")
-                    : t("volumeBackups.backupVolume", {
-                        name: mountName(mountId),
-                      })}
-                </Button>
-              </div>
-            )}
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {error && (
-            <p className="text-xs text-destructive" role="alert">
-              {error}
-            </p>
-          )}
-          {backups.length === 0 ? (
-            <EmptyState icon={Archive} compact>
-              {t("volumeBackups.empty")}
-            </EmptyState>
-          ) : (
-            <ul className="divide-y rounded-md border text-xs">
-              {backups.map((b) => (
-                <li key={b.id} className="flex items-center gap-3 px-3 py-2">
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate font-mono text-xs">
-                      {mountName(b.mountId)} · {b.filename.split("/").pop()}
-                    </span>
-                    <span className="text-xs text-muted-foreground tabular-nums">
-                      {formatDateTime(b.createdAt, locale, {
-                        dateStyle: "medium",
-                        timeStyle: "short",
-                      })}{" "}
-                      · {formatBytes(b.sizeBytes)} ·{" "}
-                      {b.trigger === "scheduled"
-                        ? t("volumeBackups.scheduled")
-                        : t("volumeBackups.manual")}
-                      {b.remoteKey &&
-                        (b.local
-                          ? " · S3"
-                          : ` · ${t("volumeBackups.s3Only")}`)}
-                      {b.errorMessage && ` · ${b.errorMessage}`}
-                    </span>
-                  </span>
+      <SectionHeader
+        title={t("volumeBackups.title")}
+        description={t.rich("volumeBackups.description", {
+          code: (chunks) => <code>{chunks}</code>,
+          copied: app.backupDestinationId
+            ? t("volumeBackups.copiedTo", {
+                name:
+                  destinations.find((d) => d.id === app.backupDestinationId)
+                    ?.name ?? t("volumeBackups.s3Destination"),
+              })
+            : "",
+        })}
+        action={
+          canEdit &&
+          volumes.length > 0 && (
+            <>
+              {volumes.length > 1 && (
+                <Select value={mountId} onValueChange={setMountId}>
+                  <SelectTrigger
+                    className="w-40"
+                    aria-label={t("volumeBackups.volume")}
+                  >
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent position="popper">
+                    {volumes.map((m) => (
+                      <SelectItem key={m.id} value={m.id}>
+                        {m.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+              <Button
+                disabled={pending || !mountId}
+                onClick={() =>
+                  run(() => createVolumeBackupAction(app.id, mountId))
+                }
+              >
+                <HardDriveDownload data-icon="inline-start" />
+                {pending
+                  ? t("volumeBackups.processing")
+                  : t("volumeBackups.backupVolume", {
+                      name: mountName(mountId),
+                    })}
+              </Button>
+            </>
+          )
+        }
+      />
+      {error && (
+        <p className="text-xs text-destructive" role="alert">
+          {error}
+        </p>
+      )}
+      {backups.length === 0 ? (
+        <EmptyState icon={Archive} compact>
+          {t("volumeBackups.empty")}
+        </EmptyState>
+      ) : (
+        <DataTable minWidth="min-w-[52rem]">
+          <DataTableHeader>
+            <DataHead>{t("volumeBackups.columns.file")}</DataHead>
+            <DataHead>{t("volumeBackups.columns.volume")}</DataHead>
+            <DataHead>{t("volumeBackups.columns.created")}</DataHead>
+            <DataHead>{t("volumeBackups.columns.size")}</DataHead>
+            <DataHead>{t("volumeBackups.columns.trigger")}</DataHead>
+            <DataHead>{t("volumeBackups.columns.status")}</DataHead>
+            <DataActionsHead label={tc("labels.actions")} />
+          </DataTableHeader>
+          <DataTableBody>
+            {backups.map((b) => (
+              <DataRow key={b.id}>
+                <DataCell mono className="max-w-64">
+                  <div
+                    className="truncate"
+                    title={b.filename.split("/").pop()}
+                  >
+                    {b.filename.split("/").pop()}
+                  </div>
+                  {b.remoteKey && (
+                    <div className="font-sans text-muted-foreground">
+                      {b.local ? "S3" : t("volumeBackups.s3Only")}
+                    </div>
+                  )}
+                  {b.errorMessage && (
+                    <div className="font-sans text-wrap text-destructive">
+                      {b.errorMessage}
+                    </div>
+                  )}
+                </DataCell>
+                <DataCell mono>{mountName(b.mountId)}</DataCell>
+                <DataCell className="text-muted-foreground tabular-nums">
+                  {formatDateTime(b.createdAt, locale, {
+                    dateStyle: "medium",
+                    timeStyle: "short",
+                  })}
+                </DataCell>
+                <DataCell mono className="tabular-nums">
+                  {formatBytes(b.sizeBytes)}
+                </DataCell>
+                <DataCell className="text-muted-foreground">
+                  {b.trigger === "scheduled"
+                    ? t("volumeBackups.scheduled")
+                    : t("volumeBackups.manual")}
+                </DataCell>
+                <DataCell>
                   <Badge
                     variant={
                       b.status === "success"
@@ -219,52 +252,48 @@ export function VolumeBackups({
                   >
                     {b.status}
                   </Badge>
+                </DataCell>
+                <DataActions>
                   {b.status === "success" && (
                     <>
-                      <Button
+                      <IconButton
                         asChild
-                        variant="ghost"
-                        size="icon-sm"
-                        aria-label={tc("actions.download")}
+                        label={tc("actions.download")}
                       >
                         <a href={`/api/volume-backups/${b.id}/download`}>
                           <Download />
                         </a>
-                      </Button>
+                      </IconButton>
                       {canEdit && (
-                      <Button
-                        variant="ghost"
-                        size="icon-sm"
-                        aria-label={t("volumeBackups.restore")}
-                        disabled={
-                          pending || !volumes.some((m) => m.id === b.mountId)
-                        }
-                        onClick={() => setRestoreTarget(b)}
-                      >
-                        <RotateCcw />
-                      </Button>
+                        <IconButton
+                          label={t("volumeBackups.restore")}
+                          disabled={
+                            pending || !volumes.some((m) => m.id === b.mountId)
+                          }
+                          onClick={() => setRestoreTarget(b)}
+                        >
+                          <RotateCcw />
+                        </IconButton>
                       )}
                     </>
                   )}
                   {canEdit && (
-                  <Button
-                    variant="ghost"
-                    size="icon-sm"
-                    aria-label={t("volumeBackups.deleteAria")}
-                    disabled={pending}
-                    onClick={() =>
-                      run(() => deleteVolumeBackupAction(app.id, b.id))
-                    }
-                  >
-                    <Trash2 />
-                  </Button>
+                    <IconButton
+                      label={t("volumeBackups.deleteAria")}
+                      disabled={pending}
+                      onClick={() =>
+                        run(() => deleteVolumeBackupAction(app.id, b.id))
+                      }
+                    >
+                      <Trash2 />
+                    </IconButton>
                   )}
-                </li>
-              ))}
-            </ul>
-          )}
-        </CardContent>
-      </Card>
+                </DataActions>
+              </DataRow>
+            ))}
+          </DataTableBody>
+        </DataTable>
+      )}
 
       {volumes.length > 0 && (
         <Card>

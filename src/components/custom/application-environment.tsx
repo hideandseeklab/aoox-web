@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import {
   Card,
   CardContent,
+  CardAction,
   CardDescription,
   CardHeader,
   CardTitle,
@@ -103,18 +104,26 @@ export function ApplicationEnvironment({
           {t("environment.description")}{" "}
           <EnvRefsHint databaseSlugs={databaseSlugs} />
         </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form key={formKey} onSubmit={onSubmit} className="space-y-4">
-          <EnvEditor name="env" defaultValue={saved} readOnly={!canEdit} />
-          {canEdit ? (
-            <Button type="submit" disabled={pending}>
+        {canEdit && (
+          <CardAction>
+            <Button type="submit" form="application-env-form" disabled={pending}>
               {pending && (
                 <Loader2 data-icon="inline-start" className="animate-spin" />
               )}
               {tc("actions.save")}
             </Button>
-          ) : (
+          </CardAction>
+        )}
+      </CardHeader>
+      <CardContent>
+        <form
+          id="application-env-form"
+          key={formKey}
+          onSubmit={onSubmit}
+          className="space-y-4"
+        >
+          <EnvEditor name="env" defaultValue={saved} readOnly={!canEdit} />
+          {!canEdit && (
             <p className="text-xs text-muted-foreground">
               {t("environment.readOnly")}
             </p>

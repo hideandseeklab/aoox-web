@@ -1,7 +1,8 @@
 "use client"
 
-import { Check, Copy, ShieldCheck, ShieldOff } from "lucide-react"
+import { Check, Copy, Pencil, ShieldCheck, ShieldOff } from "lucide-react"
 import { useTranslations } from "next-intl"
+import { useRouter } from "next/navigation"
 import { useState, useTransition } from "react"
 import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
@@ -31,6 +32,7 @@ import {
   type TwoFactorSetup,
 } from "@/features/account/account.actions"
 import type { AuthUser } from "@/features/auth/auth.entity"
+import { updateOwnProfileAction } from "@/features/user/user.actions"
 import { copyToClipboard } from "@/lib/clipboard"
 
 /** Own account: password change and TOTP two-factor (setup → confirm → backup codes). */
@@ -47,6 +49,22 @@ export function AccountCard({ me }: { me: AuthUser }) {
   const [backupCodes, setBackupCodes] = useState<string[] | null>(null)
   const [disablePw, setDisablePw] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
+  const [profileOpen, setProfileOpen] = useState(false)
+  const [pName, setPName] = useState("")
+  const [pEmail, setPEmail] = useState("")
+  const [pPassword, setPPassword] = useState("")
+  const [profileError, setProfileError] = useState<string | null>(null)
+  const router = useRouter()
+  const emailChanged =
+    pEmail.trim().toLowerCase() !== me.email.trim().toLowerCase()
+
+  const openProfile = () => {
+    setPName(me.name ?? "")
+    setPEmail(me.email)
+    setPPassword("")
+    setProfileError(null)
+    setProfileOpen(true)
+  }
 
   const run = (
     fn: () => Promise<{ ok: boolean; error?: string }>,
@@ -81,8 +99,35 @@ export function AccountCard({ me }: { me: AuthUser }) {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
+        <div className="space-y-3">
+          <p className="text-sm font-medium">{t("account.profile.title")}</p>
+          <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-xs">
+            <dt className="text-muted-foreground">{c("labels.name")}</dt>
+            <dd className="min-w-0 truncate">
+              {me.name ?? (
+                <span className="text-muted-foreground">
+                  {t("account.profile.noName")}
+                </span>
+              )}
+            </dd>
+            <dt className="text-muted-foreground">{c("labels.email")}</dt>
+            <dd className="min-w-0 truncate">{me.email}</dd>
+          </dl>
+          <div className="flex justify-end">
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={pending}
+              onClick={openProfile}
+            >
+              <Pencil data-icon="inline-start" />
+              {t("account.profile.edit")}
+            </Button>
+          </div>
+        </div>
+
         <form
-          className="space-y-3"
+          className="space-y-3 border-t pt-6"
           onSubmit={(e) => {
             e.preventDefault()
             run(
@@ -183,6 +228,96 @@ export function AccountCard({ me }: { me: AuthUser }) {
         )}
         {notice && <p className="text-xs text-muted-foreground">{notice}</p>}
       </CardContent>
+
+      {/* Edit profile: name, email (current password only when the email changes) */}
+      <Dialog open={profileOpen} onOpenChange={setProfileOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{t("account.profile.dialogTitle")}</DialogTitle>
+            <DialogDescription>
+              {t("account.profile.dialogDescription")}
+            </DialogDescription>
+          </DialogHeader>
+          <form
+            className="space-y-3"
+            onSubmit={(e) => {
+              e.preventDefault()
+              start(async () => {
+                setProfileError(null)
+                const r = await updateOwnProfileAction({
+                  name: pName,
+                  email: pEmail,
+                  currentPassword: emailChanged ? pPassword : undefined,
+                })
+                if (!r.ok) {
+                  setProfileError(r.error)
+                  return
+                }
+                setProfileOpen(false)
+                toast.success(t("account.profile.saved"))
+                router.refresh()
+              })
+            }}
+          >
+            <div className="space-y-1">
+              <Label htmlFor="acc-name">{c("labels.name")}</Label>
+              <Input
+                id="acc-name"
+                autoComplete="name"
+                maxLength={100}
+                value={pName}
+                onChange={(e) => setPName(e.target.value)}
+              />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="acc-email">{c("labels.email")}</Label>
+              <Input
+                id="acc-email"
+                type="email"
+                autoComplete="email"
+                value={pEmail}
+                onChange={(e) => setPEmail(e.target.value)}
+                required
+              />
+            </div>
+            {emailChanged && (
+              <div className="space-y-1">
+                <Label htmlFor="acc-profile-pw">
+                  {t("account.currentPassword")}
+                </Label>
+                <Input
+                  id="acc-profile-pw"
+                  type="password"
+                  autoComplete="current-password"
+                  value={pPassword}
+                  onChange={(e) => setPPassword(e.target.value)}
+                  required
+                />
+                <p className="text-xs text-muted-foreground">
+                  {t("account.profile.passwordHint")}
+                </p>
+              </div>
+            )}
+            {profileError && (
+              <p className="text-xs text-destructive" role="alert">
+                {profileError}
+              </p>
+            )}
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setProfileOpen(false)}
+              >
+                {c("actions.cancel")}
+              </Button>
+              <Button type="submit" disabled={pending}>
+                {c("actions.save")}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       {/* Setup: scan QR, confirm with a code */}
       <Dialog

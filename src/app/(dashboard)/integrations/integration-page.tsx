@@ -1,7 +1,10 @@
 import { useTranslations } from "next-intl"
 import { SetBreadcrumb } from "@/components/custom/breadcrumb-store"
 
-/** Heading + breadcrumb shared by the Integrations pages (one card each). */
+/**
+ * Heading + breadcrumb shared by the Integrations pages (one card each). The page heading already
+ * names the card, so the card's own title is hidden here; its description and actions stay.
+ */
 export function IntegrationPage({
   title,
   description,
@@ -24,7 +27,9 @@ export function IntegrationPage({
         <h1 className="text-lg font-semibold">{title}</h1>
         <p className="text-xs text-muted-foreground">{description}</p>
       </div>
-      {children}
+      <div className="[&_[data-slot=card]>[data-slot=card-header]_[data-slot=card-title]]:hidden">
+        {children}
+      </div>
     </>
   )
 }

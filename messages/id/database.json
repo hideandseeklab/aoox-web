@@ -125,6 +125,13 @@
       "title": "Pulihkan backup?",
       "description": "Data <b>{name}</b> saat ini akan ditimpa dengan isi <code>{file}</code>. Tidak bisa dibatalkan — buat backup dulu kalau ragu.",
       "restoring": "Me-restore…"
+    },
+    "columns": {
+      "file": "Berkas",
+      "created": "Dibuat",
+      "size": "Ukuran",
+      "trigger": "Pemicu",
+      "status": "Status"
     }
   },
   "validation": {

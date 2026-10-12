@@ -1,21 +1,31 @@
 "use client"
 
 import {
-  CircleCheck,
-  CircleX,
   History,
   Loader2,
   Play,
   Rocket,
+  ScrollText,
   Square,
   Trash2,
   Webhook,
 } from "lucide-react"
-import { useEffect, useState, useTransition } from "react"
+import { Fragment, useEffect, useState, useTransition } from "react"
+import {
+  DataActions,
+  DataActionsHead,
+  DataCell,
+  DataDetailRow,
+  DataHead,
+  DataRow,
+  DataTable,
+  DataTableBody,
+  DataTableHeader,
+  IconButton,
+} from "@/components/custom/data-table"
 import { LogViewer } from "@/components/custom/log-viewer"
 import { EmptyState } from "@/components/custom/empty-state"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import {
   fetchComposeDeploymentAction,
   fetchComposeDeploymentsAction,
@@ -26,6 +36,7 @@ import type {
 } from "@/features/compose/compose.entity"
 import { formatDateTime } from "@/i18n/format"
 import { useLocale, useTranslations } from "next-intl"
+import { SectionHeader } from "@/components/custom/section-header"
 
 const POLL_MS = 3_000
 
@@ -92,66 +103,108 @@ export function ComposeHistory({
       setLogs(run?.logs || t("history.noOutput"))
     })
 
-  if (runs.length === 0) {
-    return (
-      <EmptyState icon={History} compact>
-        {t("history.empty")}
-      </EmptyState>
-    )
-  }
-
   return (
-    <ul className="divide-y rounded-md border text-xs">
-      {runs.map((r) => {
-        const Icon = ICON[r.action]
-        return (
-          <li key={r.id} className="px-3 py-2">
-            <div className="flex items-center gap-3">
-              <Icon className="size-4 shrink-0 text-muted-foreground" />
-              <span className="min-w-0 flex-1">
-                <span className="flex items-center gap-2">
-                  <span className="font-medium">{t(`history.action.${r.action}`)}</span>
-                  {r.trigger === "webhook" && (
-                    <Badge variant="outline" title={t("history.webhookTitle")}>
-                      <Webhook className="size-3" /> {t("history.webhook")}
-                    </Badge>
+    <div className="space-y-4">
+      <SectionHeader
+        title={t("history.section.title")}
+        description={t("history.section.description", { count: runs.length })}
+      />
+      {runs.length === 0 ? (
+        <EmptyState icon={History} compact>
+          {t("history.empty")}
+        </EmptyState>
+      ) : (
+        <DataTable minWidth="min-w-[44rem]">
+          <DataTableHeader>
+            <DataHead>{t("history.columns.action")}</DataHead>
+            <DataHead>{t("history.columns.commit")}</DataHead>
+            <DataHead>{t("history.columns.started")}</DataHead>
+            <DataHead>{t("history.columns.duration")}</DataHead>
+            <DataHead>{t("history.columns.status")}</DataHead>
+            <DataActionsHead label={tc("labels.actions")} />
+          </DataTableHeader>
+          <DataTableBody>
+            {runs.map((r) => {
+              const Icon = ICON[r.action]
+              const expanded = openId === r.id
+              return (
+                <Fragment key={r.id}>
+                  <DataRow>
+                    <DataCell className="max-w-72">
+                      <div className="flex items-center gap-2">
+                        <Icon className="size-3.5 shrink-0 text-muted-foreground" />
+                        <span className="font-medium">
+                          {t(`history.action.${r.action}`)}
+                        </span>
+                        {r.trigger === "webhook" && (
+                          <Badge
+                            variant="outline"
+                            title={t("history.webhookTitle")}
+                          >
+                            <Webhook className="size-3" /> {t("history.webhook")}
+                          </Badge>
+                        )}
+                      </div>
+                      {r.errorMessage && (
+                        <p className="mt-1 text-wrap text-destructive">
+                          {r.errorMessage}
+                        </p>
+                      )}
+                    </DataCell>
+                    <DataCell mono className="text-muted-foreground">
+                      {r.commitSha ? r.commitSha.slice(0, 8) : "—"}
+                    </DataCell>
+                    <DataCell className="text-muted-foreground tabular-nums">
+                      {fmt(r.startedAt, locale)}
+                    </DataCell>
+                    <DataCell mono className="tabular-nums">
+                      {took(r)}
+                    </DataCell>
+                    <DataCell>
+                      {r.status === "running" ? (
+                        <Badge variant="secondary">
+                          <Loader2 className="animate-spin" />
+                          {tc("states.running")}
+                        </Badge>
+                      ) : r.status === "success" ? (
+                        <Badge variant="default">
+                          {t("history.status.success")}
+                        </Badge>
+                      ) : (
+                        <Badge variant="destructive">
+                          {tc("states.failed")}
+                        </Badge>
+                      )}
+                    </DataCell>
+                    <DataActions>
+                      <IconButton
+                        label={
+                          expanded ? tc("actions.close") : t("history.log")
+                        }
+                        aria-expanded={expanded}
+                        onClick={() => open(r.id)}
+                      >
+                        <ScrollText />
+                      </IconButton>
+                    </DataActions>
+                  </DataRow>
+                  {expanded && (
+                    <DataDetailRow colSpan={6}>
+                      <LogViewer
+                        text={logs}
+                        label={t("history.actionLog")}
+                        empty={tc("states.loading")}
+                        className="max-h-80"
+                        initialFollow={false}
+                      />
+                    </DataDetailRow>
                   )}
-                  {r.commitSha && (
-                    <code className="text-xs text-muted-foreground">
-                      {r.commitSha.slice(0, 8)}
-                    </code>
-                  )}
-                </span>
-                <span className="block truncate text-xs text-muted-foreground">
-                  {fmt(r.startedAt, locale)} · {took(r)}
-                  {r.errorMessage ? ` · ${r.errorMessage}` : ""}
-                </span>
-              </span>
-              {r.status === "running" ? (
-                <Loader2 className="size-4 animate-spin text-muted-foreground" />
-              ) : r.status === "success" ? (
-                <CircleCheck className="size-4 text-muted-foreground" />
-              ) : (
-                <CircleX className="size-4 text-destructive" />
-              )}
-              <Button variant="ghost" size="sm" onClick={() => open(r.id)}>
-                {openId === r.id ? tc("actions.close") : t("history.log")}
-              </Button>
-            </div>
-            {openId === r.id && (
-              <div className="mt-2">
-                <LogViewer
-                  text={logs}
-                  label={t("history.actionLog")}
-                  empty={tc("states.loading")}
-                  className="max-h-80"
-                  initialFollow={false}
-                />
-              </div>
-            )}
-          </li>
-        )
-      })}
-    </ul>
+                </Fragment>
+              )
+            })}
+          </DataTableBody>
+        </DataTable>
+      )}
+    </div>
   )
 }

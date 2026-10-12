@@ -1,26 +1,25 @@
 "use client"
 
-import {
-  FileText,
-  FolderOpen,
-  HardDrive,
-  Plus,
-  Save,
-  Trash2,
-} from "lucide-react"
+import { HardDrive, Trash2 } from "lucide-react"
 import { useTranslations } from "next-intl"
-import { useState, useTransition } from "react"
+import { useState } from "react"
+import { AddDialog } from "@/components/custom/add-dialog"
+import {
+  DataActions,
+  DataActionsHead,
+  DataCell,
+  DataHead,
+  DataRow,
+  DataTable,
+  DataTableBody,
+  DataTableHeader,
+  IconButton,
+} from "@/components/custom/data-table"
 import { EmptyState } from "@/components/custom/empty-state"
+import { MountContentDialog } from "@/components/custom/mount-content-dialog"
+import { SectionHeader } from "@/components/custom/section-header"
 import { Badge } from "@/components/ui/badge"
 import { ConfirmDialog } from "@/components/custom/confirm-dialog"
-import { Button } from "@/components/ui/button"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
@@ -43,8 +42,6 @@ import type {
   MountType,
 } from "@/features/application/application.entity"
 
-const TYPE_ICON = { volume: HardDrive, bind: FolderOpen, file: FileText }
-
 /**
  * Volumes (persistent data), host bind mounts (owner/admin) and small config
  * files stored on the platform. Every change re-creates the container on the
@@ -63,66 +60,42 @@ export function ApplicationMounts({
   canEdit?: boolean
 }) {
   const t = useTranslations("applications")
-  const tc = useTranslations("common")
   const [type, setType] = useState<MountType>("volume")
   const [name, setName] = useState("")
   const [hostPath, setHostPath] = useState("")
   const [containerPath, setContainerPath] = useState("")
   const [content, setContent] = useState("")
   const [readOnly, setReadOnly] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [pending, start] = useTransition()
 
-  const run = (fn: () => Promise<{ ok: boolean; error?: string }>) =>
-    start(async () => {
-      setError(null)
-      const r = await fn()
-      if (!r.ok) setError(r.error ?? tc("states.failed"))
-      else {
-        setName("")
-        setHostPath("")
-        setContainerPath("")
-        setContent("")
-        setReadOnly(false)
-      }
-    })
+  const reset = () => {
+    setType("volume")
+    setName("")
+    setHostPath("")
+    setContainerPath("")
+    setContent("")
+    setReadOnly(false)
+  }
 
   return (
     <div className="space-y-4">
-      {mounts.length === 0 && (
-        <EmptyState icon={HardDrive} compact>
-          {t("mounts.empty")}
-        </EmptyState>
-      )}
-      {mounts.length > 0 && (
-        <div className="space-y-3">
-          {mounts.map((m) => (
-            <MountRow key={m.id} owner={owner} mount={m} canEdit={canEdit} />
-          ))}
-        </div>
-      )}
-
-      {canEdit && (
-      <Card>
-        <CardHeader>
-          <CardTitle>{t("mounts.add.title")}</CardTitle>
-          <CardDescription>
-            {t.rich("mounts.add.description", {
-              b: (chunks) => <b>{chunks}</b>,
-              suffix: t(
-                owner.kind === "database"
-                  ? "mounts.add.suffixDatabase"
-                  : "mounts.add.suffixOther"
-              ),
-            })}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form
-            className="space-y-3"
-            onSubmit={(e) => {
-              e.preventDefault()
-              run(() =>
+      <SectionHeader
+        title={t("mounts.section.title")}
+        description={t("mounts.section.description", { count: mounts.length })}
+        action={
+          canEdit && (
+            <AddDialog
+              title={t("mounts.add.title")}
+              description={t.rich("mounts.add.description", {
+                b: (chunks) => <b>{chunks}</b>,
+                suffix: t(
+                  owner.kind === "database"
+                    ? "mounts.add.suffixDatabase"
+                    : "mounts.add.suffixOther"
+                ),
+              })}
+              pendingLabel={t("mounts.applying")}
+              onOpenChange={reset}
+              onSubmit={() =>
                 addMountAction(owner, {
                   type,
                   containerPath: containerPath.trim(),
@@ -132,21 +105,21 @@ export function ApplicationMounts({
                     : {}),
                   ...(type === "file" ? { content } : { readOnly }),
                 })
-              )
-            }}
-          >
-            <div className="flex flex-wrap items-end gap-3">
+              }
+            >
               <div className="space-y-1">
                 <Label htmlFor="mt-type">{t("mounts.add.kind")}</Label>
                 <Select
                   value={type}
                   onValueChange={(v) => setType(v as MountType)}
                 >
-                  <SelectTrigger id="mt-type" className="w-36">
+                  <SelectTrigger id="mt-type" className="w-full">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent position="popper">
-                    <SelectItem value="volume">{t("mounts.type.volume")}</SelectItem>
+                    <SelectItem value="volume">
+                      {t("mounts.type.volume")}
+                    </SelectItem>
                     <SelectItem value="bind" disabled={!canBind}>
                       {t("mounts.type.bind")}
                     </SelectItem>
@@ -162,13 +135,13 @@ export function ApplicationMounts({
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="uploads"
-                    className="w-40 font-mono"
+                    className="font-mono"
                     required
                   />
                 </div>
               )}
               {type === "bind" && (
-                <div className="min-w-56 flex-1 space-y-1">
+                <div className="space-y-1">
                   <Label htmlFor="mt-host">{t("mounts.add.hostPath")}</Label>
                   <Input
                     id="mt-host"
@@ -180,7 +153,7 @@ export function ApplicationMounts({
                   />
                 </div>
               )}
-              <div className="min-w-56 flex-1 space-y-1">
+              <div className="space-y-1">
                 <Label htmlFor="mt-path">{t("mounts.add.containerPath")}</Label>
                 <Input
                   id="mt-path"
@@ -194,39 +167,48 @@ export function ApplicationMounts({
                 />
               </div>
               {type !== "file" && (
-                <label className="mb-2 flex items-center gap-2 text-xs">
+                <label className="flex items-center gap-2 text-xs">
                   <Switch checked={readOnly} onCheckedChange={setReadOnly} />
                   {t("mounts.readOnly")}
                 </label>
               )}
-            </div>
-            {type === "file" && (
-              <div className="space-y-1">
-                <Label htmlFor="mt-content">{t("mounts.add.fileContent")}</Label>
-                <Textarea
-                  id="mt-content"
-                  value={content}
-                  onChange={(e) => setContent(e.target.value)}
-                  rows={8}
-                  spellCheck={false}
-                  className="font-mono text-xs"
-                />
-              </div>
-            )}
-            {error && (
-              <p className="text-xs text-destructive" role="alert">
-                {error}
-              </p>
-            )}
-            <div className="flex justify-end">
-              <Button type="submit" disabled={pending}>
-                <Plus data-icon="inline-start" />
-                {pending ? t("mounts.applying") : tc("actions.add")}
-              </Button>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
+              {type === "file" && (
+                <div className="space-y-1">
+                  <Label htmlFor="mt-content">
+                    {t("mounts.add.fileContent")}
+                  </Label>
+                  <Textarea
+                    id="mt-content"
+                    value={content}
+                    onChange={(e) => setContent(e.target.value)}
+                    rows={8}
+                    spellCheck={false}
+                    className="font-mono text-xs"
+                  />
+                </div>
+              )}
+            </AddDialog>
+          )
+        }
+      />
+      {mounts.length === 0 ? (
+        <EmptyState icon={HardDrive} compact>
+          {t("mounts.empty")}
+        </EmptyState>
+      ) : (
+        <DataTable minWidth="min-w-[36rem]">
+          <DataTableHeader>
+            <DataHead>{t("mounts.columns.path")}</DataHead>
+            <DataHead>{t("mounts.columns.source")}</DataHead>
+            <DataHead>{t("mounts.columns.type")}</DataHead>
+            <DataActionsHead label={t("mounts.columns.actions")} />
+          </DataTableHeader>
+          <DataTableBody>
+            {mounts.map((m) => (
+              <MountRow key={m.id} owner={owner} mount={m} canEdit={canEdit} />
+            ))}
+          </DataTableBody>
+        </DataTable>
       )}
     </div>
   )
@@ -242,19 +224,6 @@ function MountRow({
   canEdit: boolean
 }) {
   const t = useTranslations("applications")
-  const tc = useTranslations("common")
-  const [content, setContent] = useState(mount.content ?? "")
-  const [error, setError] = useState<string | null>(null)
-  const [pending, start] = useTransition()
-  const Icon = TYPE_ICON[mount.type]
-  const dirty = mount.type === "file" && content !== (mount.content ?? "")
-
-  const run = (fn: () => Promise<{ ok: boolean; error?: string }>) =>
-    start(async () => {
-      setError(null)
-      const r = await fn()
-      if (!r.ok) setError(r.error ?? tc("states.failed"))
-    })
 
   const source =
     mount.type === "volume"
@@ -264,31 +233,39 @@ function MountRow({
         : mount.name
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center gap-3">
-          <Icon className="size-4 shrink-0 text-muted-foreground" />
-          <div className="min-w-0 flex-1">
-            <CardTitle className="truncate font-mono text-sm">
-              {mount.containerPath}
-            </CardTitle>
-            <CardDescription className="truncate font-mono text-xs">
-              {source}
-            </CardDescription>
-          </div>
+    <DataRow>
+      <DataCell mono>{mount.containerPath}</DataCell>
+      <DataCell mono className="text-muted-foreground">
+        {source}
+      </DataCell>
+      <DataCell>
+        <div className="flex items-center gap-1.5">
           <Badge variant="outline">{t(`mounts.type.${mount.type}`)}</Badge>
-          {mount.readOnly && <Badge variant="secondary">{t("mounts.row.ro")}</Badge>}
-          {canEdit && (
+          {mount.readOnly && (
+            <Badge variant="secondary">{t("mounts.row.ro")}</Badge>
+          )}
+        </div>
+      </DataCell>
+      <DataActions>
+        {mount.type === "file" && (
+          <MountContentDialog
+            title={mount.name ?? mount.containerPath}
+            description={mount.containerPath}
+            content={mount.content ?? ""}
+            canEdit={canEdit}
+            openLabel={t("mounts.row.contentAria", { name: mount.name ?? "" })}
+            saveLabel={t("mounts.row.saveApply")}
+            pendingLabel={t("mounts.applying")}
+            contentAria={t("mounts.row.contentAria", { name: mount.name ?? "" })}
+            onSave={(content) => updateMountAction(owner, mount.id, { content })}
+          />
+        )}
+        {canEdit && (
           <ConfirmDialog
             trigger={
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                aria-label={t("mounts.row.deleteAria")}
-                disabled={pending}
-              >
+              <IconButton label={t("mounts.row.deleteAria")}>
                 <Trash2 />
-              </Button>
+              </IconButton>
             }
             title={t("mounts.row.detachTitle", { name: mount.name ?? "" })}
             description={
@@ -314,49 +291,8 @@ function MountRow({
                 : undefined
             }
           />
-          )}
-        </div>
-      </CardHeader>
-      {mount.type === "file" && (
-        <CardContent className="space-y-2">
-          <Textarea
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            rows={Math.min(20, Math.max(4, content.split("\n").length + 1))}
-            spellCheck={false}
-            readOnly={!canEdit}
-            className="font-mono text-xs"
-            aria-label={t("mounts.row.contentAria", { name: mount.name ?? "" })}
-          />
-          {canEdit && (
-          <div className="flex items-center justify-end gap-3">
-            {error && (
-              <p className="text-xs text-destructive" role="alert">
-                {error}
-              </p>
-            )}
-            <Button
-              size="sm"
-              variant="outline"
-              disabled={pending || !dirty}
-              onClick={() =>
-                run(() => updateMountAction(owner, mount.id, { content }))
-              }
-            >
-              <Save data-icon="inline-start" />
-              {pending ? t("mounts.applying") : t("mounts.row.saveApply")}
-            </Button>
-          </div>
-          )}
-        </CardContent>
-      )}
-      {mount.type !== "file" && error && (
-        <CardContent>
-          <p className="text-xs text-destructive" role="alert">
-            {error}
-          </p>
-        </CardContent>
-      )}
-    </Card>
+        )}
+      </DataActions>
+    </DataRow>
   )
 }

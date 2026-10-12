@@ -48,6 +48,20 @@
       "stop": "hentikan",
       "start": "mulai",
       "down": "turunkan"
+    },
+    "section": {
+      "title": "Riwayat",
+      "description": "{count, plural, =0 {Belum ada proses} other {# proses}} · Setiap deploy, stop, dan start stack ini."
+    },
+    "columns": {
+      "action": "Aksi",
+      "commit": "Commit",
+      "started": "Mulai",
+      "duration": "Durasi",
+      "status": "Status"
+    },
+    "status": {
+      "success": "Berhasil"
     }
   },
   "panel": {
@@ -115,7 +129,18 @@
     "detachAndDelete": "Lepas dan hapus volume (data hilang)",
     "detach": "Lepas mount",
     "detachKeepData": "Lepas mount saja (data tetap ada)",
-    "contentAria": "Isi {name}"
+    "contentAria": "Isi {name}",
+    "section": {
+      "title": "Mount",
+      "description": "{count, plural, =0 {Belum ada mount} other {# mount}} · Berlaku pada deploy berikutnya; data di volume tetap aman."
+    },
+    "columns": {
+      "service": "Service",
+      "path": "Path di kontainer",
+      "source": "Sumber",
+      "type": "Tipe",
+      "actions": "Aksi"
+    }
   },
   "resources": {
     "title": "Batas sumber daya",

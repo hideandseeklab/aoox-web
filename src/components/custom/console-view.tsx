@@ -84,7 +84,7 @@ export function ConsoleView({
           .getPropertyValue("--font-terminal")
           .trim() || "ui-monospace"
       const fontFamily = `${family}, "Fira Code", ui-monospace, monospace`
-      const fontSize = 13
+      const fontSize = 12
       // Bounded wait: a slow/blocked font download must not hold the shell.
       await Promise.race([
         document.fonts.load(`${fontSize}px ${family}`).catch(() => []),
@@ -96,7 +96,7 @@ export function ConsoleView({
         cursorBlink: true,
         fontFamily,
         fontSize,
-        lineHeight: 1.4,
+        lineHeight: 1.25,
         theme: { background: "#0a0a0a" },
         scrollback: 5000,
       })

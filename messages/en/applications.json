@@ -285,7 +285,6 @@
       "open": "Open this page at {origin}"
     },
     "history": {
-      "title": "Deployments",
       "empty": "Never deployed."
     },
     "kind": {
@@ -300,6 +299,10 @@
       "title": "Deployment log",
       "label": "Deployment log",
       "select": "Select a deployment."
+    },
+    "section": {
+      "title": "Deployments",
+      "description": "{count, plural, =0 {Never deployed} one {# deployment} other {# deployments}} · Select one to read its log."
     }
   },
   "stepper": {
@@ -365,6 +368,20 @@
       "warn": "Certificate {when}",
       "today": "expires today",
       "daysLeft": "{days, plural, one {# day left} other {# days left}}"
+    },
+    "section": {
+      "title": "Domains",
+      "description": "{count, plural, =0 {No domains yet} one {# domain} other {# domains}} · Each host is routed to this application by the reverse proxy."
+    },
+    "add": {
+      "title": "Add domain",
+      "description": "Route a hostname to this application through the reverse proxy."
+    },
+    "columns": {
+      "host": "Domain",
+      "certificate": "Certificate",
+      "dns": "DNS",
+      "middleware": "Middleware"
     }
   },
   "middlewares": {
@@ -424,6 +441,17 @@
       "output": "Output",
       "outputLabel": "Job output",
       "noOutput": "(no output)"
+    },
+    "section": {
+      "title": "Jobs",
+      "description": "{count, plural, =0 {No jobs yet} one {# job} other {# jobs}} · Run a command on a schedule or on demand."
+    },
+    "columns": {
+      "name": "Job",
+      "schedule": "Schedule",
+      "runIn": "Runs in",
+      "lastRun": "Last run",
+      "active": "Active"
     }
   },
   "monitor": {
@@ -530,6 +558,16 @@
       "detachKeep": "Detach mount only (data stays)",
       "contentAria": "Content of {name}",
       "saveApply": "Save & apply"
+    },
+    "section": {
+      "title": "Mounts",
+      "description": "{count, plural, =0 {No mounts yet} one {# mount} other {# mounts}} · A change recreates the container; data in volumes is kept."
+    },
+    "columns": {
+      "path": "Container path",
+      "source": "Source",
+      "type": "Type",
+      "actions": "Actions"
     }
   },
   "secretSource": {
@@ -671,6 +709,20 @@
     "restoreDialog": {
       "title": "Restore volume?",
       "description": "The contents of volume <strong>{volume}</strong> will be deleted and replaced with <code>{file}</code>. The container is stopped during the process. This cannot be undone."
+    },
+    "columns": {
+      "file": "File",
+      "volume": "Volume",
+      "created": "Created",
+      "size": "Size",
+      "trigger": "Trigger",
+      "status": "Status"
     }
+  },
+  "dangerZone": {
+    "title": "Danger zone",
+    "description": "Irreversible actions for this application.",
+    "deleteTitle": "Delete this application",
+    "deleteDescription": "Removes the application with its container, domains, jobs, previews and deployment history. This cannot be undone."
   }
 }

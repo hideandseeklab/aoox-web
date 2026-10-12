@@ -47,6 +47,13 @@
     "settings": {
       "title": "Pengaturan",
       "description": "Nama, deskripsi, dan environment bersama untuk semua aplikasi."
+    },
+    "counts": "{apps} aplikasi · {stacks} stack · {dbs} database",
+    "dangerZone": {
+      "title": "Zona berbahaya",
+      "description": "Tindakan yang tidak bisa dibatalkan untuk proyek ini.",
+      "deleteTitle": "Hapus proyek ini",
+      "deleteDescription": "Menghapus proyek beserta semua yang ada di dalamnya secara permanen. Tindakan ini tidak bisa dibatalkan."
     }
   },
   "form": {

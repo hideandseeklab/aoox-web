@@ -1,16 +1,15 @@
-import { ArrowLeft } from "lucide-react"
 import { getTranslations } from "next-intl/server"
 import { getProject } from "@/features/project/project.queries"
 import { SetBreadcrumb } from "@/components/custom/breadcrumb-store"
 import { SourceIcon } from "@/components/custom/brand-icon"
-import Link from "next/link"
 import { notFound } from "next/navigation"
 import { ApplicationStatusActions } from "@/components/custom/application-actions"
 import { ApplicationTabs } from "@/components/custom/application-tabs"
-import { StatusStrip } from "@/components/custom/status-strip"
-import { DeleteApplicationButton } from "@/components/custom/delete-application-button"
+import {
+  ResourceHeader,
+  ResourceStatus,
+} from "@/components/custom/resource-header"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import { canUseTerminal } from "@/features/auth/auth.entity"
 import { getVerifiedSession } from "@/features/auth/auth.session"
 import {
@@ -130,26 +129,81 @@ export default async function ApplicationPage({
           { label: app.name },
         ]}
       />
-      <div className="flex min-w-0 items-start gap-3">
-        <Button asChild variant="ghost" size="icon" className="mt-0.5">
-          <Link
-            href={`/projects/${app.projectId}`}
-            aria-label={t("page.backToProject")}
-          >
-            <ArrowLeft />
-          </Link>
-        </Button>
-        <h1 className="flex min-w-0 items-center gap-2 text-lg font-semibold">
+      <ResourceHeader
+        backHref={`/projects/${app.projectId}`}
+        backLabel={t("page.backToProject")}
+        icon={
           <SourceIcon
             sourceType={app.sourceType}
             gitUrl={app.gitUrl}
             imageRef={app.imageRef}
             buildType={app.buildType}
-            className="size-4 text-muted-foreground"
+            className="size-5"
           />
-          <span className="min-w-0 break-words">{app.name}</span>
-        </h1>
-      </div>
+        }
+        title={app.name}
+        badges={
+          <>
+            <ResourceStatus tone={running ? "success" : "neutral"}>
+              {app.container ? app.container.state : t("status.notDeployed")}
+            </ResourceStatus>
+            {app.maintenanceEnabled && (
+              <Badge variant="secondary">{t("status.maintenance")}</Badge>
+            )}
+            {server && <Badge variant="outline">{server.name}</Badge>}
+            {app.service && (
+              <Badge
+                variant="outline"
+                title={app.service.tasks
+                  .filter((t) => t.desiredState === "running")
+                  .map((t) => `#${t.slot ?? "?"} ${t.node ?? "?"}: ${t.state}`)
+                  .join("\n")}
+              >
+                {app.service.updateState &&
+                app.service.updateState !== "completed"
+                  ? t("status.serviceUpdating", {
+                      running: app.service.running,
+                      desired: app.service.desired,
+                      state: app.service.updateState,
+                    })
+                  : t("status.service", {
+                      running: app.service.running,
+                      desired: app.service.desired,
+                    })}
+              </Badge>
+            )}
+            {app.projectRole === "viewer" && (
+              <Badge variant="outline">{t("page.readOnly")}</Badge>
+            )}
+          </>
+        }
+        meta={[
+          <span key="n" className="font-mono">
+            {app.appName}
+          </span>,
+          <span key="s" className="font-mono">
+            {app.sourceType === "image"
+              ? app.imageRef
+              : `${app.gitUrl}#${app.gitBranch}${app.rootDirectory ? `:${app.rootDirectory}` : ""}`}
+          </span>,
+          app.hostPort && (
+            <a
+              key="p"
+              className="font-mono underline"
+              href={`http://localhost:${app.hostPort}`}
+              target="_blank"
+              rel="noreferrer"
+            >
+              :{app.hostPort}
+            </a>
+          ),
+        ]}
+        actions={
+          app.projectRole !== "viewer" && (
+            <ApplicationStatusActions app={app} deployments={deployments} />
+          )
+        }
+      />
 
       <ApplicationTabs
         app={app}
@@ -180,88 +234,6 @@ export default async function ApplicationPage({
         publicApiUrl={publicApiUrl()}
         webOrigin={webOrigin()}
         domainProxyAutoProvisioned={domainProxyAutoProvisioned === "1"}
-        statusStrip={
-          <StatusStrip
-            className="pt-4"
-            status={
-              <>
-                <Badge variant={running ? "default" : "secondary"}>
-                  {app.container
-                    ? app.container.state
-                    : t("status.notDeployed")}
-                </Badge>
-                {app.maintenanceEnabled && (
-                  <Badge variant="secondary">{t("status.maintenance")}</Badge>
-                )}
-                {server && <Badge variant="outline">{server.name}</Badge>}
-                {app.service && (
-                  <Badge
-                    variant="outline"
-                    title={app.service.tasks
-                      .filter((t) => t.desiredState === "running")
-                      .map(
-                        (t) => `#${t.slot ?? "?"} ${t.node ?? "?"}: ${t.state}`
-                      )
-                      .join("\n")}
-                  >
-                    {app.service.updateState &&
-                    app.service.updateState !== "completed"
-                      ? t("status.serviceUpdating", {
-                          running: app.service.running,
-                          desired: app.service.desired,
-                          state: app.service.updateState,
-                        })
-                      : t("status.service", {
-                          running: app.service.running,
-                          desired: app.service.desired,
-                        })}
-                  </Badge>
-                )}
-              </>
-            }
-            info={
-              <span className="font-mono break-all">
-                {app.appName} ·{" "}
-                {app.sourceType === "image"
-                  ? app.imageRef
-                  : `${app.gitUrl}#${app.gitBranch}${app.rootDirectory ? `:${app.rootDirectory}` : ""}`}
-                {app.hostPort && (
-                  <>
-                    {" "}
-                    ·{" "}
-                    <a
-                      className="underline"
-                      href={`http://localhost:${app.hostPort}`}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      :{app.hostPort}
-                    </a>
-                  </>
-                )}
-              </span>
-            }
-            actions={
-              <>
-                {app.projectRole !== "viewer" && (
-                  <ApplicationStatusActions
-                    app={app}
-                    deployments={deployments}
-                  />
-                )}
-                {app.projectRole === "viewer" ? (
-                  <Badge variant="outline">{t("page.readOnly")}</Badge>
-                ) : (
-                  <DeleteApplicationButton
-                    id={app.id}
-                    projectId={app.projectId}
-                    name={app.name}
-                  />
-                )}
-              </>
-            }
-          />
-        }
       />
     </>
   )

@@ -3,12 +3,14 @@
 import {
   Copy,
   KeyRound,
+  Pencil,
   Plus,
   ShieldOff,
   Trash2,
   UserRound,
 } from "lucide-react"
 import { useLocale, useTranslations } from "next-intl"
+import { useRouter } from "next/navigation"
 import { useActionState, useState, useTransition } from "react"
 import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
@@ -25,6 +27,7 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -37,6 +40,7 @@ import {
   FieldLabel,
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import {
   Select,
   SelectContent,
@@ -61,6 +65,7 @@ import {
   type Invitation,
   type Member,
 } from "@/features/member/member.entity"
+import { updateUserProfileAction } from "@/features/user/user.actions"
 import { formatDate } from "@/i18n/format"
 import { copyToClipboard } from "@/lib/clipboard"
 
@@ -82,6 +87,7 @@ export function MembersCard({
   const locale = useLocale()
   const [pending, start] = useTransition()
   const [error, setError] = useState<string | null>(null)
+  const [editing, setEditing] = useState<Member | null>(null)
   const isOwner = me.role === "owner"
   const pendingInvites = invitations.filter((i) => i.pending)
 
@@ -152,6 +158,16 @@ export function MembersCard({
               )}
               {isOwner && m.id !== me.id && m.role !== "owner" && (
                 <>
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    aria-label={t("members.editAria", { email: m.email })}
+                    title={t("members.editTitle")}
+                    disabled={pending}
+                    onClick={() => setEditing(m)}
+                  >
+                    <Pencil />
+                  </Button>
                   <Button
                     variant="ghost"
                     size="icon-sm"
@@ -252,7 +268,105 @@ export function MembersCard({
           </p>
         )}
       </CardContent>
+      <EditMemberDialog member={editing} onClose={() => setEditing(null)} />
     </Card>
+  )
+}
+
+/** Owner edits the name and email of a non-owner user (no password needed). */
+function EditMemberDialog({
+  member,
+  onClose,
+}: {
+  member: Member | null
+  onClose: () => void
+}) {
+  const t = useTranslations("settings")
+  const c = useTranslations("common")
+  const router = useRouter()
+  const [pending, start] = useTransition()
+  const [name, setName] = useState("")
+  const [email, setEmail] = useState("")
+  const [error, setError] = useState<string | null>(null)
+  const [seen, setSeen] = useState<string | null>(null)
+
+  // Reset the form whenever a different member is opened.
+  if (member && seen !== member.id) {
+    setSeen(member.id)
+    setName(member.name ?? "")
+    setEmail(member.email)
+    setError(null)
+  }
+  if (!member && seen !== null) setSeen(null)
+
+  return (
+    <Dialog open={member !== null} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>{t("members.edit.title")}</DialogTitle>
+          <DialogDescription>
+            {t("members.edit.description", { email: member?.email ?? "" })}
+          </DialogDescription>
+        </DialogHeader>
+        <form
+          className="space-y-3"
+          onSubmit={(e) => {
+            e.preventDefault()
+            if (!member) return
+            start(async () => {
+              setError(null)
+              const r = await updateUserProfileAction(member.id, {
+                name,
+                email,
+              })
+              if (!r.ok) {
+                setError(r.error)
+                return
+              }
+              toast.success(t("members.edit.saved"))
+              onClose()
+              router.refresh()
+            })
+          }}
+        >
+          <div className="space-y-1">
+            <Label htmlFor="mem-name">{c("labels.name")}</Label>
+            <Input
+              id="mem-name"
+              maxLength={100}
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
+          </div>
+          <div className="space-y-1">
+            <Label htmlFor="mem-email">{c("labels.email")}</Label>
+            <Input
+              id="mem-email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+            <p className="text-xs text-muted-foreground">
+              {t("members.edit.emailHint")}
+            </p>
+          </div>
+          {error && (
+            <p className="text-xs text-destructive" role="alert">
+              {error}
+            </p>
+          )}
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={onClose}>
+              {c("actions.cancel")}
+            </Button>
+            <Button type="submit" disabled={pending}>
+              {c("actions.save")}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
   )
 }
 

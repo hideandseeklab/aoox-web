@@ -1,5 +1,4 @@
 import {
-  ArrowLeft,
   LayoutDashboard,
   Table2,
   ArchiveRestore,
@@ -9,7 +8,6 @@ import {
 import { getProject } from "@/features/project/project.queries"
 import { SetBreadcrumb } from "@/components/custom/breadcrumb-store"
 import { EngineIcon } from "@/components/custom/brand-icon"
-import Link from "next/link"
 import { getTranslations } from "next-intl/server"
 import { notFound } from "next/navigation"
 import { ApplicationJobs } from "@/components/custom/application-jobs"
@@ -23,9 +21,11 @@ import {
 } from "@/components/custom/database-panel"
 import { DatabaseResources } from "@/components/custom/database-resources"
 import { MetricsPanel } from "@/components/custom/metrics-panel"
-import { StatusStrip } from "@/components/custom/status-strip"
+import {
+  ResourceHeader,
+  ResourceStatus,
+} from "@/components/custom/resource-header"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent } from "@/components/ui/tabs"
 import { ScrollableTabsList } from "@/components/custom/scrollable-tabs-list"
 import { PageTabsTrigger } from "@/components/custom/page-tabs-trigger"
@@ -104,23 +104,50 @@ export default async function DatabasePage({
           { label: db.name },
         ]}
       />
-      <div className="flex min-w-0 items-start gap-3">
-        <Button asChild variant="ghost" size="icon" className="mt-0.5">
-          <Link
-            href={`/projects/${db.projectId}`}
-            aria-label={t("page.backToProject")}
-          >
-            <ArrowLeft />
-          </Link>
-        </Button>
-        <h1 className="flex min-w-0 items-center gap-2 text-lg font-semibold">
-          <EngineIcon
-            engine={db.engine}
-            className="size-4 text-muted-foreground"
-          />
-          <span className="min-w-0 break-words">{db.name}</span>
-        </h1>
-      </div>
+      <ResourceHeader
+        backHref={`/projects/${db.projectId}`}
+        backLabel={t("page.backToProject")}
+        icon={<EngineIcon engine={db.engine} className="size-5" />}
+        title={db.name}
+        badges={
+          <>
+            <ResourceStatus
+              tone={
+                db.status === "creating"
+                  ? "warning"
+                  : db.status === "error"
+                    ? "danger"
+                    : running
+                      ? "success"
+                      : "neutral"
+              }
+            >
+              {db.status === "creating"
+                ? t("status.creating")
+                : t.has(`status.${db.container?.state ?? db.status}`)
+                  ? t(`status.${db.container?.state ?? db.status}`)
+                  : (db.container?.state ?? db.status)}
+            </ResourceStatus>
+            {db.projectRole === "viewer" && (
+              <Badge variant="outline">{t("page.readOnly")}</Badge>
+            )}
+          </>
+        }
+        meta={[
+          <span key="e" className="font-mono">
+            {ENGINE_LABEL[db.engine]} {db.imageTag}
+          </span>,
+          <span key="s" className="font-mono">
+            {db.slug}
+          </span>,
+          db.hostPort && (
+            <span key="p" className="font-mono">
+              :{db.hostPort}
+            </span>
+          ),
+        ]}
+        actions={db.projectRole !== "viewer" && <DatabaseStartStop db={db} />}
+      />
       <Tabs defaultValue="overview">
         <ScrollableTabsList>
           <PageTabsTrigger icon={LayoutDashboard} value="overview">
@@ -139,40 +166,6 @@ export default async function DatabasePage({
             {t("page.tabs.jobs", { count: jobs.length })}
           </PageTabsTrigger>
         </ScrollableTabsList>
-        <StatusStrip
-          className="pt-4"
-          status={
-            <Badge
-              variant={
-                db.status === "creating"
-                  ? "secondary"
-                  : db.status === "error"
-                    ? "destructive"
-                    : running
-                      ? "default"
-                      : "secondary"
-              }
-            >
-              {db.status === "creating"
-                ? t("status.creating")
-                : t.has(`status.${db.container?.state ?? db.status}`)
-                  ? t(`status.${db.container?.state ?? db.status}`)
-                  : (db.container?.state ?? db.status)}
-            </Badge>
-          }
-          info={
-            <span className="font-mono break-all">
-              {ENGINE_LABEL[db.engine]} {db.imageTag} · {db.slug}
-            </span>
-          }
-          actions={
-            db.projectRole === "viewer" ? (
-              <Badge variant="outline">{t("page.readOnly")}</Badge>
-            ) : (
-              <DatabaseStartStop db={db} />
-            )
-          }
-        />
         <TabsContent value="overview" className="space-y-4 pt-4">
           <MetricsPanel
             target="database"

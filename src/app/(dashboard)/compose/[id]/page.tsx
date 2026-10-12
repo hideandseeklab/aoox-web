@@ -1,5 +1,4 @@
 import {
-  ArrowLeft,
   Rocket,
   History,
   HardDrive,
@@ -8,8 +7,6 @@ import {
 } from "lucide-react"
 import { getProject } from "@/features/project/project.queries"
 import { SetBreadcrumb } from "@/components/custom/breadcrumb-store"
-import { ComposeSourceIcon } from "@/components/custom/brand-icon"
-import Link from "next/link"
 import { getTranslations } from "next-intl/server"
 import { notFound } from "next/navigation"
 import { ApplicationJobs } from "@/components/custom/application-jobs"
@@ -20,10 +17,9 @@ import { ComposeHistory } from "@/components/custom/compose-history"
 import { ComposeMounts } from "@/components/custom/compose-mounts"
 import { ComposeLiveProvider } from "@/components/custom/compose-live"
 import { ComposePanel } from "@/components/custom/compose-panel"
-import { ComposeStatusStrip } from "@/components/custom/compose-status-strip"
+import { ComposeHeader } from "@/components/custom/compose-header"
 import { ComposeResources } from "@/components/custom/compose-resources"
 import { ComposeWebhook } from "@/components/custom/compose-webhook"
-import { Button } from "@/components/ui/button"
 import {
   Card,
   CardContent,
@@ -105,26 +101,11 @@ export default async function ComposeAppPage({
           { label: app.name },
         ]}
       />
-      <div className="flex min-w-0 items-start gap-3">
-        <Button asChild variant="ghost" size="icon" className="mt-0.5">
-          <Link
-            href={`/projects/${app.projectId}`}
-            aria-label={t("page.backToProject")}
-          >
-            <ArrowLeft />
-          </Link>
-        </Button>
-        <h1 className="flex min-w-0 items-center gap-2 text-lg font-semibold">
-          <ComposeSourceIcon
-            source={app.source}
-            gitUrl={app.gitUrl}
-            className="size-4 text-muted-foreground"
-          />
-          <span className="min-w-0 break-words">{app.name}</span>
-        </h1>
-      </div>
-
       <ComposeLiveProvider initial={app}>
+        <ComposeHeader
+          backHref={`/projects/${app.projectId}`}
+          backLabel={t("page.backToProject")}
+        />
         <Tabs defaultValue="deploy">
           <ScrollableTabsList>
             <PageTabsTrigger icon={Rocket} value="deploy">
@@ -143,15 +124,6 @@ export default async function ComposeAppPage({
               {t("page.tabs.settings")}
             </PageTabsTrigger>
           </ScrollableTabsList>
-          <ComposeStatusStrip
-            info={
-              <span className="font-mono break-all">
-                {app.source === "template"
-                  ? t("page.templateInfo", { id: app.templateId ?? "" })
-                  : `${(app.gitUrl ?? "").replace(/^https?:\/\//, "")}#${app.gitBranch} · ${app.composePath}`}
-              </span>
-            }
-          />
           <TabsContent value="deploy" className="space-y-4 pt-4">
             <ComposeAccessHint
               domains={app.serviceDomains}
