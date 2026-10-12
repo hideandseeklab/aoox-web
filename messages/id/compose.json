@@ -18,8 +18,8 @@
   },
   "form": {
     "templateHint": "Disalin dari template saat dibuat; boleh diubah bebas. Cara service dibuka (domain atau IP & port) diatur di kartu Akses.",
-    "gitRepository": "Git repository",
-    "branch": "Branch",
+    "gitRepository": "Repositori Git",
+    "branch": "Cabang",
     "composeFile": "File compose",
     "composePathHint": "Relatif dari root repo; path relatif di dalamnya (build, volume) dihitung dari folder file ini.",
     "gitCredential": "Kredensial Git",
@@ -45,9 +45,9 @@
     "actionLog": "Log aksi",
     "action": {
       "deploy": "deploy",
-      "stop": "stop",
-      "start": "start",
-      "down": "down"
+      "stop": "hentikan",
+      "start": "mulai",
+      "down": "turunkan"
     }
   },
   "panel": {
@@ -61,10 +61,10 @@
   },
   "statusStrip": {
     "status": {
-      "idle": "idle",
+      "idle": "menunggu",
       "deploying": "berjalan…",
-      "running": "running",
-      "stopped": "stopped",
+      "running": "berjalan",
+      "stopped": "berhenti",
       "error": "error"
     },
     "deploy": "Deploy",
@@ -87,7 +87,7 @@
     "tabDomain": "Domain",
     "removeDomain": "Hapus domain",
     "removePort": "Hapus port",
-    "service": "Service",
+    "service": "Layanan",
     "containerPort": "Port container",
     "hostPort": "Port host"
   },
@@ -104,7 +104,7 @@
     "volumeName": "Nama volume",
     "hostPath": "Path di host",
     "containerPath": "Path di container",
-    "readOnly": "Read-only",
+    "readOnly": "Hanya baca",
     "fileContent": "Isi file",
     "volumeSource": "volume {name}",
     "detachAria": "Hapus mount",
@@ -125,7 +125,7 @@
     "ramUnlimited": "RAM tanpa batas",
     "removeAria": "Hapus batas {service}",
     "cpuLabel": "CPU (millicore)",
-    "cpuPlaceholder": "1000 = 1 core",
+    "cpuPlaceholder": "1000 = 1 inti",
     "memoryLabel": "Memori (MiB)",
     "memoryPlaceholder": "mis. 512",
     "submit": "Tambah / ubah"
@@ -136,7 +136,7 @@
       "deploy": "Deploy",
       "history": "Riwayat ({count})",
       "mounts": "Mount ({count})",
-      "jobs": "Jobs ({count})",
+      "jobs": "Job ({count})",
       "settings": "Pengaturan"
     },
     "templateInfo": "template · {id}",

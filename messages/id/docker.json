@@ -6,7 +6,7 @@
     "days": "{count} hari",
     "months": "{count} bulan"
   },
-  "managedBy": "Managed by aoox",
+  "managedBy": "Dikelola oleh aoox",
   "actions": "Aksi",
   "driver": "Driver",
   "usedByHeader": "Dipakai oleh",
@@ -35,16 +35,16 @@
     "actionDone": "{name}: {action} berhasil",
     "empty": "Belum ada container di server ini.",
     "noMatch": "Tidak ada container yang cocok.",
-    "state": "State",
+    "state": "Keadaan",
     "container": "Container",
     "status": "Status",
     "port": "Port",
     "age": "Umur",
     "logs": "Log",
     "openPage": "Buka halamannya",
-    "stop": "Stop",
-    "start": "Start",
-    "restart": "Restart",
+    "stop": "Hentikan",
+    "start": "Mulai",
+    "restart": "Mulai ulang",
     "removeTitle": "Hapus container {name}?",
     "removeDescription": "Container dihapus dari server ini. Volume bernama tidak ikut terhapus.",
     "force": "Paksa: hentikan dulu lalu hapus (container sedang berjalan)",
@@ -86,7 +86,7 @@
   "networks": {
     "empty": "Belum ada network di server ini.",
     "noMatch": "Tidak ada network yang cocok.",
-    "network": "Network",
+    "network": "Jaringan",
     "subnet": "Subnet",
     "builtin": "bawaan",
     "internal": "internal"
@@ -106,7 +106,7 @@
       "containers": "Container",
       "images": "Image",
       "volumes": "Volume",
-      "networks": "Network"
+      "networks": "Jaringan"
     },
     "search": {
       "containers": "Cari nama, image, atau id",

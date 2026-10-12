@@ -29,6 +29,7 @@ import type { Project } from "@/features/project/project.entity"
 import type { ProxyStatus } from "@/features/proxy/proxy.entity"
 import { deployTemplateAction } from "@/features/template/template.actions"
 import type { Template } from "@/features/template/template.entity"
+import { apiText } from "@/i18n/api-text"
 import { useBrowserHost } from "./use-browser-host"
 
 /**
@@ -50,6 +51,7 @@ export function DeployTemplateDialog({
   onClose: () => void
 }) {
   const t = useTranslations("templates.dialog")
+  const tc = useTranslations("templates.catalog")
   const tNav = useTranslations("nav")
   const router = useRouter()
   const browserHost = useBrowserHost()
@@ -119,14 +121,15 @@ export function DeployTemplateDialog({
             <DialogHeader>
               <DialogTitle>{t("title", { name: template.name })}</DialogTitle>
               <DialogDescription>
-                {template.description} {t("description")}
+                {apiText(tc, `${template.id}.description`, template.description)}{" "}
+                {t("description")}
               </DialogDescription>
             </DialogHeader>
 
             <div className="space-y-4">
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-1">
-                  <Label htmlFor="tpl-project">Project</Label>
+                  <Label htmlFor="tpl-project">{t("project")}</Label>
                   <Select value={projectId} onValueChange={setProjectId}>
                     <SelectTrigger id="tpl-project">
                       <SelectValue placeholder={t("projectPlaceholder")} />
@@ -177,7 +180,11 @@ export function DeployTemplateDialog({
                   <div key={key(s)} className="flex items-end gap-2">
                     <div className="min-w-0 flex-1 space-y-1">
                       <Label htmlFor={`tpl-host-${key(s)}`}>
-                        {s.label}{" "}
+                        {apiText(
+                          tc,
+                          `${template.id}.services.${s.service}-${s.port}`,
+                          s.label
+                        )}{" "}
                         <span className="font-mono text-xs text-muted-foreground">
                           {s.service}:{s.port}
                         </span>
@@ -199,7 +206,7 @@ export function DeployTemplateDialog({
                           setHttps((h) => ({ ...h, [key(s)]: c }))
                         }
                       />
-                      HTTPS
+                      {t("https")}
                     </label>
                     <div className="space-y-1">
                       <Label htmlFor={`tpl-port-${key(s)}`}>{t("access.hostPort")}</Label>
@@ -229,7 +236,11 @@ export function DeployTemplateDialog({
                   {template.variables.map((v) => (
                     <div key={v.key} className="space-y-1">
                       <Label htmlFor={`tpl-var-${v.key}`}>
-                        {v.label}{" "}
+                        {apiText(
+                          tc,
+                          `${template.id}.variables.${v.key}.label`,
+                          v.label
+                        )}{" "}
                         <span className="font-mono text-xs text-muted-foreground">
                           {v.key}
                         </span>
@@ -249,7 +260,11 @@ export function DeployTemplateDialog({
                       />
                       {v.hint && (
                         <p className="text-xs text-muted-foreground">
-                          {v.hint}
+                          {apiText(
+                            tc,
+                            `${template.id}.variables.${v.key}.hint`,
+                            v.hint
+                          )}
                         </p>
                       )}
                     </div>

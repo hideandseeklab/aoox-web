@@ -18,6 +18,7 @@ import { Input } from "@/components/ui/input"
 import type { Project } from "@/features/project/project.entity"
 import type { ProxyStatus } from "@/features/proxy/proxy.entity"
 import type { Template } from "@/features/template/template.entity"
+import { apiText } from "@/i18n/api-text"
 
 export function TemplatesCatalog({
   templates,
@@ -33,12 +34,14 @@ export function TemplatesCatalog({
   const tr = useTranslations("templates.catalog")
   const [query, setQuery] = useState("")
   const [selected, setSelected] = useState<Template | null>(null)
+  const describe = (t: Template) =>
+    apiText(tr, `${t.id}.description`, t.description)
   const q = query.trim().toLowerCase()
   const shown = q
     ? templates.filter(
         (t) =>
           t.name.toLowerCase().includes(q) ||
-          t.description.toLowerCase().includes(q) ||
+          describe(t).toLowerCase().includes(q) ||
           t.tags.some((tag) => tag.includes(q))
       )
     : templates
@@ -83,7 +86,7 @@ export function TemplatesCatalog({
               </div>
             </CardHeader>
             <CardContent className="flex-1 space-y-2">
-              <p className="text-xs text-muted-foreground">{t.description}</p>
+              <p className="text-xs text-muted-foreground">{describe(t)}</p>
               <div className="flex flex-wrap gap-1">
                 {t.tags.map((tag) => (
                   <Badge key={tag} variant="outline">
@@ -99,13 +102,13 @@ export function TemplatesCatalog({
                 onClick={() => setSelected(t)}
               >
                 <Rocket data-icon="inline-start" />
-                Deploy
+                {tr("deploy")}
               </Button>
               {t.links.docs && (
                 <Button asChild size="sm" variant="ghost">
                   <a href={t.links.docs} target="_blank" rel="noreferrer">
                     <BookOpen data-icon="inline-start" />
-                    Docs
+                    {tr("docs")}
                   </a>
                 </Button>
               )}

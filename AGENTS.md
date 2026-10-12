@@ -139,6 +139,11 @@ Read `AGENTS.md` — this version of Next.js has breaking changes; check `node_m
   - Text that comes from the API (error messages, audit-log event titles) is displayed as received and is not translated. **Inbox** items are the exception: the API sends structured `params`
     (+ `variant`) next to its English `title`/`summary`, and `features/inbox/inbox.describe.ts` composes the line from `messages/<lang>/inbox.json` (`events.<event>[.<variant>].title|summary`, ICU).
     A row without `params`, an unknown event/variant, or a missing needed value falls back to the API text. Adding an event or variant = a builder in `inbox.describe.ts` + both message files (the contract is in aoox-api AGENTS "Inbox").
+- **Dictionary by API id, API text as fallback** (`src/i18n/api-text.ts`, `apiText(t, key, fallback)`). Template catalog texts (`templates.catalog.<templateId>`: `description`, `variables.<KEY>.label|hint`,
+  `services.<service>-<port>`) and proxy preset texts (`infra.proxyPresets.<presetId>`: `label`, `description`, `fields.<field>.label|hint`) come from the API with stable ids, so the English reference
+  in the message file is copied from the API source (the API `*.ts` files stay the source of the English text; keep the two in sync when an id or text changes). Rendering calls `apiText`, which uses the
+  dictionary entry when the active locale has it (`t.has(key)`) and the API text otherwise: a new template or preset shows English until a translation is added. Product names, option values
+  (select values such as `to-www`), units and the API ids themselves are never translated. Do not put these keys in the API response or add a second source of text.
 - **Navigation labels** live in the `nav` namespace; `src/components/custom/nav-items.ts` holds only keys (`key: "dockerDisk"`), so the sidebar and the command palette stay in sync.
 - **Dates, times, numbers**: never call `toLocaleString("id-ID")` or similar. Use `src/i18n/format.ts` (`formatDateTime`, `formatDate`, `formatTime`, `formatNumber`, `formatRelative`),
   passing `useLocale()` (client) or `await getLocale()` (server). These are pure functions, usable in module-level helpers that take `locale` as a parameter.

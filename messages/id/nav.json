@@ -2,11 +2,11 @@
   "groups": {
     "platform": "Platform",
     "infrastructure": "Infrastruktur",
-    "settings": "Settings"
+    "settings": "Pengaturan"
   },
-  "dashboard": "Dashboard",
-  "projects": "Projects",
-  "templates": "Templates",
+  "dashboard": "Dasbor",
+  "projects": "Project",
+  "templates": "Template",
   "registry": "Registry",
   "docker": "Docker",
   "terminal": "Terminal",
@@ -17,12 +17,12 @@
   "dockerDisk": "Disk Docker",
   "instanceBackup": "Backup instance",
   "panelDomain": "Domain panel",
-  "updateAoox": "Update aoox",
+  "updateAoox": "Perbarui aoox",
   "environment": "Environment",
   "account": "Akun",
   "team": "Tim",
   "integrations": "Integrasi",
-  "auditLog": "Audit log",
+  "auditLog": "Log audit",
   "updating": "Sedang memperbarui…",
   "updateAvailable": "Update tersedia",
   "updateAvailableVersion": "Update tersedia: v{version}"

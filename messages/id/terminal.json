@@ -28,8 +28,8 @@
     "local": "Lokal",
     "authorizeInstruction": "Jalankan sekali di host sebagai user <code>{user}</code> agar key ini diizinkan login:",
     "commandLabel": "perintah",
-    "publicKey": "Public key:",
-    "publicKeyLabel": "public key",
+    "publicKey": "Kunci publik:",
+    "publicKeyLabel": "kunci publik",
     "copy": "Salin {label}",
     "copied": "{label} disalin",
     "copyFailed": "Gagal menyalin {label}"

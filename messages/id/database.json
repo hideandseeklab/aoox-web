@@ -10,7 +10,7 @@
       "data": "Data",
       "backups": "Backup ({count})",
       "mounts": "Mount ({count})",
-      "jobs": "Jobs ({count})"
+      "jobs": "Job ({count})"
     }
   },
   "form": {
@@ -24,9 +24,9 @@
     "variants": {
       "none": "PostgreSQL polos",
       "noneDescription": "Image postgres standar, tanpa ekstensi tambahan.",
-      "pgvector": "Vector similarity search for embeddings (AI/ML workloads).",
-      "postgis": "Geographic/spatial data types, indexes and queries.",
-      "timescaledb": "Time-series data: hypertables, continuous aggregates."
+      "pgvector": "Pencarian kemiripan vektor untuk embedding (beban kerja AI/ML).",
+      "postgis": "Tipe data, indeks, dan kueri geografis/spasial.",
+      "timescaledb": "Data deret waktu: hypertable, agregasi kontinu."
     },
     "hostPortHint": "Publikasikan port host hanya kalau perlu diakses dari luar (mis. dari laptop kamu).",
     "toast": {
@@ -54,7 +54,7 @@
     },
     "fields": {
       "database": "Database",
-      "user": "User"
+      "user": "Pengguna"
     },
     "delete": {
       "trigger": "Hapus database",
@@ -80,7 +80,7 @@
     "title": "Batas sumber daya",
     "description": "Kosong = tanpa batas. Menaikkan/menurunkan batas berlaku langsung; mencabut batas membuat container dibuat ulang (restart singkat, data aman di volume).",
     "cpu": "CPU (millicore)",
-    "cpuPlaceholder": "1000 = 1 core",
+    "cpuPlaceholder": "1000 = 1 inti",
     "memory": "Memori (MiB)",
     "memoryPlaceholder": "mis. 512"
   },
@@ -99,7 +99,7 @@
     "s3Only": "hanya di S3",
     "allDatabases": "semua database",
     "copiedTo": "Tersalin ke {destination}",
-    "restore": "Restore",
+    "restore": "Pulihkan",
     "deleteAria": "Hapus backup",
     "presets": {
       "off": "Nonaktif",
@@ -121,7 +121,7 @@
       "currentOff": "nonaktif"
     },
     "restoreDialog": {
-      "title": "Restore backup?",
+      "title": "Pulihkan backup?",
       "description": "Data <b>{name}</b> saat ini akan ditimpa dengan isi <code>{file}</code>. Tidak bisa dibatalkan — buat backup dulu kalau ragu.",
       "restoring": "Me-restore…"
     }
@@ -131,23 +131,23 @@
     "invalidImageTag": "Tag image tidak valid"
   },
   "status": {
-    "creating": "creating…",
-    "running": "running",
-    "stopped": "stopped",
+    "creating": "sedang dibuat…",
+    "running": "berjalan",
+    "stopped": "berhenti",
     "error": "error",
-    "exited": "exited",
-    "paused": "paused",
-    "restarting": "restarting",
-    "dead": "dead",
-    "created": "created",
+    "exited": "keluar",
+    "paused": "dijeda",
+    "restarting": "memulai ulang",
+    "dead": "mati",
+    "created": "dibuat",
     "backup": {
-      "running": "running",
-      "success": "success",
-      "failed": "failed"
+      "running": "berjalan",
+      "success": "berhasil",
+      "failed": "gagal"
     }
   },
   "companion": {
-    "title": "Admin UI",
+    "title": "UI admin",
     "description": "Antarmuka web untuk mengelola database ini, berjalan di container terpisah.",
     "empty": "Belum ada Admin UI. Pasang dengan satu klik, lalu buka dari domain atau IP dan port.",
     "install": "Pasang Admin UI",
@@ -157,13 +157,13 @@
     "openInNewTab": "Buka {tool} di tab baru",
     "databaseLoginHint": "Masuk dengan username dan password database (lihat kartu Koneksi internal, tombol Tampilkan password).",
     "status": {
-      "creating": "creating",
-      "running": "running",
-      "stopped": "stopped",
+      "creating": "sedang dibuat",
+      "running": "berjalan",
+      "stopped": "berhenti",
       "error": "error"
     },
     "credentials": {
-      "user": "User",
+      "user": "Pengguna",
       "show": "Tampilkan kredensial",
       "hide": "Sembunyikan kredensial",
       "copyAria": "Salin {label}",
@@ -200,7 +200,7 @@
         "title": "IP & port",
         "description": "Dipublikasikan di port host server ini."
       },
-      "hostname": "Hostname",
+      "hostname": "Nama host",
       "domainHint": "Reverse proxy harus aktif dan DNS hostname sudah mengarah ke IP server ini.",
       "hostPort": "Port host",
       "installing": "Memasang…",
@@ -272,7 +272,7 @@
     },
     "structure": {
       "column": "Kolom",
-      "nullable": "Nullable",
+      "nullable": "Boleh kosong",
       "default": "Default"
     },
     "emptyValue": "(kosong)",

@@ -10,7 +10,261 @@
     "searchLabel": "Search templates",
     "needProject": "Create a project first: templates are deployed into a project.",
     "website": "Website",
-    "noMatch": "No matches."
+    "noMatch": "No matches.",
+    "directus": {
+      "description": "Headless CMS and data backend: a REST/GraphQL API on top of a SQL database, with PostgreSQL.",
+      "variables": {
+        "PUBLIC_URL": {
+          "label": "Public URL",
+          "hint": "E.g. https://cms.example.com — must match the domain you attach."
+        },
+        "ADMIN_EMAIL": {
+          "label": "Admin email",
+          "hint": "The first admin account is created with this email."
+        },
+        "ADMIN_PASSWORD": {
+          "label": "Admin password"
+        },
+        "DB_PASSWORD": {
+          "label": "Database password"
+        },
+        "KEY": {
+          "label": "Instance key"
+        },
+        "SECRET": {
+          "label": "Token secret"
+        }
+      },
+      "services": {
+        "directus-8055": "Web Directus"
+      }
+    },
+    "excalidraw": {
+      "description": "Open source virtual whiteboard for sketches and diagrams. Static client, no live collaboration.",
+      "services": {
+        "excalidraw-80": "Whiteboard"
+      }
+    },
+    "ghost": {
+      "description": "Publishing and newsletter platform, with MySQL 8.",
+      "variables": {
+        "GHOST_URL": {
+          "label": "Public URL",
+          "hint": "Full site URL, e.g. https://blog.example.com — must match the domain you attach."
+        },
+        "DB_PASSWORD": {
+          "label": "Database password"
+        }
+      },
+      "services": {
+        "ghost-2368": "Ghost site"
+      }
+    },
+    "gitea": {
+      "description": "Lightweight Git hosting (issues, PRs, CI Actions), with PostgreSQL.",
+      "variables": {
+        "ROOT_URL": {
+          "label": "Public URL",
+          "hint": "E.g. https://git.example.com — must match the domain you attach."
+        },
+        "DB_PASSWORD": {
+          "label": "Database password"
+        }
+      },
+      "services": {
+        "gitea-3000": "Web Gitea"
+      }
+    },
+    "grafana": {
+      "description": "Dashboards and visualization for metrics, logs and data from many sources (data is kept in the built-in SQLite).",
+      "variables": {
+        "ROOT_URL": {
+          "label": "Public URL",
+          "hint": "E.g. https://grafana.example.com — must match the domain you attach."
+        },
+        "ADMIN_USER": {
+          "label": "Admin username"
+        },
+        "ADMIN_PASSWORD": {
+          "label": "Admin password"
+        }
+      },
+      "services": {
+        "grafana-3000": "Web Grafana"
+      }
+    },
+    "mattermost": {
+      "description": "Self-hosted team chat (a Slack alternative) with channels, threads and integrations, with PostgreSQL.",
+      "variables": {
+        "SITE_URL": {
+          "label": "Public URL",
+          "hint": "E.g. https://chat.example.com — must match the domain you attach."
+        },
+        "DB_PASSWORD": {
+          "label": "Database password"
+        }
+      },
+      "services": {
+        "mattermost-8065": "Web Mattermost"
+      }
+    },
+    "metabase": {
+      "description": "Business intelligence: ask questions of your data and build dashboards without SQL, with PostgreSQL for its application data.",
+      "variables": {
+        "SITE_URL": {
+          "label": "Public URL",
+          "hint": "E.g. https://bi.example.com — used for links in emails and embeds."
+        },
+        "DB_PASSWORD": {
+          "label": "Database password"
+        },
+        "ENCRYPTION_SECRET_KEY": {
+          "label": "Credential encryption key",
+          "hint": "Encrypts the database credentials you connect. Do not change it once it is in use."
+        }
+      },
+      "services": {
+        "metabase-3000": "Web Metabase"
+      }
+    },
+    "minio": {
+      "description": "S3-compatible object storage, suitable as a backup destination.",
+      "variables": {
+        "MINIO_ROOT_USER": {
+          "label": "Root user"
+        },
+        "MINIO_ROOT_PASSWORD": {
+          "label": "Root password"
+        }
+      },
+      "services": {
+        "minio-9001": "Console (UI)",
+        "minio-9000": "S3 API"
+      }
+    },
+    "n8n": {
+      "description": "Workflow automation (a Zapier alternative), with PostgreSQL.",
+      "variables": {
+        "N8N_HOST": {
+          "label": "Public host",
+          "hint": "Same as the domain you attach, e.g. n8n.example.com (used for webhook URLs)."
+        },
+        "N8N_PROTOCOL": {
+          "label": "Protocol"
+        },
+        "N8N_ENCRYPTION_KEY": {
+          "label": "Encryption key"
+        },
+        "DB_PASSWORD": {
+          "label": "Database password"
+        },
+        "GENERIC_TIMEZONE": {
+          "label": "Time zone"
+        }
+      },
+      "services": {
+        "n8n-5678": "n8n editor"
+      }
+    },
+    "nextcloud": {
+      "description": "Private file storage, sync and collaboration, with PostgreSQL, Redis (cache) and a separate cron service.",
+      "variables": {
+        "DOMAIN": {
+          "label": "Domain",
+          "hint": "E.g. cloud.example.com (without https://) — must match the domain you attach."
+        },
+        "PROTOCOL": {
+          "label": "Public protocol",
+          "hint": "https when the domain uses HTTPS; http only for local testing."
+        },
+        "ADMIN_USER": {
+          "label": "Admin username"
+        },
+        "ADMIN_PASSWORD": {
+          "label": "Admin password"
+        },
+        "DB_PASSWORD": {
+          "label": "Database password"
+        },
+        "REDIS_PASSWORD": {
+          "label": "Redis password"
+        }
+      },
+      "services": {
+        "nextcloud-80": "Web Nextcloud"
+      }
+    },
+    "odoo": {
+      "description": "All-in-one ERP and business suite (CRM, sales, inventory, accounting, website), Community edition, with PostgreSQL.",
+      "variables": {
+        "MASTER_PASSWORD": {
+          "label": "Database master password",
+          "hint": "Generated automatically. Needed to create, duplicate, back up or delete Odoo databases at /web/database/manager. After deploying, find it on the stack page: Settings tab, environment section, \"Show values\" button. Keep it safe."
+        },
+        "DB_PASSWORD": {
+          "label": "PostgreSQL password"
+        }
+      },
+      "services": {
+        "odoo-8069": "Web Odoo"
+      }
+    },
+    "umami": {
+      "description": "Simple, privacy-friendly web analytics (a Google Analytics alternative), with PostgreSQL.",
+      "variables": {
+        "DB_PASSWORD": {
+          "label": "Database password"
+        },
+        "APP_SECRET": {
+          "label": "Application secret"
+        }
+      },
+      "services": {
+        "umami-3000": "Dashboard Umami"
+      }
+    },
+    "uptime-kuma": {
+      "description": "Self-hosted uptime monitoring with status pages.",
+      "services": {
+        "uptime-kuma-3001": "Dashboard"
+      }
+    },
+    "vaultwarden": {
+      "description": "Lightweight password manager compatible with Bitwarden clients (web, mobile, extensions).",
+      "variables": {
+        "DOMAIN": {
+          "label": "Public URL",
+          "hint": "E.g. https://vault.example.com — must be HTTPS for the web vault to work (except on localhost)."
+        },
+        "ADMIN_TOKEN": {
+          "label": "Token for the /admin page",
+          "hint": "Generated automatically; needed to open /admin. Keep it safe."
+        },
+        "SIGNUPS_ALLOWED": {
+          "label": "Allow sign-ups",
+          "hint": "Set it to false once your account exists; invite other members through /admin."
+        }
+      },
+      "services": {
+        "vaultwarden-80": "Web Vaultwarden"
+      }
+    },
+    "wordpress": {
+      "description": "The most popular CMS and blog platform, with MariaDB.",
+      "variables": {
+        "DB_PASSWORD": {
+          "label": "Database password"
+        },
+        "DB_ROOT_PASSWORD": {
+          "label": "Database root password"
+        }
+      },
+      "services": {
+        "wordpress-80": "WordPress site"
+      }
+    },
+    "docs": "Docs",
+    "deploy": "Deploy"
   },
   "dialog": {
     "creating": "Creating stack {name}…",
@@ -30,6 +284,8 @@
     "autoGenerated": "(generated automatically if empty)",
     "cancel": "Cancel",
     "submit": "Deploy",
-    "submitting": "Creating…"
+    "submitting": "Creating…",
+    "project": "Project",
+    "https": "HTTPS"
   }
 }

@@ -8,10 +8,10 @@
       "title": "Docker tidak terjangkau",
       "description": "API tidak bisa mengakses Docker engine (cek <code>DOCKER_SOCKET</code> dan mount socket di container)."
     },
-    "username": "Username",
+    "username": "Nama pengguna",
     "container": "Container",
-    "login": "Login",
-    "storage": "Storage",
+    "login": "Masuk",
+    "storage": "Penyimpanan",
     "domain": "Domain",
     "customDomain": "Domain kustom",
     "apply": "Terapkan",
@@ -19,8 +19,8 @@
     "domainNote": "Butuh reverse proxy sudah diaktifkan dengan email ACME diisi — tanpa itu sertifikat tidak terbit dan <code>docker push</code> akan menolak domainnya.",
     "noOutput": "(tidak ada output)",
     "enable": "Aktifkan registry",
-    "gcDryRun": "GC (dry-run)",
-    "gc": "Garbage collect",
+    "gcDryRun": "GC (uji coba)",
+    "gc": "Pembersihan data tak terpakai",
     "remove": "Hapus registry",
     "cancel": "Batal",
     "provision": {
@@ -36,7 +36,7 @@
       "title": "Registry siap",
       "description": "Simpan password ini sekarang — hanya ditampilkan sekali. Setelah itu disimpan terenkripsi di server.",
       "address": "Alamat",
-      "password": "Password",
+      "password": "Kata sandi",
       "localhostNote": "Alamat <code>localhost</code> ini hanya berfungsi kalau perintah dijalankan langsung di server ini (mis. lewat terminal SSH) — bukan dari komputermu sendiri. Untuk bisa push/pull dari mana saja lewat HTTPS, set <b>Domain kustom</b> di kartu ini setelah menutup dialog.",
       "saved": "Sudah saya simpan",
       "copyLabel": "Salin {label}",
@@ -50,9 +50,9 @@
       "withData": "Hapus beserta data"
     },
     "status": {
-      "dockerOff": "Docker off",
+      "dockerOff": "Docker mati",
       "none": "Belum ada",
-      "running": "Running"
+      "running": "Berjalan"
     }
   },
   "external": {
@@ -60,16 +60,16 @@
     "empty": "Belum ada registry eksternal.",
     "name": "Nama",
     "url": "URL",
-    "username": "Username",
-    "prefix": "Prefix",
-    "test": "Test",
+    "username": "Nama pengguna",
+    "prefix": "Awalan",
+    "test": "Uji",
     "deleteLabel": "Hapus {name}",
     "add": "Tambah registry",
     "dialog": {
       "title": "Registry eksternal",
       "description": "Untuk Docker Hub isi URL <code>docker.io</code>; GHCR <code>ghcr.io</code>; GitLab <code>registry.gitlab.com</code>.",
-      "passwordToken": "Password / token",
-      "imagePrefix": "Image prefix",
+      "passwordToken": "Kata sandi / token",
+      "imagePrefix": "Awalan image",
       "prefixHint": "Opsional; image akan di-push sebagai <code>&lt;url&gt;/&lt;prefix&gt;/&lt;app&gt;</code>.",
       "saving": "Menyimpan…",
       "save": "Simpan"

@@ -10,7 +10,261 @@
     "searchLabel": "Cari template",
     "needProject": "Buat project dulu — template di-deploy ke dalam sebuah project.",
     "website": "Situs",
-    "noMatch": "Tidak ada yang cocok."
+    "noMatch": "Tidak ada yang cocok.",
+    "directus": {
+      "description": "Headless CMS dan backend data: API REST/GraphQL di atas database SQL, dengan PostgreSQL.",
+      "variables": {
+        "PUBLIC_URL": {
+          "label": "URL publik",
+          "hint": "Contoh: https://cms.example.com — harus sama dengan domain yang Anda pasang."
+        },
+        "ADMIN_EMAIL": {
+          "label": "Email admin",
+          "hint": "Akun admin pertama dibuat dengan email ini."
+        },
+        "ADMIN_PASSWORD": {
+          "label": "Kata sandi admin"
+        },
+        "DB_PASSWORD": {
+          "label": "Kata sandi database"
+        },
+        "KEY": {
+          "label": "Kunci instans"
+        },
+        "SECRET": {
+          "label": "Secret token"
+        }
+      },
+      "services": {
+        "directus-8055": "Web Directus"
+      }
+    },
+    "excalidraw": {
+      "description": "Papan tulis virtual open source untuk sketsa dan diagram. Hanya klien statis, tanpa kolaborasi langsung.",
+      "services": {
+        "excalidraw-80": "Papan tulis"
+      }
+    },
+    "ghost": {
+      "description": "Platform publikasi dan newsletter, dengan MySQL 8.",
+      "variables": {
+        "GHOST_URL": {
+          "label": "URL publik",
+          "hint": "URL situs lengkap, mis. https://blog.example.com — harus sama dengan domain yang Anda pasang."
+        },
+        "DB_PASSWORD": {
+          "label": "Kata sandi database"
+        }
+      },
+      "services": {
+        "ghost-2368": "Situs Ghost"
+      }
+    },
+    "gitea": {
+      "description": "Hosting Git yang ringan (issue, PR, CI Actions), dengan PostgreSQL.",
+      "variables": {
+        "ROOT_URL": {
+          "label": "URL publik",
+          "hint": "Contoh: https://git.example.com — harus sama dengan domain yang Anda pasang."
+        },
+        "DB_PASSWORD": {
+          "label": "Kata sandi database"
+        }
+      },
+      "services": {
+        "gitea-3000": "Web Gitea"
+      }
+    },
+    "grafana": {
+      "description": "Dashboard dan visualisasi untuk metrik, log, dan data dari banyak sumber (data disimpan di SQLite bawaan).",
+      "variables": {
+        "ROOT_URL": {
+          "label": "URL publik",
+          "hint": "Contoh: https://grafana.example.com — harus sama dengan domain yang Anda pasang."
+        },
+        "ADMIN_USER": {
+          "label": "Nama pengguna admin"
+        },
+        "ADMIN_PASSWORD": {
+          "label": "Kata sandi admin"
+        }
+      },
+      "services": {
+        "grafana-3000": "Web Grafana"
+      }
+    },
+    "mattermost": {
+      "description": "Chat tim self-hosted (alternatif Slack) dengan channel, thread, dan integrasi, dengan PostgreSQL.",
+      "variables": {
+        "SITE_URL": {
+          "label": "URL publik",
+          "hint": "Contoh: https://chat.example.com — harus sama dengan domain yang Anda pasang."
+        },
+        "DB_PASSWORD": {
+          "label": "Kata sandi database"
+        }
+      },
+      "services": {
+        "mattermost-8065": "Web Mattermost"
+      }
+    },
+    "metabase": {
+      "description": "Business intelligence: ajukan pertanyaan ke data Anda dan buat dashboard tanpa SQL, dengan PostgreSQL untuk data aplikasinya.",
+      "variables": {
+        "SITE_URL": {
+          "label": "URL publik",
+          "hint": "Contoh: https://bi.example.com — dipakai untuk tautan di email dan embed."
+        },
+        "DB_PASSWORD": {
+          "label": "Kata sandi database"
+        },
+        "ENCRYPTION_SECRET_KEY": {
+          "label": "Kunci enkripsi kredensial",
+          "hint": "Mengenkripsi kredensial database yang Anda hubungkan. Jangan ubah setelah dipakai."
+        }
+      },
+      "services": {
+        "metabase-3000": "Web Metabase"
+      }
+    },
+    "minio": {
+      "description": "Object storage kompatibel S3 — cocok sebagai tujuan backup.",
+      "variables": {
+        "MINIO_ROOT_USER": {
+          "label": "Pengguna root"
+        },
+        "MINIO_ROOT_PASSWORD": {
+          "label": "Kata sandi root"
+        }
+      },
+      "services": {
+        "minio-9001": "Konsol (UI)",
+        "minio-9000": "API S3"
+      }
+    },
+    "n8n": {
+      "description": "Otomatisasi workflow (alternatif Zapier), dengan PostgreSQL.",
+      "variables": {
+        "N8N_HOST": {
+          "label": "Host publik",
+          "hint": "Sama dengan domain yang Anda pasang, mis. n8n.example.com (dipakai untuk URL webhook)."
+        },
+        "N8N_PROTOCOL": {
+          "label": "Protokol"
+        },
+        "N8N_ENCRYPTION_KEY": {
+          "label": "Kunci enkripsi"
+        },
+        "DB_PASSWORD": {
+          "label": "Kata sandi database"
+        },
+        "GENERIC_TIMEZONE": {
+          "label": "Zona waktu"
+        }
+      },
+      "services": {
+        "n8n-5678": "Editor n8n"
+      }
+    },
+    "nextcloud": {
+      "description": "Penyimpanan file pribadi, sinkronisasi, dan kolaborasi, dengan PostgreSQL, Redis (cache), dan service cron terpisah.",
+      "variables": {
+        "DOMAIN": {
+          "label": "Domain",
+          "hint": "Contoh: cloud.example.com (tanpa https://) — harus sama dengan domain yang Anda pasang."
+        },
+        "PROTOCOL": {
+          "label": "Protokol publik",
+          "hint": "https jika domain memakai HTTPS; http hanya untuk uji coba lokal."
+        },
+        "ADMIN_USER": {
+          "label": "Nama pengguna admin"
+        },
+        "ADMIN_PASSWORD": {
+          "label": "Kata sandi admin"
+        },
+        "DB_PASSWORD": {
+          "label": "Kata sandi database"
+        },
+        "REDIS_PASSWORD": {
+          "label": "Kata sandi Redis"
+        }
+      },
+      "services": {
+        "nextcloud-80": "Web Nextcloud"
+      }
+    },
+    "odoo": {
+      "description": "ERP dan suite bisnis all-in-one (CRM, penjualan, inventaris, akuntansi, website), edisi Community, dengan PostgreSQL.",
+      "variables": {
+        "MASTER_PASSWORD": {
+          "label": "Kata sandi master database",
+          "hint": "Dibuat otomatis. Dibutuhkan untuk membuat, menduplikasi, mencadangkan, atau menghapus database Odoo di /web/database/manager. Setelah deploy, temukan di halaman stack: tab Pengaturan, bagian environment, tombol \"Tampilkan nilai\". Simpan dengan aman."
+        },
+        "DB_PASSWORD": {
+          "label": "Kata sandi PostgreSQL"
+        }
+      },
+      "services": {
+        "odoo-8069": "Web Odoo"
+      }
+    },
+    "umami": {
+      "description": "Analitik web yang sederhana dan ramah privasi (alternatif Google Analytics), dengan PostgreSQL.",
+      "variables": {
+        "DB_PASSWORD": {
+          "label": "Kata sandi database"
+        },
+        "APP_SECRET": {
+          "label": "Secret aplikasi"
+        }
+      },
+      "services": {
+        "umami-3000": "Dashboard Umami"
+      }
+    },
+    "uptime-kuma": {
+      "description": "Pemantauan uptime self-hosted dengan halaman status.",
+      "services": {
+        "uptime-kuma-3001": "Dashboard"
+      }
+    },
+    "vaultwarden": {
+      "description": "Pengelola kata sandi yang ringan, kompatibel dengan klien Bitwarden (web, mobile, ekstensi).",
+      "variables": {
+        "DOMAIN": {
+          "label": "URL publik",
+          "hint": "Contoh: https://vault.example.com — harus HTTPS agar vault web berfungsi (kecuali di localhost)."
+        },
+        "ADMIN_TOKEN": {
+          "label": "Token untuk halaman /admin",
+          "hint": "Dibuat otomatis; dibutuhkan untuk membuka /admin. Simpan dengan aman."
+        },
+        "SIGNUPS_ALLOWED": {
+          "label": "Izinkan pendaftaran",
+          "hint": "Atur ke false setelah akun Anda dibuat; undang anggota lain lewat /admin."
+        }
+      },
+      "services": {
+        "vaultwarden-80": "Web Vaultwarden"
+      }
+    },
+    "wordpress": {
+      "description": "CMS dan platform blog paling populer, dengan MariaDB.",
+      "variables": {
+        "DB_PASSWORD": {
+          "label": "Kata sandi database"
+        },
+        "DB_ROOT_PASSWORD": {
+          "label": "Kata sandi root database"
+        }
+      },
+      "services": {
+        "wordpress-80": "Situs WordPress"
+      }
+    },
+    "docs": "Dokumentasi",
+    "deploy": "Deploy"
   },
   "dialog": {
     "creating": "Membuat stack {name}…",
@@ -30,6 +284,8 @@
     "autoGenerated": "(dibuat otomatis kalau kosong)",
     "cancel": "Batal",
     "submit": "Deploy",
-    "submitting": "Membuat…"
+    "submitting": "Membuat…",
+    "project": "Project",
+    "https": "HTTPS"
   }
 }

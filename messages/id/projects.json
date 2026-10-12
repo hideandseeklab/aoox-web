@@ -1,21 +1,21 @@
 {
   "meta": {
-    "title": "Projects · aoox"
+    "title": "Project · aoox"
   },
   "list": {
-    "title": "Projects",
+    "title": "Project",
     "subtitle": "Kelompokkan aplikasi dan database per project.",
     "empty": "Belum ada project. Buat project pertama untuk mulai men-deploy."
   },
   "create": {
-    "trigger": "New project",
+    "trigger": "Project baru",
     "title": "Project baru",
     "description": "Project mengelompokkan aplikasi dan database yang di-deploy.",
     "submit": "Buat project"
   },
   "card": {
-    "active": "active",
-    "inactive": "inactive",
+    "active": "aktif",
+    "inactive": "nonaktif",
     "noDescription": "Tanpa deskripsi",
     "noInstances": "Belum ada instance",
     "runningCount": "{running}/{total} berjalan",
@@ -30,13 +30,13 @@
     "backToProjects": "Kembali ke projects",
     "created": "Dibuat {date}",
     "sections": {
-      "resourceUsage": "Resource usage",
+      "resourceUsage": "Penggunaan sumber daya",
       "applications": "Aplikasi",
       "compose": "Stack compose",
       "databases": "Database"
     },
-    "newApplication": "New application",
-    "newDatabase": "New database",
+    "newApplication": "Aplikasi baru",
+    "newDatabase": "Database baru",
     "composeStack": "Stack compose",
     "fromTemplate": "Dari template",
     "empty": {
@@ -89,8 +89,8 @@
     "legend": "Admin mengelola anggota dan bisa menghapus project; developer melakukan aksi lain; viewer hanya membaca.",
     "roles": {
       "admin": "Admin",
-      "developer": "Developer",
-      "viewer": "Viewer"
+      "developer": "Pengembang",
+      "viewer": "Peninjau"
     }
   },
   "delete": {

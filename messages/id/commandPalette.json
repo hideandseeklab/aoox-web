@@ -20,7 +20,7 @@
   "hints": {
     "project": "project",
     "infrastructure": "infrastruktur",
-    "settings": "settings"
+    "settings": "pengaturan"
   },
   "kinds": {
     "application": "aplikasi",

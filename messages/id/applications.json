@@ -45,9 +45,9 @@
     },
     "git": {
       "title": "Repository git",
-      "label": "Git repository",
+      "label": "Repositori Git",
       "description": "Repo git yang bisa di-clone lewat HTTPS.",
-      "branch": "Branch",
+      "branch": "Cabang",
       "buildType": "Cara build",
       "buildTypes": {
         "dockerfile": "Dockerfile di repo",
@@ -55,7 +55,7 @@
         "railpack": "Railpack (deteksi otomatis, cache build)",
         "static": "Situs statis (nginx)"
       },
-      "rootDirectory": "Root directory",
+      "rootDirectory": "Direktori root",
       "rootDirectoryPlaceholder": "apps/web (kosong = root repo)",
       "rootDirectoryHelp": "Untuk monorepo: folder yang di-build, mis. <code>apps/web</code>. Path Dockerfile dan folder output di bawah dihitung dari folder ini, dan file di luarnya tidak ikut build.",
       "watchRootAria": "Deploy hanya bila folder ini berubah",
@@ -86,7 +86,7 @@
       "applyRolling": "Diterapkan sebagai deployment konfigurasi (rolling update service swarm).",
       "applyOnStart": "Aplikasi sedang berhenti: berlaku saat dijalankan lagi.",
       "applyNextDeploy": "Berlaku pada deploy pertama.",
-      "healthcheck": "Health check path",
+      "healthcheck": "Path health check",
       "healthcheckPlaceholder": "/health (kosong = tanpa health check)",
       "healthcheckHelp": "Deploy menunggu path ini menjawab 2xx/3xx di dalam container (butuh wget/curl/node/python3 di image). Untuk app yang dirutekan lewat domain tanpa port host, container baru dinaikkan di samping yang lama dan baru menggantikannya setelah sehat — tanpa downtime. Gagal sehat = deploy gagal, container lama tetap jalan."
     },
@@ -99,7 +99,7 @@
       "hostPortPlaceholder": "mis. 8080",
       "ipPlaceholder": "'<ip-server>'",
       "hostPortHelp": "Dibuka langsung lewat IP: <code>{url}</code>, tanpa domain/proxy.",
-      "hostname": "Hostname",
+      "hostname": "Nama host",
       "hostRequired": "Host wajib diisi",
       "domainHelp": "Dibuka lewat reverse proxy (arahkan DNS host ini ke server ini).",
       "proxyNotRunning": "Proxy belum berjalan — akan diaktifkan otomatis kalau perlu.",
@@ -107,7 +107,7 @@
       "laterHelp": "Aplikasi dibuat tanpa alamat akses — atur port host atau domain belakangan."
     },
     "env": {
-      "label": "Environment variables",
+      "label": "Variabel environment",
       "description": "Berlaku pada deploy berikutnya, di atas env bersama project."
     },
     "advanced": {
@@ -121,7 +121,7 @@
       "replicas": "Replika",
       "constraint": "Constraint tambahan",
       "constraintHelp": "Label node diatur di Settings<arrow></arrow>Docker Swarm. Digabung dengan penempatan di bawah (semua harus terpenuhi).",
-      "rollingUpdate": "Rolling update",
+      "rollingUpdate": "Pembaruan bertahap",
       "rollingUpdateRow": "<parallelism></parallelism> task/batch, jeda <delay></delay> detik",
       "parallelismAria": "Task per batch",
       "delayAria": "Jeda antar batch (detik)",
@@ -141,7 +141,7 @@
       "deploymentKeepHelp": "Jumlah deployment sukses (beserta image-nya) yang disimpan untuk rollback; lebih lama dihapus saat pembersihan malam.",
       "ignoreErrors": "Abaikan error di log",
       "ignoreErrorsHelp": "Lewati aplikasi ini dari pemindaian log otomatis (notifikasi <em>Error aplikasi</em>) — untuk aplikasi yang output normalnya memang terlihat seperti error.",
-      "buildArgs": "Build args",
+      "buildArgs": "Argumen build",
       "buildArgsHelp": "Satu <code>KEY=VALUE</code> per baris, diteruskan ke <code>ARG</code> di Dockerfile saat build. Ikut tersimpan di image — jangan untuk rahasia; tidak mendukung referensi."
     },
     "previews": {
@@ -163,10 +163,10 @@
     "domains": "Domain ({count})",
     "mounts": "Mount ({count})",
     "environment": "Environment",
-    "jobs": "Jobs ({count})",
-    "monitor": "Monitor",
+    "jobs": "Job ({count})",
+    "monitor": "Pemantauan",
     "webhook": "Webhook",
-    "console": "Console",
+    "console": "Konsol",
     "settings": "Pengaturan",
     "settingsTitle": "Pengaturan",
     "settingsDescription": "Port host, domain, dan limit resource diterapkan langsung ke aplikasi yang berjalan; pengaturan lain berlaku pada deploy berikutnya.",
@@ -193,7 +193,7 @@
     "description": "Cuma menampilkan repository/tag yang sudah pernah di-push — <code>docker push</code> dulu kalau belum ada.",
     "registry": "Registry",
     "pickRegistry": "Pilih registry",
-    "repository": "Repository",
+    "repository": "Repositori",
     "pickRepository": "Pilih repository",
     "noImages": "Belum ada image di registry ini",
     "tagCount": "{count} tag",
@@ -223,8 +223,8 @@
   },
   "status": {
     "notDeployed": "belum deploy",
-    "service": "service {running}/{desired}",
-    "serviceUpdating": "service {running}/{desired} · {state}"
+    "service": "layanan {running}/{desired}",
+    "serviceUpdating": "layanan {running}/{desired} · {state}"
   },
   "shared": {
     "envRefs": "Nilai bisa merujuk <code>{projectRef}</code> dan <code>{databaseRef}</code>.",
@@ -261,7 +261,7 @@
     "swarm": {
       "title": "Swarm service",
       "tasks": "{running}/{desired} task",
-      "update": "update {state}",
+      "update": "pembaruan {state}",
       "otherNode": "(node lain)"
     },
     "image": {
@@ -290,7 +290,7 @@
     "kind": {
       "build": "build",
       "rollback": "rollback",
-      "auto-update": "auto-update",
+      "auto-update": "pembaruan otomatis",
       "config": "konfigurasi",
       "configTitle": "Terapkan konfigurasi (tanpa build)",
       "autoUpdateTitle": "Update otomatis dari registry"
@@ -308,7 +308,7 @@
       "pull": "Pull",
       "build": "Build",
       "push": "Push",
-      "start": "Start",
+      "start": "Mulai",
       "finished": "Selesai",
       "failed": "Gagal"
     },
@@ -339,7 +339,7 @@
       "cert": "Kalau meminta HTTPS: sertifikat (Let's Encrypt) baru diterbitkan Traefik saat pertama kali domain diakses, butuh beberapa detik sampai semenit — dan hanya terbit kalau email ACME sudah diisi (host: Domain panel; server remote: pengaturan server)."
     },
     "form": {
-      "hostname": "Hostname",
+      "hostname": "Nama host",
       "certificate": "Sertifikat"
     },
     "certAuto": "Otomatis (Let's Encrypt)",
@@ -384,7 +384,7 @@
         "application": " beserta env dan mount aplikasi",
         "compose": " beserta env service"
       },
-      "service": "Service",
+      "service": "Layanan",
       "deployFirst": "Deploy stack dulu",
       "run": "Jalankan",
       "targetContainer": "Di container aplikasi",
@@ -409,7 +409,7 @@
       "manual": "manual",
       "inContainer": "di container",
       "separate": "container terpisah",
-      "timeout": "timeout {seconds}s",
+      "timeout": "batas waktu {seconds}s",
       "last": "terakhir {when}",
       "active": "aktif",
       "runNow": "Jalankan",
@@ -420,7 +420,7 @@
     },
     "run": {
       "scheduled": "terjadwal",
-      "output": "Output",
+      "output": "Keluaran",
       "outputLabel": "Output job",
       "noOutput": "(tidak ada output)"
     }
@@ -431,7 +431,7 @@
     "active": "Aktif",
     "state": {
       "up": "sehat",
-      "down": "down",
+      "down": "turun",
       "unknown": "belum dicek",
       "disabled": "nonaktif"
     },
@@ -500,7 +500,7 @@
   "mounts": {
     "empty": "Belum ada mount.",
     "applying": "Menerapkan…",
-    "readOnly": "Read-only",
+    "readOnly": "Hanya baca",
     "type": {
       "volume": "Volume",
       "bind": "Bind (host)",
@@ -537,11 +537,11 @@
     "noConnections": "Belum ada koneksi secret manager.",
     "addAt": "Tambahkan di <link><section></section></link>.",
     "askAdmin": "Minta owner/admin menambahkannya di <section></section>.",
-    "settings": "Settings",
+    "settings": "Pengaturan",
     "integrations": "Integrasi",
     "connection": "Koneksi",
     "notUsed": "Tidak dipakai",
-    "projectId": "Project ID",
+    "projectId": "ID project",
     "environment": "Environment",
     "path": "Path",
     "syncAll": "Sync semua secret ke container",
@@ -587,7 +587,7 @@
     "descriptionEnabled": "Setiap PR yang dibuka di-build dari branch-nya dan dijalankan di container sendiri; ditutup otomatis saat PR ditutup.",
     "descriptionDisabled": "Nonaktif — aktifkan di tab Pengaturan. Webhook provider harus mengirim event pull request.",
     "empty": "Belum ada preview.",
-    "building": "building…",
+    "building": "sedang dibangun…",
     "openAria": "Buka preview #{n}",
     "log": "Log",
     "deleteAria": "Hapus preview #{n}",
@@ -627,7 +627,7 @@
     "scheduled": "terjadwal",
     "manual": "manual",
     "s3Only": "hanya di S3",
-    "restore": "Restore",
+    "restore": "Pulihkan",
     "restoring": "Me-restore…",
     "deleteAria": "Hapus backup",
     "failed": "Backup gagal",
@@ -650,7 +650,7 @@
       "off": "nonaktif"
     },
     "restoreDialog": {
-      "title": "Restore volume?",
+      "title": "Pulihkan volume?",
       "description": "Isi volume <strong>{volume}</strong> akan dihapus dan diganti dengan <code>{file}</code>. Container dihentikan selama proses. Tidak bisa dibatalkan."
     }
   }

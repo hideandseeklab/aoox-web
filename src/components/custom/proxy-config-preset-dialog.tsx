@@ -34,6 +34,7 @@ import type {
   PresetField,
   ProxyPreset,
 } from "@/features/proxy-config/proxy-config.entity"
+import { apiText } from "@/i18n/api-text"
 
 type Values = Record<string, string | boolean>
 
@@ -71,6 +72,7 @@ export function ProxyConfigPresetDialog({
   onResult: (name: string, content: string) => void
 }) {
   const t = useTranslations("infra.proxyPresetDialog")
+  const tp = useTranslations("infra.proxyPresets")
   const [open, setOpen] = useState(false)
   const [id, setId] = useState(presets[0]?.id ?? "")
   const preset = presets.find((p) => p.id === id) ?? presets[0]
@@ -81,6 +83,11 @@ export function ProxyConfigPresetDialog({
   const [pending, start] = useTransition()
 
   if (!preset) return null
+  const presetText = (p: ProxyPreset) => ({
+    label: apiText(tp, `${p.id}.label`, p.label),
+    description: apiText(tp, `${p.id}.description`, p.description),
+  })
+  const current = presetText(preset)
 
   const choose = (next: string) => {
     const p = presets.find((x) => x.id === next)
@@ -151,17 +158,23 @@ export function ProxyConfigPresetDialog({
                 <SelectContent>
                   {presets.map((p) => (
                     <SelectItem key={p.id} value={p.id}>
-                      {p.label}
+                      {presetText(p).label}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-              <FieldDescription>{preset.description}</FieldDescription>
+              <FieldDescription>{current.description}</FieldDescription>
             </Field>
             {preset.fields.map((f) => (
               <PresetInput
                 key={`${preset.id}-${f.key}`}
                 field={f}
+                label={apiText(tp, `${preset.id}.fields.${f.key}.label`, f.label)}
+                hint={
+                  f.hint
+                    ? apiText(tp, `${preset.id}.fields.${f.key}.hint`, f.hint)
+                    : undefined
+                }
                 placeholder={f.key === "name" ? preset.defaultName : undefined}
                 value={values[f.key]}
                 onChange={(v) => set(f.key, v)}
@@ -194,11 +207,15 @@ export function ProxyConfigPresetDialog({
 
 function PresetInput({
   field,
+  label,
+  hint,
   value,
   placeholder,
   onChange,
 }: {
   field: PresetField
+  label: string
+  hint?: string
   value: string | boolean
   placeholder?: string
   onChange: (v: string | boolean) => void
@@ -208,13 +225,13 @@ function PresetInput({
     return (
       <Field orientation="horizontal">
         <Switch id={id} checked={value === true} onCheckedChange={onChange} />
-        <FieldLabel htmlFor={id}>{field.label}</FieldLabel>
+        <FieldLabel htmlFor={id}>{label}</FieldLabel>
       </Field>
     )
   }
   return (
     <Field>
-      <FieldLabel htmlFor={id}>{field.label}</FieldLabel>
+      <FieldLabel htmlFor={id}>{label}</FieldLabel>
       {field.type === "select" ? (
         <Select value={String(value)} onValueChange={onChange}>
           <SelectTrigger id={id}>
@@ -254,7 +271,7 @@ function PresetInput({
           autoComplete={field.type === "password" ? "new-password" : "off"}
         />
       )}
-      {field.hint && <FieldDescription>{field.hint}</FieldDescription>}
+      {hint && <FieldDescription>{hint}</FieldDescription>}
     </Field>
   )
 }

@@ -1,5 +1,5 @@
 {
-  "title": "Settings",
+  "title": "Pengaturan",
   "description": "Akun, tim, dan integrasi. Komponen host (proxy, server, swarm, disk) ada di grup Infrastruktur.",
   "tabs": {
     "account": "Akun",
@@ -117,7 +117,7 @@
     "description": "Semua anggota melihat semua project. Owner/admin mengelola komponen platform; hanya owner yang mengubah peran.",
     "you": "(kamu)",
     "roleAria": "Peran {email}",
-    "setPasswordAria": "Set password {email}",
+    "setPasswordAria": "Atur kata sandi {email}",
     "setPasswordTitle": "Set password baru (reset)",
     "setPasswordPrompt": "Password baru untuk {email} (min. 8 karakter). Sampaikan ke orangnya secara langsung.",
     "disable2faAria": "Nonaktifkan 2FA {email}",
@@ -176,8 +176,8 @@
     },
     "dialog": {
       "title": "Channel notifikasi baru",
-      "botToken": "Bot token",
-      "chatId": "Chat ID",
+      "botToken": "Token bot",
+      "chatId": "ID chat",
       "webhookUrl": "Webhook URL",
       "secretOptional": "Secret (opsional)",
       "secretHelp": "Bila diisi, tiap kiriman membawa <code>X-Aoox-Signature: sha256=HMAC(secret, body)</code> (plus <code>X-Aoox-Event</code> dan <code>X-Aoox-Delivery</code>) — verifikasi seperti webhook GitHub.",
@@ -201,12 +201,12 @@
       "generic": "Username + password/token HTTPS dari server git kamu."
     },
     "dialogTitle": "Kredensial Git baru",
-    "provider": "Provider",
+    "provider": "Penyedia",
     "tokenHelp": "Tidak bisa dilihat lagi setelah disimpan.",
     "deleteAria": "Hapus {name}"
   },
   "secretConnections": {
-    "title": "Secret manager",
+    "title": "Manajer secret",
     "description": "Koneksi ke Infisical (machine identity). Aplikasi bisa mengambil secret darinya saat container dibuat, tanpa menyalinnya ke env. Client secret disimpan terenkripsi dan tidak bisa dilihat lagi.",
     "empty": "Belum ada koneksi — aplikasi memakai env biasa.",
     "cloud": "Infisical Cloud",
@@ -215,8 +215,8 @@
     "dialogDescription": "Buat machine identity (Universal Auth) di Infisical, beri akses baca ke project yang dibutuhkan, lalu isi Client ID dan Client secret-nya di sini.",
     "urlOptional": "URL (opsional)",
     "urlHelp": "Kosongkan untuk Infisical Cloud; isi untuk instance self-hosted.",
-    "clientId": "Client ID",
-    "clientSecret": "Client secret",
+    "clientId": "ID klien",
+    "clientSecret": "Secret klien",
     "secretHelp": "Tidak bisa dilihat lagi setelah disimpan.",
     "deleteAria": "Hapus {name}"
   },
@@ -231,8 +231,8 @@
     "endpointPlaceholder": "https://minio.example.com (kosongkan untuk AWS S3)",
     "regionPlaceholder": "us-east-1 (wajib untuk AWS)",
     "prefixPlaceholder": "aoox/prod (opsional)",
-    "accessKeyId": "Access key ID",
-    "secretAccessKey": "Secret access key",
+    "accessKeyId": "ID kunci akses",
+    "secretAccessKey": "Secret kunci akses",
     "secretHelp": "Tidak bisa dilihat lagi setelah disimpan.",
     "pathStyle": "Path-style (<code>host/bucket</code>) — wajib untuk MinIO, aman untuk yang lain",
     "deleteAria": "Hapus {name}"
@@ -271,7 +271,7 @@
     "deleteAria": "Hapus {name}"
   },
   "audit": {
-    "title": "Audit log",
+    "title": "Log audit",
     "description": "Semua permintaan yang mengubah sesuatu (dan percobaan masuk), siapa pelakunya dan lewat apa. Disimpan 90 hari.",
     "back": "Kembali ke Settings",
     "filterPlaceholder": "Filter aksi, mis. deploy, /databases/, sign-in",
@@ -386,7 +386,7 @@
       "patchRegistriesDomain": "Atur domain registry",
       "postRegistriesSelfHosted": "Pasang registry lokal",
       "deleteRegistriesSelfHosted": "Hapus registry lokal",
-      "postRegistriesSelfHostedGarbageCollect": "Garbage collect registry",
+      "postRegistriesSelfHostedGarbageCollect": "Pembersihan data tak terpakai registry",
       "deleteRegistriesRepositoriesRepository": "Hapus image dari registry",
       "deleteRegistriesRepositoriesRepositoryTags": "Hapus tag image",
       "postCertificates": "Unggah sertifikat SSL",
@@ -426,12 +426,12 @@
       "postMaintenanceCleanup": "Bersihkan disk",
       "postDockerContainersStart": "Docker: jalankan container",
       "postDockerContainersStop": "Docker: hentikan container",
-      "postDockerContainersRestart": "Docker: restart container",
+      "postDockerContainersRestart": "Docker: mulai ulang container",
       "deleteDockerContainers": "Docker: hapus container",
       "deleteDockerImages": "Docker: hapus image",
       "postDockerImagesPrune": "Docker: bersihkan image dangling",
       "postInstanceBackups": "Backup instance",
-      "postInstanceBackupsRestore": "Restore instance",
+      "postInstanceBackupsRestore": "Pulihkan instans",
       "postInstanceRestore": "Restore instance dari berkas",
       "deleteInstanceBackups": "Hapus backup instance",
       "patchInstanceBackupSettings": "Ubah jadwal backup instance",

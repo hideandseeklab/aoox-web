@@ -27,7 +27,7 @@
       "summary": "{project}{duration, select, none {} other { · {duration}}}{error, select, none {} other { · {error}}}",
       "compose": {
         "title": "Deploy compose gagal: {stack}",
-        "summary": "{source, select, template {Template} other {Git}}{error, select, none {} other { · {error}}}"
+        "summary": "{source, select, template {Templat} other {Git}}{error, select, none {} other { · {error}}}"
       }
     },
     "backupFailure": {

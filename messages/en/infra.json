@@ -364,5 +364,100 @@
       "usernameRequired": "Username is required",
       "usernameInvalid": "Invalid username"
     }
+  },
+  "proxyPresets": {
+    "basic-auth": {
+      "label": "Basic auth",
+      "description": "Ask for a username and password before a request reaches the application.",
+      "fields": {
+        "name": {
+          "label": "Middleware name",
+          "hint": "Lowercase letters, digits and \"-\". Used as the file name and as name@file."
+        },
+        "username": {
+          "label": "Username"
+        },
+        "password": {
+          "label": "Password",
+          "hint": "At least 8 characters. Only the bcrypt hash is stored in the file."
+        }
+      }
+    },
+    "security-headers": {
+      "label": "Security headers",
+      "description": "Common security headers: HSTS, nosniff, frame deny, referrer policy.",
+      "fields": {
+        "name": {
+          "label": "Middleware name",
+          "hint": "Lowercase letters, digits and \"-\". Used as the file name and as name@file."
+        },
+        "stsSeconds": {
+          "label": "HSTS max-age (seconds)",
+          "hint": "0 = no HSTS. HSTS is only sent over https."
+        },
+        "stsIncludeSubdomains": {
+          "label": "HSTS for subdomains"
+        },
+        "stsPreload": {
+          "label": "HSTS preload"
+        },
+        "frameDeny": {
+          "label": "Refuse being embedded in a frame"
+        },
+        "contentTypeNosniff": {
+          "label": "X-Content-Type-Options: nosniff"
+        },
+        "referrerPolicy": {
+          "label": "Referrer-Policy"
+        }
+      }
+    },
+    "rate-limit": {
+      "label": "Rate limit",
+      "description": "Limit the number of requests per source IP.",
+      "fields": {
+        "name": {
+          "label": "Middleware name",
+          "hint": "Lowercase letters, digits and \"-\". Used as the file name and as name@file."
+        },
+        "average": {
+          "label": "Average requests per period"
+        },
+        "burst": {
+          "label": "Burst"
+        },
+        "period": {
+          "label": "Period"
+        }
+      }
+    },
+    "ip-allowlist": {
+      "label": "IP allowlist",
+      "description": "Only allow certain addresses/CIDRs; everything else gets a 403.",
+      "fields": {
+        "name": {
+          "label": "Middleware name",
+          "hint": "Lowercase letters, digits and \"-\". Used as the file name and as name@file."
+        },
+        "cidrs": {
+          "label": "Address / CIDR",
+          "hint": "One per line, e.g. 203.0.113.7 or 10.0.0.0/8. The client IP the proxy sees can be the IP of another proxy in front of it."
+        }
+      }
+    },
+    "redirect-www": {
+      "label": "Redirect www",
+      "description": "Permanently redirect www to non-www or the other way round. Attach it to the domain being redirected, not to the destination.",
+      "fields": {
+        "name": {
+          "label": "Middleware name",
+          "hint": "Lowercase letters, digits and \"-\". Used as the file name and as name@file."
+        },
+        "direction": {
+          "label": "Direction",
+          "hint": "to-non-www: attach to www.example.com. to-www: attach to example.com (without www)."
+        }
+      }
+    }
   }
 }
