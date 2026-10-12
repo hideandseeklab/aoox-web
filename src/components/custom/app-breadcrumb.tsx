@@ -29,6 +29,9 @@ const STATIC: Record<string, string> = {
   compose: "compose",
 }
 
+/** Segments with no index page of their own: a link would 404 (and Next prefetches it). */
+const NO_INDEX = new Set(["applications", "databases", "compose"])
+
 /**
  * Navbar breadcrumb. Detail pages (and the Settings tabs) publish their own
  * crumbs via `SetBreadcrumb`; everything else is derived from the path. No
@@ -48,7 +51,7 @@ export function AppBreadcrumb() {
     crumbs = segments.map((seg, i) => ({
       label: STATIC[seg] ? t(STATIC[seg]) : seg,
       href:
-        i < segments.length - 1
+        i < segments.length - 1 && !NO_INDEX.has(seg)
           ? `/${segments.slice(0, i + 1).join("/")}`
           : undefined,
     }))

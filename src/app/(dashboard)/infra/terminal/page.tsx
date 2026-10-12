@@ -6,7 +6,7 @@ import { getVerifiedSession } from "@/features/auth/auth.session"
 import { getTerminalStatus } from "@/features/terminal/terminal.queries"
 import { InfraPage } from "../infra-page"
 
-export const metadata = { title: "Terminal · aoox" }
+export const metadata = { title: "Terminal access · aoox" }
 
 export default async function TerminalSettingsPage() {
   const session = await getVerifiedSession()
@@ -16,7 +16,7 @@ export default async function TerminalSettingsPage() {
   const status = await getTerminalStatus()
   return (
     <InfraPage
-      title="Terminal"
+      title={t("title")}
       description={t("description")}
     >
       <TerminalCard

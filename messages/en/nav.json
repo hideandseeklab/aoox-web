@@ -13,7 +13,7 @@
   "terminal": "Terminal",
   "reverseProxy": "Reverse proxy",
   "remoteServers": "Remote servers",
-  "sshKey": "Terminal",
+  "sshKey": "Terminal access",
   "dockerSwarm": "Docker Swarm",
   "dockerDisk": "Docker disk",
   "instanceBackup": "Instance backup",

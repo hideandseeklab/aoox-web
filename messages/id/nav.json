@@ -13,7 +13,7 @@
   "terminal": "Terminal",
   "reverseProxy": "Reverse proxy",
   "remoteServers": "Server remote",
-  "sshKey": "Terminal",
+  "sshKey": "Akses terminal",
   "dockerSwarm": "Docker Swarm",
   "dockerDisk": "Disk Docker",
   "instanceBackup": "Backup instance",

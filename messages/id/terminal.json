@@ -6,6 +6,7 @@
     "description": "Shell di host aoox atau server remote (<path></path>). Hati-hati: perintah dijalankan langsung di mesin tujuan."
   },
   "settingsPage": {
+    "title": "Akses terminal",
     "description": "Ke mana web shell terhubung (lokal atau SSH ke host) dan key platform yang dipakainya."
   },
   "authorize": {

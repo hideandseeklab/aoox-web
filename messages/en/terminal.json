@@ -6,6 +6,7 @@
     "description": "Shell on the aoox host or a remote server (<path></path>). Be careful: commands run directly on the target machine."
   },
   "settingsPage": {
+    "title": "Terminal access",
     "description": "Where the web shell connects (local or SSH to the host) and the platform key it uses."
   },
   "authorize": {
