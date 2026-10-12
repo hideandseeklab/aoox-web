@@ -7,6 +7,7 @@
   "settings": "Pengaturan",
   "auditLog": "Log audit",
   "infrastructure": "Infrastruktur",
+  "integrations": "Integrasi",
   "applications": "Aplikasi",
   "databases": "Database",
   "compose": "Stack compose"

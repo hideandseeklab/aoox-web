@@ -64,7 +64,7 @@
       "nixpacksHelp": "Nixpacks recognizes Node, Python, Go, PHP, Ruby, Rust and more from the repo contents. The first build is slower (base image ±430 MB + package installation through Nix); the build cache is disabled — use Railpack if you want a cache. The build args below are passed to Nixpacks as env (e.g. <code>NIXPACKS_NODE_VERSION=22</code>).",
       "credential": "Git credential",
       "credentialNone": "None (public repo)",
-      "credentialHelp": "For private repos; add a credential in Settings."
+      "credentialHelp": "For private repos; add a credential in Integrations → Git credentials."
     },
     "static": {
       "buildCommand": "Build command",
@@ -538,8 +538,8 @@
     "noConnections": "No secret manager connections yet.",
     "addAt": "Add one in <link><section></section></link>.",
     "askAdmin": "Ask an owner/admin to add one in <section></section>.",
-    "settings": "Settings",
     "integrations": "Integrations",
+    "secretManager": "Secret manager",
     "connection": "Connection",
     "notUsed": "Not used",
     "projectId": "Project ID",

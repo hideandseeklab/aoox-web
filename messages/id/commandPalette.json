@@ -20,6 +20,7 @@
   "hints": {
     "project": "project",
     "infrastructure": "infrastruktur",
+    "integrations": "integrasi",
     "settings": "pengaturan"
   },
   "kinds": {

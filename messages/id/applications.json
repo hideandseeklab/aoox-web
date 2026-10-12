@@ -64,7 +64,7 @@
       "nixpacksHelp": "Nixpacks mengenali Node, Python, Go, PHP, Ruby, Rust, dan lainnya dari isi repo. Build pertama lebih lama (image dasar ±430 MB + instalasi paket via Nix); cache build dinonaktifkan — pakai Railpack kalau ingin cache. Build args di bawah diteruskan sebagai env ke Nixpacks (mis. <code>NIXPACKS_NODE_VERSION=22</code>).",
       "credential": "Kredensial Git",
       "credentialNone": "Tidak ada (repo publik)",
-      "credentialHelp": "Untuk repo privat; tambahkan kredensial di Settings."
+      "credentialHelp": "Untuk repo privat; tambahkan kredensial di Integrasi → Kredensial Git."
     },
     "static": {
       "buildCommand": "Perintah build",
@@ -538,8 +538,8 @@
     "noConnections": "Belum ada koneksi secret manager.",
     "addAt": "Tambahkan di <link><section></section></link>.",
     "askAdmin": "Minta owner/admin menambahkannya di <section></section>.",
-    "settings": "Pengaturan",
     "integrations": "Integrasi",
+    "secretManager": "Secret manager",
     "connection": "Koneksi",
     "notUsed": "Tidak dipakai",
     "projectId": "ID project",

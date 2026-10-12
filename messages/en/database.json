@@ -111,7 +111,7 @@
     },
     "schedule": {
       "title": "Backup schedule & destination",
-      "description": "Old scheduled backups are deleted automatically beyond the number kept (also from S3). S3 destinations are added in Settings.",
+      "description": "Old scheduled backups are deleted automatically beyond the number kept (also from S3). S3 destinations are added in Integrations → Backup destinations.",
       "frequency": "Frequency",
       "cron": "Cron (5 fields)",
       "keep": "Keep",

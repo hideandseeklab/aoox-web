@@ -53,7 +53,7 @@ export async function createCertificateAction(
       body: parsed.data,
       token: await requireToken(),
     })
-    revalidatePath("/settings")
+    revalidatePath("/integrations/certificates")
     return { ok: true, data }
   } catch (err) {
     return fail(err)
@@ -76,7 +76,7 @@ export async function replaceCertificateAction(
       body: parsed.data,
       token: await requireToken(),
     })
-    revalidatePath("/settings")
+    revalidatePath("/integrations/certificates")
     revalidatePath("/applications/[id]", "page")
     return { ok: true, data }
   } catch (err) {
@@ -92,7 +92,7 @@ export async function deleteCertificateAction(
       method: "DELETE",
       token: await requireToken(),
     })
-    revalidatePath("/settings")
+    revalidatePath("/integrations/certificates")
     return { ok: true, data: undefined }
   } catch (err) {
     return fail(err)

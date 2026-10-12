@@ -89,7 +89,7 @@ Read `AGENTS.md` — this version of Next.js has breaking changes; check `node_m
   `terminal.entity.ts` + `terminal.queries.ts` (`getTerminalStatus` → `GET /terminal/status`, owner/admin).
 - Settings shows `terminal-card.tsx`: mode (SSH/local), the public key automatically from the API, and the `authorized_keys` command that the user runs once on the host.
   The `error` message from the gateway when SSH auth fails already contains the same command, written as-is to xterm.
-- Notifications: `src/features/notification/` (entity/queries/actions) + `notifications-card.tsx` in Settings — an add dialog with fields per type
+- Notifications: `src/features/notification/` (entity/queries/actions) + `notifications-card.tsx` in Integrations → Notifications — an add dialog with fields per type
   (Telegram token+chat id, Slack/Discord webhook URL, webhook URL, email = host/port/TLS/user/password/sender/recipients separated by commas),
   four event toggles (deploy success/failure, backup failure, container down; Radix `Switch` with `name` → "on"), a send-test button, and delete.
 - Remote servers: `src/features/server/` (`server.entity.ts`, `server.queries.ts` `listServers`/`getPlatformSshKey`, `server.actions.ts` create/delete/test) +
@@ -288,8 +288,9 @@ Read `AGENTS.md` — this version of Next.js has breaking changes; check `node_m
 - Per-domain DNS check (radar button in `application-domains.tsx`): `checkDomainDnsAction` → `GET /applications/:id/domains/:domainId/dns`, result badge `ok|wrong target|not found|?` + message;
   when the public IP is detected automatically, the message suggests `PUBLIC_IP` in the API. `DnsCheck` in `application.entity.ts`.
 - `/settings` is grouped in `Tabs` (`?tab=` = deep link, default `account`): **Account** (account-card, api-tokens-card), **Team** (members-card + audit log link; owner/admin),
-  **Integrations** (git-credentials-card, notifications-card, backup-destinations-card). Cards inside a tab keep the `lg:grid-cols-2` grid; data is loaded all at once on the server.
-  The tabs are **controlled by the URL** (`settings-tabs.tsx`: `useSearchParams` → `router.replace(?tab=)`), so the **Settings** sidebar group (`app-sidebar.tsx`: Account / Team / Integrations + Audit log; Team & Audit only for owner/admin, using the same `showTerminal` flag) always stays in sync with the open tab. The "Settings" menu in the Platform group was removed.
+  Cards inside a tab keep the `lg:grid-cols-2` grid. The former **Integrations** tab moved to its own sidebar group (below); `/settings?tab=integrations` redirects (server-side, in the page) to `/integrations/git`.
+  The tabs are **controlled by the URL** (`settings-tabs.tsx`: `useSearchParams` → `router.replace(?tab=)`), so the **Settings** sidebar group (`app-sidebar.tsx`: Account / Team + Audit log; Team & Audit only for owner/admin, using the same `showTerminal` flag) always stays in sync with the open tab. The "Settings" menu in the Platform group was removed.
+- **Integrations** = its own sidebar group (above Settings), **one page per card** at `app/(dashboard)/integrations/<slug>/page.tsx` using `integration-page.tsx` (title + description + `SetBreadcrumb` "Integrations › …"; card full width; texts in the `integrations` namespace): `git` (git-credentials-card; every member sees the list, `canManage` for buttons), `notifications`, `backup-destinations`, `secrets` (secret-connections-card), `dns`, `certificates` (all owner/admin: `notFound()` for members, also when an older API answers an error for secrets/dns/certificates). `INTEGRATIONS_NAV` in `nav-items.ts` (flag `manage`; the palette lists it with the "integrations" hint); `/integrations` redirects to `/integrations/git`. Help text now says "Integrations → Git credentials", "Integrations → Backup destinations", etc.
 - **Infrastructure** = its own sidebar group, **one page per host component** at `app/(dashboard)/infra/<slug>/page.tsx` (previously one tab full of cards): `proxy`
   (all members; `canManage` for buttons), `servers`, `terminal`, `swarm`, `disk` (owner/admin, `notFound()` for members), `backup` (owner only). Each page loads only the data for its own card and uses `infra-page.tsx` (title + description + `SetBreadcrumb` "Infrastructure › …"; cards full width). `/infra` redirects to `/infra/proxy`.
   `INFRA_NAV` in `app-sidebar.tsx` (flags `manage`/`owner`; a new `isOwner` prop from the layout). Help text that used to say "Settings → Infrastructure" now says "Infrastructure → Reverse proxy".
@@ -321,8 +322,10 @@ Read `AGENTS.md` — this version of Next.js has breaking changes; check `node_m
   `members-card.tsx`: the owner can set a member's password and disable a non-owner member's 2FA (`prompt`/`confirm`). `/settings/audit-log` (`audit-log-table.tsx`, `src/features/audit-log/`):
   owner/admin, `action` filter, `before` cursor, body details per row. `AuthUser.twoFactorEnabled` is optional (only from `/auth/me`).
 - `/settings` loads `api-tokens-card.tsx` (`src/features/api-token/`): create a token (name + expiry) → a one-time plaintext dialog + a curl example, a list of prefix/last used, revoke;
-  a link to `${publicApiUrl}/docs`. `Date.now()` is read once via `useState` (the React Compiler rejects impure functions in render).
-- `/settings` also loads `git-credentials-card.tsx`; `src/features/git-credential/` entity, queries, actions.
+  a link to `${publicApiUrl}/docs`.
+  After creating a token the dialog also shows `aoox login --url <dashboard address> --token <token>` (the address is `window.location.origin` captured at creation, `WEB_ORIGIN` as fallback) with a copy button and the `npm i -g @hideandseeklab/aoox@latest` hint; grid children of the dialog need `min-w-0` or a long line widens it on phones.
+  **`GET /.well-known/aoox.json`** (`src/app/.well-known/aoox.json/route.ts`, public, `force-dynamic`): `{apiUrl: publicApiUrl(), webUrl: webOrigin(), version}` — the CLI's `aoox login` reads it so the user only types the dashboard address. `src/proxy.ts` returns early for `/.well-known/` so it is never redirected to sign-in (nor to `/` when a session exists). `Date.now()` is read once via `useState` (the React Compiler rejects impure functions in render).
+- `/integrations/git` loads `git-credentials-card.tsx` (Integrations → Git credentials); `src/features/git-credential/` entity, queries, actions.
 
 ## Managed database
 
@@ -344,7 +347,7 @@ Read `AGENTS.md` — this version of Next.js has breaking changes; check `node_m
 - Backup: `database-backups.tsx` below the panel (backup now, a list with download/restore/delete, a restore confirmation dialog, a schedule form with cron presets/custom + keep count).
   Data via `listBackups`; actions `createBackupAction`/`restoreBackupAction`/`deleteBackupAction`/`updateBackupScheduleAction` (cron, keep, `backupDestinationId`).
   The schedule form has an "S3 destination" select (`local` = null) from `listBackupDestinations` (the `"S3 destination"` label is quoted UI text: S3 destination); backups copied to S3 (`remoteKey`) get a cloud icon.
-- S3 backup destinations: `src/features/backup-destination/` (entity/queries/actions create/delete/test) + `backup-destinations-card.tsx` in Settings (owner/admin):
+- S3 backup destinations: `src/features/backup-destination/` (entity/queries/actions create/delete/test) + `backup-destinations-card.tsx` in Integrations → Backup destinations (owner/admin):
   an add dialog (name, empty endpoint = AWS, bucket, region, prefix, access key, secret key written once, path-style switch), connection test, delete.
   Downloads cannot carry a Bearer header from an `<a href>`, so they go through the route handler `src/app/api/backups/[id]/download/route.ts`, which reads the session cookie
   and proxies the stream from the API (`Content-Disposition` is passed through).
@@ -429,7 +432,7 @@ Read `AGENTS.md` — this version of Next.js has breaking changes; check `node_m
 ## DNS provider and DNS-01 (Cloudflare)
 
 - `src/features/dns/` (`dns.entity.ts`, `dns.queries.ts`, `dns.actions.ts`), new i18n namespace **`dns`** (`connections`, `domain`, `proxy`, `previews`, `validation`, `errors`).
-- `dns-connections-card.tsx` in Settings → Integrations (owner/admin; hidden when the API answers an error, like the other optional cards): add (name, API token write-only, optional account ID), test (shows the zones the token can see), delete (the API refuses while it is in use and says where).
+- `dns-connections-card.tsx` in Integrations → DNS providers (owner/admin; hidden when the API answers an error, like the other optional cards): add (name, API token write-only, optional account ID), test (shows the zones the token can see), delete (the API refuses while it is in use and says where).
 - Domains tab (`application-domains.tsx`): the add form gets a DNS connection select (+ proxied and overwrite switches, with the explanation why proxied is off by default) and, when `GET /applications/:id/dns-options` says the proxy has DNS-01, a certificate mode select (automatic, DNS-01 per host, DNS-01 wildcard `*.<parent>`). Each row has a DNS line (connection select, status badge, proxied switch, sync button, the last message) and a certificate-mode line; viewers see them read-only. A DNS problem arrives as `dnsWarning` after the domain was added and is shown as a toast.
 - `proxy-dns-card.tsx` on Infrastructure → Reverse proxy (owner/admin read, owner writes; same `?server=` as the dynamic config card): bind/unbind a connection, state badge (active / not applied yet / proxy not running / off), what depends on it, and a confirmation before a running proxy is recreated (the web always sends `acceptProxyRestart: true` after that confirmation). The Webhook tab previews card has the wildcard-certificate switch (only when the proxy has DNS-01 or it is already on, disabled without a preview domain).
 - Select values are rendered with explicit `SelectValue` children (no empty flash). Measured in headless Chrome (Chrome DevTools Protocol; desktop 1366 and 375 px, light and dark, English and Indonesian, owner and project viewer): controls 28 px in the add form, 24 px (`size="sm"`) in rows and the proxy card, body text 12 px, card titles 13 px, card padding 16 px and card width equal to the sibling cards, no horizontal scroll.

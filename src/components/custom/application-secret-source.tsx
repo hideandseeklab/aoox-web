@@ -55,7 +55,7 @@ const fromSource = (s: SecretSource | null): Form => ({
  * "Secret source" in the Environment tab: pull secrets from a secret manager
  * connection when the container is created. Anyone with write access to the
  * project can pick a connection (they only see names); creating connections is
- * owner/admin territory in Settings.
+ * owner/admin territory in Integrations.
  */
 export function ApplicationSecretSource({
   applicationId,
@@ -87,9 +87,9 @@ export function ApplicationSecretSource({
 
   const section = () => (
     <>
-      {t("secretSource.settings")}
-      <PathArrow />
       {t("secretSource.integrations")}
+      <PathArrow />
+      {t("secretSource.secretManager")}
     </>
   )
   const dirty =
@@ -158,7 +158,7 @@ export function ApplicationSecretSource({
               ? t.rich("secretSource.addAt", {
                   link: (chunks) => (
                     <Link
-                      href="/settings?tab=integrations"
+                      href="/integrations/secrets"
                       className="font-medium text-foreground underline underline-offset-4"
                     >
                       {chunks}

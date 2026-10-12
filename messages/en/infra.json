@@ -215,7 +215,7 @@
     "nameProblem": "Name: lowercase letters, digits, \"-\" (max. 40 characters).",
     "editTitle": "Edit {fileName}",
     "newTitle": "New configuration file",
-    "description": "Traefik dynamic configuration YAML. Only the <code>http</code> section (middlewares, routers, services, serversTransports) is accepted; certificates are managed in Settings. Traefik reloads the file without a restart.",
+    "description": "Traefik dynamic configuration YAML. Only the <code>http</code> section (middlewares, routers, services, serversTransports) is accepted; certificates are managed in Integrations → SSL certificates. Traefik reloads the file without a restart.",
     "fileName": "File name",
     "namePlaceholder": "security-headers",
     "nameFallback": "name",

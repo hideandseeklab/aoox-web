@@ -1,10 +1,9 @@
 {
   "title": "Pengaturan",
-  "description": "Akun, tim, dan integrasi. Komponen host (proxy, server, swarm, disk) ada di grup Infrastruktur.",
+  "description": "Akun dan tim. Komponen host (proxy, server, swarm, disk) ada di grup Infrastruktur.",
   "tabs": {
     "account": "Akun",
-    "team": "Tim",
-    "integrations": "Integrasi"
+    "team": "Tim"
   },
   "viewAuditLog": "Lihat audit log",
   "errors": {
@@ -105,7 +104,11 @@
     "create": "Buat token",
     "created": {
       "title": "Token dibuat",
-      "description": "Salin sekarang — token tidak akan ditampilkan lagi. Hanya hash-nya yang disimpan."
+      "description": "Salin sekarang — token tidak akan ditampilkan lagi. Hanya hash-nya yang disimpan.",
+      "loginTitle": "Masuk lewat CLI",
+      "copyLoginAria": "Salin perintah login",
+      "loginCopied": "Perintah disalin",
+      "cliHint": "Pasang atau perbarui CLI dulu: <code>aoox update</code> (pemasangan pertama: <code>npm i -g @hideandseeklab/aoox</code>)"
     },
     "copied": "Token disalin",
     "copyFailed": "Gagal menyalin token",

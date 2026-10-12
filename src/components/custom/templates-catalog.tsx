@@ -19,6 +19,18 @@ import type { Project } from "@/features/project/project.entity"
 import type { ProxyStatus } from "@/features/proxy/proxy.entity"
 import type { Template } from "@/features/template/template.entity"
 import { apiText } from "@/i18n/api-text"
+import { cn } from "@/lib/utils"
+
+/**
+ * Simple Icons logos are drawn in the brand colour. Only near-black marks (Directus #263238, Ghost
+ * #15171A, Umami and Vaultwarden #000000) need inverting in dark mode; coloured logos stay as they are.
+ */
+const DARK_LOGOS = new Set(["directus", "ghost", "umami", "vaultwarden"])
+
+function isDarkLogo(url: string): boolean {
+  const slug = url.match(/cdn\.simpleicons\.org\/([^/?#]+)/)?.[1]
+  return slug !== undefined && DARK_LOGOS.has(slug)
+}
 
 export function TemplatesCatalog({
   templates,
@@ -72,7 +84,10 @@ export function TemplatesCatalog({
                     alt=""
                     width={32}
                     height={32}
-                    className="size-8 shrink-0 dark:invert"
+                    className={cn(
+                      "size-8 shrink-0",
+                      isDarkLogo(t.logo) && "dark:invert"
+                    )}
                   />
                 ) : (
                   <div className="size-8 shrink-0 rounded bg-muted" />

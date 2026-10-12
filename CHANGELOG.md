@@ -8,7 +8,17 @@ Versions below 1.0.0 may include breaking changes in a minor release.
 
 ## [Unreleased]
 
+### Added
+
+- The CLI hint under a new API token now says `aoox update` (and `npm i -g @hideandseeklab/aoox` for a first install) instead of the `@latest` tag.
+- **CLI sign-in help.** The dialog that shows a new API token now also shows a copy-ready `aoox login --url <dashboard address> --token <token>` line with a copy button, and a hint to install or update the CLI (`npm i -g @hideandseeklab/aoox@latest`). The dashboard also serves a small public discovery document at `/.well-known/aoox.json` (`apiUrl`, `webUrl`, `version`; nothing secret) so the CLI only needs the dashboard address and finds the API itself.
+
 ### UI UX Improvement
+
+- **Integrations have their own sidebar group.** Git credentials, Notifications, Backup destinations, Secret manager, DNS providers and SSL certificates moved out of the Settings → Integrations tab into a new **Integrations** group above Settings, one page each (`/integrations/git`, `/notifications`, `/backup-destinations`, `/secrets`, `/dns`, `/certificates`) with a title, description and breadcrumb, and they are listed in the command palette. Same access as before: every member can see Git credentials, the rest is owner/admin only. Settings keeps Account and Team, and `/settings?tab=integrations` redirects to `/integrations/git`. Help texts that pointed to Settings now name the new location.
+- **Settings → Account tidier.** The API token form's Read-only switch row is 28 px like the fields beside it, so it lines up with them, and the two-factor section is separated from the password form by a divider with its Enable/Disable button aligned right.
+- **Template logos keep their colours in dark mode.** Only the near-black marks (Directus, Ghost, Umami, Vaultwarden) are inverted; coloured logos such as WordPress, Grafana or Gitea are no longer turned into their negative.
+- The S3 hint in the "Enable local registry" dialog and the localhost note in the "Registry ready" dialog are shown as info alerts.
 
 - **One tab style with icons.** Every tab strip (application, database, compose stack, registry, settings, Docker, and the small Access switches in forms) now has an icon next to each label, no background, and a 2px accent underline under the active tab that sits on a full-width bottom border.
 - **Select menus open beside their field.** Every select dropdown opens below its trigger (or above it when there is no room) and is as wide as the field, instead of covering the field. `npm run check:ui` enforces `position="popper"` on every `SelectContent`.

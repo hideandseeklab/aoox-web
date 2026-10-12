@@ -53,7 +53,7 @@
     "selectProxy": "Choose the proxy",
     "connection": "DNS connection",
     "chooseConnection": "Choose a connection",
-    "noConnections": "No DNS connection yet. Add one in Settings, Integrations.",
+    "noConnections": "No DNS connection yet. Add one in Integrations → DNS providers.",
     "enable": "Enable DNS-01",
     "disable": "Disable",
     "working": "Working",

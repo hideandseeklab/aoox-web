@@ -45,6 +45,7 @@ export function AppSidebar({
   const {
     platform: items,
     infra: infraItems,
+    integrations: integrationItems,
     settings: settingsItems,
   } = visibleNav({ showTerminal, isOwner })
   const onSettings = pathname === "/settings"
@@ -111,6 +112,28 @@ export function AppSidebar({
           <SidebarGroupContent>
             <SidebarMenu>
               {infraItems.map((item) => (
+                <SidebarMenuItem key={item.href}>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={pathname.startsWith(item.href)}
+                    tooltip={t(item.key)}
+                  >
+                    <Link href={item.href}>
+                      <item.icon />
+                      <span>{t(item.key)}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>{t("groups.integrations")}</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {integrationItems.map((item) => (
                 <SidebarMenuItem key={item.href}>
                   <SidebarMenuButton
                     asChild

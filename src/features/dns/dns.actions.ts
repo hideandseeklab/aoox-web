@@ -77,7 +77,7 @@ export async function createDnsConnectionAction(
   } catch (err) {
     return { error: (await fail(err)).error, values }
   }
-  revalidatePath("/settings")
+  revalidatePath("/integrations/dns")
   return { created: true }
 }
 
@@ -89,7 +89,7 @@ export async function deleteDnsConnectionAction(
       method: "DELETE",
       token: await requireToken(),
     })
-    revalidatePath("/settings")
+    revalidatePath("/integrations/dns")
     return { ok: true, data: undefined }
   } catch (err) {
     return fail(err)

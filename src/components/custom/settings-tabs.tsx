@@ -6,16 +6,15 @@ import { useRouter } from "@/lib/use-router"
 import { Tabs } from "@/components/ui/tabs"
 import { ScrollableTabsList } from "@/components/custom/scrollable-tabs-list"
 import { PageTabsTrigger } from "@/components/custom/page-tabs-trigger"
-import { Plug, User, Users } from "lucide-react"
+import { User, Users } from "lucide-react"
 import { SetBreadcrumb } from "./breadcrumb-store"
 
-export const SETTINGS_TABS = ["account", "team", "integrations"] as const
+export const SETTINGS_TABS = ["account", "team"] as const
 export type SettingsTab = (typeof SETTINGS_TABS)[number]
 
 const SETTINGS_TAB_ICONS = {
   account: User,
   team: Users,
-  integrations: Plug,
 } as const
 
 /**

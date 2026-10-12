@@ -7,6 +7,8 @@ const PUBLIC_PATHS = ["/sign-in", "/setup", "/invite/"]
 export function proxy(request: NextRequest) {
   const hasSession = request.cookies.has(SESSION_COOKIE)
   const { pathname } = request.nextUrl
+  // CLI discovery document: public, no session, no redirect either way.
+  if (pathname.startsWith("/.well-known/")) return NextResponse.next()
   const isPublic = PUBLIC_PATHS.some((p) => pathname.startsWith(p))
 
   if (!hasSession && !isPublic) {

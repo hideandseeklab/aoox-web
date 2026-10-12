@@ -128,7 +128,7 @@ export function AccountCard({ me }: { me: AuthUser }) {
           </Button>
         </form>
 
-        <div className="space-y-3">
+        <div className="space-y-3 border-t pt-6">
           <div className="flex items-center gap-2">
             <p className="text-sm font-medium">
               {t("account.twoFactor.title")}
@@ -142,6 +142,7 @@ export function AccountCard({ me }: { me: AuthUser }) {
           <p className="text-xs text-muted-foreground">
             {t("account.twoFactor.description")}
           </p>
+          <div className="flex justify-end">
           {me.twoFactorEnabled ? (
             <Button
               size="sm"
@@ -172,6 +173,7 @@ export function AccountCard({ me }: { me: AuthUser }) {
               {t("account.twoFactor.enable")}
             </Button>
           )}
+          </div>
         </div>
 
         {error && (

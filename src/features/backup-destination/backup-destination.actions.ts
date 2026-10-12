@@ -108,7 +108,7 @@ export async function createBackupDestinationAction(
   } catch (err) {
     return { error: (await fail(err)).error, values }
   }
-  revalidatePath("/settings")
+  revalidatePath("/integrations/backup-destinations")
   return { created: true }
 }
 
@@ -120,7 +120,7 @@ export async function deleteBackupDestinationAction(
       method: "DELETE",
       token: await requireToken(),
     })
-    revalidatePath("/settings")
+    revalidatePath("/integrations/backup-destinations")
     return { ok: true, data: undefined }
   } catch (err) {
     return fail(err)

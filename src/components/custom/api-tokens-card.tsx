@@ -63,12 +63,15 @@ function fmt(d: string | null, locale: string) {
 export function ApiTokensCard({
   tokens,
   publicApiUrl,
+  webOrigin,
   projects = [],
 }: {
   tokens: ApiToken[]
   /** For the scope picker and the badges; empty hides the picker. */
   projects?: { id: string; name: string }[]
   publicApiUrl: string
+  /** Fallback dashboard address for the CLI login command (`WEB_ORIGIN`). */
+  webOrigin: string
 }) {
   const t = useTranslations("settings")
   const c = useTranslations("common")
@@ -80,6 +83,10 @@ export function ApiTokensCard({
   // Empty = every project the user may see (and platform settings stay usable).
   const [scopeProjects, setScopeProjects] = useState<string[]>([])
   const [copied, setCopied] = useState(false)
+  const [loginCopied, setLoginCopied] = useState(false)
+  // Address the user opened the dashboard with (what `aoox login --url` needs);
+  // captured when the token is created because the dialog only renders client-side.
+  const [dashboardUrl, setDashboardUrl] = useState(webOrigin)
   const [error, setError] = useState<string | null>(null)
   const [pending, start] = useTransition()
   // Read once per render (React Compiler forbids Date.now() inside the map).
@@ -92,6 +99,19 @@ export function ApiTokensCard({
       setCopied(true)
       setTimeout(() => setCopied(false), 1500)
       toast.success(t("tokens.copied"))
+    } else {
+      toast.error(t("tokens.copyFailed"))
+    }
+  }
+
+  const loginCommand = `aoox login --url ${dashboardUrl} --token ${created ?? ""}`
+
+  const copyLogin = async () => {
+    const ok = await copyToClipboard(loginCommand)
+    if (ok) {
+      setLoginCopied(true)
+      setTimeout(() => setLoginCopied(false), 1500)
+      toast.success(t("tokens.created.loginCopied"))
     } else {
       toast.error(t("tokens.copyFailed"))
     }
@@ -204,6 +224,7 @@ export function ApiTokensCard({
               if (!r.ok) setError(r.error)
               else {
                 setCreated(r.data.token)
+                setDashboardUrl(window.location.origin || webOrigin)
                 setName("")
                 setReadOnly(false)
                 setScopeProjects([])
@@ -242,7 +263,7 @@ export function ApiTokensCard({
           <div className="space-y-1">
             <Label htmlFor="pat-readonly">{t("tokens.permissions")}</Label>
             <label
-              className="flex h-9 items-center gap-2 text-xs"
+              className="flex h-7 items-center gap-2 text-xs"
               htmlFor="pat-readonly"
             >
               <Switch
@@ -308,7 +329,7 @@ export function ApiTokensCard({
               {t("tokens.created.description")}
             </DialogDescription>
           </DialogHeader>
-          <div className="flex items-center gap-2">
+          <div className="flex min-w-0 items-center gap-2">
             <code className="min-w-0 flex-1 truncate rounded bg-muted px-2 py-1.5 font-mono text-xs">
               {created}
             </code>
@@ -321,9 +342,34 @@ export function ApiTokensCard({
               {copied ? <Check /> : <Copy />}
             </Button>
           </div>
-          <pre className="overflow-auto rounded bg-muted p-2 font-mono text-xs">
+          <pre className="min-w-0 overflow-auto rounded bg-muted p-2 font-mono text-xs">
             {`curl -X POST ${publicApiUrl}/applications/<id>/deploy \\\n  -H "Authorization: Bearer ${created ?? ""}"`}
           </pre>
+          <div className="min-w-0 space-y-1.5">
+            <p className="text-xs font-medium">
+              {t("tokens.created.loginTitle")}
+            </p>
+            <div className="flex items-start gap-2">
+              <code className="min-w-0 flex-1 rounded bg-muted px-2 py-1.5 font-mono text-xs break-all">
+                {loginCommand}
+              </code>
+              <Button
+                variant="outline"
+                size="icon-sm"
+                aria-label={t("tokens.created.copyLoginAria")}
+                onClick={copyLogin}
+              >
+                {loginCopied ? <Check /> : <Copy />}
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {t.rich("tokens.created.cliHint", {
+                code: (chunks) => (
+                  <code className="font-mono [overflow-wrap:anywhere]">{chunks}</code>
+                ),
+              })}
+            </p>
+          </div>
           <DialogFooter>
             <Button onClick={() => setCreated(null)}>{t("tokens.done")}</Button>
           </DialogFooter>

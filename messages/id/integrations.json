@@ -1,0 +1,37 @@
+{
+  "page": {
+    "breadcrumb": "Integrasi"
+  },
+  "pages": {
+    "git": {
+      "metadata": "Kredensial Git · aoox",
+      "title": "Kredensial Git",
+      "description": "Token HTTPS yang dipakai aoox untuk meng-clone repositori privat."
+    },
+    "notifications": {
+      "metadata": "Notifikasi · aoox",
+      "title": "Notifikasi",
+      "description": "Kanal yang menerima kejadian deployment, backup, dan kesehatan."
+    },
+    "backupDestinations": {
+      "metadata": "Tujuan backup · aoox",
+      "title": "Tujuan backup",
+      "description": "Bucket kompatibel S3 tempat salinan backup database dan volume dikirim."
+    },
+    "secrets": {
+      "metadata": "Secret manager · aoox",
+      "title": "Secret manager",
+      "description": "Koneksi ke Infisical yang dipakai aplikasi untuk mengambil secret."
+    },
+    "dns": {
+      "metadata": "Penyedia DNS · aoox",
+      "title": "Penyedia DNS",
+      "description": "Token Cloudflare untuk mengelola record DNS dan sertifikat wildcard."
+    },
+    "certificates": {
+      "metadata": "Sertifikat SSL · aoox",
+      "title": "Sertifikat SSL",
+      "description": "Sertifikat milik Anda untuk domain aplikasi, sebagai pengganti Let's Encrypt."
+    }
+  }
+}

@@ -53,7 +53,7 @@
     "selectProxy": "Pilih proxy",
     "connection": "Koneksi DNS",
     "chooseConnection": "Pilih koneksi",
-    "noConnections": "Belum ada koneksi DNS. Tambahkan di Pengaturan, Integrasi.",
+    "noConnections": "Belum ada koneksi DNS. Tambahkan di Integrasi → Penyedia DNS.",
     "enable": "Aktifkan DNS-01",
     "disable": "Nonaktifkan",
     "working": "Memproses",

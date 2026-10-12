@@ -176,7 +176,7 @@ export async function createNotificationAction(
   } catch (err) {
     return { error: (await fail(err)).error, values }
   }
-  revalidatePath("/settings")
+  revalidatePath("/integrations/notifications")
   return { created: true }
 }
 
@@ -188,7 +188,7 @@ export async function deleteNotificationAction(
       method: "DELETE",
       token: await requireToken(),
     })
-    revalidatePath("/settings")
+    revalidatePath("/integrations/notifications")
     return { ok: true, data: undefined }
   } catch (err) {
     return fail(err)

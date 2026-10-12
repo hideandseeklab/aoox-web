@@ -215,7 +215,7 @@
     "nameProblem": "Nama: huruf kecil, angka, \"-\" (maks. 40 karakter).",
     "editTitle": "Ubah {fileName}",
     "newTitle": "Berkas konfigurasi baru",
-    "description": "YAML konfigurasi dinamis Traefik. Hanya bagian <code>http</code> (middlewares, routers, services, serversTransports) yang diterima; sertifikat dikelola di Pengaturan. Berkas dimuat ulang Traefik tanpa restart.",
+    "description": "YAML konfigurasi dinamis Traefik. Hanya bagian <code>http</code> (middlewares, routers, services, serversTransports) yang diterima; sertifikat dikelola di Integrasi → Sertifikat SSL. Berkas dimuat ulang Traefik tanpa restart.",
     "fileName": "Nama berkas",
     "namePlaceholder": "header-keamanan",
     "nameFallback": "nama",

@@ -1,18 +1,22 @@
 import {
+  ArchiveRestore,
+  Bell,
   Boxes,
   Container,
   DatabaseBackup,
+  FileBadge,
   FolderKanban,
+  GitBranch,
   Globe,
   HardDrive,
   KeyRound,
   LayoutDashboard,
   LayoutTemplate,
-  Plug,
   RefreshCw,
   ScrollText,
   Server,
   Settings2,
+  ShieldEllipsis,
   TerminalSquare,
   UserRound,
   Users,
@@ -90,6 +94,45 @@ export const INFRA_NAV: NavItem[] = [
   },
 ]
 
+/**
+ * One page per integration under `/integrations/*` (see `app/(dashboard)/integrations`).
+ * Git credentials are open to every member (they pick one in the application form);
+ * the rest is owner/admin (`manage`), the same gate the Settings cards used.
+ */
+export const INTEGRATIONS_NAV: NavItem[] = [
+  { key: "gitCredentials", href: "/integrations/git", icon: GitBranch },
+  {
+    key: "notifications",
+    href: "/integrations/notifications",
+    icon: Bell,
+    manage: true,
+  },
+  {
+    key: "backupDestinations",
+    href: "/integrations/backup-destinations",
+    icon: ArchiveRestore,
+    manage: true,
+  },
+  {
+    key: "secretManager",
+    href: "/integrations/secrets",
+    icon: ShieldEllipsis,
+    manage: true,
+  },
+  {
+    key: "dnsProviders",
+    href: "/integrations/dns",
+    icon: Globe,
+    manage: true,
+  },
+  {
+    key: "sslCertificates",
+    href: "/integrations/certificates",
+    icon: FileBadge,
+    manage: true,
+  },
+]
+
 /** The Settings tabs, one entry each, so a group in the sidebar mirrors the page. */
 export const SETTINGS_NAV: {
   key: string
@@ -99,7 +142,6 @@ export const SETTINGS_NAV: {
 }[] = [
   { key: "account", tab: "account", icon: UserRound },
   { key: "team", tab: "team", icon: Users, manage: true },
-  { key: "integrations", tab: "integrations", icon: Plug },
 ]
 
 /** Settings page with its own route; shown only behind the owner/admin gate. */
@@ -121,6 +163,9 @@ export function visibleNav({
     platform: NAV.filter((item) => !item.terminal || showTerminal),
     infra: INFRA_NAV.filter(
       (item) => (!item.manage || showTerminal) && (!item.owner || isOwner)
+    ),
+    integrations: INTEGRATIONS_NAV.filter(
+      (item) => !item.manage || showTerminal
     ),
     settings: SETTINGS_NAV.filter((item) => !item.manage || showTerminal),
     auditLog: showTerminal,

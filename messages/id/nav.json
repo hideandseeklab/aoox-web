@@ -2,6 +2,7 @@
   "groups": {
     "platform": "Platform",
     "infrastructure": "Infrastruktur",
+    "integrations": "Integrasi",
     "settings": "Pengaturan"
   },
   "dashboard": "Dasbor",
@@ -21,7 +22,12 @@
   "environment": "Environment",
   "account": "Akun",
   "team": "Tim",
-  "integrations": "Integrasi",
+  "gitCredentials": "Kredensial Git",
+  "notifications": "Notifikasi",
+  "backupDestinations": "Tujuan backup",
+  "secretManager": "Secret manager",
+  "dnsProviders": "Penyedia DNS",
+  "sslCertificates": "Sertifikat SSL",
   "auditLog": "Log audit",
   "updating": "Sedang memperbarui…",
   "updateAvailable": "Update tersedia",

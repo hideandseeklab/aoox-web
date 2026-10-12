@@ -1,10 +1,9 @@
 {
   "title": "Settings",
-  "description": "Account, team, and integrations. Host components (proxy, servers, swarm, disk) live in the Infrastructure group.",
+  "description": "Account and team. Host components (proxy, servers, swarm, disk) live in the Infrastructure group.",
   "tabs": {
     "account": "Account",
-    "team": "Team",
-    "integrations": "Integrations"
+    "team": "Team"
   },
   "viewAuditLog": "View audit log",
   "errors": {
@@ -105,7 +104,11 @@
     "create": "Create token",
     "created": {
       "title": "Token created",
-      "description": "Copy it now — the token will not be shown again. Only its hash is stored."
+      "description": "Copy it now — the token will not be shown again. Only its hash is stored.",
+      "loginTitle": "Sign in with the CLI",
+      "copyLoginAria": "Copy login command",
+      "loginCopied": "Command copied",
+      "cliHint": "Install or update the CLI first: <code>aoox update</code> (first install: <code>npm i -g @hideandseeklab/aoox</code>)"
     },
     "copied": "Token copied",
     "copyFailed": "Failed to copy token",

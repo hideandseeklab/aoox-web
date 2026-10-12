@@ -2,6 +2,7 @@
   "groups": {
     "platform": "Platform",
     "infrastructure": "Infrastructure",
+    "integrations": "Integrations",
     "settings": "Settings"
   },
   "dashboard": "Dashboard",
@@ -21,7 +22,12 @@
   "environment": "Environment",
   "account": "Account",
   "team": "Team",
-  "integrations": "Integrations",
+  "gitCredentials": "Git credentials",
+  "notifications": "Notifications",
+  "backupDestinations": "Backup destinations",
+  "secretManager": "Secret manager",
+  "dnsProviders": "DNS providers",
+  "sslCertificates": "SSL certificates",
   "auditLog": "Audit log",
   "updating": "Updating…",
   "updateAvailable": "Update available",

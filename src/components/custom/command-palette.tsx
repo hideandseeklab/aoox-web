@@ -216,6 +216,14 @@ export function CommandPalette({
         icon: <n.icon className={ICON} />,
         href: n.href,
       })),
+      ...nav.integrations.map((n) => ({
+        id: `nav:${n.href}`,
+        group: "pages" as const,
+        label: tNav(n.key),
+        hint: t("hints.integrations"),
+        icon: <n.icon className={ICON} />,
+        href: n.href,
+      })),
       ...nav.settings.map((n) => ({
         id: `settings:${n.tab}`,
         group: "pages" as const,

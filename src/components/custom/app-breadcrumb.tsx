@@ -23,6 +23,7 @@ const STATIC: Record<string, string> = {
   settings: "settings",
   "audit-log": "auditLog",
   infra: "infrastructure",
+  integrations: "integrations",
   applications: "applications",
   databases: "databases",
   compose: "compose",

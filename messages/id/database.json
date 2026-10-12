@@ -111,7 +111,7 @@
     },
     "schedule": {
       "title": "Jadwal & tujuan backup",
-      "description": "Backup terjadwal lama dihapus otomatis melebihi jumlah yang disimpan (juga dari S3). Tujuan S3 ditambahkan di Settings.",
+      "description": "Backup terjadwal lama dihapus otomatis melebihi jumlah yang disimpan (juga dari S3). Tujuan S3 ditambahkan di Integrasi → Tujuan backup.",
       "frequency": "Frekuensi",
       "cron": "Cron (5 kolom)",
       "keep": "Simpan",

@@ -88,7 +88,7 @@ export async function createSecretConnectionAction(
   } catch (err) {
     return { error: (await fail(err)).error, values }
   }
-  revalidatePath("/settings")
+  revalidatePath("/integrations/secrets")
   return { created: true }
 }
 
@@ -100,7 +100,7 @@ export async function deleteSecretConnectionAction(
       method: "DELETE",
       token: await requireToken(),
     })
-    revalidatePath("/settings")
+    revalidatePath("/integrations/secrets")
     return { ok: true, data: undefined }
   } catch (err) {
     return fail(err)
