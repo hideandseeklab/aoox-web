@@ -8,6 +8,14 @@ Versions below 1.0.0 may include breaking changes in a minor release.
 
 ## [Unreleased]
 
+## [0.1.0-alpha.10] - 2026-10-13
+
+### Breaking changes
+
+- **Requires aoox-api 0.1.0-alpha.10.** Project environments no longer exist: the Environments section of the project page and the environment select on applications and stacks are replaced by **Variables** (variable sets) and per-application/stack **Variable sets** links. Update the panel API and dashboard together, and the CLI as well.
+- API tokens are limited with `variableScopes` entries instead of environment names.
+- Protected environments can only be revealed and edited by instance owners and admins.
+
 ### Added
 
 - **Variables: shared variable sets.** A new **Variables** item in the sidebar (Platform group) lists the variable sets you can see: name, slug, description, which projects they are shared with, their environments with variable counts, how many applications and stacks use them, and your access. Instance owners and admins create sets with **New set** (name, optional slug, description, shared with all projects or with selected ones; a new set starts with development, staging and production).
@@ -637,7 +645,8 @@ Versions below 1.0.0 may include breaking changes in a minor release.
   backups, notifications, and account/instance settings.
 - A web terminal (shell on the host or inside the API container) over WebSocket.
 
-[Unreleased]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.0-alpha.9...HEAD
+[Unreleased]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.0-alpha.10...HEAD
+[0.1.0-alpha.10]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.0-alpha.9...v0.1.0-alpha.10
 [0.1.0-alpha.9]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.0-alpha.8...v0.1.0-alpha.9
 [0.1.0-alpha.8]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.0-alpha.7...v0.1.0-alpha.8
 [0.1.0-alpha.7]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.0-alpha.6...v0.1.0-alpha.7
