@@ -25,8 +25,8 @@
     "gitCredential": "Kredensial Git",
     "noCredential": "Tidak ada (repo publik)",
     "env": "Environment (.env)",
-    "envHint": "Ditulis ke <code>.aoox.env</code> dan dipakai sebagai sumber interpolasi <code>{varExample}</code> di file compose (tidak otomatis masuk ke container — pakai <code>environment:</code> atau <code>env_file: .aoox.env</code>). Mendukung <code>{projectRef}</code>.",
-    "envHintDb": "Ditulis ke <code>.aoox.env</code> dan dipakai sebagai sumber interpolasi <code>{varExample}</code> di file compose (tidak otomatis masuk ke container — pakai <code>environment:</code> atau <code>env_file: .aoox.env</code>). Mendukung <code>{projectRef}</code> dan <databases></databases>.",
+    "envHint": "Ditulis ke <code>.aoox.env</code> dan dipakai sebagai sumber interpolasi <code>{varExample}</code> di file compose (tidak otomatis masuk ke container — pakai <code>environment:</code> atau <code>env_file: .aoox.env</code>). Mendukung <code>{varsRef}</code>.",
+    "envHintDb": "Ditulis ke <code>.aoox.env</code> dan dipakai sebagai sumber interpolasi <code>{varExample}</code> di file compose (tidak otomatis masuk ke container — pakai <code>environment:</code> atau <code>env_file: .aoox.env</code>). Mendukung <code>{varsRef}</code> dan <databases></databases>.",
     "saved": "Tersimpan — berlaku pada deploy berikutnya.",
     "createStack": "Buat stack",
     "toast": {
@@ -35,14 +35,8 @@
       "creating": "Membuat stack {name}…",
       "newName": "baru"
     },
-    "environment": {
-      "title": "Environment project",
-      "label": "Environment",
-      "hint": "Variabel environment ini ditambahkan ke container dan <code>{ref}</code> dibaca darinya. Berlaku pada deploy berikutnya. Kelola environment di halaman project.",
-      "switchNote": "Pindah ditolak jika aplikasi merujuk variabel yang tidak ada di environment baru.",
-      "lockedNote": "Ini terhubung ke environment terlindungi \"{name}\"; hanya admin project yang bisa memindahkannya.",
-      "restrictedNote": "Environment terlindungi hanya bisa dipilih admin project.",
-      "restrictedCreateNote": "Environment terlindungi hanya bisa dipilih admin project. Resource baru dimulai di \"{name}\"."
+    "variableSets": {
+      "label": "Set variabel (opsional)"
     }
   },
   "history": {

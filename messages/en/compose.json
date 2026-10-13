@@ -25,8 +25,8 @@
     "gitCredential": "Git credential",
     "noCredential": "None (public repo)",
     "env": "Environment (.env)",
-    "envHint": "Written to <code>.aoox.env</code> and used as the source for <code>{varExample}</code> interpolation in the compose file (not passed into containers automatically — use <code>environment:</code> or <code>env_file: .aoox.env</code>). Supports <code>{projectRef}</code>.",
-    "envHintDb": "Written to <code>.aoox.env</code> and used as the source for <code>{varExample}</code> interpolation in the compose file (not passed into containers automatically — use <code>environment:</code> or <code>env_file: .aoox.env</code>). Supports <code>{projectRef}</code> and <databases></databases>.",
+    "envHint": "Written to <code>.aoox.env</code> and used as the source for <code>{varExample}</code> interpolation in the compose file (not passed into containers automatically — use <code>environment:</code> or <code>env_file: .aoox.env</code>). Supports <code>{varsRef}</code>.",
+    "envHintDb": "Written to <code>.aoox.env</code> and used as the source for <code>{varExample}</code> interpolation in the compose file (not passed into containers automatically — use <code>environment:</code> or <code>env_file: .aoox.env</code>). Supports <code>{varsRef}</code> and <databases></databases>.",
     "saved": "Saved — applies on the next deploy.",
     "createStack": "Create stack",
     "toast": {
@@ -35,14 +35,8 @@
       "creating": "Creating stack {name}…",
       "newName": "new"
     },
-    "environment": {
-      "title": "Project environment",
-      "label": "Environment",
-      "hint": "Variables of this environment are added to the container and <code>{ref}</code> resolves from it. Applied on the next deploy. Manage environments on the project page.",
-      "switchNote": "Switching is refused if the application references a variable the new environment lacks.",
-      "lockedNote": "This is linked to the protected \"{name}\" environment; only project admins can move it.",
-      "restrictedNote": "Protected environments can only be chosen by project admins.",
-      "restrictedCreateNote": "Protected environments can only be chosen by project admins. New resources start in \"{name}\"."
+    "variableSets": {
+      "label": "Variable sets (optional)"
     }
   },
   "history": {

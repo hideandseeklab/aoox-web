@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
-import { SECRET_NAME } from "@/features/project/project-environment.entity"
+import { SECRET_NAME } from "@/features/variable-set/variable-set.entity"
 
 interface Row {
   id: number
@@ -34,7 +34,7 @@ function toRows(text: string): Row[] {
 }
 
 /**
- * Secret flags for the project environment editor. `initial*` are the flags
+ * Secret flags for the variable set environment editor. `initial*` are the flags
  * the API reported when the values were revealed; the editor submits only the
  * ones the user changed (JSON `{NAME: boolean}` in the hidden field `name`).
  */
@@ -67,7 +67,7 @@ export function EnvEditor({
   name: string
   defaultValue: string
   placeholder?: string
-  /** Shows a Secret switch per variable (project environments only). */
+  /** Shows a Secret switch per variable (variable set environments only). */
   secrets?: SecretFlagsConfig
   /** Viewers: values stay masked/revealable, nothing can be edited, added or removed. */
   readOnly?: boolean

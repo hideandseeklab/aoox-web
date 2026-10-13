@@ -14,7 +14,7 @@ import { DeleteProjectButton } from "@/components/custom/delete-project-button"
 import { ResourceHeader } from "@/components/custom/resource-header"
 import { ExportProjectButton } from "@/components/custom/export-project-button"
 import { ProjectForm } from "@/components/custom/project-form"
-import { ProjectEnvironments } from "@/components/custom/project-environments"
+import { ProjectVariableSets } from "@/components/custom/project-variable-sets"
 import { ProjectMembers } from "@/components/custom/project-members"
 import {
   ApplicationInstanceCard,
@@ -39,8 +39,8 @@ import { updateProjectAction } from "@/features/project/project.actions"
 import {
   getProject,
   getProjectResourceUsage,
-  listProjectEnvironments,
 } from "@/features/project/project.queries"
+import { listProjectVariableSets } from "@/features/variable-set/variable-set.queries"
 import { listProjectMembers } from "@/features/project-member/project-member.queries"
 import { getSession } from "@/features/auth/auth.session"
 import { formatDateTime } from "@/i18n/format"
@@ -68,7 +68,7 @@ export default async function ProjectDetailPage({
     members,
     resourceUsage,
     proxyStatus,
-    environments,
+    variableSets,
   ] = await Promise.all([
     listApplications(project.id),
     listDatabases(project.id),
@@ -82,7 +82,7 @@ export default async function ProjectDetailPage({
     })),
     // Only for the port of a domain link (dev proxies listen on 8088/8443).
     getProxyStatus().catch(() => null),
-    listProjectEnvironments(project.id).catch(() => []),
+    listProjectVariableSets(project.id).catch(() => []),
   ])
   const proxy = proxyStatus
     ? { httpPort: proxyStatus.httpPort, httpsPort: proxyStatus.httpsPort }
@@ -257,11 +257,6 @@ export default async function ProjectDetailPage({
             )}
           </section>
 
-          <ProjectEnvironments
-            projectId={project.id}
-            environments={environments}
-            role={members?.myRole ?? null}
-          />
         </div>
 
         <div className="space-y-6">
@@ -285,6 +280,7 @@ export default async function ProjectDetailPage({
             </CardContent>
           </Card>
           {members && <ProjectMembers projectId={project.id} data={members} />}
+          <ProjectVariableSets sets={variableSets} />
           {members?.myRole === "admin" && (
             <DangerZone
               title={t("detail.dangerZone.title")}

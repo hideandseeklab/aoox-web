@@ -19,6 +19,7 @@ import {
   ShieldEllipsis,
   TerminalSquare,
   UserRound,
+  Variable,
   Users,
   Waypoints,
   Workflow,
@@ -45,6 +46,8 @@ export const NAV: NavItem[] = [
   { key: "dashboard", href: "/", icon: LayoutDashboard, exact: true },
   { key: "projects", href: "/projects", icon: FolderKanban },
   { key: "templates", href: "/templates", icon: LayoutTemplate },
+  // Every member: sets shared with their projects (managing them is owner/admin).
+  { key: "variables", href: "/variables", icon: Variable },
   { key: "registry", href: "/registry", icon: Container },
   // `terminal` = the owner/admin gate (same one that shows the terminal).
   { key: "docker", href: "/infra/docker", icon: Boxes, terminal: true },

@@ -10,10 +10,8 @@ import { createComposeAppAction } from "@/features/compose/compose.actions"
 import { listGitCredentials } from "@/features/git-credential/git-credential.queries"
 import { listDatabases } from "@/features/managed-database/managed-database.queries"
 import { listProjectMembers } from "@/features/project-member/project-member.queries"
-import {
-  getProject,
-  listProjectEnvironments,
-} from "@/features/project/project.queries"
+import { getProject } from "@/features/project/project.queries"
+import { listProjectVariableSets } from "@/features/variable-set/variable-set.queries"
 
 export default async function NewComposePage({
   params,
@@ -26,10 +24,10 @@ export default async function NewComposePage({
   const project = await getProject(id)
   if (!project) notFound()
 
-  const [credentials, databases, environments, members] = await Promise.all([
+  const [credentials, databases, variableSets, members] = await Promise.all([
     listGitCredentials(),
     listDatabases(project.id),
-    listProjectEnvironments(project.id).catch(() => []),
+    listProjectVariableSets(project.id).catch(() => []),
     listProjectMembers(project.id).catch(() => null),
   ])
 
@@ -69,7 +67,7 @@ export default async function NewComposePage({
             submitLabel={t("form.createStack")}
             credentials={credentials}
             databaseSlugs={databases.map((d) => d.slug)}
-            environments={environments}
+            variableSets={variableSets}
             canLinkProtected={members ? members.myRole === "admin" : true}
             cancelHref={`/projects/${project.id}`}
           />

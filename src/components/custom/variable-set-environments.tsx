@@ -1,6 +1,16 @@
 "use client"
 
-import { Eye, Info, KeyRound, Lock, Plus, Trash2 } from "lucide-react"
+import {
+  Boxes,
+  Eye,
+  Info,
+  KeyRound,
+  Layers,
+  Lock,
+  Plus,
+  RotateCw,
+  Trash2,
+} from "lucide-react"
 import Link from "next/link"
 import { useTranslations } from "next-intl"
 import { useState, useTransition } from "react"
@@ -33,49 +43,37 @@ import {
 } from "@/components/ui/dialog"
 import { Field, FieldDescription, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
+import { Switch } from "@/components/ui/switch"
 import { Tabs, TabsContent } from "@/components/ui/tabs"
+import { useRouter } from "@/lib/use-router"
 import {
   createEnvironmentAction,
   deleteEnvironmentAction,
   revealEnvironmentAction,
   updateEnvironmentAction,
-} from "@/features/project/project-environment.actions"
+} from "@/features/variable-set/variable-set.actions"
 import {
-  PRODUCTION_ENVIRONMENT,
-  type ProjectEnvironment,
-} from "@/features/project/project-environment.entity"
-import type { ProjectRole } from "@/features/project-member/project-member.entity"
-
-/** Role of the viewer in this project; `null` when it could not be read (treated as a developer, the API decides). */
-type Role = ProjectRole | null
+  canRevealEnvironment,
+  ENVIRONMENT_NAME,
+  MAX_ENVIRONMENTS,
+  type EnvironmentView,
+  type VariableSetDetail,
+} from "@/features/variable-set/variable-set.entity"
 
 /**
- * The project's environments (development, staging, production, ...): one tab
- * each, with the variable names and masked values. Values only leave the API
- * through the audited reveal action, and a protected environment (production)
- * needs a project admin. Viewers see names and counts only.
+ * The environments of one variable set (development, staging, production,
+ * ...): one tab each, with the variable names and masked values. Values only
+ * leave the API through the audited reveal action; protected environments are
+ * for instance owners/admins, viewers see names only.
  */
-export function ProjectEnvironments({
-  projectId,
-  environments,
-  role,
-}: {
-  projectId: string
-  environments: ProjectEnvironment[]
-  role: Role
-}) {
-  const t = useTranslations("projects.environments")
-  const [selected, setSelected] = useState(
-    () =>
-      environments.find((e) => e.name === PRODUCTION_ENVIRONMENT)?.id ??
-      environments[0]?.id ??
-      ""
-  )
+export function VariableSetEnvironments({ set }: { set: VariableSetDetail }) {
+  const t = useTranslations("variables.editor")
+  const environments = set.environments
+  const [selected, setSelected] = useState(() => environments[0]?.id ?? "")
   const current = environments.some((e) => e.id === selected)
     ? selected
     : (environments[0]?.id ?? "")
-  const isViewer = role === "viewer"
-  const isAdmin = role === "admin"
+  const canAdd = set.canManage && environments.length < MAX_ENVIRONMENTS
 
   return (
     <Card>
@@ -84,18 +82,15 @@ export function ProjectEnvironments({
         <CardDescription className="col-span-2 col-start-1 row-start-2 sm:col-span-1">
           {t("description")}
         </CardDescription>
-        {(!isViewer || environments.length > 1) && (
+        {(canAdd || environments.length > 1) && (
           // Under the description on a phone, on the right from sm up.
           <CardAction className="col-start-1 row-span-1 row-start-3 mt-2 flex flex-wrap gap-2 justify-self-start sm:col-start-2 sm:row-span-2 sm:row-start-1 sm:mt-0 sm:justify-self-end">
             {environments.length > 1 && (
-              <EnvironmentCompare
-                projectId={projectId}
-                environments={environments}
-              />
+              <EnvironmentCompare setId={set.id} environments={environments} />
             )}
-            {!isViewer && (
+            {canAdd && (
               <AddEnvironment
-                projectId={projectId}
+                setId={set.id}
                 onCreated={(id) => setSelected(id)}
               />
             )}
@@ -103,53 +98,54 @@ export function ProjectEnvironments({
         )}
       </CardHeader>
       <CardContent>
-        <Tabs value={current} onValueChange={setSelected}>
-          <ScrollableTabsList>
+        {environments.length === 0 ? (
+          <p className="rounded-md border border-dashed px-3 py-4 text-center text-xs text-muted-foreground">
+            {t("noEnvironments")}
+          </p>
+        ) : (
+          <Tabs value={current} onValueChange={setSelected}>
+            <ScrollableTabsList>
+              {environments.map((e) => (
+                <PageTabsTrigger
+                  key={e.id}
+                  value={e.id}
+                  icon={e.protected ? Lock : KeyRound}
+                >
+                  {e.name}
+                  <span className="text-xs text-muted-foreground tabular-nums">
+                    {e.keys.length}
+                  </span>
+                </PageTabsTrigger>
+              ))}
+            </ScrollableTabsList>
             {environments.map((e) => (
-              <PageTabsTrigger
-                key={e.id}
-                value={e.id}
-                icon={e.protected ? Lock : KeyRound}
-              >
-                {e.name}
-                <span className="text-xs text-muted-foreground tabular-nums">
-                  {e.keys.length}
-                </span>
-              </PageTabsTrigger>
+              <TabsContent key={e.id} value={e.id} className="space-y-4 pt-4">
+                <EnvironmentPanel
+                  set={set}
+                  environment={e}
+                  onDeleted={() => setSelected("")}
+                />
+              </TabsContent>
             ))}
-          </ScrollableTabsList>
-          {environments.map((e) => (
-            <TabsContent key={e.id} value={e.id} className="space-y-4 pt-4">
-              <EnvironmentPanel
-                projectId={projectId}
-                environment={e}
-                isViewer={isViewer}
-                isAdmin={isAdmin}
-                onDeleted={() => setSelected("")}
-              />
-            </TabsContent>
-          ))}
-        </Tabs>
+          </Tabs>
+        )}
       </CardContent>
     </Card>
   )
 }
 
 function EnvironmentPanel({
-  projectId,
+  set,
   environment: env,
-  isViewer,
-  isAdmin,
   onDeleted,
 }: {
-  projectId: string
-  environment: ProjectEnvironment
-  isViewer: boolean
-  isAdmin: boolean
+  set: VariableSetDetail
+  environment: EnvironmentView
   onDeleted: () => void
 }) {
-  const t = useTranslations("projects.environments")
+  const t = useTranslations("variables.editor")
   const tc = useTranslations("common")
+  const router = useRouter()
   const [pending, start] = useTransition()
   const [editing, setEditing] = useState<string | null>(null)
   // Secret flags as revealed with the values; the editor reports the changes.
@@ -159,15 +155,18 @@ function EnvironmentPanel({
   }>({ secretKeys: [], plainKeys: [] })
   // Version of the text being edited; the save is refused if it changed since.
   const [version, setVersion] = useState<string | undefined>()
+  // Remounts the editor when a newer text is loaded after a conflict.
+  const [editorKey, setEditorKey] = useState(0)
   const [error, setError] = useState<string | null>(null)
-  // Protected environments: project admins only. Others: developers and up.
-  const canReveal = isAdmin || (!isViewer && !env.protected)
-  const canDelete = isAdmin && env.name !== PRODUCTION_ENVIRONMENT
+  const [conflict, setConflict] = useState(false)
+  const isViewer = set.role === "viewer"
+  const canReveal = canRevealEnvironment(set.role, env)
 
   const reveal = () =>
     start(async () => {
       setError(null)
-      const r = await revealEnvironmentAction(projectId, env.id)
+      setConflict(false)
+      const r = await revealEnvironmentAction(set.id, env.id)
       if (r.ok) {
         setRevealedFlags({
           secretKeys: r.data.secretKeys,
@@ -175,12 +174,14 @@ function EnvironmentPanel({
         })
         setEditing(r.data.variables)
         setVersion(r.data.updatedAt)
+        setEditorKey((k) => k + 1)
       } else setError(r.error)
     })
 
   const save = (variables: string, flagsJson: string) =>
     start(async () => {
       setError(null)
+      setConflict(false)
       let flags: Record<string, boolean> | undefined
       try {
         flags = flagsJson
@@ -190,7 +191,7 @@ function EnvironmentPanel({
         flags = undefined
       }
       const r = await updateEnvironmentAction(
-        projectId,
+        set.id,
         env.id,
         variables,
         version,
@@ -199,7 +200,12 @@ function EnvironmentPanel({
       if (r.ok) {
         setEditing(null)
         toast.success(t("saved", { name: env.name }))
-      } else setError(r.error)
+        router.refresh()
+      } else {
+        setError(r.error)
+        // Someone else saved in between: offer to load their version.
+        setConflict(r.status === 409)
+      }
     })
 
   return (
@@ -213,30 +219,6 @@ function EnvironmentPanel({
         )}
         <span className="text-muted-foreground">
           {t("variableCount", { count: env.keys.length })}
-        </span>
-        <span className="text-muted-foreground">
-          {env.usedBy.length === 0 ? (
-            t("unused")
-          ) : (
-            <>
-              {t("usedBy")}{" "}
-              {env.usedBy.map((u, i) => (
-                <span key={`${u.kind}-${u.id}`}>
-                  {i > 0 && ", "}
-                  <Link
-                    href={
-                      u.kind === "application"
-                        ? `/applications/${u.id}`
-                        : `/compose/${u.id}`
-                    }
-                    className="text-foreground underline-offset-4 hover:underline"
-                  >
-                    {u.name}
-                  </Link>
-                </span>
-              ))}
-            </>
-          )}
         </span>
       </div>
 
@@ -276,7 +258,7 @@ function EnvironmentPanel({
           {/* Right-aligned: note, then History, then Reveal (rightmost). On a
               phone the note takes its own line above the buttons. */}
           <div className="flex flex-wrap items-center justify-end gap-2">
-            <p className="order-1 min-w-0 basis-full text-end text-xs text-muted-foreground sm:order-1 sm:flex-1 sm:basis-0">
+            <p className="order-1 min-w-0 basis-full text-end text-xs text-muted-foreground sm:flex-1 sm:basis-0">
               {isViewer
                 ? t("viewerNote")
                 : !canReveal
@@ -285,9 +267,9 @@ function EnvironmentPanel({
             </p>
             <div className="order-2 flex flex-wrap items-center justify-end gap-2">
               <EnvironmentHistory
-                projectId={projectId}
+                setId={set.id}
                 environment={env}
-                canRestore={canReveal}
+                canReveal={canReveal}
                 restoreNote={
                   isViewer
                     ? t("history.viewerNote")
@@ -306,23 +288,6 @@ function EnvironmentPanel({
               )}
             </div>
           </div>
-          <Alert>
-            <Info />
-            <AlertDescription>{t("applyNote")}</AlertDescription>
-          </Alert>
-          {canDelete && (
-            <DangerZoneItem
-              title={t("deleteItemTitle")}
-              description={t("deleteItemDescription")}
-              action={
-                <DeleteEnvironment
-                  projectId={projectId}
-                  environment={env}
-                  onDeleted={onDeleted}
-                />
-              }
-            />
-          )}
         </>
       ) : (
         <form
@@ -337,6 +302,7 @@ function EnvironmentPanel({
           }}
         >
           <EnvEditor
+            key={editorKey}
             name="variables"
             defaultValue={editing}
             secrets={{ name: "flags", ...revealedFlags }}
@@ -347,12 +313,32 @@ function EnvironmentPanel({
               <p>{tc("envEditor.secretHint")}</p>
               <p>
                 {t.rich("editorHint", {
-                  ref: "${{project.KEY}}",
+                  ref: "${{vars.KEY}}",
                   code: (chunks) => <code className="font-mono">{chunks}</code>,
                 })}
               </p>
             </AlertDescription>
           </Alert>
+          {error && (
+            <div
+              className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2"
+              role="alert"
+            >
+              <p className="min-w-0 text-xs text-destructive">{error}</p>
+              {conflict && (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  disabled={pending}
+                  onClick={reveal}
+                >
+                  <RotateCw data-icon="inline-start" />
+                  {t("reloadLatest")}
+                </Button>
+              )}
+            </div>
+          )}
           <div className="flex justify-end gap-2">
             <Button
               type="button"
@@ -361,6 +347,7 @@ function EnvironmentPanel({
               onClick={() => {
                 setEditing(null)
                 setError(null)
+                setConflict(false)
               }}
             >
               {tc("actions.cancel")}
@@ -372,29 +359,100 @@ function EnvironmentPanel({
         </form>
       )}
 
-      {error && (
+      {editing === null && error && (
         <p className="text-xs text-destructive" role="alert">
           {error}
         </p>
+      )}
+
+      <UsedBy environment={env} />
+
+      {editing === null && (
+        <Alert>
+          <Info />
+          <AlertDescription>{t("applyNote")}</AlertDescription>
+        </Alert>
+      )}
+
+      {editing === null && set.canManage && (
+        <DangerZoneItem
+          title={t("deleteItemTitle")}
+          description={t("deleteItemDescription")}
+          action={
+            <DeleteEnvironment
+              setId={set.id}
+              environment={env}
+              onDeleted={onDeleted}
+            />
+          }
+        />
       )}
     </>
   )
 }
 
+/** Applications and stacks (in projects the caller may see) linking this environment. */
+function UsedBy({ environment: env }: { environment: EnvironmentView }) {
+  const t = useTranslations("variables.editor")
+  return (
+    <section className="space-y-1.5">
+      <h3 className="text-xs font-medium">{t("usedByTitle")}</h3>
+      {env.usedBy.length === 0 ? (
+        <p className="text-xs text-muted-foreground">{t("unused")}</p>
+      ) : (
+        <ul className="divide-y rounded-md border text-xs">
+          {env.usedBy.map((u) => {
+            const Icon = u.kind === "application" ? Boxes : Layers
+            return (
+              <li
+                key={`${u.kind}-${u.id}`}
+                className="flex flex-wrap items-center gap-x-2 gap-y-0.5 px-3 py-1.5"
+              >
+                <Icon
+                  className="size-3.5 shrink-0 text-muted-foreground"
+                  aria-hidden
+                />
+                <Link
+                  href={
+                    u.kind === "application"
+                      ? `/applications/${u.id}`
+                      : `/compose/${u.id}`
+                  }
+                  className="min-w-0 truncate font-medium underline-offset-4 hover:underline"
+                >
+                  {u.name}
+                </Link>
+                <span className="min-w-0 truncate text-muted-foreground">
+                  {u.projectName}
+                </span>
+                <span className="ms-auto shrink-0 text-muted-foreground tabular-nums">
+                  {t("linkPosition", { position: u.position + 1 })}
+                </span>
+              </li>
+            )
+          })}
+        </ul>
+      )}
+    </section>
+  )
+}
+
 function AddEnvironment({
-  projectId,
+  setId,
   onCreated,
 }: {
-  projectId: string
+  setId: string
   onCreated: (id: string) => void
 }) {
-  const t = useTranslations("projects.environments")
+  const t = useTranslations("variables.editor")
   const tc = useTranslations("common")
+  const router = useRouter()
   const [open, setOpen] = useState(false)
   const [name, setName] = useState("")
+  const [isProtected, setProtected] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [pending, start] = useTransition()
-  const valid = /^[a-z0-9-]{1,32}$/.test(name)
+  const valid = ENVIRONMENT_NAME.test(name)
 
   return (
     <Dialog
@@ -403,6 +461,7 @@ function AddEnvironment({
         setOpen(o)
         if (!o) {
           setName("")
+          setProtected(false)
           setError(null)
         }
       }}
@@ -419,10 +478,11 @@ function AddEnvironment({
             e.preventDefault()
             start(async () => {
               setError(null)
-              const r = await createEnvironmentAction(projectId, name)
+              const r = await createEnvironmentAction(setId, name, isProtected)
               if (r.ok) {
                 onCreated(r.data.id)
                 setOpen(false)
+                router.refresh()
               } else setError(r.error)
             })
           }}
@@ -445,6 +505,19 @@ function AddEnvironment({
               className="font-mono"
             />
             <FieldDescription>{t("nameHint")}</FieldDescription>
+          </Field>
+          <Field orientation="horizontal">
+            <Switch
+              id="env-protected"
+              checked={isProtected}
+              onCheckedChange={setProtected}
+            />
+            <div className="space-y-0.5">
+              <FieldLabel htmlFor="env-protected">
+                {t("protectedLabel")}
+              </FieldLabel>
+              <FieldDescription>{t("protectedHint")}</FieldDescription>
+            </div>
           </Field>
           {error && (
             <p className="text-xs text-destructive" role="alert">
@@ -470,19 +543,21 @@ function AddEnvironment({
 }
 
 function DeleteEnvironment({
-  projectId,
+  setId,
   environment: env,
   onDeleted,
 }: {
-  projectId: string
-  environment: ProjectEnvironment
+  setId: string
+  environment: EnvironmentView
   onDeleted: () => void
 }) {
-  const t = useTranslations("projects.environments")
+  const t = useTranslations("variables.editor")
   const tc = useTranslations("common")
+  const router = useRouter()
   const [open, setOpen] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [pending, start] = useTransition()
+  // usedBy only lists projects the caller sees; the API names every user on a 409.
   const inUse = env.usedBy.length > 0
 
   return (
@@ -525,10 +600,11 @@ function DeleteEnvironment({
             onClick={() =>
               start(async () => {
                 setError(null)
-                const r = await deleteEnvironmentAction(projectId, env.id)
+                const r = await deleteEnvironmentAction(setId, env.id)
                 if (r.ok) {
                   setOpen(false)
                   onDeleted()
+                  router.refresh()
                 } else setError(r.error)
               })
             }

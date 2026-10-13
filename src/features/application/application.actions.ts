@@ -52,7 +52,7 @@ type Field =
   | "memoryMb"
   | "deploymentKeep"
   | "env"
-  | "environmentId"
+  | "variableSetLinks"
   | "buildArgs"
   | "buildType"
   | "sourceType"
@@ -104,7 +104,7 @@ function readForm(formData: FormData): Record<Field, string> {
     memoryMb: get("memoryMb"),
     deploymentKeep: get("deploymentKeep") || "10",
     env: get("env"),
-    environmentId: get("environmentId"),
+    variableSetLinks: get("variableSetLinks"),
     buildArgs: get("buildArgs"),
     buildType: get("buildType") || "dockerfile",
     sourceType: get("sourceType") || "git",
@@ -225,8 +225,10 @@ export async function updateApplicationAction(
   if (!data) return { fieldErrors, values }
   // The Settings form has no env field any more (it lives in the Environment
   // tab); its absent FormData entry reads as "" and would wipe the stored env.
-  const { env: _env, ...settings } = data
+  // Links are create-only (PATCH rejects them; the Environment tab owns them).
+  const { env: _env, variableSetLinks: _links, ...settings } = data
   void _env
+  void _links
   try {
     await api<Application>(`/applications/${id}`, {
       method: "PATCH",

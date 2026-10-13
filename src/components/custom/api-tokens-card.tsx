@@ -1,6 +1,6 @@
 "use client"
 
-import { BookOpen, Check, Copy, KeySquare, Plus, Trash2 } from "lucide-react"
+import { BookOpen, Check, Copy, KeySquare, Plus, Trash2, X } from "lucide-react"
 import { useState, useTransition } from "react"
 import { toast } from "sonner"
 import { EmptyState } from "@/components/custom/empty-state"
@@ -35,6 +35,10 @@ import {
   deleteApiTokenAction,
 } from "@/features/api-token/api-token.actions"
 import type { ApiToken } from "@/features/api-token/api-token.entity"
+import {
+  MAX_VARIABLE_SCOPES,
+  VARIABLE_SCOPE,
+} from "@/features/variable-set/variable-set.entity"
 import { Switch } from "@/components/ui/switch"
 import { copyToClipboard } from "@/lib/clipboard"
 import { formatDateTime } from "@/i18n/format"
@@ -47,9 +51,6 @@ const EXPIRY: { labelKey: string; days: number | null }[] = [
   { labelKey: "never", days: null },
 ]
 
-const STANDARD_ENVIRONMENTS = ["development", "staging", "production"]
-/** Same shape the API accepts for an environment name. */
-const ENV_NAME = /^[a-z0-9-]{1,32}$/
 
 function fmt(d: string | null, locale: string) {
   return d
@@ -86,9 +87,9 @@ export function ApiTokensCard({
   const [readOnly, setReadOnly] = useState(false)
   // Empty = every project the user may see (and platform settings stay usable).
   const [scopeProjects, setScopeProjects] = useState<string[]>([])
-  // Empty = every environment the user may reach.
-  const [scopeEnvs, setScopeEnvs] = useState<string[]>([])
-  const [customEnv, setCustomEnv] = useState("")
+  // Empty = every set environment the user may reach.
+  const [scopes, setScopes] = useState<string[]>([])
+  const [scopeInput, setScopeInput] = useState("")
   const [copied, setCopied] = useState(false)
   const [loginCopied, setLoginCopied] = useState(false)
   // Address the user opened the dashboard with (what `aoox login --url` needs);
@@ -111,10 +112,13 @@ export function ApiTokensCard({
     }
   }
 
-  const addCustomEnv = () => {
-    if (!ENV_NAME.test(customEnv)) return
-    setScopeEnvs((cur) => (cur.includes(customEnv) ? cur : [...cur, customEnv]))
-    setCustomEnv("")
+  const scopeEntry = scopeInput.trim()
+  const scopeInvalid = scopeEntry !== "" && !VARIABLE_SCOPE.test(scopeEntry)
+  const scopesFull = scopes.length >= MAX_VARIABLE_SCOPES
+  const addScope = () => {
+    if (!VARIABLE_SCOPE.test(scopeEntry) || scopesFull) return
+    setScopes((cur) => (cur.includes(scopeEntry) ? cur : [...cur, scopeEntry]))
+    setScopeInput("")
   }
 
   const loginCommand = `aoox login --url ${dashboardUrl} --token ${created ?? ""}`
@@ -200,15 +204,15 @@ export function ApiTokensCard({
                       })}
                     </Badge>
                   )}
-                  {tok.environments && (
+                  {tok.variableScopes && (
                     <Badge
                       variant="outline"
-                      className="max-w-40 min-w-0"
-                      title={tok.environments.join(", ")}
+                      className="max-w-56 min-w-0"
+                      title={tok.variableScopes.join(", ")}
                     >
-                      <span className="truncate">
-                        {t("tokens.environmentsBadge", {
-                          names: tok.environments.join(", "),
+                      <span className="truncate font-mono">
+                        {t("tokens.variableScopesBadge", {
+                          names: tok.variableScopes.join(", "),
                         })}
                       </span>
                     </Badge>
@@ -252,7 +256,7 @@ export function ApiTokensCard({
                 {
                   readOnly,
                   projectIds: scopeProjects,
-                  environments: scopeEnvs,
+                  variableScopes: scopes,
                 }
               )
               if (!r.ok) setError(r.error)
@@ -262,8 +266,8 @@ export function ApiTokensCard({
                 setName("")
                 setReadOnly(false)
                 setScopeProjects([])
-                setScopeEnvs([])
-                setCustomEnv("")
+                setScopes([])
+                setScopeInput("")
               }
             })
           }}
@@ -343,60 +347,86 @@ export function ApiTokensCard({
             </div>
           )}
           <div className="w-full space-y-1">
-            <Label htmlFor="pat-env-custom">{t("tokens.envScopeLabel")}</Label>
-            <div className="flex flex-wrap items-center gap-2">
-              {[...new Set([...STANDARD_ENVIRONMENTS, ...scopeEnvs])].map(
-                (name) => {
-                  const on = scopeEnvs.includes(name)
-                  return (
-                    <button
-                      key={name}
-                      type="button"
-                      aria-pressed={on}
-                      onClick={() =>
-                        setScopeEnvs((cur) =>
-                          on ? cur.filter((n) => n !== name) : [...cur, name]
-                        )
-                      }
-                      className={`rounded-full border px-3 py-1 text-xs ${
-                        on
-                          ? "border-primary bg-primary text-primary-foreground"
-                          : "text-muted-foreground hover:bg-muted"
-                      }`}
-                    >
-                      {name}
-                    </button>
-                  )
-                }
-              )}
-            </div>
-            <div className="mt-2 flex items-center gap-2">
+            <Label htmlFor="pat-var-scope">
+              {t("tokens.variableScopeLabel")}
+            </Label>
+            {scopes.length > 0 && (
+              <ul className="flex flex-wrap gap-1.5">
+                {scopes.map((sc) => (
+                  <li key={sc}>
+                    <Badge variant="secondary" className="gap-1 pe-0.5">
+                      <span className="font-mono">{sc}</span>
+                      <button
+                        type="button"
+                        className="rounded-sm p-0.5 hover:bg-background/60"
+                        aria-label={t("tokens.variableScopeRemove", {
+                          scope: sc,
+                        })}
+                        onClick={() =>
+                          setScopes((cur) => cur.filter((x) => x !== sc))
+                        }
+                      >
+                        <X className="size-3" />
+                      </button>
+                    </Badge>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <div className="flex items-center gap-2">
               <Input
-                id="pat-env-custom"
-                value={customEnv}
-                onChange={(e) => setCustomEnv(e.target.value.toLowerCase())}
+                id="pat-var-scope"
+                value={scopeInput}
+                onChange={(e) => setScopeInput(e.target.value.toLowerCase())}
                 onKeyDown={(e) => {
                   if (e.key !== "Enter") return
                   e.preventDefault()
-                  addCustomEnv()
+                  addScope()
                 }}
-                placeholder={t("tokens.envCustomPlaceholder")}
-                maxLength={32}
+                placeholder="backend/staging"
+                maxLength={98}
                 autoComplete="off"
-                className="w-44 font-mono"
+                aria-invalid={scopeInvalid || undefined}
+                disabled={scopesFull}
+                className="w-56 max-w-full font-mono"
               />
               <Button
                 type="button"
                 variant="outline"
-                disabled={!ENV_NAME.test(customEnv)}
-                onClick={addCustomEnv}
+                disabled={!VARIABLE_SCOPE.test(scopeEntry) || scopesFull}
+                onClick={addScope}
               >
                 <Plus data-icon="inline-start" />
-                {t("tokens.envAdd")}
+                {t("tokens.variableScopeAdd")}
               </Button>
             </div>
+            {scopeInvalid && (
+              <p className="text-xs text-destructive" role="alert">
+                {t("tokens.variableScopeInvalid")}
+              </p>
+            )}
+            {scopesFull && (
+              <p className="text-xs text-muted-foreground">
+                {t("tokens.variableScopeMax", { count: MAX_VARIABLE_SCOPES })}
+              </p>
+            )}
+            <ul className="space-y-0.5 text-xs text-muted-foreground">
+              {(
+                [
+                  "variableScopeFormSet",
+                  "variableScopeFormAllEnvs",
+                  "variableScopeFormAllSets",
+                ] as const
+              ).map((k) => (
+                <li key={k}>
+                  {t.rich(`tokens.${k}`, {
+                    code: (chunks) => <code className="font-mono">{chunks}</code>,
+                  })}
+                </li>
+              ))}
+            </ul>
             <p className="text-xs text-muted-foreground">
-              {t("tokens.envScopeHelp")}
+              {t("tokens.variableScopeHelp")}
             </p>
           </div>
           <Button type="submit" disabled={pending}>

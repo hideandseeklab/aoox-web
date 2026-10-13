@@ -9,7 +9,8 @@
  * - shared: common (buttons, states, generic messages), logViewer
  * - zod / server-action messages live in the namespace of their area, under a `validation.*` sub-key
  * - one area each: auth, dashboard, projects, applications, compose, database,
- *   settings, infra, docker, registry, terminal, templates, alerts (resource alert rules card)
+ *   settings, infra, docker, registry, terminal, templates, alerts (resource alert rules card),
+ *   variables (variable sets, their environments and the link editor)
  */
 export const NAMESPACES = [
   "nav",
@@ -34,6 +35,7 @@ export const NAMESPACES = [
   "alerts",
   "dns",
   "integrations",
+  "variables",
 ] as const
 
 export type Namespace = (typeof NAMESPACES)[number]

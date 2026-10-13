@@ -108,7 +108,7 @@
     },
     "env": {
       "label": "Environment variables",
-      "description": "Applied on the next deploy, on top of the project environment you pick."
+      "description": "Applied on the next deploy, on top of the linked variable sets."
     },
     "advanced": {
       "title": "Resources & advanced",
@@ -151,14 +151,9 @@
       "domainAria": "Preview domain",
       "help": "Previews are reachable at <code>'<app>'-pr'<N>'.'<preview domain>'</code> (needs wildcard DNS to this host). PRs from forks are always ignored — a PR branch is arbitrary code. At most 5 open previews per application. Enable the <em>Pull requests</em> event in the provider's webhook."
     },
-    "environment": {
-      "title": "Project environment",
-      "label": "Environment",
-      "hint": "Variables of this environment are added to the container and <code>{ref}</code> resolves from it. Applied on the next deploy. Manage environments on the project page.",
-      "switchNote": "Switching is refused if the application references a variable the new environment lacks.",
-      "lockedNote": "This is linked to the protected \"{name}\" environment; only project admins can move it.",
-      "restrictedNote": "Protected environments can only be chosen by project admins.",
-      "restrictedCreateNote": "Protected environments can only be chosen by project admins. New resources start in \"{name}\"."
+    "variableSets": {
+      "title": "Variable sets",
+      "description": "Optional: link environments of shared variable sets. More can be linked, reordered or removed later on the Environment tab."
     }
   },
   "page": {
@@ -191,7 +186,7 @@
   },
   "environment": {
     "title": "Environment",
-    "description": "This application's env variables. Applied on the next deploy (values are read when the container is created), on top of the linked project environment: on the same key, this one wins.",
+    "description": "This application's env variables. Applied on the next deploy (values are read when the container is created), on top of the linked variable sets: on the same key, this one wins.",
     "saving": "Saving environment…",
     "saved": "Environment saved",
     "readOnly": "Only developers and above can change the environment."
@@ -237,8 +232,8 @@
     "maintenance": "Maintenance"
   },
   "shared": {
-    "envRefs": "Values can reference <code>{projectRef}</code> and <code>{databaseRef}</code>.",
-    "envRefsWithDb": "Values can reference <code>{projectRef}</code> and this project's databases: <databases></databases> (also <code>.host</code>, <code>.port</code>, <code>.username</code>, <code>.password</code>, <code>.database</code>)."
+    "envRefs": "Values can reference <code>{varsRef}</code> and <code>{databaseRef}</code>.",
+    "envRefsWithDb": "Values can reference <code>{varsRef}</code> and this project's databases: <databases></databases> (also <code>.host</code>, <code>.port</code>, <code>.username</code>, <code>.password</code>, <code>.database</code>)."
   },
   "deploy": {
     "failed": "Failed",

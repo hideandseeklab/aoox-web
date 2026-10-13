@@ -17,19 +17,19 @@ import {
 import { updateApplicationEnvAction } from "@/features/application/application.actions"
 
 /**
- * "Values can reference ${{project.KEY}} and the project's databases ..." sentence,
+ * "Values can reference ${{vars.KEY}} and the project's databases ..." sentence,
  * shared by the Environment tab and the create form.
  */
 export function EnvRefsHint({ databaseSlugs }: { databaseSlugs?: string[] }) {
   const t = useTranslations("applications")
   const code = (chunks: React.ReactNode) => <code>{chunks}</code>
-  const projectRef = "${{project.KEY}}"
+  const varsRef = "${{vars.KEY}}"
   if (databaseSlugs && databaseSlugs.length > 0) {
     return (
       <>
         {t.rich("shared.envRefsWithDb", {
           code,
-          projectRef,
+          varsRef,
           databases: () => (
             <>
               {databaseSlugs.map((s, i) => (
@@ -48,7 +48,7 @@ export function EnvRefsHint({ databaseSlugs }: { databaseSlugs?: string[] }) {
     <>
       {t.rich("shared.envRefs", {
         code,
-        projectRef,
+        varsRef,
         databaseRef: "${{database.<slug>.url}}",
       })}
     </>

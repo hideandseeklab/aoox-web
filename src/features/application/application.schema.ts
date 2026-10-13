@@ -103,11 +103,16 @@ const createBaseSchema = (t: Translator) =>
       .transform((v) => (v === "" ? null : v)),
     deploymentKeep: z.coerce.number().int().min(1).max(100).default(10),
     env: z.string().max(20_000).optional(),
-    // Empty string = production (the API default); the field is omitted then.
-    environmentId: z
+    // Create only: comma-separated set environment ids in merge order; empty = no links.
+    variableSetLinks: z
       .string()
       .trim()
-      .transform((v) => (v ? v : undefined)),
+      .transform((v) => {
+        const ids = v.split(",").map((s) => s.trim()).filter(Boolean)
+        return ids.length > 0
+          ? ids.map((environmentId) => ({ environmentId }))
+          : undefined
+      }),
     buildArgs: z.string().max(5_000).optional(),
     buildType: z
       .enum(["dockerfile", "nixpacks", "railpack", "static"])

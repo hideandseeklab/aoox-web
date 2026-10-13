@@ -30,11 +30,16 @@ export const createComposeAppSchema = (t: Translator) =>
       .trim()
       .transform((v) => (v ? v : null)),
     env: z.string().max(20_000).optional(),
-    // Empty string = production (the API default); the field is omitted then.
-    environmentId: z
+    // Create only: comma-separated set environment ids in merge order; empty = no links.
+    variableSetLinks: z
       .string()
       .trim()
-      .transform((v) => (v ? v : undefined)),
+      .transform((v) => {
+        const ids = v.split(",").map((s) => s.trim()).filter(Boolean)
+        return ids.length > 0
+          ? ids.map((environmentId) => ({ environmentId }))
+          : undefined
+      }),
   })
 
 export type ComposeAppInput = z.infer<ReturnType<typeof createComposeAppSchema>>
@@ -48,9 +53,14 @@ export const createComposeTemplateSchema = (t: Translator) =>
       .min(1, t("validation.composeRequired"))
       .max(200_000, t("validation.tooLong")),
     env: z.string().max(20_000).optional(),
-    // Empty string = production (the API default); the field is omitted then.
-    environmentId: z
+    // Create only: comma-separated set environment ids in merge order; empty = no links.
+    variableSetLinks: z
       .string()
       .trim()
-      .transform((v) => (v ? v : undefined)),
+      .transform((v) => {
+        const ids = v.split(",").map((s) => s.trim()).filter(Boolean)
+        return ids.length > 0
+          ? ids.map((environmentId) => ({ environmentId }))
+          : undefined
+      }),
   })

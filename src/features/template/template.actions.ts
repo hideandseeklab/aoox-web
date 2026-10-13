@@ -17,6 +17,8 @@ export interface DeployTemplateInput {
   variables: Record<string, string>
   serviceDomains: ComposeServiceDomain[]
   servicePorts: ComposeServicePort[]
+  /** Optional set environments in merge order (omitted = no links). */
+  variableSetLinks?: { environmentId: string }[]
 }
 
 export type DeployTemplateResult =

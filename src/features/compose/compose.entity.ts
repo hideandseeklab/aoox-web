@@ -1,3 +1,4 @@
+import type { LinkView } from "@/features/variable-set/variable-set.entity"
 /** Mirrors ComposeApp / ComposeAppDetail in aoox-api (compose module). */
 export type ComposeAppStatus =
   "idle" | "deploying" | "running" | "stopped" | "error"
@@ -44,8 +45,8 @@ export interface ComposeApp {
   gitCredentialId: string | null
   composePath: string
   env: string
-  /** Project environment whose variables the stack's .aoox.env is built from. */
-  environmentId: string
+  /** Linked variable set environments, in merge order (later wins). */
+  variableSets?: LinkView[]
   status: ComposeAppStatus
   errorMessage: string | null
   deployedAt: string | null

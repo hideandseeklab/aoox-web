@@ -40,7 +40,7 @@ type Field =
   | "composePath"
   | "gitCredentialId"
   | "env"
-  | "environmentId"
+  | "variableSetLinks"
   | "composeContent"
 
 export interface ComposeFormState {
@@ -63,7 +63,7 @@ function readForm(formData: FormData): Record<Field, string> {
     gitCredentialId:
       get("gitCredentialId") === "none" ? "" : get("gitCredentialId"),
     env: get("env"),
-    environmentId: get("environmentId"),
+    variableSetLinks: get("variableSetLinks"),
     composeContent: get("composeContent"),
   }
 }
@@ -117,10 +117,13 @@ export async function updateComposeAppAction(
   const source = formData.get("source") === "template" ? "template" : "git"
   const { data, fieldErrors } = await parse(values, source)
   if (!data) return { fieldErrors, values }
+  // Links are create-only (PATCH rejects them; the link card owns them).
+  const { variableSetLinks: _links, ...settings } = data
+  void _links
   try {
     await api<ComposeApp>(`/compose-apps/${id}`, {
       method: "PATCH",
-      body: data,
+      body: settings,
       token: await requireToken(),
     })
   } catch (err) {

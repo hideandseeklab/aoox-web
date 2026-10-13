@@ -8,6 +8,30 @@ Versions below 1.0.0 may include breaking changes in a minor release.
 
 ## [Unreleased]
 
+### Added
+
+- **Variables: shared variable sets.** A new **Variables** item in the sidebar (Platform group) lists the variable sets you can see: name, slug, description, which projects they are shared with, their environments with variable counts, how many applications and stacks use them, and your access. Instance owners and admins create sets with **New set** (name, optional slug, description, shared with all projects or with selected ones; a new set starts with development, staging and production).
+- **Set page** (`/variables/<id>`): one tab per environment with the editor that used to live on the project page: reveal and edit (audited), secret flags, version history with **Show values** per version and restore, and compare/promote between environments of the set. Each environment lists the applications and stacks that link it (with their project and link position). Instance owners and admins also get the Details card (name, description; the slug is fixed), the **Sharing** card (all projects or selected ones; the API's message naming the linked applications is shown when a project would lose access), add/delete environment (a new one can be marked protected) and a Danger zone row to delete the set permanently.
+- **Variable set links on applications and stacks.** The application's Environment tab and the stack's Settings tab have a **Variable sets** card: an ordered list of set environments (add from the sets shared with the project, move up/down, unlink, Save). Each link shows its variable names; names overridden by a later link or by the own env are struck through with a one-line hint, and one line explains the merge order. Linking or unlinking a protected environment is offered to project admins only (the API's 403/400 messages are shown as well).
+- The create forms for applications and compose stacks have an optional **Variable sets** picker (the same ordered list); the template deploy dialog has one optional set environment select for the chosen project. They send `variableSetLinks`.
+- **Project page: "Variable sets" card** in the right column: the sets shared with the project, their environments and which of its applications and stacks link each one, with a link to the set page.
+- **API tokens: limit to variable environments.** The token form takes scope entries `set-slug/environment`, `set-slug/*` or `*/environment` (checked like the API, at most 20); the token list shows a `vars: …` badge.
+- Audit log wording (English and Indonesian) for every variable set route and for changing the links of an application or stack.
+
+### Changed
+
+- References in help texts now read `${{vars.KEY}}` (was `${{project.KEY}}`).
+
+### Removed
+
+- **Project environments.** The Environments section of the project page, the Project environment select of applications and stacks (create forms and Settings), the old `environments` token restriction and the audit log wording of the removed `/projects/:id/environments` routes. Their data lives in variable sets now (see aoox-api).
+
+### UI UX Improvement
+
+- **Variables list and set page.** Set cards in a responsive grid (name, mono slug, sharing line with a globe or folder icon, environment badges with a lock for protected ones, usage and your role in the footer) and an illustrated empty state; the set page follows the project page layout (environments on the left, Details, Sharing and Danger zone on the right).
+- **Saving over a newer edit is easier to recover from.** When an environment changed since you revealed it, the error box in the editor has a **Load latest** button that loads the current text instead of asking you to cancel and reveal again.
+- **Link editor rows.** Numbered rows with icon-only move up/down and unlink buttons (with labels for screen readers), variable names as mono chips, and the add select grouped by set with the key count per environment.
+
 ## [0.1.0-alpha.9] - 2026-10-13
 
 ### Added

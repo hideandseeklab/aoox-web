@@ -1,3 +1,4 @@
+import type { LinkView } from "@/features/variable-set/variable-set.entity"
 export type BuildType = "dockerfile" | "nixpacks" | "railpack" | "static"
 export type SourceType = "git" | "image"
 export type DeployMode = "container" | "service"
@@ -59,8 +60,8 @@ export interface Application {
   memoryMb: number | null
   deploymentKeep: number
   env: string
-  /** Project environment whose variables the container receives. */
-  environmentId: string
+  /** Linked variable set environments, in merge order (later wins). */
+  variableSets?: LinkView[]
   /** `KEY=VALUE` lines passed as Docker build args (not secrets). */
   buildArgs: string
   /** `dockerfile` builds the repo's Dockerfile; `nixpacks` auto-detects the stack. */

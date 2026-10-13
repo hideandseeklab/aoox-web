@@ -7,8 +7,8 @@ import { useRouter } from "@/lib/use-router"
 import { useActionState, useEffect, useRef } from "react"
 import { toast } from "sonner"
 import { EnvEditor } from "@/components/custom/env-editor"
-import { EnvironmentSelect } from "@/components/custom/environment-select"
-import type { EnvironmentOption } from "@/features/project/project-environment.entity"
+import { VariableSetLinksEditor } from "@/components/custom/variable-set-links"
+import type { ProjectVariableSet } from "@/features/variable-set/variable-set.entity"
 import { Button } from "@/components/ui/button"
 import {
   Field,
@@ -38,7 +38,7 @@ const EMPTY: Values = {
   composePath: "docker-compose.yml",
   gitCredentialId: "",
   env: "",
-  environmentId: "",
+  variableSetLinks: "",
   composeContent: "",
 }
 
@@ -49,7 +49,7 @@ export function ComposeForm({
   submitLabel,
   credentials,
   databaseSlugs,
-  environments = [],
+  variableSets = [],
   canLinkProtected = true,
   source = "git",
   onPendingChange,
@@ -68,9 +68,9 @@ export function ComposeForm({
   submitLabel: string
   credentials: GitCredential[]
   databaseSlugs?: string[]
-  /** Environments of the project, for the Environment select. */
-  environments?: EnvironmentOption[]
-  /** Project admins only may link to / from a protected environment. */
+  /** Create mode: variable sets shared with the project, for the optional link picker. */
+  variableSets?: ProjectVariableSet[]
+  /** Project admins only may link a protected environment. */
   canLinkProtected?: boolean
   /** Template stacks edit the compose file itself instead of git settings. */
   source?: "git" | "template"
@@ -228,13 +228,18 @@ export function ComposeForm({
           </>
         )}
 
-        <EnvironmentSelect
-          namespace="compose"
-          environments={environments}
-          value={v.environmentId}
-          id="cmp-environment"
-          canLinkProtected={canLinkProtected}
-        />
+        {/* Edit mode manages links in their own card on the Settings tab. */}
+        {mode === "create" && variableSets.length > 0 && (
+          <Field>
+            <FieldLabel>{t("form.variableSets.label")}</FieldLabel>
+            <VariableSetLinksEditor
+              mode="form"
+              namespace="compose"
+              available={variableSets}
+              canLinkProtected={canLinkProtected}
+            />
+          </Field>
+        )}
 
         <Field data-invalid={invalid("env")}>
           <FieldLabel>{t("form.env")}</FieldLabel>
@@ -246,7 +251,7 @@ export function ComposeForm({
           <FieldDescription>
             {t.rich(databaseSlugs?.length ? "form.envHintDb" : "form.envHint", {
               varExample: "${VAR}",
-              projectRef: "${{project.KEY}}",
+              varsRef: "${{vars.KEY}}",
               code: (chunks) => <code>{chunks}</code>,
               databases: () => (
                 <>

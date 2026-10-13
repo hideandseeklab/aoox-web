@@ -1,6 +1,6 @@
 "use client"
 
-import { History, RotateCcw } from "lucide-react"
+import { Eye, EyeOff, History, RotateCcw } from "lucide-react"
 import { useLocale, useTranslations } from "next-intl"
 import { useState, useTransition } from "react"
 import { toast } from "sonner"
@@ -18,11 +18,13 @@ import {
 import {
   listEnvironmentVersionsAction,
   restoreEnvironmentVersionAction,
-} from "@/features/project/project-environment.actions"
+  revealEnvironmentVersionAction,
+} from "@/features/variable-set/variable-set.actions"
 import type {
   EnvironmentVersion,
-  ProjectEnvironment,
-} from "@/features/project/project-environment.entity"
+  EnvironmentView,
+} from "@/features/variable-set/variable-set.entity"
+import { useRouter } from "@/lib/use-router"
 import { formatDateTime } from "@/i18n/format"
 
 /** The API keeps this many versions per environment (ENV_VERSION_KEEP). */
@@ -30,35 +32,59 @@ const KEEP = 50
 
 /**
  * Version history of one environment: who changed which variable names and
- * when. Values are never part of it. Restoring an old version writes it as a
- * new one (behind a confirm step), so it needs the same right as editing.
+ * when. Values are only shown on request (an audited reveal of one version).
+ * Restoring an old version writes it as a new one (behind a confirm step), so
+ * it needs the same right as editing.
  */
 export function EnvironmentHistory({
-  projectId,
+  setId,
   environment: env,
-  canRestore,
+  canReveal,
   restoreNote,
 }: {
-  projectId: string
-  environment: ProjectEnvironment
-  /** Same rule as editing: not a viewer, and a project admin for a protected environment. */
-  canRestore: boolean
-  /** Why restoring is unavailable (shown when `canRestore` is false). */
+  setId: string
+  environment: EnvironmentView
+  /** Same rule as editing: not a viewer, and an instance owner/admin for a protected environment. */
+  canReveal: boolean
+  /** Why revealing and restoring are unavailable (shown when `canReveal` is false). */
   restoreNote: string
 }) {
-  const t = useTranslations("projects.environments.history")
+  const t = useTranslations("variables.editor.history")
   const tc = useTranslations("common")
   const locale = useLocale()
   const [open, setOpen] = useState(false)
   const [versions, setVersions] = useState<EnvironmentVersion[] | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [confirming, setConfirming] = useState<EnvironmentVersion | null>(null)
+  // Revealed text per version id (only while the dialog is open).
+  const [revealed, setRevealed] = useState<Record<string, string>>({})
+  const [revealing, setRevealing] = useState<string | null>(null)
   const [pending, start] = useTransition()
+  const router = useRouter()
+  const canRestore = canReveal
+
+  const reveal = (v: EnvironmentVersion) => {
+    if (revealed[v.id] !== undefined) {
+      setRevealed((cur) => {
+        const next = { ...cur }
+        delete next[v.id]
+        return next
+      })
+      return
+    }
+    setRevealing(v.id)
+    setError(null)
+    revealEnvironmentVersionAction(setId, env.id, v.id).then((r) => {
+      setRevealing(null)
+      if (r.ok) setRevealed((cur) => ({ ...cur, [v.id]: r.data.variables }))
+      else setError(r.error)
+    })
+  }
 
   const load = () =>
     start(async () => {
       setError(null)
-      const r = await listEnvironmentVersionsAction(projectId, env.id)
+      const r = await listEnvironmentVersionsAction(setId, env.id)
       if (r.ok) setVersions(r.data)
       else setError(r.error)
     })
@@ -72,6 +98,7 @@ export function EnvironmentHistory({
         setOpen(o)
         setConfirming(null)
         setError(null)
+        setRevealed({})
         if (o) load()
       }}
     >
@@ -112,7 +139,7 @@ export function EnvironmentHistory({
                   start(async () => {
                     setError(null)
                     const r = await restoreEnvironmentVersionAction(
-                      projectId,
+                      setId,
                       env.id,
                       confirming.id,
                       env.updatedAt
@@ -120,8 +147,9 @@ export function EnvironmentHistory({
                     if (r.ok) {
                       toast.success(t("restored", { name: env.name }))
                       setConfirming(null)
+                      router.refresh()
                       const l = await listEnvironmentVersionsAction(
-                        projectId,
+                        setId,
                         env.id
                       )
                       if (l.ok) setVersions(l.data)
@@ -168,18 +196,40 @@ export function EnvironmentHistory({
                           <Badge variant="outline">{t("viaToken")}</Badge>
                         )}
                       </div>
-                      {canRestore && !v.current && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => {
-                            setError(null)
-                            setConfirming(v)
-                          }}
-                        >
-                          <RotateCcw data-icon="inline-start" />
-                          {t("restore")}
-                        </Button>
+                      {canReveal && (
+                        <div className="flex flex-wrap gap-1.5">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            disabled={revealing === v.id}
+                            aria-expanded={revealed[v.id] !== undefined}
+                            onClick={() => reveal(v)}
+                          >
+                            {revealed[v.id] !== undefined ? (
+                              <EyeOff data-icon="inline-start" />
+                            ) : (
+                              <Eye data-icon="inline-start" />
+                            )}
+                            {revealed[v.id] !== undefined
+                              ? t("hideValues")
+                              : revealing === v.id
+                                ? t("revealingValues")
+                                : t("revealValues")}
+                          </Button>
+                          {canRestore && !v.current && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => {
+                                setError(null)
+                                setConfirming(v)
+                              }}
+                            >
+                              <RotateCcw data-icon="inline-start" />
+                              {t("restore")}
+                            </Button>
+                          )}
+                        </div>
                       )}
                     </div>
                     <p className="text-muted-foreground">
@@ -189,6 +239,11 @@ export function EnvironmentHistory({
                       · {when(v)}
                     </p>
                     <Summary v={v} />
+                    {revealed[v.id] !== undefined && (
+                      <pre className="max-h-48 overflow-auto rounded-md border bg-muted/40 p-2 font-mono text-xs break-all whitespace-pre-wrap">
+                        {revealed[v.id] || t("emptyText")}
+                      </pre>
+                    )}
                   </li>
                 ))}
               </ul>
@@ -223,7 +278,7 @@ function actionLabel(
 
 /** `+ Added: A, B` lines; key names only, wrapped as they come. */
 function Summary({ v }: { v: EnvironmentVersion }) {
-  const t = useTranslations("projects.environments.history")
+  const t = useTranslations("variables.editor.history")
   const s = v.summary
   const rows: Array<[string, string, string[]]> = [
     ["+", t("added"), s.added],

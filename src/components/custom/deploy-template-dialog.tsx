@@ -28,6 +28,7 @@ import { Switch } from "@/components/ui/switch"
 import type { Project } from "@/features/project/project.entity"
 import type { ProxyStatus } from "@/features/proxy/proxy.entity"
 import { deployTemplateAction } from "@/features/template/template.actions"
+import { VariableSetPicker } from "@/components/custom/variable-set-picker"
 import type { Template } from "@/features/template/template.entity"
 import { apiText } from "@/i18n/api-text"
 import { useBrowserHost } from "./use-browser-host"
@@ -65,6 +66,8 @@ export function DeployTemplateDialog({
   const [https, setHttps] = useState<Record<string, boolean>>({})
   const [hostPorts, setHostPorts] = useState<Record<string, string>>({})
   const [values, setValues] = useState<Record<string, string>>({})
+  // Optional set environment to link (per project; reset when the project changes).
+  const [linkEnv, setLinkEnv] = useState("")
 
   const key = (s: { service: string; port: number }) => `${s.service}:${s.port}`
 
@@ -96,6 +99,7 @@ export function DeployTemplateDialog({
         variables: values,
         serviceDomains,
         servicePorts,
+        ...(linkEnv ? { variableSetLinks: [{ environmentId: linkEnv }] } : {}),
       })
       if (!r.ok) {
         setError(r.error)
@@ -130,7 +134,13 @@ export function DeployTemplateDialog({
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-1">
                   <Label htmlFor="tpl-project">{t("project")}</Label>
-                  <Select value={projectId} onValueChange={setProjectId}>
+                  <Select
+                    value={projectId}
+                    onValueChange={(v) => {
+                      setProjectId(v)
+                      setLinkEnv("")
+                    }}
+                  >
                     <SelectTrigger id="tpl-project">
                       <SelectValue placeholder={t("projectPlaceholder")} />
                     </SelectTrigger>
@@ -153,6 +163,13 @@ export function DeployTemplateDialog({
                   />
                 </div>
               </div>
+
+              <VariableSetPicker
+                id="tpl-variable-set"
+                projectId={projectId}
+                value={linkEnv}
+                onChange={setLinkEnv}
+              />
 
               <fieldset className="space-y-2">
                 <legend className="text-sm font-medium">{t("access.title")}</legend>

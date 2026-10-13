@@ -29,7 +29,8 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { Tabs, TabsContent } from "@/components/ui/tabs"
-import type { EnvironmentOption } from "@/features/project/project-environment.entity"
+import type { ProjectVariableSet } from "@/features/variable-set/variable-set.entity"
+import { VariableSetLinksEditor } from "@/components/custom/variable-set-links"
 import { ScrollableTabsList } from "@/components/custom/scrollable-tabs-list"
 import { PageTabsTrigger } from "@/components/custom/page-tabs-trigger"
 import {
@@ -102,7 +103,7 @@ export function ApplicationTabs({
   alerts,
   secretConnections,
   servers,
-  environments,
+  variableSets,
   previews,
   dnsConnections,
   proxyDnsEnabled,
@@ -136,7 +137,8 @@ export function ApplicationTabs({
   alerts: ResourceAlertsView | null
   secretConnections: SecretConnection[]
   servers: Server[]
-  environments: EnvironmentOption[]
+  /** Variable sets shared with the project, for the link editor. */
+  variableSets: ProjectVariableSet[]
   previews: PreviewDeployment[]
   /** DNS provider connections a domain can use (names only). */
   dnsConnections: DnsConnection[]
@@ -244,6 +246,16 @@ export function ApplicationTabs({
         </div>
       </TabsContent>
       <TabsContent value="environment" className="space-y-4 pt-4">
+        <VariableSetLinksEditor
+          mode="saved"
+          namespace="application"
+          owner={{ kind: "application", id: app.id }}
+          initial={app.variableSets ?? []}
+          available={variableSets}
+          ownEnv={app.env}
+          canEdit={canEdit}
+          canLinkProtected={app.projectRole === "admin"}
+        />
         <ApplicationEnvironment
           applicationId={app.id}
           env={app.env}
@@ -349,7 +361,6 @@ export function ApplicationTabs({
               action={updateApplicationAction.bind(null, app.id)}
               defaultValues={{
                 name: app.name,
-                environmentId: app.environmentId,
                 gitUrl: app.gitUrl ?? "",
                 sourceType: app.sourceType,
                 imageRef: app.imageRef ?? "",
@@ -403,8 +414,6 @@ export function ApplicationTabs({
               registries={registries}
               databaseSlugs={databaseSlugs}
               servers={servers}
-              environments={environments}
-              canLinkProtected={app.projectRole === "admin"}
               swarmActive={swarmActive}
               swarmNodes={swarmNodes}
               readOnly={!canEdit}

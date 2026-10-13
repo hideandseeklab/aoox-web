@@ -8,8 +8,11 @@ export interface ApiToken {
   readOnly: boolean
   /** Projects the token may touch; null = everything its user may see. */
   projectIds: string[] | null
-  /** Environment names whose values the token may reveal or change; null = all it may reach. */
-  environments: string[] | null
+  /**
+   * Set environments whose values the token may reveal or change:
+   * `<set-slug>/<env>`, `<set-slug>/*` or `*` + `/<env>`; null = all it may reach.
+   */
+  variableScopes: string[] | null
   expiresAt: string | null
   lastUsedAt: string | null
   createdAt: string

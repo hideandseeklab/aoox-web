@@ -23,7 +23,7 @@ export async function createApiTokenAction(
   scope: {
     readOnly?: boolean
     projectIds?: string[]
-    environments?: string[]
+    variableScopes?: string[]
   } = {}
 ): Promise<ActionResult<CreatedApiToken>> {
   try {
@@ -34,8 +34,8 @@ export async function createApiTokenAction(
         ...(expiresInDays ? { expiresInDays } : {}),
         ...(scope.readOnly ? { readOnly: true } : {}),
         ...(scope.projectIds?.length ? { projectIds: scope.projectIds } : {}),
-        ...(scope.environments?.length
-          ? { environments: scope.environments }
+        ...(scope.variableScopes?.length
+          ? { variableScopes: scope.variableScopes }
           : {}),
       },
       token: await requireToken(),

@@ -25,27 +25,28 @@ import {
 import {
   diffEnvironmentsAction,
   promoteEnvironmentAction,
-} from "@/features/project/project-environment.actions"
-import {
-  PRODUCTION_ENVIRONMENT,
-  type EnvironmentDiff,
-  type ProjectEnvironment,
-} from "@/features/project/project-environment.entity"
+} from "@/features/variable-set/variable-set.actions"
+import type {
+  EnvironmentDiff,
+  EnvironmentView,
+} from "@/features/variable-set/variable-set.entity"
+import { useRouter } from "@/lib/use-router"
 
 /**
- * Compares two environments key by key (names only, never values) and lets
+ * Compares two environments of one variable set key by key (names only, never values) and lets
  * someone who may read the source and change the target promote selected
  * variables from one into the other, behind a confirm step that names the keys
  * and the target.
  */
 export function EnvironmentCompare({
-  projectId,
+  setId,
   environments,
 }: {
-  projectId: string
-  environments: ProjectEnvironment[]
+  setId: string
+  environments: EnvironmentView[]
 }) {
-  const t = useTranslations("projects.environments.compare")
+  const t = useTranslations("variables.editor.compare")
+  const router = useRouter()
   const tc = useTranslations("common")
   const [open, setOpen] = useState(false)
   const [from, setFrom] = useState(
@@ -56,7 +57,7 @@ export function EnvironmentCompare({
   )
   const [to, setTo] = useState(
     () =>
-      environments.find((e) => e.name === PRODUCTION_ENVIRONMENT)?.name ??
+      environments.find((e) => e.name === "production")?.name ??
       environments[1]?.name ??
       ""
   )
@@ -80,7 +81,7 @@ export function EnvironmentCompare({
       return
     }
     setLoading(true)
-    diffEnvironmentsAction(projectId, f, t2).then((r) => {
+    diffEnvironmentsAction(setId, f, t2).then((r) => {
       if (id !== requestId.current) return
       setLoading(false)
       if (r.ok) setDiff(r.data)
@@ -158,7 +159,7 @@ export function EnvironmentCompare({
                   start(async () => {
                     setError(null)
                     const r = await promoteEnvironmentAction(
-                      projectId,
+                      setId,
                       target.id,
                       source.id,
                       selected,
@@ -173,6 +174,7 @@ export function EnvironmentCompare({
                       )
                       setConfirming(false)
                       setOpen(false)
+                      router.refresh()
                     } else setError(r.error)
                   })
                 }
@@ -288,7 +290,7 @@ function EnvSelect({
   label: string
   value: string
   onChange: (name: string) => void
-  environments: ProjectEnvironment[]
+  environments: EnvironmentView[]
   placeholder: string
 }) {
   return (
@@ -320,7 +322,7 @@ function DiffView({
   selected: string[]
   onToggle: (key: string) => void
 }) {
-  const t = useTranslations("projects.environments.compare")
+  const t = useTranslations("variables.editor.compare")
   const identical =
     diff.comparable &&
     diff.onlyInFrom.length === 0 &&

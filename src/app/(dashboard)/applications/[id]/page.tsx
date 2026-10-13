@@ -1,5 +1,5 @@
 import { getTranslations } from "next-intl/server"
-import { listProjectEnvironments } from "@/features/project/project.queries"
+import { listProjectVariableSets } from "@/features/variable-set/variable-set.queries"
 import { getProject } from "@/features/project/project.queries"
 import { SetBreadcrumb } from "@/components/custom/breadcrumb-store"
 import { SourceIcon } from "@/components/custom/brand-icon"
@@ -58,7 +58,7 @@ export default async function ApplicationPage({
   const app = await getApplication(id)
   if (!app) notFound()
   const [
-    environments,
+    variableSets,
     deployments,
     domains,
     certificates,
@@ -83,7 +83,7 @@ export default async function ApplicationPage({
     dnsConnections,
     dnsOptions,
   ] = await Promise.all([
-    listProjectEnvironments(app.projectId).catch(() => []),
+    listProjectVariableSets(app.projectId).catch(() => []),
     listDeployments(app.id),
     listDomains(app.id),
     // Names and coverage only, for the domain's certificate picker; [] on an older API.
@@ -228,7 +228,7 @@ export default async function ApplicationPage({
         alerts={alerts}
         secretConnections={secretConnections}
         servers={servers}
-        environments={environments}
+        variableSets={variableSets}
         previews={previews}
         dnsConnections={dnsConnections}
         proxyDnsEnabled={dnsOptions.proxyDnsEnabled}

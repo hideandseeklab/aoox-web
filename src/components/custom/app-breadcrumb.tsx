@@ -18,6 +18,7 @@ import { type Crumb, useBreadcrumb } from "./breadcrumb-store"
 const STATIC: Record<string, string> = {
   projects: "projects",
   templates: "templates",
+  variables: "variables",
   registry: "registry",
   terminal: "terminal",
   settings: "settings",

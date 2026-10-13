@@ -123,11 +123,16 @@
     "copyFailed": "Gagal menyalin token",
     "copyAria": "Salin token",
     "done": "Selesai",
-    "environmentsBadge": "env: {names}",
-    "envScopeLabel": "Batasi ke environment (opsional)",
-    "envCustomPlaceholder": "environment lain",
-    "envAdd": "Tambah",
-    "envScopeHelp": "Tanpa pilihan, token boleh membaca dan mengubah variabel semua environment yang boleh kamu akses. Dengan pilihan, token hanya bisa memakai environment dengan nama itu (tidak pernah lebih luas dari aksesmu sendiri). Token baca saja tetap boleh membaca variabel: pembacaan dicatat di audit log tetapi tidak mengubah apa pun."
+    "variableScopesBadge": "vars: {names}",
+    "variableScopeLabel": "Batasi ke environment variabel (opsional)",
+    "variableScopeAdd": "Tambah",
+    "variableScopeRemove": "Hapus {scope}",
+    "variableScopeInvalid": "Gunakan slug-set/environment, slug-set/* atau */environment (huruf kecil, angka, dan -).",
+    "variableScopeMax": "Paling banyak {count} entri.",
+    "variableScopeFormSet": "<code>backend/staging</code>: satu environment dari satu set",
+    "variableScopeFormAllEnvs": "<code>backend/*</code>: semua environment dari set backend",
+    "variableScopeFormAllSets": "<code>*/staging</code>: environment staging di semua set",
+    "variableScopeHelp": "Tanpa entri, token boleh membaca dan mengubah semua environment set variabel yang boleh kamu akses. Dengan entri, token hanya bisa memakai yang cocok (tidak pernah lebih luas dari aksesmu sendiri). Token baca saja tetap boleh membaca variabel: pembacaan dicatat di audit log tetapi tidak mengubah apa pun."
   },
   "members": {
     "title": "Anggota",
@@ -333,10 +338,6 @@
       "patchProjects": "Ubah project",
       "deleteProjects": "Hapus project",
       "postProjectsImport": "Impor project",
-      "postProjectsEnvironments": "Tambah environment project",
-      "postProjectsEnvironmentsReveal": "Tampilkan variabel environment",
-      "putProjectsEnvironments": "Ubah variabel environment",
-      "deleteProjectsEnvironments": "Hapus environment project",
       "postProjectsMembers": "Tambah anggota project",
       "patchProjectsMembers": "Ubah peran anggota project",
       "deleteProjectsMembers": "Keluarkan anggota project",
@@ -476,9 +477,19 @@
       "patchInstanceDomain": "Atur domain panel",
       "patchInstanceEnv": "Ubah environment instance",
       "postInstanceUpdateApply": "Terapkan update aoox",
-      "postProjectsEnvironmentsVersionsReveal": "Tampilkan versi lama variabel environment",
-      "postProjectsEnvironmentsVersionsRestore": "Pulihkan versi lama variabel environment",
-      "postProjectsEnvironmentsPromote": "Promosikan variabel environment"
+      "postVariableSets": "Buat set variabel",
+      "patchVariableSets": "Ubah set variabel",
+      "putVariableSetsSharing": "Ubah pembagian set variabel",
+      "deleteVariableSets": "Hapus set variabel",
+      "postVariableSetsEnvironments": "Tambah environment set variabel",
+      "deleteVariableSetsEnvironments": "Hapus environment set variabel",
+      "postVariableSetsEnvironmentsReveal": "Tampilkan variabel",
+      "putVariableSetsEnvironments": "Ubah variabel",
+      "postVariableSetsEnvironmentsVersionsReveal": "Tampilkan versi lama variabel",
+      "postVariableSetsEnvironmentsVersionsRestore": "Pulihkan versi lama variabel",
+      "postVariableSetsEnvironmentsPromote": "Promosikan variabel",
+      "putApplicationsVariableSets": "Ubah tautan set variabel aplikasi",
+      "putComposeAppsVariableSets": "Ubah tautan set variabel stack"
     }
   }
 }

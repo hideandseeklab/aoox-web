@@ -45,16 +45,24 @@ export const ACTION_KEY: Record<string, string> = {
   "PATCH /projects/:id": "patchProjects",
   "DELETE /projects/:id": "deleteProjects",
   "POST /projects/import": "postProjectsImport",
-  "POST /projects/:id/environments": "postProjectsEnvironments",
-  "POST /projects/:id/environments/:envId/reveal": "postProjectsEnvironmentsReveal",
-  "PUT /projects/:id/environments/:envId": "putProjectsEnvironments",
-  "DELETE /projects/:id/environments/:envId": "deleteProjectsEnvironments",
-  "POST /projects/:id/environments/:envId/versions/:versionId/reveal":
-    "postProjectsEnvironmentsVersionsReveal",
-  "POST /projects/:id/environments/:envId/versions/:versionId/restore":
-    "postProjectsEnvironmentsVersionsRestore",
-  "POST /projects/:id/environments/:envId/promote":
-    "postProjectsEnvironmentsPromote",
+  "POST /variable-sets": "postVariableSets",
+  "PATCH /variable-sets/:id": "patchVariableSets",
+  "PUT /variable-sets/:id/sharing": "putVariableSetsSharing",
+  "DELETE /variable-sets/:id": "deleteVariableSets",
+  "POST /variable-sets/:id/environments": "postVariableSetsEnvironments",
+  "DELETE /variable-sets/:id/environments/:envId":
+    "deleteVariableSetsEnvironments",
+  "POST /variable-sets/:id/environments/:envId/reveal":
+    "postVariableSetsEnvironmentsReveal",
+  "PUT /variable-sets/:id/environments/:envId": "putVariableSetsEnvironments",
+  "POST /variable-sets/:id/environments/:envId/versions/:versionId/reveal":
+    "postVariableSetsEnvironmentsVersionsReveal",
+  "POST /variable-sets/:id/environments/:envId/versions/:versionId/restore":
+    "postVariableSetsEnvironmentsVersionsRestore",
+  "POST /variable-sets/:id/environments/:envId/promote":
+    "postVariableSetsEnvironmentsPromote",
+  "PUT /applications/:id/variable-sets": "putApplicationsVariableSets",
+  "PUT /compose-apps/:id/variable-sets": "putComposeAppsVariableSets",
   "POST /projects/:id/members": "postProjectsMembers",
   "PATCH /projects/:id/members/:userId": "patchProjectsMembers",
   "DELETE /projects/:id/members/:userId": "deleteProjectsMembers",

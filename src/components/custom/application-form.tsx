@@ -43,8 +43,8 @@ import { PageTabsTrigger } from "@/components/custom/page-tabs-trigger"
 import { Network, Globe, Clock } from "lucide-react"
 import { Textarea } from "@/components/ui/textarea"
 import { EnvEditor } from "@/components/custom/env-editor"
-import { EnvironmentSelect } from "@/components/custom/environment-select"
-import type { EnvironmentOption } from "@/features/project/project-environment.entity"
+import { VariableSetLinksEditor } from "@/components/custom/variable-set-links"
+import type { ProjectVariableSet } from "@/features/variable-set/variable-set.entity"
 import { ExposedPortAlert } from "@/components/custom/exposed-port-alert"
 import { EnvRefsHint } from "@/components/custom/application-environment"
 import { ImagePickerDialog } from "@/components/custom/image-picker-dialog"
@@ -83,7 +83,7 @@ const EMPTY: Values = {
   memoryMb: "",
   deploymentKeep: "10",
   env: "",
-  environmentId: "",
+  variableSetLinks: "",
   buildArgs: "",
   buildType: "dockerfile",
   sourceType: "git",
@@ -115,7 +115,7 @@ export function ApplicationForm({
   credentials,
   databaseSlugs,
   servers = [],
-  environments = [],
+  variableSets = [],
   canLinkProtected = true,
   registries = [],
   swarmActive = false,
@@ -152,9 +152,9 @@ export function ApplicationForm({
   registries?: Registry[]
   /** Remote servers (Settings); empty = only the aoox host. */
   servers?: Server[]
-  /** Environments of the project, for the Environment select. */
-  environments?: EnvironmentOption[]
-  /** Project admins only may link to / from a protected environment. */
+  /** Create mode: variable sets shared with the project, for the optional link picker. */
+  variableSets?: ProjectVariableSet[]
+  /** Project admins only may link a protected environment. */
   canLinkProtected?: boolean
   /** Host is a swarm manager: offer deployMode 'service' + replicas. */
   swarmActive?: boolean
@@ -952,21 +952,22 @@ export function ApplicationForm({
               </Card>
             )}
 
-            {environments.length > 0 && (
+            {/* Edit mode manages links in the Environment tab (variable-set-links.tsx). */}
+            {mode === "create" && variableSets.length > 0 && (
               <Card>
                 <CardHeader>
-                  <CardTitle>{t("form.environment.title")}</CardTitle>
+                  <CardTitle>{t("form.variableSets.title")}</CardTitle>
+                  <CardDescription>
+                    {t("form.variableSets.description")}
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <FieldGroup>
-                    <EnvironmentSelect
-                      namespace="applications"
-                      environments={environments}
-                      value={v.environmentId}
-                      id="app-environment"
-                      canLinkProtected={canLinkProtected}
-                    />
-                  </FieldGroup>
+                  <VariableSetLinksEditor
+                    mode="form"
+                    namespace="application"
+                    available={variableSets}
+                    canLinkProtected={canLinkProtected}
+                  />
                 </CardContent>
               </Card>
             )}
