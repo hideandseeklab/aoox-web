@@ -20,7 +20,7 @@ export async function runCleanupAction(
       body: { registryGc, pruneVolumes },
       token: await requireToken(),
     })
-    revalidatePath("/settings")
+    revalidatePath("/infra/docker")
     return { ok: true, data }
   } catch (err) {
     return {

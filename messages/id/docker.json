@@ -64,7 +64,7 @@
     "untagged": "(tanpa tag, dangling)",
     "unused": "tidak dipakai",
     "containers": "{count} container",
-    "aooxHint": "Image milik aoox (helper, panel, atau rollback). Bersihkan lewat Disk Docker.",
+    "aooxHint": "Image milik aoox (helper, panel, atau rollback). Di host, bersihkan lewat Bersihkan sekarang di strip disk di atas halaman ini.",
     "aooxImage": "Image aoox",
     "protected": "dilindungi",
     "removeTitle": "Hapus image {name}?",
@@ -117,10 +117,37 @@
   },
   "page": {
     "loadError": "Tidak bisa membaca Docker di server ini",
-    "description": "Container, image, volume, dan network di host atau server remote. Yang dikelola aoox hanya ditampilkan; ubah lewat halaman resource-nya.",
-    "diskNote": "Pemakaian disk dan pembersihan otomatis ada di <link>Disk Docker</link>."
+    "description": "Container, image, volume, dan network di host atau server remote. Yang dikelola aoox hanya ditampilkan; ubah lewat halaman resource-nya."
   },
   "errors": {
     "serverUnreachable": "Tidak dapat terhubung ke server"
+  },
+  "disk": {
+    "parts": {
+      "image": "Image",
+      "volume": "Volume",
+      "buildCache": "Build cache",
+      "container": "Container"
+    },
+    "title": "Disk Docker",
+    "description": "{size} dipakai Docker di host ini. Pembersihan malam (04:30) menghapus deployment lama melebihi riwayat tiap aplikasi, image tak terpakai, build cache, dan blob registry yang yatim.",
+    "reclaimable": "Bisa dibebaskan sekarang:",
+    "prunable": "{count} deployment lama akan dipangkas",
+    "orphans": "{count} volume yatim (nama seperti milik aoox, tapi tidak ada lagi project/aplikasi yang punya) — hanya dihapus kalau \"Sekalian hapus volume yatim\" dicentang:",
+    "cleaning": "Membersihkan…",
+    "cleanNow": "Bersihkan sekarang",
+    "registryGc": "Sekalian GC registry lokal",
+    "pruneVolumes": "Sekalian hapus volume yatim",
+    "last": "Terakhir {date}: {deployments} deployment, {images} image, {dangling} dangling, {reclaimed} dibebaskan, registry GC {registryGc}, cache BuildKit {buildkit}",
+    "lastVolumes": "{count} volume yatim dihapus",
+    "errors": "{count} error",
+    "canFree": "<mono>{size}</mono> bisa dibebaskan",
+    "details": "Detail",
+    "close": "Tutup",
+    "loadError": "Tidak bisa membaca pemakaian disk",
+    "confirm": {
+      "title": "Bersihkan disk Docker sekarang?",
+      "description": "Menghapus deployment lama melebihi riwayat tiap aplikasi, image tak terpakai, dan build cache.{registryGc, select, yes { Registry lokal juga di-garbage collect.} other {}}{volumes, plural, =0 {} other { # volume yatim ikut dihapus beserta datanya.}} Aplikasi yang berjalan tidak disentuh. Bisa memakan waktu sekitar satu menit."
+    }
   }
 }

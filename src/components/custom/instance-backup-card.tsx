@@ -1,6 +1,16 @@
 "use client"
 
-import { Archive, Cloud, Download, RotateCcw, Trash2, Upload } from "lucide-react"
+import {
+  Archive,
+  CircleCheck,
+  CircleMinus,
+  Cloud,
+  Download,
+  RotateCcw,
+  Trash2,
+  TriangleAlert,
+  Upload,
+} from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useState, useTransition } from "react"
 import { EmptyState } from "@/components/custom/empty-state"
@@ -47,6 +57,15 @@ import type {
 import { formatDateTime } from "@/i18n/format"
 import { useLocale, useTranslations } from "next-intl"
 
+const INCLUDED = [
+  "accounts",
+  "projects",
+  "variables",
+  "integrations",
+  "history",
+] as const
+const EXCLUDED = ["databases", "volumes", "runtime", "proxy", "keys"] as const
+
 const PRESETS: { labelKey: string; cron: string }[] = [
   { labelKey: "off", cron: "off" },
   { labelKey: "daily", cron: "0 1 * * *" },
@@ -66,6 +85,8 @@ function formatBytes(n: string | null) {
  * Snapshot of the panel's own database (projects, apps, users, servers,
  * settings — secrets stay encrypted). Restore replaces everything, so it
  * sits behind a confirm dialog and shows the API's warnings afterwards.
+ * Two columns at `lg` (same grid as the project page): the backup card on
+ * the left, the schedule card on the right; stacked below `lg`.
  */
 export function InstanceBackupCard({
   backups,
@@ -81,6 +102,7 @@ export function InstanceBackupCard({
   const router = useRouter()
   const [pending, start] = useTransition()
   const [error, setError] = useState<string | null>(null)
+  const [scheduleError, setScheduleError] = useState<string | null>(null)
   const [report, setReport] = useState<RestoreReport | null>(null)
   const [confirm, setConfirm] = useState<InstanceBackup | null>(null)
   const [uploadOpen, setUploadOpen] = useState(false)
@@ -103,6 +125,19 @@ export function InstanceBackupCard({
       if (!r.ok) setError(r.error ?? t("failed"))
     })
 
+  const saveSchedule = () =>
+    start(async () => {
+      setScheduleError(null)
+      const r = await updateInstanceBackupSettingsAction({
+        backupCron: effectiveCron || null,
+        backupKeep: Math.max(1, Number(keep) || 1),
+        destinationId: destination === "local" ? null : destination,
+      })
+      if (!r.ok) setScheduleError(r.error ?? t("failed"))
+    })
+
+  const code = (c: React.ReactNode) => <code>{c}</code>
+
   const finishRestore = (r: RestoreReport) => {
     setConfirm(null)
     setUploadOpen(false)
@@ -111,292 +146,338 @@ export function InstanceBackupCard({
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{t("title")}</CardTitle>
-        <CardDescription>
-          {t.rich("description", { code: (c) => <code>{c}</code> })}
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="flex flex-wrap gap-2">
-          <Button
-            size="sm"
-            disabled={pending}
-            onClick={() => run(createInstanceBackupAction)}
-          >
-            {t("backupNow")}
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            disabled={pending}
-            onClick={() => setUploadOpen(true)}
-          >
-            <Upload data-icon="inline-start" />
-            {t("restoreFromFile")}
-          </Button>
-        </div>
-
-        {backups.length === 0 ? (
-          <EmptyState icon={Archive} compact>
-            {t("empty")}
-          </EmptyState>
-        ) : (
-          <ul className="divide-y rounded-md border text-xs">
-            {backups.map((b) => (
-              <li key={b.id} className="flex items-center gap-2 px-3 py-2">
-                <div className="min-w-0 flex-1">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span>
-                      {formatDateTime(b.createdAt, locale, {
-                        dateStyle: "medium",
-                        timeStyle: "short",
-                      })}
-                    </span>
-                    <Badge
-                      variant={
-                        b.status === "success" ? "secondary" : "destructive"
-                      }
-                    >
-                      {b.status}
-                    </Badge>
-                    {b.trigger === "scheduled" && (
-                      <Badge variant="outline">{t("scheduled")}</Badge>
-                    )}
-                    {b.remoteKey && (
-                      <Cloud
-                        className="size-3.5 text-muted-foreground"
-                        aria-label={t("copiedToS3")}
-                      />
-                    )}
-                    {!b.local && b.status === "success" && (
-                      <Badge variant="outline">{t("onlyOnS3")}</Badge>
-                    )}
-                  </div>
-                  <p className="truncate text-xs text-muted-foreground tabular-nums">
-                    {formatBytes(b.sizeBytes)} · {t("rows", { count: b.rowCount })} ·{" "}
-                    {b.schemaVersion ?? "?"}
-                    {b.errorMessage && ` · ${b.errorMessage}`}
-                  </p>
-                </div>
-                {b.status === "success" && (
-                  <>
-                    <Button
-                      asChild
-                      variant="ghost"
-                      size="icon-sm"
-                      aria-label={t("download")}
-                    >
-                      <a href={`/api/instance-backups/${b.id}/download`}>
-                        <Download />
-                      </a>
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon-sm"
-                      aria-label={t("restore")}
-                      disabled={pending}
-                      onClick={() => setConfirm(b)}
-                    >
-                      <RotateCcw />
-                    </Button>
-                  </>
-                )}
-                <Button
-                  variant="ghost"
-                  size="icon-sm"
-                  aria-label={t("delete")}
-                  disabled={pending}
-                  onClick={() => run(() => deleteInstanceBackupAction(b.id))}
-                >
-                  <Trash2 />
-                </Button>
-              </li>
-            ))}
-          </ul>
-        )}
-
-        <form
-          className="flex flex-wrap items-end gap-3"
-          onSubmit={(e) => {
-            e.preventDefault()
-            run(() =>
-              updateInstanceBackupSettingsAction({
-                backupCron: effectiveCron || null,
-                backupKeep: Math.max(1, Number(keep) || 1),
-                destinationId: destination === "local" ? null : destination,
-              })
-            )
-          }}
-        >
-          <div className="space-y-1">
-            <Label htmlFor="ib-preset">{t("schedule")}</Label>
-            <Select value={mode} onValueChange={setMode}>
-              <SelectTrigger id="ib-preset" className="w-56">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent position="popper">
-                {PRESETS.map((p) => (
-                  <SelectItem key={p.cron} value={p.cron}>
-                    {t(`presets.${p.labelKey}`)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          {mode === "custom" && (
-            <div className="space-y-1">
-              <Label htmlFor="ib-cron">{t("cron")}</Label>
-              <Input
-                id="ib-cron"
-                value={customCron}
-                onChange={(e) => setCustomCron(e.target.value)}
-                placeholder="30 1 * * *"
-                className="w-40 font-mono"
-              />
-            </div>
-          )}
-          <div className="space-y-1">
-            <Label htmlFor="ib-keep">{t("keep")}</Label>
-            <Input
-              id="ib-keep"
-              type="number"
-              min={1}
-              max={365}
-              value={keep}
-              onChange={(e) => setKeep(e.target.value)}
-              className="w-24"
-            />
-          </div>
-          <div className="space-y-1">
-            <Label htmlFor="ib-dest">{t("destination")}</Label>
-            <Select value={destination} onValueChange={setDestination}>
-              <SelectTrigger id="ib-dest" className="w-56">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent position="popper">
-                <SelectItem value="local">{t("localOnly")}</SelectItem>
-                {destinations.map((d) => (
-                  <SelectItem key={d.id} value={d.id}>
-                    {d.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <Button type="submit" variant="outline" disabled={pending}>
-            {t("saveSchedule")}
-          </Button>
-        </form>
-
-        {error && (
-          <p className="text-xs text-destructive" role="alert">
-            {error}
-          </p>
-        )}
-        {report && (
-          <Alert>
-            <AlertTitle>
-              {t("restoreDone", { rows: report.rows, tables: report.tables })}
-            </AlertTitle>
-            <AlertDescription>
-              <ul className="list-disc space-y-1 ps-4">
-                {report.warnings.map((w) => (
-                  <li key={w}>{w}</li>
+    <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_400px] lg:items-start">
+      <Card className="min-w-0">
+        <CardHeader>
+          <CardTitle>{t("title")}</CardTitle>
+          <CardDescription>{t("description")}</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid gap-3 rounded-lg border p-3 sm:grid-cols-2">
+            <div className="min-w-0 space-y-1.5">
+              <p className="flex items-center gap-1.5 text-xs font-medium">
+                <CircleCheck className="size-3.5 text-primary" />
+                {t("included.title")}
+              </p>
+              <ul className="list-disc space-y-1 ps-5 text-xs text-muted-foreground">
+                {INCLUDED.map((k) => (
+                  <li key={k}>{t(`included.${k}`)}</li>
                 ))}
               </ul>
+              <p className="ps-5 text-xs text-muted-foreground">
+                {t("included.encrypted")}
+              </p>
+            </div>
+            <div className="min-w-0 space-y-1.5">
+              <p className="flex items-center gap-1.5 text-xs font-medium">
+                <CircleMinus className="size-3.5 text-muted-foreground" />
+                {t("excluded.title")}
+              </p>
+              <ul className="list-disc space-y-1 ps-5 text-xs text-muted-foreground">
+                {EXCLUDED.map((k) => (
+                  <li key={k}>{t.rich(`excluded.${k}`, { code })}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+
+          <Alert className="border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-400">
+            <TriangleAlert />
+            <AlertDescription className="text-amber-700/90 dark:text-amber-400/90">
+              {t.rich("keepKeys", { code })}
             </AlertDescription>
           </Alert>
-        )}
-      </CardContent>
 
-      <Dialog
-        open={confirm !== null}
-        onOpenChange={(o) => !o && setConfirm(null)}
-      >
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>{t("confirm.title")}</DialogTitle>
-            <DialogDescription>
-              {t("confirm.description", {
-                date: confirm
-                  ? formatDateTime(confirm.createdAt, locale, {
-                      dateStyle: "medium",
-                      timeStyle: "short",
-                    })
-                  : "",
-              })}
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setConfirm(null)}>
-              {t("cancel")}
+          {backups.length === 0 ? (
+            <EmptyState icon={Archive} compact>
+              {t("empty")}
+            </EmptyState>
+          ) : (
+            <ul className="divide-y rounded-md border text-xs">
+              {backups.map((b) => (
+                <li key={b.id} className="flex items-center gap-2 px-3 py-2">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span>
+                        {formatDateTime(b.createdAt, locale, {
+                          dateStyle: "medium",
+                          timeStyle: "short",
+                        })}
+                      </span>
+                      <Badge
+                        variant={
+                          b.status === "success" ? "secondary" : "destructive"
+                        }
+                      >
+                        {b.status}
+                      </Badge>
+                      {b.trigger === "scheduled" && (
+                        <Badge variant="outline">{t("scheduled")}</Badge>
+                      )}
+                      {b.remoteKey && (
+                        <Cloud
+                          className="size-3.5 text-muted-foreground"
+                          aria-label={t("copiedToS3")}
+                        />
+                      )}
+                      {!b.local && b.status === "success" && (
+                        <Badge variant="outline">{t("onlyOnS3")}</Badge>
+                      )}
+                    </div>
+                    <p className="truncate text-xs text-muted-foreground tabular-nums">
+                      {formatBytes(b.sizeBytes)} ·{" "}
+                      {t("rows", { count: b.rowCount })} ·{" "}
+                      {b.schemaVersion ?? "?"}
+                      {b.errorMessage && ` · ${b.errorMessage}`}
+                    </p>
+                  </div>
+                  {b.status === "success" && (
+                    <>
+                      <Button
+                        asChild
+                        variant="ghost"
+                        size="icon-sm"
+                        aria-label={t("download")}
+                      >
+                        <a href={`/api/instance-backups/${b.id}/download`}>
+                          <Download />
+                        </a>
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        aria-label={t("restore")}
+                        disabled={pending}
+                        onClick={() => setConfirm(b)}
+                      >
+                        <RotateCcw />
+                      </Button>
+                    </>
+                  )}
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    aria-label={t("delete")}
+                    disabled={pending}
+                    onClick={() => run(() => deleteInstanceBackupAction(b.id))}
+                  >
+                    <Trash2 />
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          <div className="flex flex-wrap justify-end gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={pending}
+              onClick={() => setUploadOpen(true)}
+            >
+              <Upload data-icon="inline-start" />
+              {t("restoreFromFile")}
             </Button>
             <Button
-              variant="destructive"
+              size="sm"
               disabled={pending}
-              onClick={() =>
-                confirm &&
+              onClick={() => run(createInstanceBackupAction)}
+            >
+              {t("backupNow")}
+            </Button>
+          </div>
+
+          {error && (
+            <p className="text-right text-xs text-destructive" role="alert">
+              {error}
+            </p>
+          )}
+          {report && (
+            <Alert>
+              <AlertTitle>
+                {t("restoreDone", { rows: report.rows, tables: report.tables })}
+              </AlertTitle>
+              <AlertDescription>
+                <ul className="list-disc space-y-1 ps-4">
+                  {report.warnings.map((w) => (
+                    <li key={w}>{w}</li>
+                  ))}
+                </ul>
+              </AlertDescription>
+            </Alert>
+          )}
+        </CardContent>
+
+        <Dialog
+          open={confirm !== null}
+          onOpenChange={(o) => !o && setConfirm(null)}
+        >
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>{t("confirm.title")}</DialogTitle>
+              <DialogDescription>
+                {t("confirm.description", {
+                  date: confirm
+                    ? formatDateTime(confirm.createdAt, locale, {
+                        dateStyle: "medium",
+                        timeStyle: "short",
+                      })
+                    : "",
+                })}
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setConfirm(null)}>
+                {t("cancel")}
+              </Button>
+              <Button
+                variant="destructive"
+                disabled={pending}
+                onClick={() =>
+                  confirm &&
+                  start(async () => {
+                    setError(null)
+                    const r = await restoreInstanceBackupAction(confirm.id)
+                    if (r.ok) finishRestore(r.data)
+                    else {
+                      setConfirm(null)
+                      setError(r.error)
+                    }
+                  })
+                }
+              >
+                {pending ? t("restoring") : t("restore")}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={uploadOpen} onOpenChange={setUploadOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>{t("upload.title")}</DialogTitle>
+              <DialogDescription>
+                {t.rich("upload.description", {
+                  code: (c) => <code>{c}</code>,
+                })}
+              </DialogDescription>
+            </DialogHeader>
+            <form
+              className="space-y-4"
+              onSubmit={(e) => {
+                e.preventDefault()
+                const fd = new FormData(e.currentTarget)
                 start(async () => {
                   setError(null)
-                  const r = await restoreInstanceBackupAction(confirm.id)
+                  const r = await restoreInstanceUploadAction(fd)
                   if (r.ok) finishRestore(r.data)
                   else {
-                    setConfirm(null)
+                    setUploadOpen(false)
                     setError(r.error)
                   }
                 })
-              }
+              }}
             >
-              {pending ? t("restoring") : t("restore")}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+              <div className="space-y-1.5">
+                <Label htmlFor="ib-file">{t("upload.file")}</Label>
+                <Input
+                  id="ib-file"
+                  name="file"
+                  type="file"
+                  accept=".gz,application/gzip"
+                  required
+                />
+              </div>
+              <DialogFooter>
+                <Button type="submit" variant="destructive" disabled={pending}>
+                  {pending ? t("restoring") : t("restore")}
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
+      </Card>
 
-      <Dialog open={uploadOpen} onOpenChange={setUploadOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>{t("upload.title")}</DialogTitle>
-            <DialogDescription>
-              {t.rich("upload.description", { code: (c) => <code>{c}</code> })}
-            </DialogDescription>
-          </DialogHeader>
+      <Card className="min-w-0">
+        <CardHeader>
+          <CardTitle>{t("schedule")}</CardTitle>
+          <CardDescription>{t("scheduleDescription")}</CardDescription>
+        </CardHeader>
+        <CardContent>
           <form
             className="space-y-4"
             onSubmit={(e) => {
               e.preventDefault()
-              const fd = new FormData(e.currentTarget)
-              start(async () => {
-                setError(null)
-                const r = await restoreInstanceUploadAction(fd)
-                if (r.ok) finishRestore(r.data)
-                else {
-                  setUploadOpen(false)
-                  setError(r.error)
-                }
-              })
+              saveSchedule()
             }}
           >
             <div className="space-y-1.5">
-              <Label htmlFor="ib-file">{t("upload.file")}</Label>
+              <Label htmlFor="ib-preset">{t("schedule")}</Label>
+              <Select value={mode} onValueChange={setMode}>
+                <SelectTrigger id="ib-preset" className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent position="popper">
+                  {PRESETS.map((p) => (
+                    <SelectItem key={p.cron} value={p.cron}>
+                      {t(`presets.${p.labelKey}`)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            {mode === "custom" && (
+              <div className="space-y-1.5">
+                <Label htmlFor="ib-cron">{t("cron")}</Label>
+                <Input
+                  id="ib-cron"
+                  value={customCron}
+                  onChange={(e) => setCustomCron(e.target.value)}
+                  placeholder="30 1 * * *"
+                  className="font-mono"
+                />
+              </div>
+            )}
+            <div className="space-y-1.5">
+              <Label htmlFor="ib-keep">{t("keep")}</Label>
               <Input
-                id="ib-file"
-                name="file"
-                type="file"
-                accept=".gz,application/gzip"
-                required
+                id="ib-keep"
+                type="number"
+                min={1}
+                max={365}
+                value={keep}
+                onChange={(e) => setKeep(e.target.value)}
               />
             </div>
-            <DialogFooter>
-              <Button type="submit" variant="destructive" disabled={pending}>
-                {pending ? t("restoring") : t("restore")}
+            <div className="space-y-1.5">
+              <Label htmlFor="ib-dest">{t("destination")}</Label>
+              <Select value={destination} onValueChange={setDestination}>
+                <SelectTrigger id="ib-dest" className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent position="popper">
+                  <SelectItem value="local">{t("localOnly")}</SelectItem>
+                  {destinations.map((d) => (
+                    <SelectItem key={d.id} value={d.id}>
+                      {d.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex justify-end">
+              <Button type="submit" size="sm" disabled={pending}>
+                {t("saveSchedule")}
               </Button>
-            </DialogFooter>
+            </div>
+            {scheduleError && (
+              <p className="text-right text-xs text-destructive" role="alert">
+                {scheduleError}
+              </p>
+            )}
           </form>
-        </DialogContent>
-      </Dialog>
-    </Card>
+        </CardContent>
+      </Card>
+    </div>
   )
 }

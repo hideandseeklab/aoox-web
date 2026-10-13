@@ -16,7 +16,6 @@
   "remoteServers": "Server remote",
   "sshKey": "Akses terminal",
   "dockerSwarm": "Docker Swarm",
-  "dockerDisk": "Disk Docker",
   "instanceBackup": "Backup instance",
   "panelDomain": "Domain panel",
   "updateAoox": "Perbarui aoox",

@@ -20,7 +20,7 @@ import {
 import type { DockerVolume } from "@/features/docker/docker.entity"
 import { formatBytes } from "@/features/monitoring/monitoring.entity"
 
-/** Volumes of the chosen server, read only (removal stays in Disk Docker for aoox's orphans). */
+/** Volumes of the chosen server, read only (aoox's orphans are removed by the disk cleanup at the top of the page). */
 export function DockerVolumes({ volumes }: { volumes: DockerVolume[] }) {
   const t = useTranslations("docker")
   const ago = useAgo()

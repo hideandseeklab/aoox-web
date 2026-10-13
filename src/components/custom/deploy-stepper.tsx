@@ -67,7 +67,10 @@ export function DeployStepper({
       className="flex flex-wrap items-start gap-x-5 gap-y-2 rounded-md border px-3 py-2 text-xs"
     >
       {steps.map((s) => (
-        <li key={s.key} className="flex items-center gap-2">
+        // Icons align to the label's first line (the label line is as tall as
+        // the icon), so every icon sits on one line whether or not a duration
+        // line follows.
+        <li key={s.key} className="flex items-start gap-2">
           <span
             className={`flex size-5 shrink-0 items-center justify-center rounded-full ${ICON_CLASS[s.state]}`}
           >
@@ -83,17 +86,17 @@ export function DeployStepper({
               <Circle className="size-1.5 fill-current" aria-hidden />
             )}
           </span>
-          <span className="leading-tight">
+          <span>
             <span
-              className={
+              className={`block leading-5 ${
                 s.state === "pending" ? "text-muted-foreground" : "font-medium"
-              }
+              }`}
             >
               {t(`stepper.steps.${s.labelKey}`)}
               <span className="sr-only"> ({t(`stepper.state.${s.state}`)})</span>
             </span>
             {s.durationMs !== null && (
-              <span className="block text-muted-foreground tabular-nums">
+              <span className="block leading-tight text-muted-foreground tabular-nums">
                 {formatDuration(s.durationMs, locale, t)}
               </span>
             )}

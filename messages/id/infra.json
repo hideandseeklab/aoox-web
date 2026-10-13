@@ -1,24 +1,4 @@
 {
-  "disk": {
-    "parts": {
-      "image": "Image",
-      "volume": "Volume",
-      "buildCache": "Build cache",
-      "container": "Container"
-    },
-    "title": "Disk Docker",
-    "description": "{size} dipakai Docker di host ini. Pembersihan malam (04:30) menghapus deployment lama melebihi riwayat tiap aplikasi, image tak terpakai, build cache, dan blob registry yang yatim.",
-    "reclaimable": "Bisa dibebaskan sekarang:",
-    "prunable": "{count} deployment lama akan dipangkas",
-    "orphans": "{count} volume yatim (nama seperti milik aoox, tapi tidak ada lagi project/aplikasi yang punya) — hanya dihapus kalau \"Sekalian hapus volume yatim\" dicentang:",
-    "cleaning": "Membersihkan…",
-    "cleanNow": "Bersihkan sekarang",
-    "registryGc": "Sekalian GC registry lokal",
-    "pruneVolumes": "Sekalian hapus volume yatim",
-    "last": "Terakhir {date}: {deployments} deployment, {images} image, {dangling} dangling, {reclaimed} dibebaskan, registry GC {registryGc}, cache BuildKit {buildkit}",
-    "lastVolumes": "{count} volume yatim dihapus",
-    "errors": "{count} error"
-  },
   "env": {
     "saved": "Disimpan — API akan restart sebentar untuk menerapkannya",
     "title": "Environment",
@@ -59,7 +39,26 @@
   "instanceBackup": {
     "failed": "Gagal",
     "title": "Backup instance",
-    "description": "Snapshot database panel ini (project, aplikasi, user, server, notifikasi — rahasia tetap terenkripsi). Untuk pindah server: pasang aoox versi sama dengan <code>ENCRYPTION_KEY</code> dan <code>JWT_SECRET</code> yang sama, lalu unggah file ini.",
+    "description": "Mem-backup panel aoox itu sendiri: database miliknya beserta semua pengaturan dan catatannya. Data aplikasi Anda tidak ikut di-backup.",
+    "included": {
+      "title": "Termasuk",
+      "accounts": "User, anggota, undangan, dan API token",
+      "projects": "Project serta definisi aplikasi, stack, dan database (domain, mount, job, jadwal backup)",
+      "variables": "Variable set beserta nilai dan riwayatnya",
+      "integrations": "Registry, kredensial git, server, notifikasi, tujuan S3, koneksi DNS dan Infisical, sertifikat SSL, file konfigurasi Traefik",
+      "history": "Riwayat deployment dan audit log",
+      "encrypted": "Rahasia tetap terenkripsi."
+    },
+    "excluded": {
+      "title": "Tidak termasuk",
+      "databases": "Isi database terkelola: gunakan backup di masing-masing database",
+      "volumes": "Isi volume aplikasi: gunakan backup volume di tab Mount",
+      "runtime": "Image registry dan container yang berjalan",
+      "proxy": "File sertifikat dan konfigurasi proxy: simpan ulang setelah restore",
+      "keys": "<code>ENCRYPTION_KEY</code> dan <code>JWT_SECRET</code> dari <code>.env.dist</code>"
+    },
+    "keepKeys": "Simpan sendiri <code>ENCRYPTION_KEY</code> dan <code>JWT_SECRET</code>: tanpa <code>ENCRYPTION_KEY</code> yang sama, kredensial hasil restore tidak bisa didekripsi. Restore membutuhkan versi aoox yang persis sama dan tidak menyentuh container yang berjalan.",
+    "scheduleDescription": "Backup otomatis. Hanya backup terjadwal yang melebihi jumlah simpan yang dihapus.",
     "backupNow": "Backup sekarang",
     "restoreFromFile": "Restore dari file",
     "empty": "Belum ada backup.",
@@ -119,11 +118,6 @@
       "metadata": "Backup instance · aoox",
       "title": "Backup instance",
       "description": "Snapshot database panel ini untuk pindah server atau pemulihan."
-    },
-    "disk": {
-      "metadata": "Disk Docker · aoox",
-      "title": "Disk Docker",
-      "description": "Pemakaian disk oleh image, volume, container, dan build cache; pembersihan manual atau malam hari."
     },
     "domain": {
       "metadata": "Domain panel · aoox",

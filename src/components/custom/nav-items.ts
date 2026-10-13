@@ -8,7 +8,6 @@ import {
   FolderKanban,
   GitBranch,
   Globe,
-  HardDrive,
   KeyRound,
   LayoutDashboard,
   LayoutTemplate,
@@ -70,7 +69,6 @@ export const INFRA_NAV: NavItem[] = [
   },
   { key: "sshKey", href: "/infra/terminal", icon: KeyRound, manage: true },
   { key: "dockerSwarm", href: "/infra/swarm", icon: Workflow, manage: true },
-  { key: "dockerDisk", href: "/infra/disk", icon: HardDrive, manage: true },
   {
     key: "instanceBackup",
     href: "/infra/backup",

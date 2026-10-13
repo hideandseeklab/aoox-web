@@ -1,24 +1,4 @@
 {
-  "disk": {
-    "parts": {
-      "image": "Image",
-      "volume": "Volume",
-      "buildCache": "Build cache",
-      "container": "Container"
-    },
-    "title": "Docker disk",
-    "description": "{size} used by Docker on this host. The nightly cleanup (04:30) removes old deployments beyond each application's history, unused images, build cache and orphaned registry blobs.",
-    "reclaimable": "Can be freed now:",
-    "prunable": "{count, plural, one {# old deployment will be pruned} other {# old deployments will be pruned}}",
-    "orphans": "{count, plural, one {# orphan volume} other {# orphan volumes}} (named like aoox's, but no project/application owns it anymore) — only deleted if \"Also delete orphan volumes\" is checked:",
-    "cleaning": "Cleaning…",
-    "cleanNow": "Clean now",
-    "registryGc": "Also GC the local registry",
-    "pruneVolumes": "Also delete orphan volumes",
-    "last": "Last run {date}: {deployments, plural, one {# deployment} other {# deployments}}, {images, plural, one {# image} other {# images}}, {dangling} dangling, {reclaimed} freed, registry GC {registryGc}, BuildKit cache {buildkit}",
-    "lastVolumes": "{count, plural, one {# orphan volume deleted} other {# orphan volumes deleted}}",
-    "errors": "{count, plural, one {# error} other {# errors}}"
-  },
   "env": {
     "saved": "Saved — the API will restart briefly to apply it",
     "title": "Environment",
@@ -59,7 +39,26 @@
   "instanceBackup": {
     "failed": "Failed",
     "title": "Instance backup",
-    "description": "A snapshot of this panel's database (projects, applications, users, servers, notifications — secrets stay encrypted). To move servers: install the same aoox version with the same <code>ENCRYPTION_KEY</code> and <code>JWT_SECRET</code>, then upload this file.",
+    "description": "Backs up the aoox panel itself: its own database with every setting and record. It does not back up your applications' data.",
+    "included": {
+      "title": "Included",
+      "accounts": "Users, members, invitations and API tokens",
+      "projects": "Projects and the definitions of applications, stacks and databases (domains, mounts, jobs, backup schedules)",
+      "variables": "Variable sets with their values and history",
+      "integrations": "Registries, git credentials, servers, notifications, S3 destinations, DNS and Infisical connections, SSL certificates, Traefik config files",
+      "history": "Deployment history and the audit log",
+      "encrypted": "Secrets stay encrypted."
+    },
+    "excluded": {
+      "title": "Not included",
+      "databases": "Managed database contents: use each database's backups",
+      "volumes": "Application volume contents: use volume backups in the Mounts tab",
+      "runtime": "Registry images and running containers",
+      "proxy": "The proxy's certificate and config files: save them again after a restore",
+      "keys": "<code>ENCRYPTION_KEY</code> and <code>JWT_SECRET</code> from <code>.env.dist</code>"
+    },
+    "keepKeys": "Keep <code>ENCRYPTION_KEY</code> and <code>JWT_SECRET</code> yourself: without the same <code>ENCRYPTION_KEY</code>, the restored credentials cannot be decrypted. A restore needs the exact same aoox version and does not touch running containers.",
+    "scheduleDescription": "Automatic backups. Only scheduled backups beyond the keep count are removed.",
     "backupNow": "Back up now",
     "restoreFromFile": "Restore from file",
     "empty": "No backups yet.",
@@ -119,11 +118,6 @@
       "metadata": "Instance backup · aoox",
       "title": "Instance backup",
       "description": "A snapshot of this panel's database for moving servers or recovery."
-    },
-    "disk": {
-      "metadata": "Docker disk · aoox",
-      "title": "Docker disk",
-      "description": "Disk usage by images, volumes, containers and build cache; manual or nightly cleanup."
     },
     "domain": {
       "metadata": "Panel domain · aoox",

@@ -64,7 +64,7 @@
     "untagged": "(untagged, dangling)",
     "unused": "not in use",
     "containers": "{count, plural, one {# container} other {# containers}}",
-    "aooxHint": "An aoox image (helper, panel, or rollback). Clean it up from Docker Disk.",
+    "aooxHint": "An aoox image (helper, panel, or rollback). On the host, clean it up with Clean now in the disk strip at the top of this page.",
     "aooxImage": "aoox image",
     "protected": "protected",
     "removeTitle": "Delete image {name}?",
@@ -117,10 +117,37 @@
   },
   "page": {
     "loadError": "Cannot read Docker on this server",
-    "description": "Containers, images, volumes, and networks on the host or a remote server. Things managed by aoox are only displayed; change them from their resource page.",
-    "diskNote": "Disk usage and automatic cleanup are in <link>Docker Disk</link>."
+    "description": "Containers, images, volumes, and networks on the host or a remote server. Things managed by aoox are only displayed; change them from their resource page."
   },
   "errors": {
     "serverUnreachable": "Cannot connect to the server"
+  },
+  "disk": {
+    "parts": {
+      "image": "Image",
+      "volume": "Volume",
+      "buildCache": "Build cache",
+      "container": "Container"
+    },
+    "title": "Docker disk",
+    "description": "{size} used by Docker on this host. The nightly cleanup (04:30) removes old deployments beyond each application's history, unused images, build cache and orphaned registry blobs.",
+    "reclaimable": "Can be freed now:",
+    "prunable": "{count, plural, one {# old deployment will be pruned} other {# old deployments will be pruned}}",
+    "orphans": "{count, plural, one {# orphan volume} other {# orphan volumes}} (named like aoox's, but no project/application owns it anymore) — only deleted if \"Also delete orphan volumes\" is checked:",
+    "cleaning": "Cleaning…",
+    "cleanNow": "Clean now",
+    "registryGc": "Also GC the local registry",
+    "pruneVolumes": "Also delete orphan volumes",
+    "last": "Last run {date}: {deployments, plural, one {# deployment} other {# deployments}}, {images, plural, one {# image} other {# images}}, {dangling} dangling, {reclaimed} freed, registry GC {registryGc}, BuildKit cache {buildkit}",
+    "lastVolumes": "{count, plural, one {# orphan volume deleted} other {# orphan volumes deleted}}",
+    "errors": "{count, plural, one {# error} other {# errors}}",
+    "canFree": "<mono>{size}</mono> can be freed",
+    "details": "Details",
+    "close": "Close",
+    "loadError": "Could not read the disk usage",
+    "confirm": {
+      "title": "Clean up Docker disk now?",
+      "description": "Removes old deployments beyond each application's history, unused images and build cache.{registryGc, select, yes { The local registry is garbage-collected too.} other {}}{volumes, plural, =0 {} one { # orphan volume is deleted with its data.} other { # orphan volumes are deleted with their data.}} Running applications are not touched. It can take about a minute."
+    }
   }
 }

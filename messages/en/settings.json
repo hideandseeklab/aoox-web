@@ -1,6 +1,6 @@
 {
   "title": "Settings",
-  "description": "Account and team. Host components (proxy, servers, swarm, disk) live in the Infrastructure group.",
+  "description": "Account and team. Host components (proxy, servers, swarm) live in the Infrastructure group.",
   "tabs": {
     "account": "Account",
     "team": "Team"

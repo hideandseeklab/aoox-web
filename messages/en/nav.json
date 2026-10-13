@@ -16,7 +16,6 @@
   "remoteServers": "Remote servers",
   "sshKey": "Terminal access",
   "dockerSwarm": "Docker Swarm",
-  "dockerDisk": "Docker disk",
   "instanceBackup": "Instance backup",
   "panelDomain": "Panel domain",
   "updateAoox": "Update aoox",

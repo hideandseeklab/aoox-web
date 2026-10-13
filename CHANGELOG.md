@@ -28,7 +28,10 @@ Versions below 1.0.0 may include breaking changes in a minor release.
 
 ### UI UX Improvement
 
+- **Docker disk moved into the Docker page.** With the host selected, a compact strip under the title shows Docker usage and what can be freed, with **Details** (breakdown, orphan volumes, cleanup options, last report) and **Clean now** (owner, now with a confirmation); the separate Infrastructure page and its sidebar item are gone, and `/infra/disk` redirects to `/infra/docker`.
+- **Instance backup page.** The card now explains that it backs up the aoox panel itself (an "Included / Not included" block and a warning to keep `ENCRYPTION_KEY`/`JWT_SECRET` and use the same version), "Restore from file" and "Back up now" sit right-aligned at the bottom, and the schedule moved into its own **Schedule** card in a right column (stacked on small screens).
 - **aoox update card.** The "Check for updates" and "Apply update" buttons now sit right-aligned under the image list (Apply update rightmost), with the check error line right-aligned beneath them.
+- **Deploy stepper icons on one line.** The step icons now align with the first line of their label, so "Done" (which has no duration under it) sits level with the other steps.
 - **Panel domain card.** "Save & apply" sits right-aligned, and the currently installed addresses are shown in a bordered block with one labelled row each for the dashboard and API URL (monospace links that truncate instead of running together on small screens).
 - **Variables list and set page.** Set cards in a responsive grid (name, mono slug, sharing line with a globe or folder icon, environment badges with a lock for protected ones, usage and your role in the footer) and an illustrated empty state; the set page follows the project page layout (environments on the left, Details, Sharing and Danger zone on the right).
 - **Saving over a newer edit is easier to recover from.** When an environment changed since you revealed it, the error box in the editor has a **Load latest** button that loads the current text instead of asking you to cancel and reveal again.

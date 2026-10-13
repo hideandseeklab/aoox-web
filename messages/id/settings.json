@@ -1,6 +1,6 @@
 {
   "title": "Pengaturan",
-  "description": "Akun dan tim. Komponen host (proxy, server, swarm, disk) ada di grup Infrastruktur.",
+  "description": "Akun dan tim. Komponen host (proxy, server, swarm) ada di grup Infrastruktur.",
   "tabs": {
     "account": "Akun",
     "team": "Tim"

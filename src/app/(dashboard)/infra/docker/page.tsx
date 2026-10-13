@@ -1,15 +1,13 @@
 import { getTranslations } from "next-intl/server"
-import Link from "next/link"
 import { notFound } from "next/navigation"
-import { LinkArrow } from "@/components/custom/arrows"
 import { SetBreadcrumb } from "@/components/custom/breadcrumb-store"
 import { DockerContainers } from "@/components/custom/docker-containers"
+import { DockerDiskStrip } from "@/components/custom/docker-disk-strip"
 import { DockerImages } from "@/components/custom/docker-images"
 import { DockerNetworks } from "@/components/custom/docker-networks"
 import { DockerToolbar } from "@/components/custom/docker-toolbar"
 import { DockerVolumes } from "@/components/custom/docker-volumes"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Button } from "@/components/ui/button"
 import { canUseTerminal } from "@/features/auth/auth.entity"
 import { getVerifiedSession } from "@/features/auth/auth.session"
 import { DOCKER_TABS, type DockerTab } from "@/features/docker/docker.entity"
@@ -19,6 +17,8 @@ import {
   getDockerNetworks,
   getDockerVolumes,
 } from "@/features/docker/docker.queries"
+import type { DiskUsage } from "@/features/maintenance/maintenance.entity"
+import { getDiskUsage } from "@/features/maintenance/maintenance.queries"
 import { listServers } from "@/features/server/server.queries"
 import { ApiError } from "@/lib/api"
 
@@ -67,6 +67,19 @@ export default async function DockerPage({
   const serverId = servers.some((s) => s.id === sp.server) ? sp.server! : null
   const tab = DOCKER_TABS.find((t) => t === sp.tab) ?? "containers"
 
+  // Disk usage and cleanup cover the aoox host only, so the strip is shown only for it.
+  let disk: { usage: DiskUsage | null; error: string | null } | null = null
+  if (serverId === null) {
+    try {
+      disk = { usage: await getDiskUsage(), error: null }
+    } catch (err) {
+      disk = {
+        usage: null,
+        error: err instanceof ApiError ? err.message : null,
+      }
+    }
+  }
+
   let content: React.ReactNode
   try {
     content = await loadTab(tab, serverId, session.user.role === "owner")
@@ -93,26 +106,16 @@ export default async function DockerPage({
           {t("page.description")}
         </p>
       </div>
+      {disk && (
+        <DockerDiskStrip
+          usage={disk.usage}
+          loadError={disk.error}
+          canRun={session.user.role === "owner"}
+        />
+      )}
       <DockerToolbar servers={servers} serverId={serverId} tab={tab}>
         {content}
       </DockerToolbar>
-      <p className="text-xs text-muted-foreground">
-        {t.rich("page.diskNote", {
-          link: (c) => (
-            <Button
-              asChild
-              variant="link"
-              size="sm"
-              className="h-auto p-0 text-xs"
-            >
-              <Link href="/infra/disk">
-                {c}
-                <LinkArrow />
-              </Link>
-            </Button>
-          ),
-        })}
-      </p>
     </>
   )
 }
