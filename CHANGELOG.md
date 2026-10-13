@@ -8,6 +8,10 @@ Versions below 1.0.0 may include breaking changes in a minor release.
 
 ## [Unreleased]
 
+### UI UX Improvement
+
+- The dashboard favicon now uses the round icon of aoox.dev, so both sites show the same mark.
+
 ## [0.1.0-alpha.10] - 2026-10-13
 
 ### Breaking changes
