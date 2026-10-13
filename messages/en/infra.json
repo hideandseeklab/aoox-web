@@ -149,7 +149,11 @@
     "webDomain": "Dashboard domain",
     "apiDomain": "API domain",
     "acmeEmail": "ACME email (Let's Encrypt)",
-    "current": "Currently installed: <code>{web}</code> · <code>{api}</code>",
+    "current": {
+      "title": "Currently installed",
+      "web": "Dashboard",
+      "api": "API"
+    },
     "saving": "Saving…",
     "saveApply": "Save & apply",
     "applied": "Applied",

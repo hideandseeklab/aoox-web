@@ -1,56 +1,24 @@
 "use client"
 
-import { BookOpen, Check, Copy, KeySquare, Plus, Trash2, X } from "lucide-react"
-import { useState, useTransition } from "react"
-import { toast } from "sonner"
+import { BookOpen, KeySquare, Trash2 } from "lucide-react"
+import { useLocale, useTranslations } from "next-intl"
+import { useState } from "react"
+import { ConfirmDialog } from "@/components/custom/confirm-dialog"
+import { CreateApiTokenDialog } from "@/components/custom/create-api-token-dialog"
 import { EmptyState } from "@/components/custom/empty-state"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
   Card,
+  CardAction,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import {
-  createApiTokenAction,
-  deleteApiTokenAction,
-} from "@/features/api-token/api-token.actions"
+import { deleteApiTokenAction } from "@/features/api-token/api-token.actions"
 import type { ApiToken } from "@/features/api-token/api-token.entity"
-import {
-  MAX_VARIABLE_SCOPES,
-  VARIABLE_SCOPE,
-} from "@/features/variable-set/variable-set.entity"
-import { Switch } from "@/components/ui/switch"
-import { copyToClipboard } from "@/lib/clipboard"
 import { formatDateTime } from "@/i18n/format"
-import { useLocale, useTranslations } from "next-intl"
-
-const EXPIRY: { labelKey: string; days: number | null }[] = [
-  { labelKey: "days30", days: 30 },
-  { labelKey: "days90", days: 90 },
-  { labelKey: "year1", days: 365 },
-  { labelKey: "never", days: null },
-]
-
 
 function fmt(d: string | null, locale: string) {
   return d
@@ -62,8 +30,8 @@ function fmt(d: string | null, locale: string) {
 }
 
 /**
- * Personal access tokens for CI/CLI. The plaintext appears once in a dialog
- * after creation; the list only shows the prefix.
+ * Personal access tokens for CI/CLI: the list (prefix only) with revoke, and
+ * the "Create token" dialog in the header, which shows the plaintext once.
  */
 export function ApiTokensCard({
   tokens,
@@ -79,60 +47,9 @@ export function ApiTokensCard({
   webOrigin: string
 }) {
   const t = useTranslations("settings")
-  const c = useTranslations("common")
   const locale = useLocale()
-  const [name, setName] = useState("")
-  const [expiry, setExpiry] = useState("30")
-  const [created, setCreated] = useState<string | null>(null)
-  const [readOnly, setReadOnly] = useState(false)
-  // Empty = every project the user may see (and platform settings stay usable).
-  const [scopeProjects, setScopeProjects] = useState<string[]>([])
-  // Empty = every set environment the user may reach.
-  const [scopes, setScopes] = useState<string[]>([])
-  const [scopeInput, setScopeInput] = useState("")
-  const [copied, setCopied] = useState(false)
-  const [loginCopied, setLoginCopied] = useState(false)
-  // Address the user opened the dashboard with (what `aoox login --url` needs);
-  // captured when the token is created because the dialog only renders client-side.
-  const [dashboardUrl, setDashboardUrl] = useState(webOrigin)
-  const [error, setError] = useState<string | null>(null)
-  const [pending, start] = useTransition()
   // Read once per render (React Compiler forbids Date.now() inside the map).
   const [now] = useState(() => Date.now())
-
-  const copy = async () => {
-    if (!created) return
-    const ok = await copyToClipboard(created)
-    if (ok) {
-      setCopied(true)
-      setTimeout(() => setCopied(false), 1500)
-      toast.success(t("tokens.copied"))
-    } else {
-      toast.error(t("tokens.copyFailed"))
-    }
-  }
-
-  const scopeEntry = scopeInput.trim()
-  const scopeInvalid = scopeEntry !== "" && !VARIABLE_SCOPE.test(scopeEntry)
-  const scopesFull = scopes.length >= MAX_VARIABLE_SCOPES
-  const addScope = () => {
-    if (!VARIABLE_SCOPE.test(scopeEntry) || scopesFull) return
-    setScopes((cur) => (cur.includes(scopeEntry) ? cur : [...cur, scopeEntry]))
-    setScopeInput("")
-  }
-
-  const loginCommand = `aoox login --url ${dashboardUrl} --token ${created ?? ""}`
-
-  const copyLogin = async () => {
-    const ok = await copyToClipboard(loginCommand)
-    if (ok) {
-      setLoginCopied(true)
-      setTimeout(() => setLoginCopied(false), 1500)
-      toast.success(t("tokens.created.loginCopied"))
-    } else {
-      toast.error(t("tokens.copyFailed"))
-    }
-  }
 
   return (
     <Card>
@@ -146,360 +63,119 @@ export function ApiTokensCard({
                 href={`${publicApiUrl}/docs`}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center gap-1 underline"
+                className="inline-flex items-center gap-1 break-all underline"
               >
-                <BookOpen className="size-3" /> {publicApiUrl}/docs
+                <BookOpen className="size-3 shrink-0" /> {publicApiUrl}/docs
               </a>
             ),
           })}
         </CardDescription>
+        <CardAction>
+          <CreateApiTokenDialog
+            projects={projects}
+            publicApiUrl={publicApiUrl}
+            webOrigin={webOrigin}
+          />
+        </CardAction>
       </CardHeader>
-      <CardContent className="space-y-4">
-        {tokens.length === 0 && (
+      <CardContent>
+        {tokens.length === 0 ? (
           <EmptyState icon={KeySquare} compact>
             {t("tokens.empty")}
           </EmptyState>
-        )}
-        {tokens.length > 0 && (
+        ) : (
           <ul className="divide-y rounded-md border text-xs">
             {tokens.map((tok) => {
               const expired =
                 tok.expiresAt && new Date(tok.expiresAt).getTime() < now
               return (
-                <li
-                  key={tok.id}
-                  className="flex flex-wrap items-center gap-x-3 gap-y-1.5 px-3 py-2"
-                >
-                  <KeySquare className="size-4 shrink-0 text-muted-foreground" />
-                  <span className="min-w-40 flex-1">
-                    <span className="block truncate font-medium">
-                      {tok.name}
-                    </span>
-                    <span className="block truncate font-mono text-xs text-muted-foreground">
-                      {t("tokens.meta", {
-                        prefix: tok.prefix,
-                        used: fmt(tok.lastUsedAt, locale),
-                        expiry: tok.expiresAt
+                <li key={tok.id} className="flex items-start gap-3 px-3 py-2.5">
+                  <KeySquare className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
+                  <div className="min-w-0 flex-1 space-y-1">
+                    <div className="flex min-w-0 flex-wrap items-center gap-1.5">
+                      <span className="max-w-full truncate font-medium">
+                        {tok.name}
+                      </span>
+                      {tok.readOnly && (
+                        <Badge variant="outline">
+                          {t("tokens.readOnlyBadge")}
+                        </Badge>
+                      )}
+                      {tok.projectIds && (
+                        <Badge
+                          variant="outline"
+                          title={tok.projectIds
+                            .map(
+                              (id) =>
+                                projects.find((p) => p.id === id)?.name ?? id
+                            )
+                            .join(", ")}
+                        >
+                          {t("tokens.projectsBadge", {
+                            count: tok.projectIds.length,
+                          })}
+                        </Badge>
+                      )}
+                      {tok.variableScopes && (
+                        <Badge
+                          variant="outline"
+                          className="max-w-56 min-w-0"
+                          title={tok.variableScopes.join(", ")}
+                        >
+                          <span className="truncate font-mono">
+                            {t("tokens.variableScopesBadge", {
+                              names: tok.variableScopes.join(", "),
+                            })}
+                          </span>
+                        </Badge>
+                      )}
+                      {expired && (
+                        <Badge variant="destructive">
+                          {t("tokens.expiredBadge")}
+                        </Badge>
+                      )}
+                    </div>
+                    <p className="flex flex-wrap gap-x-1.5 text-muted-foreground">
+                      <span className="font-mono">{tok.prefix}…</span>
+                      <span aria-hidden="true">·</span>
+                      <span className="whitespace-nowrap">
+                        {t("tokens.lastUsed", {
+                          used: fmt(tok.lastUsedAt, locale),
+                        })}
+                      </span>
+                      <span aria-hidden="true">·</span>
+                      <span className="whitespace-nowrap">
+                        {tok.expiresAt
                           ? t("tokens.expiresOn", {
                               date: fmt(tok.expiresAt, locale),
                             })
-                          : t("tokens.noExpiry"),
-                      })}
-                    </span>
-                  </span>
-                  {tok.readOnly && (
-                    <Badge variant="outline">{t("tokens.readOnlyBadge")}</Badge>
-                  )}
-                  {tok.projectIds && (
-                    <Badge
-                      variant="outline"
-                      title={tok.projectIds
-                        .map(
-                          (id) => projects.find((p) => p.id === id)?.name ?? id
-                        )
-                        .join(", ")}
-                    >
-                      {t("tokens.projectsBadge", {
-                        count: tok.projectIds.length,
-                      })}
-                    </Badge>
-                  )}
-                  {tok.variableScopes && (
-                    <Badge
-                      variant="outline"
-                      className="max-w-56 min-w-0"
-                      title={tok.variableScopes.join(", ")}
-                    >
-                      <span className="truncate font-mono">
-                        {t("tokens.variableScopesBadge", {
-                          names: tok.variableScopes.join(", "),
-                        })}
+                          : t("tokens.noExpiry")}
                       </span>
-                    </Badge>
-                  )}
-                  {expired && (
-                    <Badge variant="destructive">
-                      {t("tokens.expiredBadge")}
-                    </Badge>
-                  )}
-                  <Button
-                    variant="ghost"
-                    size="icon-sm"
-                    className="ml-auto"
-                    aria-label={t("tokens.revoke")}
-                    disabled={pending}
-                    onClick={() =>
-                      start(async () => {
-                        setError(null)
-                        const r = await deleteApiTokenAction(tok.id)
-                        if (!r.ok) setError(r.error)
-                      })
+                    </p>
+                  </div>
+                  <ConfirmDialog
+                    trigger={
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        className="-my-0.5"
+                        aria-label={t("tokens.revoke")}
+                        title={t("tokens.revoke")}
+                      >
+                        <Trash2 />
+                      </Button>
                     }
-                  >
-                    <Trash2 />
-                  </Button>
+                    title={t("tokens.revokeTitle", { name: tok.name })}
+                    description={t("tokens.revokeDescription")}
+                    confirmLabel={t("tokens.revokeConfirm")}
+                    onConfirm={() => deleteApiTokenAction(tok.id)}
+                  />
                 </li>
               )
             })}
           </ul>
         )}
-
-        <form
-          className="flex flex-wrap items-end gap-3"
-          onSubmit={(e) => {
-            e.preventDefault()
-            start(async () => {
-              setError(null)
-              const r = await createApiTokenAction(
-                name.trim(),
-                expiry === "never" ? null : Number(expiry),
-                {
-                  readOnly,
-                  projectIds: scopeProjects,
-                  variableScopes: scopes,
-                }
-              )
-              if (!r.ok) setError(r.error)
-              else {
-                setCreated(r.data.token)
-                setDashboardUrl(window.location.origin || webOrigin)
-                setName("")
-                setReadOnly(false)
-                setScopeProjects([])
-                setScopes([])
-                setScopeInput("")
-              }
-            })
-          }}
-        >
-          <div className="min-w-48 flex-1 space-y-1">
-            <Label htmlFor="pat-name">{c("labels.name")}</Label>
-            <Input
-              id="pat-name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder={t("tokens.namePlaceholder")}
-              required
-            />
-          </div>
-          <div className="space-y-1">
-            <Label htmlFor="pat-expiry">{t("tokens.expiry")}</Label>
-            <Select value={expiry} onValueChange={setExpiry}>
-              <SelectTrigger id="pat-expiry" className="w-44">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent position="popper">
-                {EXPIRY.map((e) => (
-                  <SelectItem
-                    key={String(e.days)}
-                    value={String(e.days ?? "never")}
-                  >
-                    {t(`tokens.expiryOptions.${e.labelKey}`)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-1">
-            <Label htmlFor="pat-readonly">{t("tokens.permissions")}</Label>
-            <label
-              className="flex h-7 items-center gap-2 text-xs"
-              htmlFor="pat-readonly"
-            >
-              <Switch
-                id="pat-readonly"
-                checked={readOnly}
-                onCheckedChange={setReadOnly}
-              />
-              {t("tokens.readOnly")}
-            </label>
-          </div>
-          {projects.length > 0 && (
-            <div className="w-full space-y-1">
-              <Label>{t("tokens.scopeLabel")}</Label>
-              <div className="flex flex-wrap gap-2">
-                {projects.map((p) => {
-                  const on = scopeProjects.includes(p.id)
-                  return (
-                    <button
-                      key={p.id}
-                      type="button"
-                      aria-pressed={on}
-                      onClick={() =>
-                        setScopeProjects((cur) =>
-                          on ? cur.filter((id) => id !== p.id) : [...cur, p.id]
-                        )
-                      }
-                      className={`rounded-full border px-3 py-1 text-xs ${
-                        on
-                          ? "border-primary bg-primary text-primary-foreground"
-                          : "text-muted-foreground hover:bg-muted"
-                      }`}
-                    >
-                      {p.name}
-                    </button>
-                  )
-                })}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                {t("tokens.scopeHelp")}
-              </p>
-            </div>
-          )}
-          <div className="w-full space-y-1">
-            <Label htmlFor="pat-var-scope">
-              {t("tokens.variableScopeLabel")}
-            </Label>
-            {scopes.length > 0 && (
-              <ul className="flex flex-wrap gap-1.5">
-                {scopes.map((sc) => (
-                  <li key={sc}>
-                    <Badge variant="secondary" className="gap-1 pe-0.5">
-                      <span className="font-mono">{sc}</span>
-                      <button
-                        type="button"
-                        className="rounded-sm p-0.5 hover:bg-background/60"
-                        aria-label={t("tokens.variableScopeRemove", {
-                          scope: sc,
-                        })}
-                        onClick={() =>
-                          setScopes((cur) => cur.filter((x) => x !== sc))
-                        }
-                      >
-                        <X className="size-3" />
-                      </button>
-                    </Badge>
-                  </li>
-                ))}
-              </ul>
-            )}
-            <div className="flex items-center gap-2">
-              <Input
-                id="pat-var-scope"
-                value={scopeInput}
-                onChange={(e) => setScopeInput(e.target.value.toLowerCase())}
-                onKeyDown={(e) => {
-                  if (e.key !== "Enter") return
-                  e.preventDefault()
-                  addScope()
-                }}
-                placeholder="backend/staging"
-                maxLength={98}
-                autoComplete="off"
-                aria-invalid={scopeInvalid || undefined}
-                disabled={scopesFull}
-                className="w-56 max-w-full font-mono"
-              />
-              <Button
-                type="button"
-                variant="outline"
-                disabled={!VARIABLE_SCOPE.test(scopeEntry) || scopesFull}
-                onClick={addScope}
-              >
-                <Plus data-icon="inline-start" />
-                {t("tokens.variableScopeAdd")}
-              </Button>
-            </div>
-            {scopeInvalid && (
-              <p className="text-xs text-destructive" role="alert">
-                {t("tokens.variableScopeInvalid")}
-              </p>
-            )}
-            {scopesFull && (
-              <p className="text-xs text-muted-foreground">
-                {t("tokens.variableScopeMax", { count: MAX_VARIABLE_SCOPES })}
-              </p>
-            )}
-            <ul className="space-y-0.5 text-xs text-muted-foreground">
-              {(
-                [
-                  "variableScopeFormSet",
-                  "variableScopeFormAllEnvs",
-                  "variableScopeFormAllSets",
-                ] as const
-              ).map((k) => (
-                <li key={k}>
-                  {t.rich(`tokens.${k}`, {
-                    code: (chunks) => <code className="font-mono">{chunks}</code>,
-                  })}
-                </li>
-              ))}
-            </ul>
-            <p className="text-xs text-muted-foreground">
-              {t("tokens.variableScopeHelp")}
-            </p>
-          </div>
-          <Button type="submit" disabled={pending}>
-            <Plus data-icon="inline-start" />
-            {pending ? c("states.creating") : t("tokens.create")}
-          </Button>
-        </form>
-        {error && (
-          <p className="text-xs text-destructive" role="alert">
-            {error}
-          </p>
-        )}
       </CardContent>
-
-      <Dialog
-        open={created !== null}
-        onOpenChange={(o) => !o && setCreated(null)}
-      >
-        <DialogContent className="sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle>{t("tokens.created.title")}</DialogTitle>
-            <DialogDescription>
-              {t("tokens.created.description")}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="flex min-w-0 items-center gap-2">
-            <code className="min-w-0 flex-1 truncate rounded bg-muted px-2 py-1.5 font-mono text-xs">
-              {created}
-            </code>
-            <Button
-              variant="outline"
-              size="icon-sm"
-              aria-label={t("tokens.copyAria")}
-              onClick={copy}
-            >
-              {copied ? <Check /> : <Copy />}
-            </Button>
-          </div>
-          <pre className="min-w-0 overflow-auto rounded bg-muted p-2 font-mono text-xs">
-            {`curl -X POST ${publicApiUrl}/applications/<id>/deploy \\\n  -H "Authorization: Bearer ${created ?? ""}"`}
-          </pre>
-          <div className="min-w-0 space-y-1.5">
-            <p className="text-xs font-medium">
-              {t("tokens.created.loginTitle")}
-            </p>
-            <div className="flex items-start gap-2">
-              <code className="min-w-0 flex-1 rounded bg-muted px-2 py-1.5 font-mono text-xs break-all">
-                {loginCommand}
-              </code>
-              <Button
-                variant="outline"
-                size="icon-sm"
-                aria-label={t("tokens.created.copyLoginAria")}
-                onClick={copyLogin}
-              >
-                {loginCopied ? <Check /> : <Copy />}
-              </Button>
-            </div>
-            <p className="text-xs text-muted-foreground">
-              {t.rich("tokens.created.cliHint", {
-                code: (chunks) => (
-                  <code className="font-mono [overflow-wrap:anywhere]">
-                    {chunks}
-                  </code>
-                ),
-              })}
-            </p>
-          </div>
-          <DialogFooter>
-            <Button onClick={() => setCreated(null)}>{t("tokens.done")}</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </Card>
   )
 }

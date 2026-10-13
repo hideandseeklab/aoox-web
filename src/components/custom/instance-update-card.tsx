@@ -165,7 +165,7 @@ export function InstanceUpdateCard({
         </ul>
 
         {!applying && (
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap justify-end gap-2">
             <Button
               size="sm"
               variant="outline"
@@ -192,7 +192,7 @@ export function InstanceUpdateCard({
         )}
 
         {error && !applying && (
-          <p className="text-xs text-destructive" role="alert">
+          <p className="text-right text-xs text-destructive" role="alert">
             {error}
           </p>
         )}

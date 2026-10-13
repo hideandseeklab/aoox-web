@@ -80,41 +80,49 @@ export function PanelDomainCard({ status }: { status: PanelDomainStatus }) {
           </div>
         </div>
 
-        <p className="text-xs text-muted-foreground">
-          {t.rich("current", {
-            web: status.applied.webOrigin ?? "http://localhost:3000",
-            api: status.applied.publicApiUrl ?? "http://localhost:3001",
-            code,
-          })}
-        </p>
+        <div className="rounded-md border px-3 py-2 text-xs">
+          <p className="font-medium">{t("current.title")}</p>
+          <dl className="mt-1.5 space-y-1">
+            <CurrentRow
+              label={t("current.web")}
+              url={status.applied.webOrigin ?? "http://localhost:3000"}
+            />
+            <CurrentRow
+              label={t("current.api")}
+              url={status.applied.publicApiUrl ?? "http://localhost:3001"}
+            />
+          </dl>
+        </div>
 
-        <Button
-          size="sm"
-          disabled={
-            pending || !status.installDirConfigured || !webHost || !apiHost
-          }
-          onClick={() =>
-            start(async () => {
-              setError(null)
-              setApplied(false)
-              setProxyAutoProvisioned(false)
-              const r = await updatePanelDomainAction({
-                webHost: webHost.trim(),
-                apiHost: apiHost.trim(),
-                ...(acmeEmail.trim() ? { acmeEmail: acmeEmail.trim() } : {}),
+        <div className="flex justify-end">
+          <Button
+            size="sm"
+            disabled={
+              pending || !status.installDirConfigured || !webHost || !apiHost
+            }
+            onClick={() =>
+              start(async () => {
+                setError(null)
+                setApplied(false)
+                setProxyAutoProvisioned(false)
+                const r = await updatePanelDomainAction({
+                  webHost: webHost.trim(),
+                  apiHost: apiHost.trim(),
+                  ...(acmeEmail.trim() ? { acmeEmail: acmeEmail.trim() } : {}),
+                })
+                if (r.ok) {
+                  setApplied(true)
+                  setProxyAutoProvisioned(r.data.proxyAutoProvisioned)
+                } else setError(r.error)
               })
-              if (r.ok) {
-                setApplied(true)
-                setProxyAutoProvisioned(r.data.proxyAutoProvisioned)
-              } else setError(r.error)
-            })
-          }
-        >
-          {pending ? t("saving") : t("saveApply")}
-        </Button>
+            }
+          >
+            {pending ? t("saving") : t("saveApply")}
+          </Button>
+        </div>
 
         {error && (
-          <p className="text-xs text-destructive" role="alert">
+          <p className="text-right text-xs text-destructive" role="alert">
             {error}
           </p>
         )}
@@ -148,5 +156,25 @@ export function PanelDomainCard({ status }: { status: PanelDomainStatus }) {
         )}
       </CardContent>
     </Card>
+  )
+}
+
+/** One labelled URL row of the "Currently installed" block. */
+function CurrentRow({ label, url }: { label: string; url: string }) {
+  return (
+    <div className="flex min-w-0 items-baseline gap-3">
+      <dt className="w-20 shrink-0 text-muted-foreground">{label}</dt>
+      <dd className="min-w-0 truncate font-mono">
+        <a
+          href={url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="underline-offset-4 hover:underline"
+          title={url}
+        >
+          {url}
+        </a>
+      </dd>
+    </div>
   )
 }

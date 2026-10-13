@@ -91,7 +91,7 @@
     "title": "API token",
     "description": "Personal access tokens for CI/CLI — they act as your account (same role). Use as <code>Authorization: Bearer aoox_…</code>. Endpoint documentation: <docs></docs>",
     "empty": "No API tokens yet.",
-    "meta": "{prefix}… · used {used} · {expiry}",
+    "lastUsed": "used {used}",
     "expiresOn": "valid until {date}",
     "noExpiry": "no expiry",
     "readOnlyBadge": "read-only",
@@ -109,7 +109,7 @@
     "permissions": "Permissions",
     "readOnly": "Read-only",
     "scopeLabel": "Limit to projects (optional)",
-    "scopeHelp": "With no selection: the token sees every project you can see and may use platform settings. With a selection: only those projects, and platform settings (registry, servers, proxy, swarm, notifications) are refused.",
+    "scopeHelp": "Leave empty for every project you can see, plus platform settings. With a selection, only those projects; platform settings are refused.",
     "create": "Create token",
     "created": {
       "title": "Token created",
@@ -124,15 +124,21 @@
     "copyAria": "Copy token",
     "done": "Done",
     "variableScopesBadge": "vars: {names}",
-    "variableScopeLabel": "Limit to variable environments (optional)",
+    "variableScopeLabel": "Limit to variables (optional)",
     "variableScopeAdd": "Add",
     "variableScopeRemove": "Remove {scope}",
     "variableScopeInvalid": "Use set-slug/environment, set-slug/* or */environment (lowercase letters, digits and -).",
     "variableScopeMax": "At most {count} entries.",
-    "variableScopeFormSet": "<code>backend/staging</code>: one environment of one set",
-    "variableScopeFormAllEnvs": "<code>backend/*</code>: every environment of the set backend",
-    "variableScopeFormAllSets": "<code>*/staging</code>: the environment staging in every set",
-    "variableScopeHelp": "With no entries the token may read and change every variable set environment you can. With entries it can only use the matching ones (it never gets more than your own access). A read-only token may still read variables: reading is audited but changes nothing."
+    "variableScopeHelp": "Leave empty for every environment you can reach; a token never gets more than your own access.",
+    "variableScopeForms": "<code>set/env</code> one environment, <code>set/*</code> every environment of a set, <code>*/env</code> that environment in every set.",
+    "readOnlyHelp": "Refuses every change. Reading still works, including variable values (audited).",
+    "revokeTitle": "Revoke {name}?",
+    "revokeDescription": "Anything that uses this token (CI, CLI) stops working right away. This cannot be undone.",
+    "revokeConfirm": "Revoke",
+    "dialog": {
+      "title": "Create API token",
+      "description": "The token acts as your account, within the limits you set here."
+    }
   },
   "members": {
     "title": "Members",

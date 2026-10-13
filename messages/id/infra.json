@@ -149,7 +149,11 @@
     "webDomain": "Domain dashboard",
     "apiDomain": "Domain API",
     "acmeEmail": "Email ACME (Let's Encrypt)",
-    "current": "Saat ini terpasang: <code>{web}</code> · <code>{api}</code>",
+    "current": {
+      "title": "Saat ini terpasang",
+      "web": "Dashboard",
+      "api": "API"
+    },
     "saving": "Menyimpan…",
     "saveApply": "Simpan & terapkan",
     "applied": "Diterapkan",

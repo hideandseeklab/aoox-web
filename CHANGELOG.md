@@ -28,9 +28,12 @@ Versions below 1.0.0 may include breaking changes in a minor release.
 
 ### UI UX Improvement
 
+- **aoox update card.** The "Check for updates" and "Apply update" buttons now sit right-aligned under the image list (Apply update rightmost), with the check error line right-aligned beneath them.
+- **Panel domain card.** "Save & apply" sits right-aligned, and the currently installed addresses are shown in a bordered block with one labelled row each for the dashboard and API URL (monospace links that truncate instead of running together on small screens).
 - **Variables list and set page.** Set cards in a responsive grid (name, mono slug, sharing line with a globe or folder icon, environment badges with a lock for protected ones, usage and your role in the footer) and an illustrated empty state; the set page follows the project page layout (environments on the left, Details, Sharing and Danger zone on the right).
 - **Saving over a newer edit is easier to recover from.** When an environment changed since you revealed it, the error box in the editor has a **Load latest** button that loads the current text instead of asking you to cancel and reveal again.
 - **Link editor rows.** Numbered rows with icon-only move up/down and unlink buttons (with labels for screen readers), variable names as mono chips, and the add select grouped by set with the key count per environment.
+- **API token card.** Creating a token moved into a **Create token** dialog (grouped fields with one-line hints, scrolling body with the buttons always visible, the one-time token shown as a second step); the card is now a clean list, and revoking asks for confirmation.
 
 ## [0.1.0-alpha.9] - 2026-10-13
 

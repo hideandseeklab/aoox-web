@@ -91,7 +91,7 @@
     "title": "API token",
     "description": "Token akses pribadi untuk CI/CLI — bertindak sebagai akunmu (role sama). Pakai sebagai <code>Authorization: Bearer aoox_…</code>. Dokumentasi endpoint: <docs></docs>",
     "empty": "Belum ada token API.",
-    "meta": "{prefix}… · dipakai {used} · {expiry}",
+    "lastUsed": "dipakai {used}",
     "expiresOn": "berlaku sampai {date}",
     "noExpiry": "tanpa kedaluwarsa",
     "readOnlyBadge": "baca saja",
@@ -109,7 +109,7 @@
     "permissions": "Hak",
     "readOnly": "Baca saja",
     "scopeLabel": "Batasi ke project (opsional)",
-    "scopeHelp": "Tanpa pilihan: token melihat semua project yang kamu lihat dan boleh memakai pengaturan platform. Dengan pilihan: hanya project itu, dan pengaturan platform (registry, server, proxy, swarm, notifikasi) ditolak.",
+    "scopeHelp": "Kosongkan untuk semua project yang kamu lihat, termasuk pengaturan platform. Dengan pilihan, hanya project itu; pengaturan platform ditolak.",
     "create": "Buat token",
     "created": {
       "title": "Token dibuat",
@@ -124,15 +124,21 @@
     "copyAria": "Salin token",
     "done": "Selesai",
     "variableScopesBadge": "vars: {names}",
-    "variableScopeLabel": "Batasi ke environment variabel (opsional)",
+    "variableScopeLabel": "Batasi ke variabel (opsional)",
     "variableScopeAdd": "Tambah",
     "variableScopeRemove": "Hapus {scope}",
     "variableScopeInvalid": "Gunakan slug-set/environment, slug-set/* atau */environment (huruf kecil, angka, dan -).",
     "variableScopeMax": "Paling banyak {count} entri.",
-    "variableScopeFormSet": "<code>backend/staging</code>: satu environment dari satu set",
-    "variableScopeFormAllEnvs": "<code>backend/*</code>: semua environment dari set backend",
-    "variableScopeFormAllSets": "<code>*/staging</code>: environment staging di semua set",
-    "variableScopeHelp": "Tanpa entri, token boleh membaca dan mengubah semua environment set variabel yang boleh kamu akses. Dengan entri, token hanya bisa memakai yang cocok (tidak pernah lebih luas dari aksesmu sendiri). Token baca saja tetap boleh membaca variabel: pembacaan dicatat di audit log tetapi tidak mengubah apa pun."
+    "variableScopeHelp": "Kosongkan untuk semua environment yang bisa kamu akses; token tidak pernah lebih luas dari aksesmu sendiri.",
+    "variableScopeForms": "<code>set/env</code> satu environment, <code>set/*</code> semua environment dari satu set, <code>*/env</code> environment itu di semua set.",
+    "readOnlyHelp": "Menolak semua perubahan. Membaca tetap bisa, termasuk nilai variabel (dicatat di audit log).",
+    "revokeTitle": "Cabut {name}?",
+    "revokeDescription": "Semua yang memakai token ini (CI, CLI) langsung berhenti bekerja. Tindakan ini tidak bisa dibatalkan.",
+    "revokeConfirm": "Cabut",
+    "dialog": {
+      "title": "Buat token API",
+      "description": "Token bertindak sebagai akunmu, dalam batas yang kamu atur di sini."
+    }
   },
   "members": {
     "title": "Anggota",
