@@ -8,8 +8,9 @@ Versions below 1.0.0 may include breaking changes in a minor release.
 
 ## [Unreleased]
 
-### Added
+## [0.1.0-alpha.9] - 2026-10-13
 
+### Added
 
 - **API tokens can be limited to environments.** The token form has a "Limit to environments (optional)" row: chips for development, staging and production, plus a field to add another name; the token list shows an `env: …` badge with the names. With a restriction the token can only reveal or change the variables of those environments (the API answers 403 for others); a read-only token may still read variables.
 - **The environment editor saves against the version it read.** Reveal now keeps the `updatedAt` it received and the save sends it back, so a save over someone else's newer edit (the CLI, another tab) is refused with the API's message instead of overwriting it.
@@ -19,7 +20,12 @@ Versions below 1.0.0 may include breaking changes in a minor release.
 - **Warning when the image listens on another port.** If the image declares `EXPOSE` ports and the Container port is none of them, the Settings tab (above the port field) and the Domains tab (above the table) show an amber alert explaining the likely "Bad Gateway". Developers and owners get a one-click "Use port N" button when the image exposes exactly one port; viewers only see the warning.
 
 ### UI UX Improvement
+- **One overview card on the dashboard.** The three tinted project cards and the separate Host card are now a single Overview card: the host summary in the header with a status dot, one row of cells split by hairlines (projects with active/inactive counts, aoox containers, memory, CPU; 4 across, 2×2 or stacked by the card's width) and the Docker disk meter as its footer, in solid steps that read in light mode too. Members, and owners/admins when Docker cannot be reached, see total, active and inactive projects as three cells (with a "Host data unavailable" note for owners/admins) instead of an empty Host area.
+- **Project settings column scrolls with the page.** The Settings, Members and Danger zone column on the project page was sticky and slid under the top bar when scrolling; it now scrolls normally.
+- **Environment tab: note in an alert, delete as a Danger zone row.** The "changes apply on the next deploy" note is now an info alert, and Delete moved from the action row to a red "Delete this environment" row at the bottom of the tab (shared `DangerZoneItem`, also used by the Danger zone cards), so the action row only has the note, History and Reveal and edit.
 
+- **Environment card actions and editor.** Under the variable list the note, History and Reveal and edit are right-aligned with Reveal and edit rightmost (the note wraps above the buttons on a phone); in the editor, Add variable is a full-width dashed button (also in the application and stack env editors), and the two explanatory lines sit in one info alert.
+- **Theme switch in the user menu.** The menu at the foot of the sidebar has a Theme submenu (Light, Dark, System) below Language.
 - **Environment history.** Each environment has a **History** button: a list of every change with who made it (dashboard or API token), when, and which variable names were added, changed or removed. **Restore this version** (behind a confirm step) writes the old content as a new version, so nothing is lost; it follows the editing rule (a protected environment needs a project admin).
 - **Compare and promote environments.** A **Compare** button next to Add environment compares two environments variable by variable (names only) and lets you select variables to copy from one into the other, with a confirm step that names the variables and the target.
 - **Secret switch per variable.** The environment editor has a Secret switch on every row; secret variables are always masked in deployment logs, and the list shows a Secret badge.
@@ -29,8 +35,10 @@ Versions below 1.0.0 may include breaking changes in a minor release.
 - **Token rows wrap on narrow screens.** The name no longer collapses to one letter when a token has several badges (read-only, projects, environments): the badges move to a second line.
 - **Tab strips show the active tab on narrow screens.** A strip that opens on a tab near its end (the project's `production` environment) scrolls it into view on load instead of leaving it cut off at the edge.
 
-- **Project environments.** The project page has an **Environments** section (replacing the "Shared environment" field of the Settings card) with one tab per environment (development, staging, production, and any you add). Each tab lists the variable names with masked values; **Reveal and edit** opens the values in the usual rows/text editor and is recorded in the audit log. `production` shows a **Protected** badge: only project admins can reveal or edit it (developers see a short explanation, viewers see names and counts only). Developers can add environments, project admins can delete them (not production, and not one that is still used; the dialog names the applications). Applications and compose stacks have a **Project environment** select (default production) in Settings and in the create forms; switching to an environment that lacks a `${{project.KEY}}` the app uses is refused with the API's message. Changes apply on the next deploy.
+- **Project environments.** The project page has an **Environments** section (replacing the "Shared environment" field of the Settings card) with one tab per environment (development, staging, production, and any you add). Each tab lists the variable names with masked values; **Reveal and edit** opens the values in the usual rows/text editor and is recorded in the audit log. `production` shows a **Protected** badge: only project admins can reveal or edit it (developers see a short explanation, viewers see names and counts only). Developers can add environments, project admins can delete them (not production, and not one that is still used; the dialog names the applications). Applications and compose stacks have a **Project environment** select (production for project admins, an unprotected environment for others) in Settings and in the create forms; switching to an environment that lacks a `${{project.KEY}}` the app uses is refused with the API's message. Changes apply on the next deploy.
 - **Exposed-port alert.** Compact amber alert (`exposed-port-alert.tsx`) shared by the Settings and Domains tabs, in English and Indonesian.
+- **Ready-made image form in one column.** Credentials now sit under the Image field and its "Choose from registry" button instead of beside them, followed by Auto update.
+- **Update overlay.** While an update is applied, a full-screen overlay shows the versions (from → to), three steps (downloading, restarting, panel back), an elapsed timer, and a note that the panel is unavailable for about a minute while deployed applications keep running. An unreachable panel is shown as "Waiting for the panel to come back…", after 2 minutes there is a Reload now button and the `aoox update panel` hint, and after 5 minutes a failure state with the container log commands. After the reload a toast says "aoox updated to vX" with a link to the changelog.
 
 ### Fixed
 
@@ -38,11 +46,7 @@ Versions below 1.0.0 may include breaking changes in a minor release.
 
 - **The update overlay works from any dashboard address.** The API version is now asked through the same-origin route `/api/panel-version` (the web server calls the API's `GET /` internally) instead of from the browser, which the API's CORS refused when the dashboard was opened from an address other than `WEB_ORIGIN`, such as the server IP after a panel domain is set; the overlay then ended in "not back after 5 minutes" although the update had worked.
 - **New application with a Domain: field errors show under their field.** With the Domain access option, a missing name or git URL used to appear as one message under the Hostname field; they now show under Name and Git repository like the other access options, with a "Check the form fields" toast.
-
-### UI UX Improvement
-
-- **Ready-made image form in one column.** Credentials now sit under the Image field and its "Choose from registry" button instead of beside them, followed by Auto update.
-- **Update overlay.** While an update is applied, a full-screen overlay shows the versions (from → to), three steps (downloading, restarting, panel back), an elapsed timer, and a note that the panel is unavailable for about a minute while deployed applications keep running. An unreachable panel is shown as "Waiting for the panel to come back…", after 2 minutes there is a Reload now button and the `aoox update panel` hint, and after 5 minutes a failure state with the container log commands. After the reload a toast says "aoox updated to vX" with a link to the changelog.
+- **Unknown dashboard addresses show the illustrated not-found page** instead of the bare default 404; signed-in visitors see it inside the dashboard (breadcrumb "Page not found"), and anything outside the dashboard falls back to the same page full-screen.
 
 ## [0.1.0-alpha.8] - 2026-10-12
 
@@ -603,7 +607,8 @@ Versions below 1.0.0 may include breaking changes in a minor release.
   backups, notifications, and account/instance settings.
 - A web terminal (shell on the host or inside the API container) over WebSocket.
 
-[Unreleased]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.0-alpha.8...HEAD
+[Unreleased]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.0-alpha.9...HEAD
+[0.1.0-alpha.9]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.0-alpha.8...v0.1.0-alpha.9
 [0.1.0-alpha.8]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.0-alpha.7...v0.1.0-alpha.8
 [0.1.0-alpha.7]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.0-alpha.6...v0.1.0-alpha.7
 [0.1.0-alpha.6]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.0-alpha.5...v0.1.0-alpha.6

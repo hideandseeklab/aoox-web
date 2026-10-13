@@ -3,7 +3,6 @@
   "labelUnread": "Notifications, {count} unread",
   "markAllRead": "Mark all as read",
   "loading": "Loading…",
-  "empty": "No notifications yet. Deploys, backups and alerts will show up here.",
   "unread": "Unread",
   "unreachable": "Could not reach the server",
   "duration": {
@@ -125,5 +124,7 @@
         "summary": "{project, select, none {} other {{project} · }}{downFor, select, none {Back to normal.} other {Down for {downFor}}}"
       }
     }
-  }
+  },
+  "emptyTitle": "You're all caught up",
+  "emptyBody": "Alerts about deploys, backups, and servers show up here."
 }

@@ -1,14 +1,10 @@
-import { Activity, FolderKanban, PowerOff } from "lucide-react"
 import { getTranslations } from "next-intl/server"
-import Link from "next/link"
 import { Suspense } from "react"
+import { DashboardOverviewCard } from "@/components/custom/dashboard-overview-card"
 import { HostLiveChart } from "@/components/custom/host-live-chart"
 import { LiveClock } from "@/components/custom/live-clock"
 import { OnboardingChecklist } from "@/components/custom/onboarding-checklist"
 import { RecentActivitySection } from "@/components/custom/recent-activity-section"
-import { HostOverviewCard } from "@/components/custom/host-overview-card"
-import { StatCard } from "@/components/custom/stat-card"
-import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { canUseTerminal } from "@/features/auth/auth.entity"
 import { getVerifiedSession } from "@/features/auth/auth.session"
@@ -65,35 +61,12 @@ export default async function DashboardPage() {
 
       {onboarding?.visible && <OnboardingChecklist onboarding={onboarding} />}
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <StatCard
-          icon={FolderKanban}
-          label={t("stats.totalProjects")}
-          value={total}
-          action={
-            <Button asChild variant="outline" size="sm">
-              <Link href="/projects">{t("stats.viewAll")}</Link>
-            </Button>
-          }
-        />
-        {/* Status tints: green = running, red = nothing running; the label
-            carries the meaning too, colour is reinforcement only. */}
-        <StatCard
-          tone="success"
-          icon={Activity}
-          label={t("stats.activeProjects")}
-          value={active}
-          hint={t("stats.activeHint")}
-        />
-        <StatCard
-          tone="danger"
-          icon={PowerOff}
-          label={t("stats.inactiveProjects")}
-          value={total - active}
-          hint={t("stats.inactiveHint")}
-        />
-        {host && <HostOverviewCard host={host} />}
-      </div>
+      <DashboardOverviewCard
+        total={total}
+        active={active}
+        host={host}
+        hostUnavailable={isAdmin && !host}
+      />
 
       {live && <HostLiveChart initial={live} />}
 

@@ -5,7 +5,8 @@ import { useLocale, useTranslations } from "next-intl"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useEffect, useState, useTransition } from "react"
-import { EmptyState } from "@/components/custom/empty-state"
+import { IllustratedEmptyState } from "@/components/custom/illustrated-empty-state"
+import { InboxIllustration } from "@/components/custom/illustrations/inbox-illustration"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -115,11 +116,12 @@ export function InboxBell() {
             {t("loading")}
           </p>
         ) : page.items.length === 0 ? (
-          <div className="p-3">
-            <EmptyState icon={Bell} compact>
-              {t("empty")}
-            </EmptyState>
-          </div>
+          <IllustratedEmptyState
+            size="sm"
+            illustration={<InboxIllustration />}
+            title={t("emptyTitle")}
+            description={t("emptyBody")}
+          />
         ) : (
           <ul className="max-h-96 divide-y overflow-y-auto">
             {page.items.map((item, index) => (

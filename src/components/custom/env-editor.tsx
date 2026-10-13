@@ -255,7 +255,7 @@ export function EnvEditor({
             <Button
               type="button"
               variant="outline"
-              size="sm"
+              className="mt-0.5 h-9 w-full border-dashed bg-transparent text-muted-foreground hover:text-foreground"
               onClick={() =>
                 updateRows([
                   ...rows,
@@ -266,11 +266,6 @@ export function EnvEditor({
               <Plus data-icon="inline-start" />
               {t("addVariable")}
             </Button>
-          )}
-          {secrets && (
-            <p className="pt-1 text-xs text-muted-foreground">
-              {t("secretHint")}
-            </p>
           )}
         </div>
       )}

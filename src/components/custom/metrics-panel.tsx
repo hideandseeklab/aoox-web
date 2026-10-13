@@ -108,7 +108,6 @@ export function MetricsPanel({
       {picker}
       <div className="grid gap-3 sm:grid-cols-3">
         <StatCard
-          variant="tile"
           icon={Cpu}
           label="CPU"
           value={
@@ -126,7 +125,6 @@ export function MetricsPanel({
           }}
         />
         <StatCard
-          variant="tile"
           icon={MemoryStick}
           label={t("metrics.memory")}
           value={formatBytes(cur.memoryBytes)}
@@ -145,7 +143,6 @@ export function MetricsPanel({
           }}
         />
         <StatCard
-          variant="tile"
           icon={Network}
           label={t("metrics.network")}
           value={`↓ ${formatBytes(cur.netRxBytes)}`}

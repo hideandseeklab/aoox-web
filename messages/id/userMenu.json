@@ -1,5 +1,9 @@
 {
   "profile": "Profil",
   "language": "Bahasa",
+  "theme": "Tema",
+  "themeLight": "Terang",
+  "themeDark": "Gelap",
+  "themeSystem": "Sistem",
   "signOut": "Keluar"
 }

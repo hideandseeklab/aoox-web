@@ -53,7 +53,6 @@ export function ProjectResourcePanel({
   return (
     <div className="grid gap-3 sm:grid-cols-3">
       <StatCard
-        variant="tile"
         icon={Cpu}
         label="CPU"
         value={cur.cpuPercent === null ? "–" : `${cur.cpuPercent.toFixed(1)}%`}
@@ -65,7 +64,6 @@ export function ProjectResourcePanel({
         }}
       />
       <StatCard
-        variant="tile"
         icon={MemoryStick}
         label={t("resource.memory")}
         value={formatBytes(cur.memoryBytes)}
@@ -76,7 +74,6 @@ export function ProjectResourcePanel({
         }}
       />
       <StatCard
-        variant="tile"
         icon={Network}
         label={t("resource.network")}
         value={

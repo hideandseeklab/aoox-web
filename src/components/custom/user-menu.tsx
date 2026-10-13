@@ -1,7 +1,16 @@
 "use client"
 
-import { Languages, LogOut, User as UserIcon } from "lucide-react"
+import {
+  Languages,
+  LogOut,
+  Monitor,
+  Moon,
+  Sun,
+  SunMoon,
+  User as UserIcon,
+} from "lucide-react"
 import { useLocale, useTranslations } from "next-intl"
+import { useTheme } from "next-themes"
 import { useRouter } from "next/navigation"
 import { useTransition } from "react"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
@@ -47,6 +56,7 @@ export function UserMenu({ user }: { user: AuthUser }) {
   const t = useTranslations("userMenu")
   const locale = useLocale()
   const router = useRouter()
+  const { theme, setTheme } = useTheme()
   const [, startTransition] = useTransition()
   const { isMobile, state } = useSidebar()
   const label = user.name ?? user.email
@@ -111,6 +121,28 @@ export function UserMenu({ user }: { user: AuthUser }) {
                       {LOCALE_NAMES[l]}
                     </DropdownMenuRadioItem>
                   ))}
+                </DropdownMenuRadioGroup>
+              </DropdownMenuSubContent>
+            </DropdownMenuSub>
+            <DropdownMenuSub>
+              <DropdownMenuSubTrigger>
+                <SunMoon />
+                {t("theme")}
+              </DropdownMenuSubTrigger>
+              <DropdownMenuSubContent>
+                <DropdownMenuRadioGroup value={theme} onValueChange={setTheme}>
+                  <DropdownMenuRadioItem value="light">
+                    <Sun />
+                    {t("themeLight")}
+                  </DropdownMenuRadioItem>
+                  <DropdownMenuRadioItem value="dark">
+                    <Moon />
+                    {t("themeDark")}
+                  </DropdownMenuRadioItem>
+                  <DropdownMenuRadioItem value="system">
+                    <Monitor />
+                    {t("themeSystem")}
+                  </DropdownMenuRadioItem>
                 </DropdownMenuRadioGroup>
               </DropdownMenuSubContent>
             </DropdownMenuSub>

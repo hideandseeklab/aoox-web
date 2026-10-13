@@ -5,7 +5,8 @@
   "list": {
     "title": "Project",
     "subtitle": "Kelompokkan aplikasi dan database per project.",
-    "empty": "Belum ada project. Buat project pertama untuk mulai men-deploy."
+    "emptyTitle": "Mulai project pertamamu",
+    "emptyBody": "Project mengelompokkan aplikasi, database, dan stack di satu tempat."
   },
   "create": {
     "trigger": "Project baru",
@@ -148,6 +149,8 @@
     "applyNote": "Perubahan berlaku untuk aplikasi dan stack pada deploy berikutnya, bukan pada container yang sedang berjalan.",
     "saved": "{name} disimpan",
     "tooLong": "Variabel dibatasi 20.000 karakter",
+    "deleteItemTitle": "Hapus environment ini",
+    "deleteItemDescription": "Environment beserta semua variabelnya dihapus permanen, termasuk riwayat versinya. Tindakan ini tidak bisa dibatalkan.",
     "delete": "Hapus",
     "deleteTitle": "Hapus {name}?",
     "deleteDescription": "Variabel di environment ini dihapus permanen. Tidak ada yang memakainya.",

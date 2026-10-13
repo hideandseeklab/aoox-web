@@ -2,12 +2,21 @@
   "metaTitle": "Dashboard · aoox",
   "greeting": "Hello, {name}",
   "subtitle": "Your platform at a glance.",
+  "overview": {
+    "title": "Overview",
+    "dockerReachable": "Docker reachable",
+    "dockerUnreachable": "Host data unavailable: Docker could not be reached."
+  },
   "stats": {
+    "projects": "Projects",
     "totalProjects": "Total projects",
+    "totalHint": "All projects you have access to.",
     "viewAll": "View all",
     "activeProjects": "Active projects",
+    "activeCount": "{count} active",
     "activeHint": "At least one application, database or compose stack is running.",
     "inactiveProjects": "Inactive projects",
+    "inactiveCount": "{count} inactive",
     "inactiveHint": "Everything is stopped or failing, or nothing has been deployed yet."
   },
   "error": {
@@ -17,18 +26,17 @@
   },
   "notFound": {
     "title": "Page not found",
-    "description": "The address you opened does not exist or was removed.",
+    "description": "This page moved or doesn't exist anymore.",
     "back": "Back to dashboard"
   },
   "host": {
-    "title": "Host",
     "summary": "{os} · Docker {version} · {cpus} CPU · {memory} RAM",
     "aooxContainers": "aoox containers",
     "aooxContainersHint": "{running} running of {total} on the host",
-    "aooxMemory": "Memory used by aoox containers",
-    "aooxMemoryHint": "{percent}% of host RAM",
-    "aooxCpu": "CPU of aoox containers",
-    "aooxCpuHint": "of {max}% ({cpus, plural, one {# core} other {# cores}})",
+    "aooxMemory": "Memory",
+    "aooxMemoryHint": "aoox containers · {percent}% of host RAM",
+    "aooxCpu": "CPU",
+    "aooxCpuHint": "aoox containers · of {max}% ({cpus, plural, one {# core} other {# cores}})",
     "dockerDisk": "Docker disk",
     "segments": {
       "images": "Images",

@@ -294,7 +294,9 @@
       "open": "Buka halaman ini di {origin}"
     },
     "history": {
-      "empty": "Belum pernah deploy."
+      "emptyTitle": "Belum ada deployment",
+      "emptyBody": "Deploy aplikasimu untuk melihat riwayat build di sini.",
+      "deployNow": "Deploy sekarang"
     },
     "kind": {
       "build": "build",
@@ -621,6 +623,11 @@
       "off": "Mode perawatan dimatikan",
       "saved": "Pesan perawatan disimpan",
       "saving": "Menyimpan…"
+    },
+    "active": {
+      "title": "Sedang dalam perawatan",
+      "body": "Pengunjung melihat halaman 503 selama mode perawatan aktif.",
+      "turnOff": "Matikan mode perawatan"
     }
   },
   "webhook": {

@@ -13,12 +13,14 @@ import { useRouter } from "next/navigation"
 import { useEffect, useRef, useState, useTransition } from "react"
 import { toast } from "sonner"
 import { LogViewer } from "@/components/custom/log-viewer"
-import { EmptyState } from "@/components/custom/empty-state"
+import { IllustratedEmptyState } from "@/components/custom/illustrated-empty-state"
+import { DeploymentsIllustration } from "@/components/custom/illustrations/deployments-illustration"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
   checkImageUpdateAction,
+  deployApplicationAction,
   rollbackApplicationAction,
 } from "@/features/application/application.actions"
 import {
@@ -502,13 +504,38 @@ export function ApplicationDeployPanel({
         />
       )}
 
+      {deployments.length === 0 ? (
+        <IllustratedEmptyState
+          className="rounded-lg border border-dashed"
+          illustration={<DeploymentsIllustration />}
+          title={t("deploy.history.emptyTitle")}
+          description={t("deploy.history.emptyBody")}
+          actions={
+            canEdit ? (
+              <Button
+                disabled={pending}
+                onClick={() =>
+                  run(async () => {
+                    const r = await deployApplicationAction(app.id)
+                    if (r.ok)
+                      window.dispatchEvent(
+                        new CustomEvent(DEPLOYMENT_QUEUED_EVENT, {
+                          detail: { id: r.data.id },
+                        })
+                      )
+                    return r
+                  })
+                }
+              >
+                <Rocket data-icon="inline-start" />
+                {t("deploy.history.deployNow")}
+              </Button>
+            ) : undefined
+          }
+        />
+      ) : (
       <div className="grid gap-4 lg:grid-cols-[16rem_1fr]">
         <div className="space-y-1">
-          {deployments.length === 0 && (
-            <EmptyState icon={Rocket} compact>
-              {t("deploy.history.empty")}
-            </EmptyState>
-          )}
           <ul className="divide-y rounded-md border">
             {deployments.map((d) => {
               const status =
@@ -633,6 +660,7 @@ export function ApplicationDeployPanel({
           />
         </div>
       </div>
+      )}
     </div>
   )
 }

@@ -294,7 +294,9 @@
       "open": "Open this page at {origin}"
     },
     "history": {
-      "empty": "Never deployed."
+      "emptyTitle": "No deployments yet",
+      "emptyBody": "Deploy your app to see its build history here.",
+      "deployNow": "Deploy now"
     },
     "kind": {
       "build": "build",
@@ -621,6 +623,11 @@
       "off": "Maintenance mode is off",
       "saved": "Maintenance message saved",
       "saving": "Saving…"
+    },
+    "active": {
+      "title": "Under maintenance",
+      "body": "Visitors see a 503 page while maintenance mode is on.",
+      "turnOff": "Turn off maintenance"
     }
   },
   "webhook": {

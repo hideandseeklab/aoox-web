@@ -1,15 +1,17 @@
 "use client"
 
-import { Eye, KeyRound, Lock, Plus, Trash2 } from "lucide-react"
+import { Eye, Info, KeyRound, Lock, Plus, Trash2 } from "lucide-react"
 import Link from "next/link"
 import { useTranslations } from "next-intl"
 import { useState, useTransition } from "react"
 import { toast } from "sonner"
+import { DangerZoneItem } from "@/components/custom/danger-zone"
 import { EnvEditor } from "@/components/custom/env-editor"
 import { EnvironmentCompare } from "@/components/custom/environment-compare"
 import { EnvironmentHistory } from "@/components/custom/environment-history"
 import { PageTabsTrigger } from "@/components/custom/page-tabs-trigger"
 import { ScrollableTabsList } from "@/components/custom/scrollable-tabs-list"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -128,7 +130,6 @@ export function ProjectEnvironments({
             </TabsContent>
           ))}
         </Tabs>
-        <p className="mt-4 text-xs text-muted-foreground">{t("applyNote")}</p>
       </CardContent>
     </Card>
   )
@@ -272,18 +273,17 @@ function EnvironmentPanel({
             </ul>
           )}
 
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
-              {!isViewer && (
-                <Button
-                  variant="outline"
-                  onClick={reveal}
-                  disabled={!canReveal || pending}
-                >
-                  <Eye data-icon="inline-start" />
-                  {pending ? t("revealing") : t("reveal")}
-                </Button>
-              )}
+          {/* Right-aligned: note, then History, then Reveal (rightmost). On a
+              phone the note takes its own line above the buttons. */}
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            <p className="order-1 min-w-0 basis-full text-end text-xs text-muted-foreground sm:order-1 sm:flex-1 sm:basis-0">
+              {isViewer
+                ? t("viewerNote")
+                : !canReveal
+                  ? t("protectedNote", { name: env.name })
+                  : t("revealNote")}
+            </p>
+            <div className="order-2 flex flex-wrap items-center justify-end gap-2">
               <EnvironmentHistory
                 projectId={projectId}
                 environment={env}
@@ -294,22 +294,35 @@ function EnvironmentPanel({
                     : t("history.protectedNote", { name: env.name })
                 }
               />
-              <p className="min-w-0 flex-1 text-xs text-muted-foreground">
-                {isViewer
-                  ? t("viewerNote")
-                  : !canReveal
-                    ? t("protectedNote", { name: env.name })
-                    : t("revealNote")}
-              </p>
+              {!isViewer && (
+                <Button
+                  variant="outline"
+                  onClick={reveal}
+                  disabled={!canReveal || pending}
+                >
+                  <Eye data-icon="inline-start" />
+                  {pending ? t("revealing") : t("reveal")}
+                </Button>
+              )}
             </div>
-            {canDelete && (
-              <DeleteEnvironment
-                projectId={projectId}
-                environment={env}
-                onDeleted={onDeleted}
-              />
-            )}
           </div>
+          <Alert>
+            <Info />
+            <AlertDescription>{t("applyNote")}</AlertDescription>
+          </Alert>
+          {canDelete && (
+            <DangerZoneItem
+              title={t("deleteItemTitle")}
+              description={t("deleteItemDescription")}
+              action={
+                <DeleteEnvironment
+                  projectId={projectId}
+                  environment={env}
+                  onDeleted={onDeleted}
+                />
+              }
+            />
+          )}
         </>
       ) : (
         <form
@@ -328,12 +341,18 @@ function EnvironmentPanel({
             defaultValue={editing}
             secrets={{ name: "flags", ...revealedFlags }}
           />
-          <p className="text-xs text-muted-foreground">
-            {t.rich("editorHint", {
-              ref: "${{project.KEY}}",
-              code: (chunks) => <code>{chunks}</code>,
-            })}
-          </p>
+          <Alert>
+            <Info />
+            <AlertDescription className="[&_p:not(:last-child)]:mb-1">
+              <p>{tc("envEditor.secretHint")}</p>
+              <p>
+                {t.rich("editorHint", {
+                  ref: "${{project.KEY}}",
+                  code: (chunks) => <code className="font-mono">{chunks}</code>,
+                })}
+              </p>
+            </AlertDescription>
+          </Alert>
           <div className="flex justify-end gap-2">
             <Button
               type="button"

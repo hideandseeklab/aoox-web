@@ -2,12 +2,21 @@
   "metaTitle": "Dasbor · aoox",
   "greeting": "Halo, {name}",
   "subtitle": "Ringkasan platform kamu.",
+  "overview": {
+    "title": "Ringkasan",
+    "dockerReachable": "Docker terhubung",
+    "dockerUnreachable": "Data host tidak tersedia: Docker tidak bisa dihubungi."
+  },
   "stats": {
+    "projects": "Project",
     "totalProjects": "Total project",
+    "totalHint": "Semua project yang bisa kamu akses.",
     "viewAll": "Lihat semua",
     "activeProjects": "Project aktif",
+    "activeCount": "{count} aktif",
     "activeHint": "Ada aplikasi, database, atau stack compose yang berjalan.",
     "inactiveProjects": "Project tidak aktif",
+    "inactiveCount": "{count} tidak aktif",
     "inactiveHint": "Semua berhenti/error, atau belum ada yang di-deploy."
   },
   "error": {
@@ -17,18 +26,17 @@
   },
   "notFound": {
     "title": "Halaman tidak ditemukan",
-    "description": "Alamat yang kamu buka tidak ada atau sudah dihapus.",
+    "description": "Halaman ini sudah pindah atau tidak ada lagi.",
     "back": "Ke dashboard"
   },
   "host": {
-    "title": "Host",
     "summary": "{os} · Docker {version} · {cpus} CPU · {memory} RAM",
     "aooxContainers": "Container aoox",
     "aooxContainersHint": "{running} berjalan dari {total} di host",
-    "aooxMemory": "Memori dipakai container aoox",
-    "aooxMemoryHint": "{percent}% dari RAM host",
-    "aooxCpu": "CPU container aoox",
-    "aooxCpuHint": "dari {max}% ({cpus} core)",
+    "aooxMemory": "Memori",
+    "aooxMemoryHint": "container aoox · {percent}% dari RAM host",
+    "aooxCpu": "CPU",
+    "aooxCpuHint": "container aoox · dari {max}% ({cpus} core)",
     "dockerDisk": "Disk Docker",
     "segments": {
       "images": "Image",

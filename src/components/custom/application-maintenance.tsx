@@ -4,6 +4,8 @@ import { Loader2 } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { useId, useRef, useState } from "react"
 import { toast } from "sonner"
+import { IllustratedEmptyState } from "@/components/custom/illustrated-empty-state"
+import { MaintenanceIllustration } from "@/components/custom/illustrations/maintenance-illustration"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -94,6 +96,30 @@ export function ApplicationMaintenance({
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-3">
+        {saved.enabled && (
+          <IllustratedEmptyState
+            className="rounded-lg border border-dashed py-6"
+            illustration={<MaintenanceIllustration />}
+            title={t("active.title")}
+            description={t("active.body")}
+            actions={
+              !locked ? (
+                <Button
+                  variant="outline"
+                  disabled={busy !== null}
+                  onClick={() =>
+                    void publish({ enabled: false, message: text.trim() }, "switch")
+                  }
+                >
+                  {busy === "switch" && (
+                    <Loader2 data-icon="inline-start" className="animate-spin" />
+                  )}
+                  {t("active.turnOff")}
+                </Button>
+              ) : undefined
+            }
+          />
+        )}
         {remote && (
           <p className="text-xs text-muted-foreground">{t("remote")}</p>
         )}

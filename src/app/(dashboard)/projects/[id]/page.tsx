@@ -264,7 +264,7 @@ export default async function ProjectDetailPage({
           />
         </div>
 
-        <div className="space-y-6 lg:sticky lg:top-6">
+        <div className="space-y-6">
           <Card>
             <CardHeader>
               <CardTitle>{t("detail.settings.title")}</CardTitle>
