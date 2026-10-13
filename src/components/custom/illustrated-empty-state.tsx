@@ -39,20 +39,14 @@ export function IllustratedEmptyState({
       </div>
       <h2
         className={cn(
-          "font-medium",
-          size === "md" ? "mt-2 text-lg" : "mt-1 text-sm"
+          size === "md"
+            ? "mt-2 text-base font-medium"
+            : "mt-1 text-sm font-medium"
         )}
       >
         {title}
       </h2>
-      <p
-        className={cn(
-          "max-w-90 text-muted-foreground",
-          size === "md" ? "text-sm" : "text-xs"
-        )}
-      >
-        {description}
-      </p>
+      <p className="max-w-90 text-xs text-muted-foreground">{description}</p>
       {actions && (
         <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
           {actions}
