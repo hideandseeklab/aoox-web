@@ -388,6 +388,10 @@
       "certificate": "Certificate",
       "dns": "DNS",
       "middleware": "Middleware"
+    },
+    "conflict": {
+      "orphan": "Container <code>{name}</code> was left over from a deleted project or app and still answers on this domain, so requests are split between it and this app. Remove it in <link>the Docker page</link> (Details).",
+      "other": "Container <code>{name}</code> also routes this domain, so requests are split between it and this app. Stop or remove it, or use another hostname."
     }
   },
   "middlewares": {

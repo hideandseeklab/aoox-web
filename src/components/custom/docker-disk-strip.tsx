@@ -1,6 +1,6 @@
 "use client"
 
-import { Broom, HardDrive, ListTree } from "lucide-react"
+import { Broom, HardDrive, ListTree, Trash2 } from "lucide-react"
 import { useLocale, useTranslations } from "next-intl"
 import { useState } from "react"
 import { ConfirmDialog } from "@/components/custom/confirm-dialog"
@@ -15,8 +15,15 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Switch } from "@/components/ui/switch"
-import { runCleanupAction } from "@/features/maintenance/maintenance.actions"
-import type { DiskUsage } from "@/features/maintenance/maintenance.entity"
+import { IconButton } from "@/components/custom/data-table"
+import {
+  removeOrphanContainerAction,
+  runCleanupAction,
+} from "@/features/maintenance/maintenance.actions"
+import type {
+  DiskUsage,
+  OrphanContainer,
+} from "@/features/maintenance/maintenance.entity"
 import { formatDateTime } from "@/i18n/format"
 
 function size(n: number) {
@@ -65,9 +72,14 @@ function DiskStrip({ usage, canRun }: { usage: DiskUsage; canRun: boolean }) {
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [registryGc, setRegistryGc] = useState(true)
   const [pruneVolumes, setPruneVolumes] = useState(false)
+  const [pruneContainers, setPruneContainers] = useState(false)
+  const [removing, setRemoving] = useState<OrphanContainer | null>(null)
 
   const orphans = usage.orphanVolumes.length
   const removeOrphans = pruneVolumes && orphans > 0
+  const orphanContainers = usage.orphanContainers ?? []
+  const containerCount = orphanContainers.length
+  const removeContainers = pruneContainers && containerCount > 0
   const total =
     usage.imagesBytes +
     usage.containersBytes +
@@ -186,6 +198,43 @@ function DiskStrip({ usage, canRun }: { usage: DiskUsage; canRun: boolean }) {
                 </ul>
               </div>
             )}
+            {containerCount > 0 && (
+              <div className="rounded-md border border-dashed p-2">
+                <p className="text-muted-foreground">
+                  {t("orphanContainers", { count: containerCount })}
+                </p>
+                <ul className="mt-1 space-y-1">
+                  {orphanContainers.map((c) => (
+                    <li key={c.id} className="flex items-center gap-2">
+                      <span className="min-w-0 flex-1 [overflow-wrap:anywhere]">
+                        <span className="font-mono">{c.name}</span>{" "}
+                        <span className="text-muted-foreground">
+                          · {t(`containerKinds.${c.kind}`)}
+                        </span>
+                      </span>
+                      <Badge
+                        variant={
+                          c.state === "running" ? "default" : "secondary"
+                        }
+                      >
+                        {c.state}
+                      </Badge>
+                      {canRun && (
+                        <IconButton
+                          label={t("removeContainerAria", { name: c.name })}
+                          onClick={() => {
+                            setDetailsOpen(false)
+                            setRemoving(c)
+                          }}
+                        >
+                          <Trash2 />
+                        </IconButton>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
             {canRun && (
               <div className="space-y-2">
                 <label className="flex items-center gap-2 text-muted-foreground">
@@ -202,6 +251,15 @@ function DiskStrip({ usage, canRun }: { usage: DiskUsage; canRun: boolean }) {
                       onCheckedChange={setPruneVolumes}
                     />
                     {t("pruneVolumes")}
+                  </label>
+                )}
+                {containerCount > 0 && (
+                  <label className="flex items-center gap-2 text-muted-foreground">
+                    <Switch
+                      checked={pruneContainers}
+                      onCheckedChange={setPruneContainers}
+                    />
+                    {t("pruneContainers")}
                   </label>
                 )}
               </div>
@@ -222,6 +280,8 @@ function DiskStrip({ usage, canRun }: { usage: DiskUsage; canRun: boolean }) {
                 })}
                 {last.volumesRemoved.length > 0 &&
                   `, ${t("lastVolumes", { count: last.volumesRemoved.length })}`}
+                {(last.containersRemoved?.length ?? 0) > 0 &&
+                  `, ${t("lastContainers", { count: last.containersRemoved?.length ?? 0 })}`}
                 {last.errors.length > 0 && (
                   <>
                     {" "}
@@ -256,10 +316,34 @@ function DiskStrip({ usage, canRun }: { usage: DiskUsage; canRun: boolean }) {
           description={t("confirm.description", {
             registryGc: registryGc ? "yes" : "no",
             volumes: removeOrphans ? orphans : 0,
+            containers: removeContainers ? containerCount : 0,
           })}
           confirmLabel={t("cleanNow")}
           onConfirm={async () => {
-            const r = await runCleanupAction(registryGc, removeOrphans)
+            const r = await runCleanupAction(
+              registryGc,
+              removeOrphans,
+              removeContainers
+            )
+            return r.ok ? { ok: true } : { ok: false, error: r.error }
+          }}
+        />
+      )}
+
+      {canRun && (
+        <ConfirmDialog
+          open={removing !== null}
+          onOpenChange={(o) => {
+            if (!o) setRemoving(null)
+          }}
+          title={t("removeContainer.title")}
+          description={t("removeContainer.description", {
+            name: removing?.name ?? "",
+          })}
+          confirmLabel={t("removeContainer.confirm")}
+          onConfirm={async () => {
+            if (!removing) return
+            const r = await removeOrphanContainerAction(removing.id)
             return r.ok ? { ok: true } : { ok: false, error: r.error }
           }}
         />

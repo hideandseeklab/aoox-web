@@ -8,9 +8,23 @@ Versions below 1.0.0 may include breaking changes in a minor release.
 
 ## [Unreleased]
 
+### Added
+
+- **Notes on variables** (needs the matching aoox-api). The `#` lines directly above a variable are its note. On a variable set environment, rows that have a note show a note icon before the masked value; hover, click, tap or Enter on the icon shows the note, without revealing values (viewers see notes too, so the editor reminds you not to put secrets in them). In **Reveal and edit**, Rows view shows each note under its variable and the note button adds or edits one; Text view shows them as `#` lines.
+- **Leftover containers on the Docker page** (needs the matching aoox-api). The disk strip's Details dialog lists containers left over from projects or apps deleted on older versions (name, kind, state) with a remove button per row for the owner, a one-line explanation, and an **Also remove leftover containers** switch next to the orphan-volume one (off by default; the confirmation names how many are removed). Shown only when there are some.
+- **Domain tab warning when another container already routes the host** (needs the matching aoox-api). The domain row names the container and says requests are split between it and this app; when it is a leftover it links to the Docker page. Nothing is blocked.
+
+### Fixed
+
+- **Deleting a project removes its containers** (needs the matching aoox-api). The delete dialog says that applications, databases and compose stacks are removed and their domains stop working, has an **Also delete data** checkbox (unchecked by default: volumes are kept and appear as orphaned under Infrastructure > Docker; checked: volumes are deleted too), and shows the API's error in the dialog instead of an error page when something cannot be removed.
+- Editing environment variables in **Rows** view and saving no longer deletes comments. Notes, standalone comments (such as section headers), lines Rows view cannot parse, and blank-line grouping are kept when switching between Rows and Text and when saving. This applies to variable set environments and to the env of applications and stacks.
+
 ### UI UX Improvement
 
+- The delete project dialog is wider, explains what is removed, and has the **Also delete data** option as a bordered checkbox row; errors show inside the dialog.
+- Rows view of the env editor: standalone comments are their own muted rows, notes sit under their variable, and on a phone the note and remove buttons share the line with the variable name so they no longer wrap onto a line of their own.
 - The dashboard favicon now uses the round icon of aoox.dev, so both sites show the same mark.
+- The leftover-container list in the Docker disk dialog and the domain conflict warning (amber, with an icon, wrapped to a narrow column so the table does not widen) follow the existing dialog and table styles, in light and dark, English and Indonesian, down to 375 px.
 
 ## [0.1.0-alpha.10] - 2026-10-13
 

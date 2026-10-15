@@ -147,7 +147,22 @@
     "loadError": "Could not read the disk usage",
     "confirm": {
       "title": "Clean up Docker disk now?",
-      "description": "Removes old deployments beyond each application's history, unused images and build cache.{registryGc, select, yes { The local registry is garbage-collected too.} other {}}{volumes, plural, =0 {} one { # orphan volume is deleted with its data.} other { # orphan volumes are deleted with their data.}} Running applications are not touched. It can take about a minute."
+      "description": "Removes old deployments beyond each application's history, unused images and build cache.{registryGc, select, yes { The local registry is garbage-collected too.} other {}}{volumes, plural, =0 {} one { # orphan volume is deleted with its data.} other { # orphan volumes are deleted with their data.}} {containers, plural, =0 {} one {# leftover container is removed.} other {# leftover containers are removed.}} Running applications are not touched. It can take about a minute."
+    },
+    "orphanContainers": "{count, plural, one {# leftover container} other {# leftover containers}} — left over from projects or apps deleted on older versions; they may still answer on their old domains. Their volumes are not touched.",
+    "containerKinds": {
+      "application": "Application",
+      "database": "Database",
+      "companion": "Database admin",
+      "compose": "Stack"
+    },
+    "removeContainerAria": "Remove leftover container {name}",
+    "pruneContainers": "Also remove leftover containers",
+    "lastContainers": "{count, plural, one {# leftover container removed} other {# leftover containers removed}}",
+    "removeContainer": {
+      "title": "Remove this leftover container?",
+      "description": "{name} belongs to a project or application that no longer exists. It is stopped and removed; its data volumes are kept (see orphan volumes).",
+      "confirm": "Remove"
     }
   }
 }

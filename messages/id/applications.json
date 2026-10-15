@@ -388,6 +388,10 @@
       "certificate": "Sertifikat",
       "dns": "DNS",
       "middleware": "Middleware"
+    },
+    "conflict": {
+      "orphan": "Container <code>{name}</code> sisa dari project atau aplikasi yang sudah dihapus dan masih melayani domain ini, sehingga request terbagi antara dia dan aplikasi ini. Hapus lewat <link>halaman Docker</link> (Detail).",
+      "other": "Container <code>{name}</code> juga merutekan domain ini, sehingga request terbagi antara dia dan aplikasi ini. Hentikan atau hapus, atau pakai hostname lain."
     }
   },
   "middlewares": {

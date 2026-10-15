@@ -101,7 +101,16 @@
     "addVariable": "Add variable",
     "secret": "Secret",
     "secretAria": "Secret: {name}",
-    "secretHint": "Secret variables are always masked in deployment logs. Other variables are masked only when their value looks like a secret."
+    "secretHint": "Secret variables are always masked in deployment logs. Other variables are masked only when their value looks like a secret.",
+    "commentAria": "Comment {n}",
+    "removeCommentAria": "Remove comment {n}",
+    "addNote": "Add note",
+    "editNote": "Edit note",
+    "addNoteAria": "Add a note to {name}",
+    "editNoteAria": "Edit the note of {name}",
+    "noteAria": "Note for {name}",
+    "notePlaceholder": "What this variable is for. Saved as # lines above it.",
+    "noteDone": "Done"
   },
   "metrics": {
     "range": {

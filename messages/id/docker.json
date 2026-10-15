@@ -147,7 +147,22 @@
     "loadError": "Tidak bisa membaca pemakaian disk",
     "confirm": {
       "title": "Bersihkan disk Docker sekarang?",
-      "description": "Menghapus deployment lama melebihi riwayat tiap aplikasi, image tak terpakai, dan build cache.{registryGc, select, yes { Registry lokal juga di-garbage collect.} other {}}{volumes, plural, =0 {} other { # volume yatim ikut dihapus beserta datanya.}} Aplikasi yang berjalan tidak disentuh. Bisa memakan waktu sekitar satu menit."
+      "description": "Menghapus deployment lama melebihi riwayat tiap aplikasi, image tak terpakai, dan build cache.{registryGc, select, yes { Registry lokal juga di-garbage collect.} other {}}{volumes, plural, =0 {} other { # volume yatim ikut dihapus beserta datanya.}} {containers, plural, =0 {} other {# container sisa dihapus.}} Aplikasi yang berjalan tidak disentuh. Bisa memakan waktu sekitar satu menit."
+    },
+    "orphanContainers": "{count} container sisa — tertinggal dari project atau aplikasi yang dihapus di versi lama; mungkin masih melayani domain lamanya. Volume-nya tidak disentuh.",
+    "containerKinds": {
+      "application": "Aplikasi",
+      "database": "Database",
+      "companion": "Admin database",
+      "compose": "Stack"
+    },
+    "removeContainerAria": "Hapus container sisa {name}",
+    "pruneContainers": "Sekalian hapus container sisa",
+    "lastContainers": "{count} container sisa dihapus",
+    "removeContainer": {
+      "title": "Hapus container sisa ini?",
+      "description": "{name} milik project atau aplikasi yang sudah tidak ada. Container dihentikan lalu dihapus; volume datanya tetap ada (lihat volume yatim).",
+      "confirm": "Hapus"
     }
   }
 }

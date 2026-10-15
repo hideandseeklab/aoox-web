@@ -21,6 +21,7 @@ import { EnvironmentCompare } from "@/components/custom/environment-compare"
 import { EnvironmentHistory } from "@/components/custom/environment-history"
 import { PageTabsTrigger } from "@/components/custom/page-tabs-trigger"
 import { ScrollableTabsList } from "@/components/custom/scrollable-tabs-list"
+import { VariableNotePopover } from "@/components/custom/variable-note-popover"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -244,11 +245,19 @@ function EnvironmentPanel({
                       </Badge>
                     )}
                   </span>
-                  <span
-                    className="shrink-0 font-mono text-muted-foreground"
-                    aria-hidden
-                  >
-                    ••••••••
+                  <span className="flex shrink-0 items-center gap-2">
+                    {env.notes?.[k] && (
+                      <VariableNotePopover
+                        note={env.notes[k]}
+                        label={t("noteAria", { name: k })}
+                      />
+                    )}
+                    <span
+                      className="font-mono text-muted-foreground"
+                      aria-hidden
+                    >
+                      ••••••••
+                    </span>
                   </span>
                 </li>
               ))}
@@ -311,6 +320,7 @@ function EnvironmentPanel({
             <Info />
             <AlertDescription className="[&_p:not(:last-child)]:mb-1">
               <p>{tc("envEditor.secretHint")}</p>
+              <p>{t("notesHint")}</p>
               <p>
                 {t.rich("editorHint", {
                   ref: "${{vars.KEY}}",

@@ -101,7 +101,16 @@
     "addVariable": "Tambah variabel",
     "secret": "Rahasia",
     "secretAria": "Rahasia: {name}",
-    "secretHint": "Variabel rahasia selalu disamarkan di log deployment. Variabel lain disamarkan hanya jika nilainya tampak seperti rahasia."
+    "secretHint": "Variabel rahasia selalu disamarkan di log deployment. Variabel lain disamarkan hanya jika nilainya tampak seperti rahasia.",
+    "commentAria": "Komentar {n}",
+    "removeCommentAria": "Hapus komentar {n}",
+    "addNote": "Tambah catatan",
+    "editNote": "Ubah catatan",
+    "addNoteAria": "Tambah catatan untuk {name}",
+    "editNoteAria": "Ubah catatan {name}",
+    "noteAria": "Catatan untuk {name}",
+    "notePlaceholder": "Kegunaan variabel ini. Disimpan sebagai baris # di atasnya.",
+    "noteDone": "Selesai"
   },
   "metrics": {
     "range": {

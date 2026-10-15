@@ -41,6 +41,11 @@ export interface EnvironmentView {
   secretKeys: string[]
   /** Explicitly flagged not secret; unmarked ones are in neither list. */
   plainKeys: string[]
+  /**
+   * Per-variable notes (the `#` lines directly above a variable), only names
+   * that have one. Plaintext: everyone who sees the set can read them.
+   */
+  notes?: Record<string, string>
   updatedAt: string
   usedBy: EnvironmentUser[]
 }

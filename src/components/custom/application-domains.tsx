@@ -1,6 +1,14 @@
 "use client"
 
-import { ExternalLink, Globe, Radar, RefreshCw, Trash2 } from "lucide-react"
+import {
+  ExternalLink,
+  Globe,
+  Radar,
+  RefreshCw,
+  Trash2,
+  TriangleAlert,
+} from "lucide-react"
+import Link from "next/link"
 import { useTranslations } from "next-intl"
 import { SectionHeader } from "@/components/custom/section-header"
 import { useState, useTransition } from "react"
@@ -174,7 +182,9 @@ export function ApplicationDomains({
     <div className="space-y-4">
       <SectionHeader
         title={t("domains.section.title")}
-        description={t("domains.section.description", { count: domains.length })}
+        description={t("domains.section.description", {
+          count: domains.length,
+        })}
         action={
           canEdit && (
             <AddDialog
@@ -185,7 +195,9 @@ export function ApplicationDomains({
               onSubmit={addDomain}
             >
               <div className="space-y-1">
-                <Label htmlFor="domain-host">{t("domains.form.hostname")}</Label>
+                <Label htmlFor="domain-host">
+                  {t("domains.form.hostname")}
+                </Label>
                 <Input
                   id="domain-host"
                   value={host}
@@ -225,7 +237,8 @@ export function ApplicationDomains({
                         {t("domains.certAuto")}
                       </SelectItem>
                       {certificates.map((c) => {
-                        const covers = !host.trim() || coversHost(c, host.trim())
+                        const covers =
+                          !host.trim() || coversHost(c, host.trim())
                         return (
                           <SelectItem
                             key={c.id}
@@ -431,6 +444,38 @@ export function ApplicationDomains({
                         {check.expectedSource === "detected" &&
                           ` · ${t("domains.dns.detected")}`}
                       </p>
+                    )}
+                    {(d.conflicts ?? []).length > 0 && (
+                      <div className="mt-1 max-w-80 space-y-1">
+                        {(d.conflicts ?? []).map((c) => (
+                          <p
+                            key={c.containerId}
+                            className="flex items-start gap-1.5 text-wrap text-amber-700 dark:text-amber-400"
+                            role="status"
+                          >
+                            <TriangleAlert className="mt-0.5 size-3.5 shrink-0" />
+                            <span>
+                              {t.rich(
+                                c.orphan
+                                  ? "domains.conflict.orphan"
+                                  : "domains.conflict.other",
+                                {
+                                  name: c.containerName,
+                                  code: (chunks) => <code>{chunks}</code>,
+                                  link: (chunks) => (
+                                    <Link
+                                      href="/infra/docker"
+                                      className="underline underline-offset-2"
+                                    >
+                                      {chunks}
+                                    </Link>
+                                  ),
+                                }
+                              )}
+                            </span>
+                          </p>
+                        ))}
+                      </div>
                     )}
                   </DataCell>
                   <DataCell>

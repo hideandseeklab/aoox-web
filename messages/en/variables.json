@@ -182,7 +182,9 @@
       "confirm": "Promote",
       "nothing": "Nothing differs that could be promoted.",
       "loadFailed": "Could not compare."
-    }
+    },
+    "noteAria": "Note for {name}",
+    "notesHint": "Notes are the # lines directly above a variable. They are visible without revealing values, so do not put secrets in them."
   },
   "links": {
     "title": "Variable sets",

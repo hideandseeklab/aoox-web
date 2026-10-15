@@ -107,11 +107,25 @@ export async function fetchProjectsAction(): Promise<ProjectListItem[]> {
   }
 }
 
-export async function deleteProjectAction(id: string): Promise<void> {
-  await api<void>(`/projects/${id}`, {
-    method: "DELETE",
-    token: await requireToken(),
-  })
+/**
+ * `purge` also deletes the data volumes. A failure (for example the Docker
+ * daemon being unreachable, answered as 502) comes back as a message for the
+ * dialog instead of an error page; the project is kept, so it can be retried.
+ */
+export async function deleteProjectAction(
+  id: string,
+  purge: boolean
+): Promise<{ error: string } | undefined> {
+  try {
+    await api<void>(`/projects/${id}${purge ? "?purge=true" : ""}`, {
+      method: "DELETE",
+      token: await requireToken(),
+    })
+  } catch (err) {
+    if (err instanceof ApiError) return { error: err.message }
+    const t = await getTranslations("common")
+    return { error: t("messages.serverUnreachable") }
+  }
   revalidatePath("/projects")
   redirect("/projects")
 }

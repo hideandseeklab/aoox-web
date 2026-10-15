@@ -175,6 +175,14 @@ export interface DomainMiddlewareOption {
   file: string
 }
 
+/** Another container already routing a host (never blocks anything). */
+export interface DomainConflict {
+  containerName: string
+  containerId: string
+  /** Left over from a deleted project/app; removable on the Docker page. */
+  orphan: boolean
+}
+
 export interface Domain {
   id: string
   applicationId: string
@@ -195,6 +203,8 @@ export interface Domain {
   dnsMessage?: string | null
   /** Set by add-domain when the record could not be created as asked (the domain was added anyway). */
   dnsWarning?: string | null
+  /** Other containers on the daemon that already route this host. */
+  conflicts?: DomainConflict[]
   createdAt: string
   /**
    * True when the proxy wasn't running and the API started it automatically

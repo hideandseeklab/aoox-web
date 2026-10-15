@@ -101,7 +101,9 @@
   },
   "delete": {
     "title": "Delete project?",
-    "description": "Project <b>{name}</b> will be permanently deleted."
+    "description": "Project <b>{name}</b> will be permanently deleted together with its applications, databases and compose stacks. Their containers are stopped and removed, so their domains stop working.",
+    "purgeLabel": "Also delete data",
+    "purgeHint": "Deletes the volumes of its databases, application volume mounts and compose stacks. Left unchecked, the volumes are kept: those of databases and applications then appear as orphaned under Infrastructure > Docker, where you can remove them later. Volumes that a compose file declares itself are kept too but are not listed there."
   },
   "export": {
     "label": "Export configuration (JSON)",

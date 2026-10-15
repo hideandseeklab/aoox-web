@@ -182,7 +182,9 @@
       "confirm": "Promosikan",
       "nothing": "Tidak ada perbedaan yang bisa dipromosikan.",
       "loadFailed": "Tidak bisa membandingkan."
-    }
+    },
+    "noteAria": "Catatan untuk {name}",
+    "notesHint": "Catatan adalah baris # tepat di atas sebuah variabel. Catatan terlihat tanpa membuka nilai, jadi jangan menaruh rahasia di dalamnya."
   },
   "links": {
     "title": "Set variabel",
