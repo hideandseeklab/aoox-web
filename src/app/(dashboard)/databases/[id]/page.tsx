@@ -26,6 +26,7 @@ import {
   ResourceStatus,
 } from "@/components/custom/resource-header"
 import { ContainerName } from "@/components/custom/container-name"
+import { HeaderFact } from "@/components/custom/header-fact"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent } from "@/components/ui/tabs"
 import { ScrollableTabsList } from "@/components/custom/scrollable-tabs-list"
@@ -138,22 +139,25 @@ export default async function DatabasePage({
           </>
         }
         meta={[
-          <span key="e" className="font-mono">
-            {ENGINE_LABEL[db.engine]} {db.imageTag}
-          </span>,
-          <ContainerName
-            key="s"
-            name={`aoox-db-${db.slug}`}
-            label={t("page.containerName")}
-            hint={t("page.containerHint", {
-              name: `aoox-db-${db.slug}`,
-              port: ENGINE_CONTAINER_PORT[db.engine],
-            })}
-          />,
-          db.hostPort && (
-            <span key="p" className="font-mono">
-              :{db.hostPort}
+          <HeaderFact key="e" label={t("page.image")}>
+            <span className="font-mono">
+              {ENGINE_LABEL[db.engine]} {db.imageTag}
             </span>
+          </HeaderFact>,
+          <HeaderFact key="s" label={t("page.container")}>
+            <ContainerName
+              name={`aoox-db-${db.slug}`}
+              label={t("page.containerName")}
+              hint={t("page.containerHint", {
+                name: `aoox-db-${db.slug}`,
+                port: ENGINE_CONTAINER_PORT[db.engine],
+              })}
+            />
+          </HeaderFact>,
+          db.hostPort && (
+            <HeaderFact key="p" label={t("page.port")}>
+              <span className="font-mono">{db.hostPort}</span>
+            </HeaderFact>
           ),
         ]}
         actions={db.projectRole !== "viewer" && <DatabaseStartStop db={db} />}

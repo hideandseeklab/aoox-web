@@ -162,6 +162,10 @@
     "newDescription": "Built from a git repo (Dockerfile, Nixpacks, or static site) or pulled from a ready-made image, then run as a container.",
     "readOnly": "Read only",
     "containerName": "Container name",
+    "image": "Image",
+    "source": "Source",
+    "container": "Container",
+    "port": "Port",
     "containerHint": "Other apps and databases on this server can reach it at http://{name}:{port}",
     "containerHintRemote": "Reachable only from other apps on the same remote server, at http://{name}:{port}",
     "containerHintService": "Swarm service name; address it from other swarm services as http://{name}:{port}"

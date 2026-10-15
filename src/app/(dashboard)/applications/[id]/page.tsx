@@ -11,6 +11,8 @@ import {
   ResourceStatus,
 } from "@/components/custom/resource-header"
 import { ContainerName } from "@/components/custom/container-name"
+import { HeaderFact } from "@/components/custom/header-fact"
+import { effectiveImageRef } from "@/features/application/image-ref"
 import { Badge } from "@/components/ui/badge"
 import { canUseTerminal } from "@/features/auth/auth.entity"
 import { getVerifiedSession } from "@/features/auth/auth.session"
@@ -182,34 +184,43 @@ export default async function ApplicationPage({
           </>
         }
         meta={[
-          <ContainerName
-            key="n"
-            name={`aoox-app-${app.appName}`}
-            label={t("page.containerName")}
-            hint={t(
-              app.serverId
-                ? "page.containerHintRemote"
-                : app.deployMode === "service"
-                  ? "page.containerHintService"
-                  : "page.containerHint",
-              { name: `aoox-app-${app.appName}`, port: app.containerPort }
-            )}
-          />,
-          <span key="s" className="font-mono">
-            {app.sourceType === "image"
-              ? app.imageRef
-              : `${app.gitUrl}#${app.gitBranch}${app.rootDirectory ? `:${app.rootDirectory}` : ""}`}
-          </span>,
+          <HeaderFact
+            key="s"
+            label={
+              app.sourceType === "image" ? t("page.image") : t("page.source")
+            }
+          >
+            <span className="font-mono">
+              {app.sourceType === "image"
+                ? effectiveImageRef(app.imageRef ?? "")
+                : `${app.gitUrl}#${app.gitBranch}${app.rootDirectory ? `:${app.rootDirectory}` : ""}`}
+            </span>
+          </HeaderFact>,
+          <HeaderFact key="n" label={t("page.container")}>
+            <ContainerName
+              name={`aoox-app-${app.appName}`}
+              label={t("page.containerName")}
+              hint={t(
+                app.serverId
+                  ? "page.containerHintRemote"
+                  : app.deployMode === "service"
+                    ? "page.containerHintService"
+                    : "page.containerHint",
+                { name: `aoox-app-${app.appName}`, port: app.containerPort }
+              )}
+            />
+          </HeaderFact>,
           app.hostPort && (
-            <a
-              key="p"
-              className="font-mono underline"
-              href={`http://localhost:${app.hostPort}`}
-              target="_blank"
-              rel="noreferrer"
-            >
-              :{app.hostPort}
-            </a>
+            <HeaderFact key="p" label={t("page.port")}>
+              <a
+                className="font-mono underline"
+                href={`http://localhost:${app.hostPort}`}
+                target="_blank"
+                rel="noreferrer"
+              >
+                {app.hostPort}
+              </a>
+            </HeaderFact>
           ),
         ]}
         actions={

@@ -162,6 +162,10 @@
     "newDescription": "Di-build dari repo git (Dockerfile, Nixpacks, atau situs statis) atau di-pull dari image siap pakai, lalu dijalankan sebagai container.",
     "readOnly": "Baca saja",
     "containerName": "Nama container",
+    "image": "Image",
+    "source": "Sumber",
+    "container": "Container",
+    "port": "Port",
     "containerHint": "Aplikasi dan database lain di server ini bisa mengaksesnya di http://{name}:{port}",
     "containerHintRemote": "Hanya bisa diakses dari aplikasi lain di server remote yang sama, di http://{name}:{port}",
     "containerHintService": "Nama service swarm; akses dari service swarm lain sebagai http://{name}:{port}"

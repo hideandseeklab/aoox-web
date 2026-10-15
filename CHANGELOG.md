@@ -21,6 +21,7 @@ Versions below 1.0.0 may include breaking changes in a minor release.
 
 ### UI UX Improvement
 
+- The application and database headers label each fact: `Image: nginx:latest · Container: aoox-app-… [copy] · Port: 8080` (git apps show `Source: <repo>#<branch>` first). The image comes first so it is easy to find, and an image reference without a tag is shown with the `:latest` Docker will use. Facts wrap as a unit on small screens.
 - The application header shows the full container name (`aoox-app-<name>`) and the database header shows `aoox-db-<slug>`, each with a small copy button and a tooltip with the address other apps on the same network can use (including the container port). Remote-server and swarm-service apps get their own wording. Viewers see it too.
 - The delete project dialog is wider, explains what is removed, and has the **Also delete data** option as a bordered checkbox row; errors show inside the dialog.
 - Rows view of the env editor: standalone comments are their own muted rows, notes sit under their variable, and on a phone the note and remove buttons share the line with the variable name so they no longer wrap onto a line of their own.
@@ -77,6 +78,7 @@ Versions below 1.0.0 may include breaking changes in a minor release.
 - **Warning when the image listens on another port.** If the image declares `EXPOSE` ports and the Container port is none of them, the Settings tab (above the port field) and the Domains tab (above the table) show an amber alert explaining the likely "Bad Gateway". Developers and owners get a one-click "Use port N" button when the image exposes exactly one port; viewers only see the warning.
 
 ### UI UX Improvement
+
 - **One overview card on the dashboard.** The three tinted project cards and the separate Host card are now a single Overview card: the host summary in the header with a status dot, one row of cells split by hairlines (projects with active/inactive counts, aoox containers, memory, CPU; 4 across, 2×2 or stacked by the card's width) and the Docker disk meter as its footer, in solid steps that read in light mode too. Members, and owners/admins when Docker cannot be reached, see total, active and inactive projects as three cells (with a "Host data unavailable" note for owners/admins) instead of an empty Host area.
 - **Project settings column scrolls with the page.** The Settings, Members and Danger zone column on the project page was sticky and slid under the top bar when scrolling; it now scrolls normally.
 - **Environment tab: note in an alert, delete as a Danger zone row.** The "changes apply on the next deploy" note is now an info alert, and Delete moved from the action row to a red "Delete this environment" row at the bottom of the tab (shared `DangerZoneItem`, also used by the Danger zone cards), so the action row only has the note, History and Reveal and edit.
@@ -419,7 +421,7 @@ Versions below 1.0.0 may include breaking changes in a minor release.
     surfaces that as a thrown rejection at the call site rather than routing it through the action's
     normal `try`/`catch`, so the call site now wraps it too) — is swallowed and retried, never shown
     as a red error. `applyInstanceUpdateAction` now distinguishes a real `ApiError` rejection (e.g.
-    `INSTALL_DIR` not set — a genuine failure, shown as an error, does *not* enter applying mode) from
+    `INSTALL_DIR` not set — a genuine failure, shown as an error, does _not_ enter applying mode) from
     "couldn't connect" (treated as "probably restarting, proceed").
   - A new `pingInstanceUpdateAction` polls a cheap API endpoint (`GET /instance/update/progress` — no
     registry calls, unlike the existing status endpoint) every few seconds, backing off from 3s up to

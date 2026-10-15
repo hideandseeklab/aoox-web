@@ -1,6 +1,6 @@
 import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
-import { Fragment, type ReactNode } from "react"
+import type { ReactNode } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
@@ -79,18 +79,25 @@ export function ResourceHeader({
         </div>
         <div className="min-w-0 flex-1 space-y-0.5">
           <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
-            <h1 className="min-w-0 break-words text-lg leading-tight font-semibold">
+            <h1 className="min-w-0 text-lg leading-tight font-semibold break-words">
               {title}
             </h1>
             {badges}
           </div>
           {facts.length > 0 && (
-            <p className="flex flex-wrap items-center gap-x-1.5 text-xs text-muted-foreground">
+            <p className="flex flex-col gap-y-0.5 text-xs text-muted-foreground sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-1.5">
               {facts.map((f, i) => (
-                <Fragment key={i}>
-                  {i > 0 && <span aria-hidden>·</span>}
+                <span
+                  key={i}
+                  className="inline-flex min-w-0 items-baseline gap-1.5"
+                >
                   <span className="min-w-0 break-all">{f}</span>
-                </Fragment>
+                  {i < facts.length - 1 && (
+                    <span aria-hidden className="hidden shrink-0 sm:inline">
+                      ·
+                    </span>
+                  )}
+                </span>
               ))}
             </p>
           )}
