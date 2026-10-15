@@ -8,6 +8,8 @@ Versions below 1.0.0 may include breaking changes in a minor release.
 
 ## [Unreleased]
 
+## [0.1.0-alpha.11] - 2026-10-15
+
 ### Added
 
 - **Notes on variables** (needs the matching aoox-api). The `#` lines directly above a variable are its note. On a variable set environment, rows that have a note show a note icon before the masked value; hover, click, tap or Enter on the icon shows the note, without revealing values (viewers see notes too, so the editor reminds you not to put secrets in them). In **Reveal and edit**, Rows view shows each note under its variable and the note button adds or edits one; Text view shows them as `#` lines.
@@ -668,7 +670,8 @@ Versions below 1.0.0 may include breaking changes in a minor release.
   backups, notifications, and account/instance settings.
 - A web terminal (shell on the host or inside the API container) over WebSocket.
 
-[Unreleased]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.0-alpha.10...HEAD
+[Unreleased]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.0-alpha.11...HEAD
+[0.1.0-alpha.11]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.0-alpha.10...v0.1.0-alpha.11
 [0.1.0-alpha.10]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.0-alpha.9...v0.1.0-alpha.10
 [0.1.0-alpha.9]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.0-alpha.8...v0.1.0-alpha.9
 [0.1.0-alpha.8]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.0-alpha.7...v0.1.0-alpha.8
