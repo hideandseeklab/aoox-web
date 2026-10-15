@@ -13,6 +13,16 @@ export const ENGINE_LABEL: Record<DatabaseEngine, string> = {
   mongodb: "MongoDB",
 }
 
+/** Port the engine listens on inside its container (mirror of aoox-api `engines.ts`). */
+export const ENGINE_CONTAINER_PORT: Record<DatabaseEngine, number> = {
+  postgres: 5432,
+  mysql: 3306,
+  mariadb: 3306,
+  redis: 6379,
+  valkey: 6379,
+  mongodb: 27017,
+}
+
 export const ENGINE_DEFAULT_TAG: Record<DatabaseEngine, string> = {
   postgres: "16-alpine",
   mysql: "8",

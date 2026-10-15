@@ -12,7 +12,9 @@
       "mounts": "Mount ({count})",
       "jobs": "Job ({count})"
     },
-    "readOnly": "Baca saja"
+    "readOnly": "Baca saja",
+    "containerName": "Nama container",
+    "containerHint": "Aplikasi di project ini bisa mengaksesnya di {name}:{port}"
   },
   "form": {
     "fields": {

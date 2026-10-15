@@ -21,6 +21,7 @@ Versions below 1.0.0 may include breaking changes in a minor release.
 
 ### UI UX Improvement
 
+- The application header shows the full container name (`aoox-app-<name>`) and the database header shows `aoox-db-<slug>`, each with a small copy button and a tooltip with the address other apps on the same network can use (including the container port). Remote-server and swarm-service apps get their own wording. Viewers see it too.
 - The delete project dialog is wider, explains what is removed, and has the **Also delete data** option as a bordered checkbox row; errors show inside the dialog.
 - Rows view of the env editor: standalone comments are their own muted rows, notes sit under their variable, and on a phone the note and remove buttons share the line with the variable name so they no longer wrap onto a line of their own.
 - The dashboard favicon now uses the round icon of aoox.dev, so both sites show the same mark.

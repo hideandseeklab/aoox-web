@@ -10,6 +10,7 @@ import {
   ResourceHeader,
   ResourceStatus,
 } from "@/components/custom/resource-header"
+import { ContainerName } from "@/components/custom/container-name"
 import { Badge } from "@/components/ui/badge"
 import { canUseTerminal } from "@/features/auth/auth.entity"
 import { getVerifiedSession } from "@/features/auth/auth.session"
@@ -181,9 +182,19 @@ export default async function ApplicationPage({
           </>
         }
         meta={[
-          <span key="n" className="font-mono">
-            {app.appName}
-          </span>,
+          <ContainerName
+            key="n"
+            name={`aoox-app-${app.appName}`}
+            label={t("page.containerName")}
+            hint={t(
+              app.serverId
+                ? "page.containerHintRemote"
+                : app.deployMode === "service"
+                  ? "page.containerHintService"
+                  : "page.containerHint",
+              { name: `aoox-app-${app.appName}`, port: app.containerPort }
+            )}
+          />,
           <span key="s" className="font-mono">
             {app.sourceType === "image"
               ? app.imageRef

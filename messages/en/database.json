@@ -12,7 +12,9 @@
       "mounts": "Mounts ({count})",
       "jobs": "Jobs ({count})"
     },
-    "readOnly": "Read only"
+    "readOnly": "Read only",
+    "containerName": "Container name",
+    "containerHint": "Apps in this project can reach it at {name}:{port}"
   },
   "form": {
     "fields": {

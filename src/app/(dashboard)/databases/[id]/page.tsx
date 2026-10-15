@@ -25,6 +25,7 @@ import {
   ResourceHeader,
   ResourceStatus,
 } from "@/components/custom/resource-header"
+import { ContainerName } from "@/components/custom/container-name"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent } from "@/components/ui/tabs"
 import { ScrollableTabsList } from "@/components/custom/scrollable-tabs-list"
@@ -41,7 +42,10 @@ import { listJobs } from "@/features/job/job.queries"
 import { fetchMetricsAction } from "@/features/monitoring/monitoring.actions"
 import { getResourceAlerts } from "@/features/resource-alert/resource-alert.queries"
 import { ResourceAlertsCard } from "@/components/custom/resource-alerts-card"
-import { ENGINE_LABEL } from "@/features/managed-database/managed-database.entity"
+import {
+  ENGINE_CONTAINER_PORT,
+  ENGINE_LABEL,
+} from "@/features/managed-database/managed-database.entity"
 import {
   getDatabase,
   getDatabaseCredentials,
@@ -137,9 +141,15 @@ export default async function DatabasePage({
           <span key="e" className="font-mono">
             {ENGINE_LABEL[db.engine]} {db.imageTag}
           </span>,
-          <span key="s" className="font-mono">
-            {db.slug}
-          </span>,
+          <ContainerName
+            key="s"
+            name={`aoox-db-${db.slug}`}
+            label={t("page.containerName")}
+            hint={t("page.containerHint", {
+              name: `aoox-db-${db.slug}`,
+              port: ENGINE_CONTAINER_PORT[db.engine],
+            })}
+          />,
           db.hostPort && (
             <span key="p" className="font-mono">
               :{db.hostPort}
