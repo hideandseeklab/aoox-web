@@ -27,13 +27,22 @@
       "hostPort": "Port host",
       "hostPortPlaceholder": "kosong = internal saja"
     },
+    "engines": {
+      "postgres": "SQL relasional yang bisa diperluas",
+      "mysql": "SQL relasional yang populer",
+      "mariadb": "Fork komunitas dari MySQL",
+      "redis": "Penyimpanan key-value di memori",
+      "valkey": "Fork open-source dari Redis",
+      "mongodb": "Database dokumen"
+    },
     "variants": {
-      "none": "PostgreSQL polos",
       "noneDescription": "Image postgres standar, tanpa ekstensi tambahan.",
       "pgvector": "Pencarian kemiripan vektor untuk embedding (beban kerja AI/ML).",
       "postgis": "Tipe data, indeks, dan kueri geografis/spasial.",
-      "timescaledb": "Data deret waktu: hypertable, agregasi kontinu."
+      "timescaledb": "Data deret waktu: hypertable, agregasi kontinu.",
+      "plain": "Polos"
     },
+    "imageTagHint": "Kosongkan untuk memakai <image></image>.",
     "hostPortHint": "Publikasikan port host hanya kalau perlu diakses dari luar (mis. dari laptop kamu).",
     "toast": {
       "created": "Database \"{name}\" dibuat — sedang disiapkan (pull image bisa beberapa menit).",
@@ -43,6 +52,8 @@
     }
   },
   "panel": {
+    "title": "Koneksi",
+    "description": "Host, port, user, dan password untuk aplikasi dan alat yang terhubung ke database ini.",
     "showPassword": "Tampilkan password",
     "hidePassword": "Sembunyikan password",
     "createFailed": "Pembuatan database gagal: {error}",
@@ -88,7 +99,10 @@
     "cpu": "CPU (millicore)",
     "cpuPlaceholder": "1000 = 1 inti",
     "memory": "Memori (MiB)",
-    "memoryPlaceholder": "mis. 512"
+    "memoryPlaceholder": "mis. 512",
+    "currentNone": "Saat ini: tanpa batas",
+    "currentCpu": "Saat ini: {value} millicore",
+    "currentMemory": "Saat ini: {value} MiB"
   },
   "backups": {
     "title": "Backup",
@@ -339,5 +353,11 @@
     "title": "Query terakhir",
     "clear": "Bersihkan riwayat",
     "empty": "Belum ada riwayat."
+  },
+  "dangerZone": {
+    "title": "Zona berbahaya",
+    "description": "Tindakan yang tidak bisa dibatalkan untuk database ini.",
+    "deleteTitle": "Hapus database ini",
+    "deleteDescription": "Menghentikan dan menghapus container, admin UI, dan daftar backup-nya. Anda memilih apakah volume datanya ikut dihapus. Tindakan ini tidak bisa dibatalkan."
   }
 }

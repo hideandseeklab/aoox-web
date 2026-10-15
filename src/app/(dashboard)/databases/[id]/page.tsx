@@ -20,6 +20,9 @@ import {
   DatabaseStartStop,
 } from "@/components/custom/database-panel"
 import { DatabaseResources } from "@/components/custom/database-resources"
+import { DangerZone } from "@/components/custom/danger-zone"
+import { DeleteDatabaseButton } from "@/components/custom/delete-database-button"
+import { cn } from "@/lib/utils"
 import { MetricsPanel } from "@/components/custom/metrics-panel"
 import {
   ResourceHeader,
@@ -187,14 +190,6 @@ export default async function DatabasePage({
             initial={metrics}
             running={running}
           />
-          {alerts && (
-            <ResourceAlertsCard
-              kind="database"
-              id={db.id}
-              initial={alerts}
-              canEdit={db.projectRole !== "viewer"}
-            />
-          )}
           <DatabasePanel
             db={db}
             connection={connection}
@@ -206,13 +201,42 @@ export default async function DatabasePage({
               db.engine !== "valkey"
             }
           />
-          <DatabaseResources db={db} />
           <DatabaseCompanionCard
             db={db}
             companion={companion}
             tools={companionTools}
             running={running}
           />
+          <div className={cn("grid gap-4", alerts && "lg:grid-cols-2")}>
+            <DatabaseResources db={db} />
+            {alerts && (
+              <ResourceAlertsCard
+                kind="database"
+                id={db.id}
+                initial={alerts}
+                canEdit={db.projectRole !== "viewer"}
+              />
+            )}
+          </div>
+          {db.projectRole !== "viewer" && (
+            <DangerZone
+              title={t("dangerZone.title")}
+              description={t("dangerZone.description")}
+              items={[
+                {
+                  title: t("dangerZone.deleteTitle"),
+                  description: t("dangerZone.deleteDescription"),
+                  action: (
+                    <DeleteDatabaseButton
+                      id={db.id}
+                      projectId={db.projectId}
+                      name={db.name}
+                    />
+                  ),
+                },
+              ]}
+            />
+          )}
         </TabsContent>
         <TabsContent value="data" className="pt-4">
           <DatabaseDataBrowser

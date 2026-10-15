@@ -1,11 +1,13 @@
 "use client"
 
-import { Loader2 } from "lucide-react"
+import { Check, Loader2 } from "lucide-react"
 import { useTranslations } from "next-intl"
 import Link from "next/link"
 import { useRouter } from "@/lib/use-router"
 import { useActionState, useEffect, useRef, useState } from "react"
 import { toast } from "sonner"
+import { EngineIcon } from "@/components/custom/brand-icon"
+import { RadioCards } from "@/components/custom/radio-cards"
 import { Button } from "@/components/ui/button"
 import {
   Field,
@@ -15,25 +17,33 @@ import {
   FieldLabel,
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import type { DatabaseFormState } from "@/features/managed-database/managed-database.actions"
 import {
-  ENGINE_DEFAULT_TAG,
   ENGINE_LABEL,
   POSTGRES_VARIANT_INFO,
+  defaultImageFor,
   type DatabaseEngine,
   type PostgresVariant,
 } from "@/features/managed-database/managed-database.entity"
+import { cn } from "@/lib/utils"
 
+/** Submitted as `variant` for plain Postgres; the action turns it into null. */
 const NO_VARIANT = "none"
+type VariantChoice = Exclude<PostgresVariant, null> | typeof NO_VARIANT
 
-/** Engine + variant + tag + port — this is the whole database create form, there is no edit form (changing engine/variant after creation isn't supported). */
+const ENGINES = Object.keys(ENGINE_LABEL) as DatabaseEngine[]
+const VARIANTS: VariantChoice[] = [
+  NO_VARIANT,
+  ...(Object.keys(POSTGRES_VARIANT_INFO) as Array<
+    Exclude<PostgresVariant, null>
+  >),
+]
+
+/**
+ * Engine + variant + tag + port — this is the whole database create form, there is no edit form (changing engine/variant after creation isn't supported).
+ * From `lg`: engine cards on the left, the other fields and the buttons on the right; stacked (cards first) below that.
+ * The cards and variant chips are `RadioCards`; their values are submitted through hidden inputs with the same names the old selects used.
+ */
 export function DatabaseForm({
   action,
   submitLabel,
@@ -53,9 +63,14 @@ export function DatabaseForm({
   const t = useTranslations("database")
   const tc = useTranslations("common")
   const [engine, setEngine] = useState<DatabaseEngine>("postgres")
-  const [variant, setVariant] = useState<
-    Exclude<PostgresVariant, null> | typeof NO_VARIANT
-  >(NO_VARIANT)
+  const [variant, setVariant] = useState<VariantChoice>(NO_VARIANT)
+  // The tag field stays empty unless the user types one: the API then uses
+  // the engine/variant default, which the placeholder and the hint mirror,
+  // so switching engines never leaves a stale default behind.
+  const fallback = defaultImageFor(
+    engine,
+    engine === "postgres" && variant !== NO_VARIANT ? variant : null
+  )
   const router = useRouter()
   const [state, formAction, pending] = useActionState(action, {})
   const toastIdRef = useRef<string | number | undefined>(undefined)
@@ -103,8 +118,53 @@ export function DatabaseForm({
         )
       }}
       noValidate
+      className="grid gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] lg:gap-8"
     >
-      <FieldGroup>
+      <Field className="content-start">
+        <FieldLabel id="db-engine-label">{t("form.fields.engine")}</FieldLabel>
+        <input type="hidden" name="engine" value={engine} />
+        <RadioCards
+          value={engine}
+          onValueChange={(v) => {
+            setEngine(v)
+            if (v !== "postgres") setVariant(NO_VARIANT)
+          }}
+          options={ENGINES}
+          labelledBy="db-engine-label"
+          className="grid grid-cols-2 gap-2 sm:grid-cols-3"
+          itemClassName={(checked) =>
+            cn(
+              "relative flex min-w-0 flex-col items-start gap-2 rounded-lg border p-3 text-start transition-colors",
+              checked ? "border-primary bg-primary/5" : "hover:bg-muted/50"
+            )
+          }
+          renderItem={(e, checked) => (
+            <>
+              <span className="flex size-9 items-center justify-center rounded-md bg-muted">
+                <EngineIcon engine={e} className="size-5" />
+              </span>
+              <span className="block w-full min-w-0">
+                <span className="block truncate text-sm font-medium">
+                  {ENGINE_LABEL[e]}
+                </span>
+                <span className="block text-xs text-muted-foreground">
+                  {t(`form.engines.${e}`)}
+                </span>
+              </span>
+              {checked && (
+                <span
+                  className="absolute top-2 right-2 flex size-4 items-center justify-center rounded-full bg-primary text-primary-foreground"
+                  aria-hidden
+                >
+                  <Check className="size-3" strokeWidth={3} />
+                </span>
+              )}
+            </>
+          )}
+        />
+      </Field>
+
+      <FieldGroup className="content-start">
         <Field data-invalid={!!state.fieldErrors?.name || undefined}>
           <FieldLabel htmlFor="db-name">{tc("labels.name")}</FieldLabel>
           <Input
@@ -116,101 +176,89 @@ export function DatabaseForm({
           />
           <FieldError errors={errs("name")} />
         </Field>
-        <Field>
-          <FieldLabel htmlFor="db-engine">{t("form.fields.engine")}</FieldLabel>
-          <Select
-            name="engine"
-            value={engine}
-            onValueChange={(v) => {
-              setEngine(v as DatabaseEngine)
-              if (v !== "postgres") setVariant(NO_VARIANT)
-            }}
-          >
-            <SelectTrigger id="db-engine">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent position="popper">
-              {(Object.keys(ENGINE_LABEL) as DatabaseEngine[]).map((e) => (
-                <SelectItem key={e} value={e}>
-                  {ENGINE_LABEL[e]}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </Field>
         {engine === "postgres" && (
           <Field>
-            <FieldLabel htmlFor="db-variant">{t("form.fields.variant")}</FieldLabel>
-            <Select
-              name="variant"
+            <FieldLabel id="db-variant-label">
+              {t("form.fields.variant")}
+            </FieldLabel>
+            <input type="hidden" name="variant" value={variant} />
+            <RadioCards
               value={variant}
-              onValueChange={(v) =>
-                setVariant(
-                  v as Exclude<PostgresVariant, null> | typeof NO_VARIANT
+              onValueChange={setVariant}
+              options={VARIANTS}
+              labelledBy="db-variant-label"
+              describedBy="db-variant-description"
+              className="flex flex-wrap gap-1.5"
+              itemClassName={(checked) =>
+                cn(
+                  "inline-flex h-7 items-center gap-1 rounded-md border px-2.5 text-xs font-medium transition-colors",
+                  checked
+                    ? "border-primary bg-primary/5"
+                    : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
                 )
               }
-            >
-              <SelectTrigger id="db-variant">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent position="popper">
-                <SelectItem value={NO_VARIANT}>{t("form.variants.none")}</SelectItem>
-                {(
-                  Object.keys(POSTGRES_VARIANT_INFO) as Array<
-                    Exclude<PostgresVariant, null>
-                  >
-                ).map((v) => (
-                  <SelectItem key={v} value={v}>
-                    {POSTGRES_VARIANT_INFO[v].label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <FieldDescription>
+              renderItem={(v, checked) => (
+                <>
+                  {checked && (
+                    <Check className="size-3" strokeWidth={3} aria-hidden />
+                  )}
+                  {v === NO_VARIANT
+                    ? t("form.variants.plain")
+                    : POSTGRES_VARIANT_INFO[v].label}
+                </>
+              )}
+            />
+            <FieldDescription id="db-variant-description">
               {variant === NO_VARIANT
                 ? t("form.variants.noneDescription")
                 : t(`form.variants.${variant}`)}
             </FieldDescription>
           </Field>
         )}
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Field data-invalid={!!state.fieldErrors?.imageTag || undefined}>
-            <FieldLabel htmlFor="db-tag">{t("form.fields.imageTag")}</FieldLabel>
-            <Input
-              id="db-tag"
-              name="imageTag"
-              placeholder={
-                engine === "postgres" && variant !== NO_VARIANT
-                  ? POSTGRES_VARIANT_INFO[variant].defaultTag
-                  : ENGINE_DEFAULT_TAG[engine]
-              }
-              defaultValue={state.values?.imageTag}
-            />
-            <FieldError errors={errs("imageTag")} />
-          </Field>
-          <Field data-invalid={!!state.fieldErrors?.hostPort || undefined}>
-            <FieldLabel htmlFor="db-port">{t("form.fields.hostPort")}</FieldLabel>
-            <Input
-              id="db-port"
-              name="hostPort"
-              type="number"
-              min={1}
-              max={65535}
-              placeholder={t("form.fields.hostPortPlaceholder")}
-              defaultValue={state.values?.hostPort}
-            />
-            <FieldError errors={errs("hostPort")} />
-          </Field>
-        </div>
-        <FieldDescription>
-          {t("form.hostPortHint")}
-        </FieldDescription>
+        <Field data-invalid={!!state.fieldErrors?.imageTag || undefined}>
+          <FieldLabel htmlFor="db-tag">{t("form.fields.imageTag")}</FieldLabel>
+          <Input
+            id="db-tag"
+            name="imageTag"
+            className="font-mono"
+            placeholder={fallback.tag}
+            defaultValue={state.values?.imageTag}
+            aria-describedby="db-tag-hint"
+          />
+          <FieldDescription id="db-tag-hint">
+            {t.rich("form.imageTagHint", {
+              image: () => (
+                <code className="font-mono">
+                  {fallback.image}:{fallback.tag}
+                </code>
+              ),
+            })}
+          </FieldDescription>
+          <FieldError errors={errs("imageTag")} />
+        </Field>
+        <Field data-invalid={!!state.fieldErrors?.hostPort || undefined}>
+          <FieldLabel htmlFor="db-port">{t("form.fields.hostPort")}</FieldLabel>
+          <Input
+            id="db-port"
+            name="hostPort"
+            type="number"
+            min={1}
+            max={65535}
+            placeholder={t("form.fields.hostPortPlaceholder")}
+            defaultValue={state.values?.hostPort}
+            aria-describedby="db-port-hint"
+          />
+          <FieldDescription id="db-port-hint">
+            {t("form.hostPortHint")}
+          </FieldDescription>
+          <FieldError errors={errs("hostPort")} />
+        </Field>
         {state.error && (
           <FieldDescription className="text-destructive" role="alert">
             {state.error}
           </FieldDescription>
         )}
-        <div className="flex justify-end gap-2">
+        <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
           {cancelHref && (
             <Button asChild variant="outline">
               <Link href={cancelHref}>{tc("actions.cancel")}</Link>

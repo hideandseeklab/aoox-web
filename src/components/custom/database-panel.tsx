@@ -7,7 +7,14 @@ import { useEffect, useState, useTransition } from "react"
 import { ConfirmDialog } from "@/components/custom/confirm-dialog"
 import { DetailList } from "@/components/custom/detail-list"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
 import {
   Dialog,
   DialogContent,
@@ -31,7 +38,6 @@ import {
   dropSchemaAction,
 } from "@/features/managed-database/data-browser.actions"
 import {
-  deleteDatabaseAction,
   startDatabaseAction,
   stopDatabaseAction,
 } from "@/features/managed-database/managed-database.actions"
@@ -75,9 +81,7 @@ export function DatabasePanel({
             : null,
         }
       : primary
-  const [pending, start] = useTransition()
   const [reveal, setReveal] = useState(false)
-  const [deleteOpen, setDeleteOpen] = useState(false)
 
   // While provisioning, refresh until the API reports a terminal status.
   useEffect(() => {
@@ -91,209 +95,176 @@ export function DatabasePanel({
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center gap-2">
-        <Button variant="ghost" size="sm" onClick={() => setReveal((r) => !r)}>
-          {reveal ? (
-            <EyeOff data-icon="inline-start" />
-          ) : (
-            <Eye data-icon="inline-start" />
-          )}
-          {reveal ? t("panel.hidePassword") : t("panel.showPassword")}
-        </Button>
-      </div>
-
       {db.status === "error" && (
         <p className="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-xs text-destructive">
           {t("panel.createFailed", { error: db.errorMessage ?? "" })}
         </p>
       )}
 
-      {(schemas.length > 1 || canManageDatabases) && (
-        <div className="flex flex-wrap items-center gap-2 text-xs">
-          <Database className="size-4 text-muted-foreground" />
-          <span className="text-muted-foreground">
-            {t("panel.connectionFor")}
-          </span>
-          <Select value={selected ?? ""} onValueChange={setSelected}>
-            <SelectTrigger size="sm" className="w-64 font-mono text-xs">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent position="popper">
-              {schemas.map((s) => (
-                <SelectItem key={s.name} value={s.name}>
-                  {s.name}
-                  {s.isPrimary && (
-                    <span className="text-muted-foreground">
-                      {" "}
-                      · {t("panel.primary")}
-                    </span>
-                  )}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          {canManageDatabases && selected && selected !== primary.database && (
-            <DropDatabaseDialog
-              databaseId={db.id}
-              name={selected}
-              onDropped={() => {
-                setSelected(primary.database)
-                router.refresh()
-              }}
-            />
-          )}
-          {canManageDatabases && (
-            <AddDatabaseDialog
-              databaseId={db.id}
-              onCreated={(name) => {
-                setSelected(name)
-                router.refresh()
-              }}
-            />
-          )}
-        </div>
-      )}
-
       <Card>
-        <CardContent className="grid gap-x-8 gap-y-6 lg:grid-cols-2">
-          <section className="min-w-0 space-y-3">
-            <div className="space-y-1">
-              <h3 className="text-sm font-medium">
-                {t("panel.internal.title")}
-              </h3>
-              <p className="text-xs/relaxed text-muted-foreground">
-                {t.rich("panel.internal.description", {
-                  code: (chunks) => <code>{chunks}</code>,
-                })}
-              </p>
+        <CardHeader>
+          <CardTitle>{t("panel.title")}</CardTitle>
+          <CardDescription>{t("panel.description")}</CardDescription>
+          <CardAction>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setReveal((r) => !r)}
+            >
+              {reveal ? (
+                <EyeOff data-icon="inline-start" />
+              ) : (
+                <Eye data-icon="inline-start" />
+              )}
+              {reveal ? t("panel.hidePassword") : t("panel.showPassword")}
+            </Button>
+          </CardAction>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {(schemas.length > 1 || canManageDatabases) && (
+            <div className="flex flex-wrap items-center gap-2 text-xs">
+              <Database className="size-4 text-muted-foreground" />
+              <span className="text-muted-foreground">
+                {t("panel.connectionFor")}
+              </span>
+              <Select value={selected ?? ""} onValueChange={setSelected}>
+                <SelectTrigger size="sm" className="w-64 font-mono text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent position="popper">
+                  {schemas.map((s) => (
+                    <SelectItem key={s.name} value={s.name}>
+                      {s.name}
+                      {s.isPrimary && (
+                        <span className="text-muted-foreground">
+                          {" "}
+                          · {t("panel.primary")}
+                        </span>
+                      )}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {canManageDatabases &&
+                selected &&
+                selected !== primary.database && (
+                  <DropDatabaseDialog
+                    databaseId={db.id}
+                    name={selected}
+                    onDropped={() => {
+                      setSelected(primary.database)
+                      router.refresh()
+                    }}
+                  />
+                )}
+              {canManageDatabases && (
+                <AddDatabaseDialog
+                  databaseId={db.id}
+                  onCreated={(name) => {
+                    setSelected(name)
+                    router.refresh()
+                  }}
+                />
+              )}
             </div>
-            <DetailList
-              items={[
-                {
-                  label: tc("labels.host"),
-                  value: connection.internalHost,
-                  mono: true,
-                },
-                {
-                  label: tc("labels.port"),
-                  value: String(connection.internalPort),
-                  mono: true,
-                },
-                ...(connection.database
-                  ? [
-                      {
-                        label: t("panel.fields.database"),
-                        value: connection.database,
-                        mono: true,
-                      },
-                    ]
-                  : []),
-                {
-                  label: t("panel.fields.user"),
-                  value: connection.username,
-                  mono: true,
-                },
-                {
-                  label: tc("labels.password"),
-                  value: reveal ? connection.password : "••••••••",
-                  mono: true,
-                  copy: connection.password,
-                },
-                {
-                  label: tc("labels.url"),
-                  value: mask(connection.internalUrl),
-                  mono: true,
-                  copy: connection.internalUrl,
-                },
-              ]}
-            />
-          </section>
-          <section className="min-w-0 space-y-3">
-            <div className="space-y-1">
-              <h3 className="text-sm font-medium">
-                {t("panel.external.title")}
-              </h3>
-              <p className="text-xs/relaxed text-muted-foreground">
-                {connection.externalUrl
-                  ? t("panel.external.published", {
-                      port: connection.externalPort ?? 0,
-                    })
-                  : t("panel.external.notPublished")}
-              </p>
-            </div>
-            {connection.externalUrl ? (
+          )}
+
+          <div className="grid gap-x-8 gap-y-6 lg:grid-cols-2">
+            <section className="min-w-0 space-y-3">
+              <div className="space-y-1">
+                <h3 className="text-sm font-medium">
+                  {t("panel.internal.title")}
+                </h3>
+                <p className="text-xs/relaxed text-muted-foreground">
+                  {t.rich("panel.internal.description", {
+                    code: (chunks) => <code>{chunks}</code>,
+                  })}
+                </p>
+              </div>
               <DetailList
                 items={[
                   {
                     label: tc("labels.host"),
-                    value: connection.externalHost ?? "",
+                    value: connection.internalHost,
                     mono: true,
                   },
                   {
                     label: tc("labels.port"),
-                    value: String(connection.externalPort),
+                    value: String(connection.internalPort),
+                    mono: true,
+                  },
+                  ...(connection.database
+                    ? [
+                        {
+                          label: t("panel.fields.database"),
+                          value: connection.database,
+                          mono: true,
+                        },
+                      ]
+                    : []),
+                  {
+                    label: t("panel.fields.user"),
+                    value: connection.username,
                     mono: true,
                   },
                   {
-                    label: tc("labels.url"),
-                    value: mask(connection.externalUrl),
+                    label: tc("labels.password"),
+                    value: reveal ? connection.password : "••••••••",
                     mono: true,
-                    copy: connection.externalUrl,
+                    copy: connection.password,
+                  },
+                  {
+                    label: tc("labels.url"),
+                    value: mask(connection.internalUrl),
+                    mono: true,
+                    copy: connection.internalUrl,
                   },
                 ]}
               />
-            ) : (
-              <p className="text-xs text-muted-foreground">
-                {t("panel.external.recreateHint")}
-              </p>
-            )}
-          </section>
+            </section>
+            <section className="min-w-0 space-y-3">
+              <div className="space-y-1">
+                <h3 className="text-sm font-medium">
+                  {t("panel.external.title")}
+                </h3>
+                <p className="text-xs/relaxed text-muted-foreground">
+                  {connection.externalUrl
+                    ? t("panel.external.published", {
+                        port: connection.externalPort ?? 0,
+                      })
+                    : t("panel.external.notPublished")}
+                </p>
+              </div>
+              {connection.externalUrl ? (
+                <DetailList
+                  items={[
+                    {
+                      label: tc("labels.host"),
+                      value: connection.externalHost ?? "",
+                      mono: true,
+                    },
+                    {
+                      label: tc("labels.port"),
+                      value: String(connection.externalPort),
+                      mono: true,
+                    },
+                    {
+                      label: tc("labels.url"),
+                      value: mask(connection.externalUrl),
+                      mono: true,
+                      copy: connection.externalUrl,
+                    },
+                  ]}
+                />
+              ) : (
+                <p className="text-xs text-muted-foreground">
+                  {t("panel.external.recreateHint")}
+                </p>
+              )}
+            </section>
+          </div>
         </CardContent>
       </Card>
-
-      {db.projectRole !== "viewer" && (
-        <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
-          <DialogTrigger asChild>
-            <Button variant="destructive" size="sm">
-              <Trash2 data-icon="inline-start" />
-              {t("panel.delete.trigger")}
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle>
-                {t("panel.delete.title", { name: db.name })}
-              </DialogTitle>
-              <DialogDescription>
-                {t("panel.delete.description")}
-              </DialogDescription>
-            </DialogHeader>
-            <DialogFooter className="gap-2">
-              <Button variant="outline" onClick={() => setDeleteOpen(false)}>
-                {tc("actions.cancel")}
-              </Button>
-              <Button
-                variant="outline"
-                disabled={pending}
-                onClick={() =>
-                  start(() => deleteDatabaseAction(db.id, db.projectId, false))
-                }
-              >
-                {t("panel.delete.keepData")}
-              </Button>
-              <Button
-                variant="destructive"
-                disabled={pending}
-                onClick={() =>
-                  start(() => deleteDatabaseAction(db.id, db.projectId, true))
-                }
-              >
-                {t("panel.delete.withData")}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      )}
     </div>
   )
 }

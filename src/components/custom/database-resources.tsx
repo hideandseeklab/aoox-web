@@ -33,13 +33,11 @@ export function DatabaseResources({ db }: { db: ManagedDatabaseDetail }) {
     <Card>
       <CardHeader>
         <CardTitle>{t("resources.title")}</CardTitle>
-        <CardDescription>
-          {t("resources.description")}
-        </CardDescription>
+        <CardDescription>{t("resources.description")}</CardDescription>
       </CardHeader>
       <CardContent>
         <form
-          className="flex flex-wrap items-end gap-3"
+          className="space-y-3"
           onSubmit={(e) => {
             e.preventDefault()
             start(async () => {
@@ -54,43 +52,53 @@ export function DatabaseResources({ db }: { db: ManagedDatabaseDetail }) {
             })
           }}
         >
-          <fieldset disabled={!canEdit} className="contents">
-          <div className="space-y-1">
-            <Label htmlFor="db-cpu">{t("resources.cpu")}</Label>
-            <Input
-              id="db-cpu"
-              type="number"
-              min={100}
-              max={64000}
-              step={100}
-              placeholder={t("resources.cpuPlaceholder")}
-              value={cpu}
-              onChange={(e) => setCpu(e.target.value)}
-              className="w-40"
-            />
-          </div>
-          <div className="space-y-1">
-            <Label htmlFor="db-mem">{t("resources.memory")}</Label>
-            <Input
-              id="db-mem"
-              type="number"
-              min={64}
-              max={1048576}
-              step={64}
-              placeholder={t("resources.memoryPlaceholder")}
-              value={memory}
-              onChange={(e) => setMemory(e.target.value)}
-              className="w-40"
-            />
-          </div>
-          {canEdit && (
-          <Button type="submit" variant="outline" disabled={pending}>
-            {pending ? tc("states.saving") : tc("actions.save")}
-          </Button>
-          )}
+          <fieldset disabled={!canEdit} className="grid grid-cols-2 gap-3">
+            <div className="min-w-0 space-y-1">
+              <Label htmlFor="db-cpu">{t("resources.cpu")}</Label>
+              <Input
+                id="db-cpu"
+                type="number"
+                min={100}
+                max={64000}
+                step={100}
+                placeholder={t("resources.cpuPlaceholder")}
+                value={cpu}
+                onChange={(e) => setCpu(e.target.value)}
+                className="w-full"
+              />
+              <p className="text-xs text-muted-foreground">
+                {db.cpuMillicores
+                  ? t("resources.currentCpu", { value: db.cpuMillicores })
+                  : t("resources.currentNone")}
+              </p>
+            </div>
+            <div className="min-w-0 space-y-1">
+              <Label htmlFor="db-mem">{t("resources.memory")}</Label>
+              <Input
+                id="db-mem"
+                type="number"
+                min={64}
+                max={1048576}
+                step={64}
+                placeholder={t("resources.memoryPlaceholder")}
+                value={memory}
+                onChange={(e) => setMemory(e.target.value)}
+                className="w-full"
+              />
+              <p className="text-xs text-muted-foreground">
+                {db.memoryMb
+                  ? t("resources.currentMemory", { value: db.memoryMb })
+                  : t("resources.currentNone")}
+              </p>
+            </div>
           </fieldset>
+          {canEdit && (
+            <Button type="submit" variant="outline" disabled={pending}>
+              {pending ? tc("states.saving") : tc("actions.save")}
+            </Button>
+          )}
           {error && (
-            <p className="basis-full text-xs text-destructive" role="alert">
+            <p className="text-xs text-destructive" role="alert">
               {error}
             </p>
           )}

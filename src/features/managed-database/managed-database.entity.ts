@@ -23,6 +23,16 @@ export const ENGINE_CONTAINER_PORT: Record<DatabaseEngine, number> = {
   mongodb: 27017,
 }
 
+/** Docker Hub image per engine (mirror of aoox-api `engines.ts`). */
+export const ENGINE_IMAGE: Record<DatabaseEngine, string> = {
+  postgres: "postgres",
+  mysql: "mysql",
+  mariadb: "mariadb",
+  redis: "redis",
+  valkey: "valkey/valkey",
+  mongodb: "mongo",
+}
+
 export const ENGINE_DEFAULT_TAG: Record<DatabaseEngine, string> = {
   postgres: "16-alpine",
   mysql: "8",
@@ -32,23 +42,38 @@ export const ENGINE_DEFAULT_TAG: Record<DatabaseEngine, string> = {
   mongodb: "7",
 }
 
-/** Postgres variant -> label + default tag; the description is a message key (`form.variants.<variant>`). */
+/** Postgres variant -> label + image + default tag (mirror of aoox-api `POSTGRES_VARIANTS`); the description is a message key (`form.variants.<variant>`). */
 export const POSTGRES_VARIANT_INFO: Record<
   Exclude<PostgresVariant, null>,
-  { label: string; defaultTag: string }
+  { label: string; image: string; defaultTag: string }
 > = {
   pgvector: {
     label: "pgvector",
+    image: "pgvector/pgvector",
     defaultTag: "pg16",
   },
   postgis: {
     label: "PostGIS",
+    image: "postgis/postgis",
     defaultTag: "16-3.4",
   },
   timescaledb: {
     label: "TimescaleDB",
+    image: "timescale/timescaledb",
     defaultTag: "latest-pg16",
   },
+}
+
+/** Image and default tag the API uses when the tag field is left empty. */
+export function defaultImageFor(
+  engine: DatabaseEngine,
+  variant: PostgresVariant
+): { image: string; tag: string } {
+  if (engine === "postgres" && variant) {
+    const v = POSTGRES_VARIANT_INFO[variant]
+    return { image: v.image, tag: v.defaultTag }
+  }
+  return { image: ENGINE_IMAGE[engine], tag: ENGINE_DEFAULT_TAG[engine] }
 }
 
 export interface ManagedDatabase {

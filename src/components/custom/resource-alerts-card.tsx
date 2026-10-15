@@ -151,7 +151,7 @@ export function ResourceAlertsCard({
           <CardDescription>{t("description")}</CardDescription>
         </div>
       </CardHeader>
-      <CardContent className="space-y-5 text-xs">
+      <CardContent className="@container space-y-5 text-xs">
         {METRICS.map((metric, index) => {
           const rule = view[metric]
           const f = form[metric]
@@ -211,7 +211,7 @@ export function ResourceAlertsCard({
                   </span>
                 )}
               </div>
-              <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+              <div className="grid grid-cols-2 gap-3 @2xl:grid-cols-4">
                 <div className="space-y-1">
                   <Label htmlFor={`${uid}-${metric}-threshold`}>
                     {t("fields.threshold")}

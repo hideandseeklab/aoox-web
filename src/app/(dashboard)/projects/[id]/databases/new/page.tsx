@@ -46,7 +46,7 @@ export default async function NewDatabasePage({
         </div>
       </div>
 
-      <Card className="max-w-3xl">
+      <Card className="max-w-5xl">
         <CardContent className="pt-6">
           <DatabaseForm
             action={createDatabaseAction.bind(null, project.id)}

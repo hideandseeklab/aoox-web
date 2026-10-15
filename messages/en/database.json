@@ -27,13 +27,22 @@
       "hostPort": "Host port",
       "hostPortPlaceholder": "empty = internal only"
     },
+    "engines": {
+      "postgres": "Extensible relational SQL",
+      "mysql": "Popular relational SQL",
+      "mariadb": "Community fork of MySQL",
+      "redis": "In-memory key-value store",
+      "valkey": "Open-source fork of Redis",
+      "mongodb": "Document database"
+    },
     "variants": {
-      "none": "Plain PostgreSQL",
       "noneDescription": "Standard postgres image, no extra extensions.",
       "pgvector": "Vector similarity search for embeddings (AI/ML workloads).",
       "postgis": "Geographic/spatial data types, indexes and queries.",
-      "timescaledb": "Time-series data: hypertables, continuous aggregates."
+      "timescaledb": "Time-series data: hypertables, continuous aggregates.",
+      "plain": "Plain"
     },
+    "imageTagHint": "Leave empty to use <image></image>.",
     "hostPortHint": "Publish a host port only if the database must be reachable from outside (e.g. from your laptop).",
     "toast": {
       "created": "Database \"{name}\" created. It is being set up (pulling the image can take a few minutes).",
@@ -43,6 +52,8 @@
     }
   },
   "panel": {
+    "title": "Connection",
+    "description": "Host, port, user and password for apps and tools that connect to this database.",
     "showPassword": "Show password",
     "hidePassword": "Hide password",
     "createFailed": "Database creation failed: {error}",
@@ -88,7 +99,10 @@
     "cpu": "CPU (millicores)",
     "cpuPlaceholder": "1000 = 1 core",
     "memory": "Memory (MiB)",
-    "memoryPlaceholder": "e.g. 512"
+    "memoryPlaceholder": "e.g. 512",
+    "currentNone": "Now: no limit",
+    "currentCpu": "Now: {value} millicores",
+    "currentMemory": "Now: {value} MiB"
   },
   "backups": {
     "title": "Backups",
@@ -339,5 +353,11 @@
     "title": "Recent queries",
     "clear": "Clear history",
     "empty": "No history yet."
+  },
+  "dangerZone": {
+    "title": "Danger zone",
+    "description": "Irreversible actions for this database.",
+    "deleteTitle": "Delete this database",
+    "deleteDescription": "Stops and removes the container, its admin UI and its backup list. You choose whether the data volume is deleted too. This cannot be undone."
   }
 }
