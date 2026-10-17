@@ -1,3 +1,4 @@
+import { PageHeader } from "@/components/custom/page-header"
 import { getTranslations } from "next-intl/server"
 import { Suspense } from "react"
 import { DashboardOverviewCard } from "@/components/custom/dashboard-overview-card"
@@ -47,17 +48,11 @@ export default async function DashboardPage() {
 
   return (
     <>
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-lg font-semibold">
-            {t("greeting", { name: user.name ?? user.email })}
-          </h1>
-          <p className="text-xs text-muted-foreground">
-            {t("subtitle")}
-          </p>
-        </div>
-        <LiveClock />
-      </div>
+      <PageHeader
+        title={t("greeting", { name: user.name ?? user.email })}
+        description={t("subtitle")}
+        actions={<LiveClock />}
+      />
 
       {onboarding?.visible && <OnboardingChecklist onboarding={onboarding} />}
 

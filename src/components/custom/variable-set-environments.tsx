@@ -18,7 +18,7 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { useTranslations } from "next-intl"
-import { useEffect, useRef, useState, useTransition } from "react"
+import { useEffect, useId, useRef, useState, useTransition } from "react"
 import { toast } from "sonner"
 import { DangerZoneItem } from "@/components/custom/danger-zone"
 import { IconButton } from "@/components/custom/data-table"
@@ -52,6 +52,7 @@ import { Field, FieldDescription, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { Switch } from "@/components/ui/switch"
 import { Tabs, TabsContent } from "@/components/ui/tabs"
+import { Textarea } from "@/components/ui/textarea"
 import { copyToClipboard, copyToClipboardLater } from "@/lib/clipboard"
 import { useRouter } from "@/lib/use-router"
 import { cn } from "@/lib/utils"
@@ -114,7 +115,7 @@ export function VariableSetEnvironments({ set }: { set: VariableSetDetail }) {
           </p>
         ) : (
           <Tabs value={current} onValueChange={setSelected}>
-            <ScrollableTabsList>
+            <ScrollableTabsList fade="card">
               {environments.map((e) => (
                 <PageTabsTrigger
                   key={e.id}
@@ -206,6 +207,7 @@ function EnvironmentPanel({
   const [version, setVersion] = useState<string | undefined>()
   // Remounts the editor when a newer text is loaded after a conflict.
   const [editorKey, setEditorKey] = useState(0)
+  const [editorShowValues, setEditorShowValues] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [conflict, setConflict] = useState(false)
   // The last reveal (all values of this environment), reused by the row
@@ -224,6 +226,7 @@ function EnvironmentPanel({
   const isViewer = set.role === "viewer"
   const canReveal = canRevealEnvironment(set.role, env)
   const isSecret = (k: string) => env.secretKeys.includes(k)
+  const formId = useId()
 
   const storeRevealed = (next: Revealed | null) => {
     revealedRef.current = next
@@ -366,6 +369,12 @@ function EnvironmentPanel({
     const r = await ensureRevealed()
     setBusy(null)
     if (!r) return
+    // The editor has one global toggle: start it shown only when every
+    // variable (secrets included) is shown right now, so Edit never exposes
+    // a value that was still masked in the list.
+    setEditorShowValues(
+      !fresh && env.keys.length > 0 && env.keys.every((k) => shown.has(k))
+    )
     setShown(new Set())
     setAllShown(false)
     setRevealedFlags({ secretKeys: r.secretKeys, plainKeys: r.plainKeys })
@@ -411,139 +420,37 @@ function EnvironmentPanel({
   const anyShown = revealed !== null && shown.size > 0
   const maskedSecrets =
     allShown && env.keys.some((k) => isSecret(k) && !shown.has(k))
+  // The note column is kept on every row (empty where a variable has no
+  // note) so the eye and copy buttons line up on one right edge.
+  const hasNotes = env.keys.some((k) => env.notes?.[k])
+  const hasActions = canReveal || hasNotes
+  const cancelEdit = () => {
+    setEditing(null)
+    setError(null)
+    setConflict(false)
+    forget()
+  }
 
   return (
     <>
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-xs">
-        {env.protected && (
-          <Badge variant="outline">
-            <Lock data-icon="inline-start" />
-            {t("protected")}
-          </Badge>
-        )}
-        <span className="text-muted-foreground">
-          {t("variableCount", { count: env.keys.length })}
-        </span>
-      </div>
-
-      {editing === null ? (
-        <>
-          {env.keys.length === 0 ? (
-            <p className="rounded-md border border-dashed px-3 py-4 text-center text-xs text-muted-foreground">
-              {t("empty")}
-            </p>
-          ) : (
-            <ul className="divide-y rounded-md border text-xs">
-              {env.keys.map((k) => {
-                const visible = revealed !== null && shown.has(k)
-                const value = revealed?.values.get(k) ?? ""
-                const waiting = busy === k
-                return (
-                  <li
-                    key={k}
-                    className="flex min-h-8 flex-wrap items-center justify-between gap-x-3 gap-y-1 px-3 py-1"
-                  >
-                    <span className="flex min-w-0 flex-1 items-center gap-2">
-                      <code className="min-w-0 truncate font-mono" title={k}>
-                        {k}
-                      </code>
-                      {isSecret(k) && (
-                        <Badge variant="outline" className="shrink-0">
-                          <KeyRound data-icon="inline-start" />
-                          {t("secretBadge")}
-                        </Badge>
-                      )}
-                    </span>
-                    <span className="flex shrink-0 items-center gap-1">
-                      {env.notes?.[k] && (
-                        <VariableNotePopover
-                          note={env.notes[k]}
-                          label={t("noteAria", { name: k })}
-                        />
-                      )}
-                      {!visible && (
-                        // On a phone the eye button already says "masked";
-                        // the dots would squeeze the name.
-                        <span
-                          className={cn(
-                            "px-1 font-mono text-muted-foreground",
-                            canReveal && "hidden sm:inline"
-                          )}
-                          aria-hidden
-                        >
-                          ••••••••
-                        </span>
-                      )}
-                      {canReveal && (
-                        <>
-                          <IconButton
-                            label={
-                              visible
-                                ? t("rowHide", { name: k })
-                                : t("rowShow", { name: k })
-                            }
-                            aria-pressed={visible}
-                            disabled={busy !== null && !visible}
-                            onClick={() => void toggleRow(k)}
-                          >
-                            {waiting ? (
-                              <Loader2 className="animate-spin" />
-                            ) : visible ? (
-                              <EyeOff />
-                            ) : (
-                              <Eye />
-                            )}
-                          </IconButton>
-                          <IconButton
-                            label={t("rowCopy", { name: k })}
-                            disabled={busy !== null}
-                            onClick={() => copyRow(k)}
-                          >
-                            <Copy />
-                          </IconButton>
-                        </>
-                      )}
-                    </span>
-                    {visible && (
-                      <code className="block max-h-24 basis-full overflow-y-auto rounded bg-muted px-2 py-1 font-mono break-all whitespace-pre-wrap">
-                        {value === "" ? (
-                          <span className="text-muted-foreground">
-                            {t("history.emptyText")}
-                          </span>
-                        ) : (
-                          value
-                        )}
-                      </code>
-                    )}
-                  </li>
-                )
-              })}
-            </ul>
-          )}
-
-          {(anyShown || maskedSecrets) && (
-            <p
-              className="text-xs text-muted-foreground tabular-nums"
-              aria-live="polite"
-            >
-              {anyShown && t("hidesIn", { seconds: secondsLeft })}
-              {anyShown && maskedSecrets && " "}
-              {maskedSecrets && t("secretsStayMasked")}
-            </p>
-          )}
-
-          {/* Right-aligned: note, then History, Reveal all and Edit
-              (rightmost). On a phone the note takes its own line above the
-              buttons. */}
-          <div className="flex flex-wrap items-center justify-end gap-2">
-            <p className="order-1 min-w-0 basis-full text-end text-xs text-muted-foreground sm:flex-1 sm:basis-0">
-              {isViewer
-                ? t("viewerNote")
-                : !canReveal
-                  ? t("protectedNote", { name: env.name })
-                  : t("revealNote")}
-            </p>
-            <div className="order-2 flex flex-wrap items-center justify-end gap-2">
+      {/* Action bar on top: count left, actions right (Cancel/Save while
+          editing, in the same place, so nothing moves). On a phone the
+          buttons wrap below the count, right-aligned. */}
+      <div className="space-y-1.5">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex min-h-7 flex-wrap items-center gap-x-3 gap-y-1 text-xs">
+            {env.protected && (
+              <Badge variant="outline">
+                <Lock data-icon="inline-start" />
+                {t("protected")}
+              </Badge>
+            )}
+            <span className="text-muted-foreground">
+              {t("variableCount", { count: env.keys.length })}
+            </span>
+          </div>
+          {editing === null ? (
+            <div className="ms-auto flex flex-wrap items-center justify-end gap-2">
               <EnvironmentHistory
                 setId={set.id}
                 environment={env}
@@ -596,10 +503,176 @@ function EnvironmentPanel({
                 </Button>
               )}
             </div>
-          </div>
-        </>
+          ) : (
+            <div className="ms-auto flex items-center justify-end gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                disabled={pending}
+                onClick={cancelEdit}
+              >
+                {tc("actions.cancel")}
+              </Button>
+              <Button type="submit" form={formId} disabled={pending}>
+                {pending ? tc("states.saving") : tc("actions.save")}
+              </Button>
+            </div>
+          )}
+        </div>
+        {/* Kept while editing too, so the rows do not move up on Edit. */}
+        <p
+          className="text-xs text-muted-foreground tabular-nums"
+          aria-live="polite"
+        >
+          {isViewer
+            ? t("viewerNote")
+            : !canReveal
+              ? t("protectedNote", { name: env.name })
+              : t("revealNote")}
+          {anyShown && <> {t("hidesIn", { seconds: secondsLeft })}</>}
+          {maskedSecrets && <> {t("secretsStayMasked")}</>}
+        </p>
+      </div>
+
+      {error && (
+        <div
+          className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2"
+          role="alert"
+        >
+          <p className="min-w-0 text-xs text-destructive">{error}</p>
+          {editing !== null && conflict && (
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              disabled={pending || busy !== null}
+              onClick={() => void openEditor(true)}
+            >
+              <RotateCw data-icon="inline-start" />
+              {t("reloadLatest")}
+            </Button>
+          )}
+        </div>
+      )}
+
+      {editing === null ? (
+        env.keys.length === 0 ? (
+          <p className="rounded-md border border-dashed px-3 py-4 text-center text-xs text-muted-foreground">
+            {t("empty")}
+          </p>
+        ) : (
+          // Same boxes and widths as the editor's Rows view, so Edit swaps
+          // in without the columns jumping.
+          // A phone row spans two lines, so rows get more room between them.
+          <ul className="space-y-3 sm:space-y-1.5">
+            {env.keys.map((k) => {
+              const visible = revealed !== null && shown.has(k)
+              const value = revealed?.values.get(k) ?? ""
+              const waiting = busy === k
+              const secret = isSecret(k)
+              return (
+                <li
+                  key={k}
+                  className="flex flex-wrap items-center gap-1.5 sm:flex-nowrap"
+                >
+                  {/* Phone: the name shares its line with the buttons; the
+                      value takes the full line below. */}
+                  <div className="relative order-1 min-w-0 flex-1 basis-[calc(100%-6.5rem)] sm:order-none sm:w-2/5 sm:max-w-sm sm:flex-none sm:basis-auto">
+                    <Input
+                      readOnly
+                      value={k}
+                      title={k}
+                      aria-label={t("rowName")}
+                      // Not a tab stop: the eye and copy buttons are.
+                      tabIndex={-1}
+                      className={cn(
+                        "cursor-default font-mono text-xs text-ellipsis",
+                        secret && "pe-20"
+                      )}
+                      autoComplete="off"
+                      spellCheck={false}
+                    />
+                    {secret && (
+                      <Badge
+                        variant="outline"
+                        className="pointer-events-none absolute end-1.5 top-1/2 -translate-y-1/2"
+                      >
+                        <KeyRound data-icon="inline-start" />
+                        {t("secretBadge")}
+                      </Badge>
+                    )}
+                  </div>
+                  <Textarea
+                    readOnly
+                    rows={1}
+                    value={visible ? value : "••••••••"}
+                    placeholder={visible ? t("history.emptyText") : undefined}
+                    aria-label={
+                      visible
+                        ? t("rowValue", { name: k })
+                        : t("rowValueMasked", { name: k })
+                    }
+                    // Masked boxes hold nothing to read or select.
+                    tabIndex={visible ? undefined : -1}
+                    className={cn(
+                      "order-3 max-h-24 min-h-7 min-w-0 flex-1 basis-full overflow-y-auto py-[3px] font-mono text-xs/relaxed break-all sm:order-none sm:basis-0",
+                      visible
+                        ? "cursor-text"
+                        : "cursor-default text-muted-foreground select-none"
+                    )}
+                    spellCheck={false}
+                  />
+                  {hasActions && (
+                    <div className="order-2 flex shrink-0 items-center gap-0.5 sm:order-none">
+                      <span className="flex size-7 items-center justify-center">
+                        {env.notes?.[k] && (
+                          <VariableNotePopover
+                            note={env.notes[k]}
+                            label={t("noteAria", { name: k })}
+                          />
+                        )}
+                      </span>
+                      {canReveal && (
+                        <>
+                          <IconButton
+                            size="icon"
+                            label={
+                              visible
+                                ? t("rowHide", { name: k })
+                                : t("rowShow", { name: k })
+                            }
+                            aria-pressed={visible}
+                            disabled={busy !== null && !visible}
+                            onClick={() => void toggleRow(k)}
+                          >
+                            {waiting ? (
+                              <Loader2 className="animate-spin" />
+                            ) : visible ? (
+                              <EyeOff />
+                            ) : (
+                              <Eye />
+                            )}
+                          </IconButton>
+                          <IconButton
+                            size="icon"
+                            label={t("rowCopy", { name: k })}
+                            disabled={busy !== null}
+                            onClick={() => copyRow(k)}
+                          >
+                            <Copy />
+                          </IconButton>
+                        </>
+                      )}
+                    </div>
+                  )}
+                </li>
+              )
+            })}
+          </ul>
+        )
       ) : (
         <form
+          id={formId}
           className="space-y-3"
           onSubmit={(e) => {
             e.preventDefault()
@@ -614,6 +687,7 @@ function EnvironmentPanel({
             key={editorKey}
             name="variables"
             defaultValue={editing}
+            initialShowValues={editorShowValues}
             secrets={{ name: "flags", ...revealedFlags }}
           />
           <Alert>
@@ -629,51 +703,7 @@ function EnvironmentPanel({
               </p>
             </AlertDescription>
           </Alert>
-          {error && (
-            <div
-              className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2"
-              role="alert"
-            >
-              <p className="min-w-0 text-xs text-destructive">{error}</p>
-              {conflict && (
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="outline"
-                  disabled={pending || busy !== null}
-                  onClick={() => void openEditor(true)}
-                >
-                  <RotateCw data-icon="inline-start" />
-                  {t("reloadLatest")}
-                </Button>
-              )}
-            </div>
-          )}
-          <div className="flex justify-end gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              disabled={pending}
-              onClick={() => {
-                setEditing(null)
-                setError(null)
-                setConflict(false)
-                forget()
-              }}
-            >
-              {tc("actions.cancel")}
-            </Button>
-            <Button type="submit" disabled={pending}>
-              {pending ? tc("states.saving") : tc("actions.save")}
-            </Button>
-          </div>
         </form>
-      )}
-
-      {editing === null && error && (
-        <p className="text-xs text-destructive" role="alert">
-          {error}
-        </p>
       )}
 
       <UsedBy environment={env} others={others} />

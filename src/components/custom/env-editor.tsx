@@ -42,7 +42,10 @@ export function EnvEditor({
   placeholder,
   readOnly = false,
   secrets,
+  initialShowValues = false,
 }: {
+  /** Start with the values shown (the single toggle covers every row). */
+  initialShowValues?: boolean
   name: string
   defaultValue: string
   placeholder?: string
@@ -55,7 +58,7 @@ export function EnvEditor({
   const [text, setText] = useState(defaultValue)
   const [rows, setRows] = useState<EnvRow[]>(() => toRows(defaultValue))
   const [mode, setMode] = useState<"rows" | "text">("rows")
-  const [revealed, setRevealed] = useState(false)
+  const [revealed, setRevealed] = useState(initialShowValues)
   // Rows whose note editor is open (by row id).
   const [openNotes, setOpenNotes] = useState<Set<number>>(() => new Set())
   const baseId = useId()

@@ -45,8 +45,8 @@ export default async function NewApplicationPage({
           { label: t("page.newTitle") },
         ]}
       />
-      <div className="flex items-start gap-3">
-        <Button asChild variant="ghost" size="icon" className="mt-0.5">
+      <div className="flex items-start gap-3 sm:items-center">
+        <Button asChild variant="ghost" size="icon" className="mt-0.5 sm:mt-0">
           <Link
             href={`/projects/${project.id}`}
             aria-label={t("page.backToProject")}

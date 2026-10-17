@@ -1,3 +1,4 @@
+import { PageHeader } from "@/components/custom/page-header"
 import { getTranslations } from "next-intl/server"
 import { CreateVariableSetDialog } from "@/components/custom/create-variable-set-dialog"
 import { IllustratedEmptyState } from "@/components/custom/illustrated-empty-state"
@@ -28,15 +29,15 @@ export default async function VariablesPage() {
 
   return (
     <>
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="min-w-0">
-          <h1 className="text-lg font-semibold">{t("list.title")}</h1>
-          <p className="text-xs text-muted-foreground">{t("list.subtitle")}</p>
-        </div>
-        {canCreate && sets.length > 0 && (
-          <CreateVariableSetDialog projects={projectOptions} />
-        )}
-      </div>
+      <PageHeader
+        title={t("list.title")}
+        description={t("list.subtitle")}
+        actions={
+          canCreate && sets.length > 0 ? (
+            <CreateVariableSetDialog projects={projectOptions} />
+          ) : undefined
+        }
+      />
 
       {sets.length === 0 ? (
         <IllustratedEmptyState

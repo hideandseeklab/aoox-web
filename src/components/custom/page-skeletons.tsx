@@ -7,14 +7,36 @@ import { Skeleton } from "@/components/ui/skeleton"
  * and the `data-route-loading` marker on each root is how `NavigationProgress` knows the content hasn't arrived yet.
  */
 
-function PageHeaderSkeleton({ withBack = false }: { withBack?: boolean }) {
+function PageHeaderSkeleton({
+  withBack = false,
+  withActions = false,
+}: {
+  withBack?: boolean
+  withActions?: boolean
+}) {
   return (
-    <div className="flex items-start gap-3">
-      {withBack ? <Skeleton className="mt-0.5 size-9 shrink-0" /> : null}
-      <div className="space-y-2">
-        <Skeleton className="h-6 w-48" />
-        <Skeleton className="h-4 w-72 max-w-full" />
+    <div
+      className={
+        withActions
+          ? "flex flex-wrap items-center justify-between gap-x-4 gap-y-3"
+          : "flex items-center gap-3"
+      }
+    >
+      <div className="flex items-start gap-3 sm:items-center">
+        {withBack ? (
+          <Skeleton className="mt-0.5 size-9 shrink-0 sm:mt-0" />
+        ) : null}
+        <div className="space-y-2">
+          <Skeleton className="h-6 w-48" />
+          <Skeleton className="h-4 w-72 max-w-full" />
+        </div>
       </div>
+      {withActions ? (
+        <div className="flex items-center gap-2">
+          <Skeleton className="h-9 w-24" />
+          <Skeleton className="h-9 w-32" />
+        </div>
+      ) : null}
     </div>
   )
 }
@@ -23,7 +45,7 @@ function PageHeaderSkeleton({ withBack = false }: { withBack?: boolean }) {
 export function CardListSkeleton() {
   return (
     <div className="flex flex-col gap-6" aria-busy="true" data-route-loading="">
-      <PageHeaderSkeleton />
+      <PageHeaderSkeleton withActions />
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {Array.from({ length: 6 }, (_, i) => (
           <Skeleton key={i} className="h-36" />

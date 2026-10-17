@@ -1,3 +1,4 @@
+import { PageHeader } from "@/components/custom/page-header"
 import { getTranslations } from "next-intl/server"
 import { CreateProjectDialog } from "@/components/custom/create-project-dialog"
 import { ImportProjectDialog } from "@/components/custom/import-project-dialog"
@@ -26,18 +27,16 @@ export default async function ProjectsPage() {
         active={anyDeploying || anyRunning}
         intervalMs={anyDeploying ? 4000 : 10000}
       />
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-lg font-semibold">{t("list.title")}</h1>
-          <p className="text-xs text-muted-foreground">
-            {t("list.subtitle")}
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <ImportProjectDialog />
-          <CreateProjectDialog />
-        </div>
-      </div>
+      <PageHeader
+        title={t("list.title")}
+        description={t("list.subtitle")}
+        actions={
+          <>
+            <ImportProjectDialog />
+            <CreateProjectDialog />
+          </>
+        }
+      />
 
       {projects.length === 0 ? (
         <IllustratedEmptyState

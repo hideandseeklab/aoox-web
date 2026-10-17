@@ -1,6 +1,6 @@
 "use client"
 
-import { type ComponentProps, useEffect, useRef } from "react"
+import { type ComponentProps, useEffect, useRef, useState } from "react"
 import { cn } from "cn"
 import { TabsList } from "@/components/ui/tabs"
 
@@ -13,23 +13,84 @@ import { TabsList } from "@/components/ui/tabs"
  * clipped). On mount the active tab is scrolled into view, so a strip that opens on a tab near
  * its end (e.g. `production`) does not hide it behind the edge.
  */
+const FADE = { background: "from-background", card: "from-card" } as const
+
 export function ScrollableTabsList({
   className,
+  fade = "background",
   ...props
-}: ComponentProps<typeof TabsList>) {
+}: ComponentProps<typeof TabsList> & {
+  /** Surface the strip sits on, so the edge fade blends in (page or card). */
+  fade?: "background" | "card"
+}) {
   const scrollerRef = useRef<HTMLDivElement>(null)
+  // Fade edges tell the user there is more to scroll to.
+  const [edges, setEdges] = useState({ left: false, right: false })
   useEffect(() => {
     const scroller = scrollerRef.current
-    const active = scroller?.querySelector<HTMLElement>('[data-state="active"]')
-    if (!scroller || !active) return
-    // Only the strip scrolls (never the page): align the active tab's right edge when it is cut off.
-    const overflow =
-      active.getBoundingClientRect().right -
-      scroller.getBoundingClientRect().right
-    if (overflow > 0) scroller.scrollLeft += overflow
+    if (!scroller) return
+    const update = () => {
+      const left = scroller.scrollLeft > 1
+      const right =
+        scroller.scrollLeft + scroller.clientWidth < scroller.scrollWidth - 1
+      setEdges((prev) =>
+        prev.left === left && prev.right === right ? prev : { left, right }
+      )
+    }
+    // Only the strip scrolls (never the page): bring the active tab fully into view.
+    const reveal = () => {
+      const active = scroller.querySelector<HTMLElement>(
+        '[data-state="active"]'
+      )
+      if (!active) return
+      const a = active.getBoundingClientRect()
+      const s = scroller.getBoundingClientRect()
+      if (a.right > s.right) scroller.scrollLeft += a.right - s.right + 16
+      else if (a.left < s.left) scroller.scrollLeft -= s.left - a.left + 16
+    }
+    reveal()
+    update()
+    scroller.addEventListener("scroll", update, { passive: true })
+    const resize = new ResizeObserver(update)
+    resize.observe(scroller)
+    const list = scroller.firstElementChild
+    if (list) resize.observe(list)
+    // The active tab changes through an attribute, not a re-mount.
+    const mutations = new MutationObserver(() => {
+      reveal()
+      update()
+    })
+    mutations.observe(scroller, {
+      attributes: true,
+      attributeFilter: ["data-state"],
+      subtree: true,
+    })
+    return () => {
+      scroller.removeEventListener("scroll", update)
+      resize.disconnect()
+      mutations.disconnect()
+    }
   }, [])
   return (
-    <div className="max-w-full border-b border-border group-data-vertical/tabs:border-b-0">
+    <div className="relative max-w-full border-b border-border group-data-vertical/tabs:border-b-0">
+      {edges.left && (
+        <div
+          aria-hidden
+          className={cn(
+            "pointer-events-none absolute inset-y-0 left-0 z-10 w-8 bg-gradient-to-r to-transparent",
+            FADE[fade]
+          )}
+        />
+      )}
+      {edges.right && (
+        <div
+          aria-hidden
+          className={cn(
+            "pointer-events-none absolute inset-y-0 right-0 z-10 w-8 bg-gradient-to-l to-transparent",
+            FADE[fade]
+          )}
+        />
+      )}
       <div
         ref={scrollerRef}
         className="-mb-px max-w-full [scrollbar-width:none] overflow-x-auto pb-px group-data-vertical/tabs:overflow-visible [&::-webkit-scrollbar]:hidden"
