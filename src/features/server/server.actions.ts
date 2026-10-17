@@ -79,7 +79,7 @@ export async function createServerAction(
       values,
     }
   }
-  revalidatePath("/settings")
+  revalidatePath("/infra/servers")
   revalidatePath("/terminal")
   return { created: true }
 }
@@ -90,7 +90,7 @@ export async function deleteServerAction(id: string): Promise<ActionResult> {
       method: "DELETE",
       token: await requireToken(),
     })
-    revalidatePath("/settings")
+    revalidatePath("/infra/servers")
     revalidatePath("/terminal")
     return { ok: true, data: undefined }
   } catch (err) {
@@ -142,7 +142,7 @@ export async function provisionServerProxyAction(
       body: input,
       token: await requireToken(),
     })
-    revalidatePath("/settings")
+    revalidatePath("/infra/servers")
     return { ok: true, data }
   } catch (err) {
     return {
@@ -182,7 +182,7 @@ export async function removeServerProxyAction(
       method: "DELETE",
       token: await requireToken(),
     })
-    revalidatePath("/settings")
+    revalidatePath("/infra/servers")
     return { ok: true, data: undefined }
   } catch (err) {
     return {

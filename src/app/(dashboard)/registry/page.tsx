@@ -27,6 +27,9 @@ export default async function RegistryPage() {
   ])
   // Same roles that may open the terminal manage registries (owner/admin).
   const canManage = session ? canUseTerminal(session.user) : false
+  // The API restricts enabling, replacing, removing and garbage-collecting the
+  // local registry to owners; admins may only manage its domain and images.
+  const isOwner = session?.user.role === "owner"
   const selfHosted = status.registry
   const repositories =
     selfHosted && status.container.running
@@ -56,6 +59,7 @@ export default async function RegistryPage() {
           <SelfHostedRegistryCard
             status={status}
             canManage={canManage}
+            isOwner={isOwner}
             destinations={destinations}
           />
           {selfHosted && (

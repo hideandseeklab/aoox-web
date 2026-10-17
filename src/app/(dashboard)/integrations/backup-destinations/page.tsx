@@ -1,6 +1,11 @@
 import { getTranslations } from "next-intl/server"
 import { notFound } from "next/navigation"
-import { BackupDestinationsCard } from "@/components/custom/backup-destinations-card"
+import {
+  AddDestinationDialog,
+  BackupDestinationsCard,
+} from "@/components/custom/backup-destinations-card"
+import { IllustratedEmptyState } from "@/components/custom/illustrated-empty-state"
+import { BackupDestinationsIllustration } from "@/components/custom/illustrations/backup-destinations-illustration"
 import { canUseTerminal } from "@/features/auth/auth.entity"
 import { getVerifiedSession } from "@/features/auth/auth.session"
 import { listBackupDestinations } from "@/features/backup-destination/backup-destination.queries"
@@ -20,7 +25,16 @@ export default async function BackupDestinationsPage() {
   if (!data) notFound()
   return (
     <IntegrationPage title={t("title")} description={t("description")}>
-      <BackupDestinationsCard destinations={data} />
+      {data.length === 0 ? (
+        <IllustratedEmptyState
+          illustration={<BackupDestinationsIllustration />}
+          title={t("emptyTitle")}
+          description={t("emptyBody")}
+          actions={<AddDestinationDialog size="default" />}
+        />
+      ) : (
+        <BackupDestinationsCard destinations={data} />
+      )}
     </IntegrationPage>
   )
 }

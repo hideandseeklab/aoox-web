@@ -4,7 +4,9 @@ import { cn } from "@/lib/utils"
 /**
  * An empty state with an illustration: a centered column of picture, heading,
  * one muted line and the actions. `size` scales the picture for tight places
- * (a popover or a narrow column).
+ * (a popover or a narrow column). By default it sits in a dashed rounded box
+ * as wide as its container, so every empty state looks the same; pass
+ * `bordered={false}` where the surrounding popover or card already frames it.
  */
 export function IllustratedEmptyState({
   illustration,
@@ -12,6 +14,7 @@ export function IllustratedEmptyState({
   description,
   actions,
   size = "md",
+  bordered = true,
   className,
 }: {
   illustration: ReactNode
@@ -19,13 +22,15 @@ export function IllustratedEmptyState({
   description: ReactNode
   actions?: ReactNode
   size?: "sm" | "md"
+  bordered?: boolean
   className?: string
 }) {
   return (
     <div
       className={cn(
         "flex flex-col items-center text-center",
-        size === "md" ? "gap-1 px-4 py-10" : "gap-0.5 px-2 py-4",
+        size === "md" ? "gap-1 px-4 py-8 sm:py-10" : "gap-0.5 px-2 py-4",
+        bordered && "rounded-lg border border-dashed",
         className
       )}
     >

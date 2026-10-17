@@ -23,6 +23,7 @@
     --color-ring: var(--ring);
     --color-input: var(--input);
     --color-border: var(--border);
+    --color-border-dashed: var(--border-dashed);
     --color-destructive: var(--destructive);
     --color-accent-foreground: var(--accent-foreground);
     --color-accent: var(--accent);
@@ -57,75 +58,86 @@
 :root {
     --background: oklch(1 0 0);
     --foreground: oklch(0.148 0.004 228.8);
-    --card: oklch(1 0 0);
+    /* Flat look: cards and the sidebar share the page colour and are separated by borders
+       only. Popovers (dialogs, menus, toasts) keep their own value so overlays stay distinct. */
+    --card: var(--background);
     --card-foreground: oklch(0.148 0.004 228.8);
     --popover: oklch(1 0 0);
     --popover-foreground: oklch(0.148 0.004 228.8);
     --primary: oklch(0.841 0.238 128.85);
     --primary-foreground: oklch(0.405 0.101 131.063);
-    --secondary: oklch(0.967 0.001 286.375);
-    --secondary-foreground: oklch(0.21 0.006 285.885);
+    --secondary: oklch(0.955 0.004 214.3);
+    --secondary-foreground: oklch(0.218 0.008 223.9);
     --muted: oklch(0.963 0.002 197.1);
     --muted-foreground: oklch(0.56 0.021 213.5);
     --accent: oklch(0.963 0.002 197.1);
     --accent-foreground: oklch(0.218 0.008 223.9);
     --destructive: oklch(0.577 0.245 27.325);
-    --border: oklch(0.925 0.005 214.3);
-    --input: oklch(0.925 0.005 214.3);
+    --border: oklch(0.912 0.005 214.3);
+    --input: oklch(0.89 0.006 214.3);
     --ring: oklch(0.723 0.014 214.4);
+    /* Dashed borders (empty states, placeholders, add buttons): stronger than --border so the
+       dashes read clearly, still neutral (not a focus or error colour). */
+    --border-dashed: color-mix(in oklab, var(--muted-foreground) 45%, transparent);
     --chart-1: oklch(0.897 0.196 126.665);
     --chart-2: oklch(0.768 0.233 130.85);
     --chart-3: oklch(0.648 0.2 131.684);
     --chart-4: oklch(0.532 0.157 131.589);
     --chart-5: oklch(0.453 0.124 130.933);
     --radius: 0.5rem;
-    --sidebar: oklch(0.987 0.002 197.1);
+    --sidebar: var(--background);
     --sidebar-foreground: oklch(0.148 0.004 228.8);
     --sidebar-primary: oklch(0.648 0.2 131.684);
     --sidebar-primary-foreground: oklch(0.986 0.031 120.757);
     --sidebar-accent: oklch(0.963 0.002 197.1);
     --sidebar-accent-foreground: oklch(0.218 0.008 223.9);
-    --sidebar-border: oklch(0.925 0.005 214.3);
+    --sidebar-border: var(--border);
     --sidebar-ring: oklch(0.723 0.014 214.4);
 }
 
 .dark {
     --background: oklch(0.148 0.004 228.8);
     --foreground: oklch(0.987 0.002 197.1);
-    --card: oklch(0.218 0.008 223.9);
+    --card: var(--background);
     --card-foreground: oklch(0.987 0.002 197.1);
     --popover: oklch(0.218 0.008 223.9);
     --popover-foreground: oklch(0.987 0.002 197.1);
     --primary: oklch(0.768 0.233 130.85);
     --primary-foreground: oklch(0.405 0.101 131.063);
-    --secondary: oklch(0.274 0.006 286.033);
-    --secondary-foreground: oklch(0.985 0 0);
+    --secondary: oklch(0.3 0.011 216.9);
+    --secondary-foreground: oklch(0.987 0.002 197.1);
     --muted: oklch(0.275 0.011 216.9);
     --muted-foreground: oklch(0.723 0.014 214.4);
     --accent: oklch(0.275 0.011 216.9);
     --accent-foreground: oklch(0.987 0.002 197.1);
     --destructive: oklch(0.704 0.191 22.216);
-    --border: oklch(1 0 0 / 10%);
-    --input: oklch(1 0 0 / 15%);
+    --border: oklch(1 0 0 / 15%);
+    --input: oklch(1 0 0 / 22%);
     --ring: oklch(0.56 0.021 213.5);
+    --border-dashed: color-mix(in oklab, var(--muted-foreground) 50%, transparent);
     --chart-1: oklch(0.897 0.196 126.665);
     --chart-2: oklch(0.768 0.233 130.85);
     --chart-3: oklch(0.648 0.2 131.684);
     --chart-4: oklch(0.532 0.157 131.589);
     --chart-5: oklch(0.453 0.124 130.933);
-    --sidebar: oklch(0.218 0.008 223.9);
+    --sidebar: var(--background);
     --sidebar-foreground: oklch(0.987 0.002 197.1);
     --sidebar-primary: oklch(0.768 0.233 130.85);
     --sidebar-primary-foreground: oklch(0.274 0.072 132.109);
     --sidebar-accent: oklch(0.275 0.011 216.9);
     --sidebar-accent-foreground: oklch(0.987 0.002 197.1);
-    --sidebar-border: oklch(1 0 0 / 10%);
+    --sidebar-border: var(--border);
     --sidebar-ring: oklch(0.56 0.021 213.5);
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
+    }
+  /* Every dashed border uses the stronger dashed colour. A colour utility on the element still
+     wins (utilities layer); add `border-border-dashed` there to keep the dashed colour. */
+  .border-dashed {
+    border-color: var(--border-dashed);
     }
   body {
     @apply bg-background text-base text-foreground;
@@ -185,6 +197,18 @@
   width: 2px;
   border-radius: 2px;
   background: var(--sidebar-primary);
+}
+/* Card edges: shadcn draws them with `ring-foreground/10`, which is too faint now that cards share
+   the page colour. Follow --border instead. Only cards that keep the default ring colour match
+   (tailwind-merge drops `ring-foreground/10` when a usage site sets its own ring colour). */
+[data-slot="card"][class~="ring-foreground/10"] {
+  --tw-ring-color: var(--border);
+}
+/* The mobile sidebar opens as a sheet in the page colour: keep a clear edge and a shadow so it
+   does not merge with the page behind the overlay. */
+[data-slot="sidebar"][data-mobile="true"] {
+  border-inline-end: 1px solid var(--border);
+  box-shadow: 0 10px 30px -6px rgb(0 0 0 / 0.35);
 }
 [data-slot="select-trigger"] {
   /* Radix adds a hidden native <select> as the last child inside a form, so the trigger stops

@@ -25,7 +25,7 @@ export async function provisionProxyAction(): Promise<
       method: "POST",
       token: await requireToken(),
     })
-    revalidatePath("/settings")
+    revalidatePath("/infra/proxy")
     return { ok: true, data }
   } catch (err) {
     return fail(err)
@@ -38,7 +38,7 @@ export async function removeProxyAction(purge: boolean): Promise<ActionResult> {
       method: "DELETE",
       token: await requireToken(),
     })
-    revalidatePath("/settings")
+    revalidatePath("/infra/proxy")
     return { ok: true, data: undefined }
   } catch (err) {
     return fail(err)

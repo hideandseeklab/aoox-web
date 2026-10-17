@@ -291,7 +291,7 @@ export function CreateApiTokenDialog({
                             <span className="truncate font-mono">{sc}</span>
                             <button
                               type="button"
-                              className="rounded-sm p-0.5 hover:bg-background/60"
+                              className="rounded-sm p-0.5 hover:bg-foreground/10"
                               aria-label={t("tokens.variableScopeRemove", {
                                 scope: sc,
                               })}

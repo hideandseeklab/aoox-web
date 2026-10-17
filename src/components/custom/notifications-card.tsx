@@ -2,10 +2,9 @@
 
 import type { ReactNode } from "react"
 import { PathArrow } from "@/components/custom/arrows"
-import { Bell, BellRing, Plus, Send, Trash2 } from "lucide-react"
+import { BellRing, Plus, Send, Trash2 } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { useActionState, useState, useTransition } from "react"
-import { EmptyState } from "@/components/custom/empty-state"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -125,62 +124,56 @@ export function NotificationsCard({
         </div>
       </CardHeader>
       <CardContent className="space-y-3 text-xs">
-        {notifications.length === 0 ? (
-          <EmptyState icon={Bell} compact>
-            {t("notifications.empty")}
-          </EmptyState>
-        ) : (
-          <ul className="divide-y rounded-md border">
-            {notifications.map((n) => {
-              const result = tests[n.id]
-              const events = EVENTS.filter((k) => n[k]).map((k) =>
-                t(`notifications.events.${k}`)
-              )
-              return (
-                <li key={n.id} className="space-y-1 px-3 py-2">
-                  <div className="flex items-center gap-3">
-                    <BellRing className="size-4 text-muted-foreground" />
-                    <span className="font-medium">{n.name}</span>
-                    <span className="truncate text-xs text-muted-foreground">
-                      {TYPE_LABEL[n.type]} · {n.targetHint} ·{" "}
-                      {events.length
-                        ? events.join(", ")
-                        : t("notifications.none")}
-                    </span>
-                    <span className="ms-auto" />
-                    <Button
-                      variant="ghost"
-                      size="icon-sm"
-                      aria-label={t("notifications.testAria", { name: n.name })}
-                      disabled={pending}
-                      onClick={() => test(n.id)}
-                    >
-                      <Send />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon-sm"
-                      aria-label={t("notifications.deleteAria", {
-                        name: n.name,
-                      })}
-                      disabled={pending}
-                      onClick={() => remove(n.id)}
-                    >
-                      <Trash2 />
-                    </Button>
-                  </div>
-                  {result && (
-                    <p
-                      className={`text-xs ${result.ok ? "text-foreground" : "text-destructive"}`}
-                    >
-                      {result.message}
-                    </p>
-                  )}
-                </li>
-              )
-            })}
-          </ul>
-        )}
+        <ul className="divide-y rounded-md border">
+          {notifications.map((n) => {
+            const result = tests[n.id]
+            const events = EVENTS.filter((k) => n[k]).map((k) =>
+              t(`notifications.events.${k}`)
+            )
+            return (
+              <li key={n.id} className="space-y-1 px-3 py-2">
+                <div className="flex items-center gap-3">
+                  <BellRing className="size-4 text-muted-foreground" />
+                  <span className="font-medium">{n.name}</span>
+                  <span className="truncate text-xs text-muted-foreground">
+                    {TYPE_LABEL[n.type]} · {n.targetHint} ·{" "}
+                    {events.length
+                      ? events.join(", ")
+                      : t("notifications.none")}
+                  </span>
+                  <span className="ms-auto" />
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    aria-label={t("notifications.testAria", { name: n.name })}
+                    disabled={pending}
+                    onClick={() => test(n.id)}
+                  >
+                    <Send />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    aria-label={t("notifications.deleteAria", {
+                      name: n.name,
+                    })}
+                    disabled={pending}
+                    onClick={() => remove(n.id)}
+                  >
+                    <Trash2 />
+                  </Button>
+                </div>
+                {result && (
+                  <p
+                    className={`text-xs ${result.ok ? "text-foreground" : "text-destructive"}`}
+                  >
+                    {result.message}
+                  </p>
+                )}
+              </li>
+            )
+          })}
+        </ul>
         {error && (
           <p className="text-destructive" role="alert">
             {error}
@@ -193,7 +186,12 @@ export function NotificationsCard({
 
 const initialState: NotificationFormState = {}
 
-function AddNotificationDialog() {
+/** `size`: "sm" in a card header, "default" as the action of an empty state. */
+export function AddNotificationDialog({
+  size = "sm",
+}: {
+  size?: "sm" | "default"
+}) {
   const t = useTranslations("settings")
   const c = useTranslations("common")
   const [open, setOpen] = useState(false)
@@ -215,7 +213,7 @@ function AddNotificationDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="sm">
+        <Button size={size}>
           <Plus data-icon="inline-start" />
           {c("actions.add")}
         </Button>

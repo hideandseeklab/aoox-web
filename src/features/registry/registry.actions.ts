@@ -25,12 +25,16 @@ async function fail(err: unknown): Promise<{ ok: false; error: string }> {
 }
 
 export async function provisionSelfHostedAction(
-  destinationId?: string
+  destinationId?: string,
+  replace = false
 ): Promise<ActionResult<ProvisionResult>> {
   try {
     const data = await api<ProvisionResult>("/registries/self-hosted", {
       method: "POST",
-      body: destinationId ? { destinationId } : {},
+      body: {
+        ...(destinationId ? { destinationId } : {}),
+        ...(replace ? { replace: true } : {}),
+      },
       token: await requireToken(),
     })
     revalidatePath("/registry")

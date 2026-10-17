@@ -1,6 +1,11 @@
 import { getTranslations } from "next-intl/server"
 import { notFound } from "next/navigation"
-import { SecretConnectionsCard } from "@/components/custom/secret-connections-card"
+import {
+  AddConnectionDialog,
+  SecretConnectionsCard,
+} from "@/components/custom/secret-connections-card"
+import { IllustratedEmptyState } from "@/components/custom/illustrated-empty-state"
+import { SecretsIllustration } from "@/components/custom/illustrations/secrets-illustration"
 import { canUseTerminal } from "@/features/auth/auth.entity"
 import { getVerifiedSession } from "@/features/auth/auth.session"
 import { listSecretConnections } from "@/features/secret-connection/secret-connection.queries"
@@ -20,7 +25,16 @@ export default async function SecretsPage() {
   if (!data) notFound()
   return (
     <IntegrationPage title={t("title")} description={t("description")}>
-      <SecretConnectionsCard connections={data} />
+      {data.length === 0 ? (
+        <IllustratedEmptyState
+          illustration={<SecretsIllustration />}
+          title={t("emptyTitle")}
+          description={t("emptyBody")}
+          actions={<AddConnectionDialog size="default" />}
+        />
+      ) : (
+        <SecretConnectionsCard connections={data} />
+      )}
     </IntegrationPage>
   )
 }

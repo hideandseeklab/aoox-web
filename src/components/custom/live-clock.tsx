@@ -25,7 +25,7 @@ export function LiveClock() {
   const now = new Date(seconds * 1000)
 
   return (
-    <div className="text-end tabular-nums" aria-live="off">
+    <div className="text-start tabular-nums sm:text-end" aria-live="off">
       <p className="text-sm font-medium">
         {formatDate(now, locale, {
           weekday: "long",

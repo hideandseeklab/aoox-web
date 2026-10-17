@@ -186,7 +186,6 @@
   "notifications": {
     "title": "Notifikasi",
     "description": "Deploy dimulai/sukses/gagal, backup gagal, dan container mati ke Telegram, Slack, Discord, email, atau webhook. Token disimpan terenkripsi.",
-    "empty": "Belum ada channel.",
     "none": "nonaktif",
     "testAria": "Kirim tes ke {name}",
     "events": {
@@ -230,7 +229,6 @@
   "gitCredentials": {
     "title": "Kredensial Git",
     "description": "Token HTTPS untuk repo privat. Disimpan terenkripsi dan hanya dipakai saat Docker meng-clone repo.",
-    "empty": "Belum ada kredensial — semua repo di-clone secara anonim.",
     "generic": "Generik (HTTPS)",
     "hints": {
       "github": "Personal access token (classic: scope repo; fine-grained: Contents read). Username bebas, mis. x-access-token.",
@@ -245,7 +243,6 @@
   "secretConnections": {
     "title": "Manajer secret",
     "description": "Koneksi ke Infisical (machine identity). Aplikasi bisa mengambil secret darinya saat container dibuat, tanpa menyalinnya ke env. Client secret disimpan terenkripsi dan tidak bisa dilihat lagi.",
-    "empty": "Belum ada koneksi — aplikasi memakai env biasa.",
     "cloud": "Infisical Cloud",
     "testAria": "Tes koneksi {name}",
     "dialogTitle": "Koneksi secret manager baru",
@@ -260,7 +257,6 @@
   "backupDestinations": {
     "title": "Tujuan backup (S3)",
     "description": "Bucket S3-compatible (AWS, MinIO, R2, Backblaze, …) tempat salinan backup database dikirim. Pilih per database di tab Backup-nya.",
-    "empty": "Belum ada tujuan — backup hanya tersimpan di volume server ini.",
     "regionUnknown": "(region?)",
     "testAria": "Tes koneksi {name}",
     "dialogTitle": "Tujuan backup baru",
@@ -278,7 +274,6 @@
     "title": "Sertifikat SSL",
     "description": "Sertifikat sendiri (CA perusahaan, wildcard beli, Cloudflare Origin CA) untuk domain aplikasi, sebagai ganti Let's Encrypt. Kunci privat disimpan terenkripsi dan tidak bisa dilihat lagi.",
     "upload": "Unggah",
-    "empty": "Belum ada sertifikat — domain HTTPS memakai Let's Encrypt otomatis.",
     "validUntil": "Berlaku sampai {date}",
     "updateAria": "Perbarui {name}",
     "updateTitle": "Perbarui (ganti isi sertifikat)",

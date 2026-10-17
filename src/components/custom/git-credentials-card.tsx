@@ -4,7 +4,6 @@ import { PathArrow } from "@/components/custom/arrows"
 import { KeyRound, Plus, Trash2 } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { useActionState, useState, useTransition } from "react"
-import { EmptyState } from "@/components/custom/empty-state"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -72,48 +71,42 @@ export function GitCredentialsCard({
         </div>
       </CardHeader>
       <CardContent>
-        {credentials.length === 0 ? (
-          <EmptyState icon={KeyRound} compact>
-            {t("gitCredentials.empty")}
-          </EmptyState>
-        ) : (
-          <ul className="divide-y rounded-md border">
-            {credentials.map((c) => (
-              <li
-                key={c.id}
-                className="flex items-center gap-3 px-3 py-2 text-xs"
-              >
-                <KeyRound className="size-4 text-muted-foreground" />
-                <span className="font-medium">{c.name}</span>
-                <span className="text-xs text-muted-foreground">
-                  {c.provider === "generic"
-                    ? t("gitCredentials.generic")
-                    : PROVIDER_LABEL[c.provider]}{" "}
-                  · {c.username}
-                </span>
-                <span className="ms-auto" />
-                {canManage && (
-                  <Button
-                    variant="ghost"
-                    size="icon-sm"
-                    aria-label={t("gitCredentials.deleteAria", {
-                      name: c.name,
-                    })}
-                    disabled={pending}
-                    onClick={() =>
-                      start(async () => {
-                        const r = await deleteGitCredentialAction(c.id)
-                        if (!r.ok) setError(r.error)
-                      })
-                    }
-                  >
-                    <Trash2 />
-                  </Button>
-                )}
-              </li>
-            ))}
-          </ul>
-        )}
+        <ul className="divide-y rounded-md border">
+          {credentials.map((c) => (
+            <li
+              key={c.id}
+              className="flex items-center gap-3 px-3 py-2 text-xs"
+            >
+              <KeyRound className="size-4 text-muted-foreground" />
+              <span className="font-medium">{c.name}</span>
+              <span className="text-xs text-muted-foreground">
+                {c.provider === "generic"
+                  ? t("gitCredentials.generic")
+                  : PROVIDER_LABEL[c.provider]}{" "}
+                · {c.username}
+              </span>
+              <span className="ms-auto" />
+              {canManage && (
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  aria-label={t("gitCredentials.deleteAria", {
+                    name: c.name,
+                  })}
+                  disabled={pending}
+                  onClick={() =>
+                    start(async () => {
+                      const r = await deleteGitCredentialAction(c.id)
+                      if (!r.ok) setError(r.error)
+                    })
+                  }
+                >
+                  <Trash2 />
+                </Button>
+              )}
+            </li>
+          ))}
+        </ul>
         {error && (
           <p className="mt-2 text-xs text-destructive" role="alert">
             {error}
@@ -126,7 +119,12 @@ export function GitCredentialsCard({
 
 const initialState: GitCredentialFormState = {}
 
-function AddCredentialDialog() {
+/** `size`: "sm" in a card header, "default" as the action of an empty state. */
+export function AddCredentialDialog({
+  size = "sm",
+}: {
+  size?: "sm" | "default"
+}) {
   const t = useTranslations("settings")
   const c = useTranslations("common")
   const [open, setOpen] = useState(false)
@@ -149,7 +147,7 @@ function AddCredentialDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="sm">
+        <Button size={size}>
           <Plus data-icon="inline-start" />
           {c("actions.add")}
         </Button>

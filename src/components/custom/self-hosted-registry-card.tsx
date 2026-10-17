@@ -44,14 +44,20 @@ import type {
   SelfHostedStatus,
 } from "@/features/registry/registry.entity"
 import { copyToClipboard } from "@/lib/clipboard"
+import { IllustratedEmptyState } from "@/components/custom/illustrated-empty-state"
+import { RegistryIllustration } from "@/components/custom/illustrations/registry-illustration"
 
 export function SelfHostedRegistryCard({
   status,
   canManage,
+  isOwner,
   destinations,
 }: {
   status: SelfHostedStatus
+  /** Owner or admin: may change the domain (API `@Roles('owner','admin')`). */
   canManage: boolean
+  /** Owner only: enable, replace, remove and garbage-collect (API `@Roles('owner')`). */
+  isOwner: boolean
   destinations: BackupDestination[]
 }) {
   const t = useTranslations("registry.selfHosted")
@@ -63,9 +69,17 @@ export function SelfHostedRegistryCard({
   const [domainInput, setDomainInput] = useState("")
   const [provisionOpen, setProvisionOpen] = useState(false)
   const [destinationId, setDestinationId] = useState("local")
+  const [replaceMode, setReplaceMode] = useState(false)
+
+  const openProvision = (replace: boolean) => {
+    setReplaceMode(replace)
+    setProvisionOpen(true)
+  }
 
   const { container, registry, dockerAvailable, publicUrl } = status
-  const installed = container.installed && registry !== null
+  const installed =
+    registry !== null &&
+    (status.state === "installed" || status.state === "docker-unavailable")
   const storageName = registry?.storageDestinationId
     ? (destinations.find((d) => d.id === registry.storageDestinationId)?.name ??
       "S3")
@@ -78,172 +92,21 @@ export function SelfHostedRegistryCard({
       if (!r.ok) setError(r.error ?? t("failed"))
     })
 
-  return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <CardTitle>{t("title")}</CardTitle>
-            <CardDescription>
-              {t.rich("description", {
-                code: (c) => <code>{c}</code>,
-                addr: (c) => <code className="text-foreground">{c}</code>,
-                url: registry?.url ?? publicUrl,
-              })}
-            </CardDescription>
-          </div>
-          <StatusBadge status={status} t={t} />
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        {!dockerAvailable && (
-          <Alert>
-            <AlertTitle>{t("dockerUnavailable.title")}</AlertTitle>
-            <AlertDescription>
-              {t.rich("dockerUnavailable.description", {
-                code: (c) => <code>{c}</code>,
-              })}
-            </AlertDescription>
-          </Alert>
-        )}
-        {installed && registry && (
-          <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-xs">
-            <dt className="text-muted-foreground">{t("username")}</dt>
-            <dd className="font-mono">{registry.username}</dd>
-            <dt className="text-muted-foreground">{t("container")}</dt>
-            <dd className="font-mono">
-              {container.containerId?.slice(0, 12)} · {container.state}
-            </dd>
-            <dt className="text-muted-foreground">{t("login")}</dt>
-            <dd className="font-mono">
-              docker login {registry.url} -u {registry.username}
-            </dd>
-            <dt className="text-muted-foreground">{t("storage")}</dt>
-            <dd>{storageName}</dd>
-            {registry.domain && (
-              <>
-                <dt className="text-muted-foreground">{t("domain")}</dt>
-                <dd className="font-mono text-primary">{registry.domain}</dd>
-              </>
-            )}
-          </dl>
-        )}
-        {installed && canManage && (
-          <form
-            className="flex flex-wrap items-end gap-2 border-t pt-3"
-            onSubmit={(e) => {
-              e.preventDefault()
-              const domain = domainInput.trim()
-              if (!domain || !registry) return
-              start(async () => {
-                setError(null)
-                const r = await setRegistryDomainAction(registry.id, domain)
-                if (r.ok) setDomainInput("")
-                else setError(r.error)
-              })
-            }}
-          >
-            <div className="min-w-0 flex-1 space-y-1">
-              <Label htmlFor="registry-domain">{t("customDomain")}</Label>
-              <Input
-                id="registry-domain"
-                placeholder="registry.example.com"
-                value={domainInput}
-                onChange={(e) => setDomainInput(e.target.value)}
-                disabled={pending}
-              />
-            </div>
-            <Button type="submit" disabled={pending || !domainInput.trim()}>
-              {t("apply")}
-            </Button>
-            {registry?.domain && (
-              <Button
-                type="button"
-                variant="outline"
-                disabled={pending}
-                onClick={() =>
-                  run(() => setRegistryDomainAction(registry.id, null))
-                }
-              >
-                {t("removeDomain")}
-              </Button>
-            )}
-            <p className="w-full text-xs text-muted-foreground">
-              {t.rich("domainNote", { code: (c) => <code>{c}</code> })}
-            </p>
-          </form>
-        )}
-        {error && (
-          <p className="text-xs text-destructive" role="alert">
-            {error}
-          </p>
-        )}
-        {gcOutput !== null && (
-          <pre className="max-h-48 overflow-auto rounded-md border bg-muted p-2 text-xs">
-            {gcOutput || t("noOutput")}
-          </pre>
-        )}
-      </CardContent>
-      {canManage && (
-        <CardFooter className="flex flex-wrap gap-2">
-          {!installed ? (
-            <Button
-              disabled={pending || !dockerAvailable}
-              onClick={() => setProvisionOpen(true)}
-            >
-              <Play data-icon="inline-start" />
-              {t("enable")}
-            </Button>
-          ) : (
-            <>
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={pending}
-                onClick={() =>
-                  run(async () => {
-                    const r = await garbageCollectAction(true)
-                    if (r.ok) setGcOutput(r.data.output)
-                    return r
-                  })
-                }
-              >
-                {t("gcDryRun")}
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={pending}
-                onClick={() =>
-                  run(async () => {
-                    const r = await garbageCollectAction(false)
-                    if (r.ok) setGcOutput(r.data.output)
-                    return r
-                  })
-                }
-              >
-                <Trash data-icon="inline-start" />
-                {t("gc")}
-              </Button>
-              <Button
-                variant="destructive"
-                size="sm"
-                disabled={pending}
-                onClick={() => setRemoveOpen(true)}
-              >
-                <Trash2 data-icon="inline-start" />
-                {t("remove")}
-              </Button>
-            </>
-          )}
-        </CardFooter>
-      )}
-
+  const dialogs = (
+    <>
       <Dialog open={provisionOpen} onOpenChange={setProvisionOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>{t("provision.title")}</DialogTitle>
-            <DialogDescription>{t("provision.description")}</DialogDescription>
+            <DialogTitle>
+              {replaceMode ? t("unmanaged.dialogTitle") : t("provision.title")}
+            </DialogTitle>
+            <DialogDescription>
+              {replaceMode
+                ? t.rich("unmanaged.dialogDescription", {
+                    code: (c) => <code>{c}</code>,
+                  })
+                : t("provision.description")}
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-1.5">
             <Label htmlFor="registry-storage">{t("storage")}</Label>
@@ -280,7 +143,8 @@ export function SelfHostedRegistryCard({
               onClick={() =>
                 run(async () => {
                   const r = await provisionSelfHostedAction(
-                    destinationId === "local" ? undefined : destinationId
+                    destinationId === "local" ? undefined : destinationId,
+                    replaceMode
                   )
                   if (r.ok) {
                     setCreds(r.data)
@@ -291,7 +155,13 @@ export function SelfHostedRegistryCard({
                 })
               }
             >
-              {pending ? t("provision.preparing") : t("provision.confirm")}
+              {pending
+                ? replaceMode
+                  ? t("unmanaged.replacing")
+                  : t("provision.preparing")
+                : replaceMode
+                  ? t("unmanaged.dialogConfirm")
+                  : t("provision.confirm")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -372,6 +242,254 @@ export function SelfHostedRegistryCard({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+    </>
+  )
+
+  const dockerAlert = !dockerAvailable && (
+    <Alert>
+      <AlertTitle>{t("dockerUnavailable.title")}</AlertTitle>
+      <AlertDescription>
+        {t.rich("dockerUnavailable.description", {
+          code: (c) => <code>{c}</code>,
+        })}
+      </AlertDescription>
+    </Alert>
+  )
+
+  // Not enabled yet: the shared illustrated empty state, with the same Enable flow.
+  if (!installed) {
+    const unmanaged = status.state === "unmanaged-container"
+    const missing = status.state === "missing-container"
+    return (
+      <div className="space-y-3">
+        {dockerAlert}
+        {unmanaged && (
+          <Alert>
+            <Info />
+            <AlertTitle>{t("unmanaged.title")}</AlertTitle>
+            <AlertDescription className="space-y-2">
+              <p>
+                {t.rich(
+                  isOwner
+                    ? "unmanaged.description"
+                    : "unmanaged.descriptionMember",
+                  { code: (c) => <code>{c}</code> }
+                )}
+              </p>
+              {isOwner && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={pending}
+                  onClick={() => openProvision(true)}
+                >
+                  {t("unmanaged.replace")}
+                </Button>
+              )}
+            </AlertDescription>
+          </Alert>
+        )}
+        {missing && (
+          <Alert>
+            <Info />
+            <AlertTitle>{t("missing.title")}</AlertTitle>
+            <AlertDescription className="space-y-2">
+              <p>
+                {t.rich(
+                  isOwner ? "missing.description" : "missing.descriptionMember",
+                  { code: (c) => <code>{c}</code> }
+                )}
+              </p>
+              {isOwner && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={pending}
+                  onClick={() => run(() => removeSelfHostedAction(false))}
+                >
+                  {t("missing.action")}
+                </Button>
+              )}
+            </AlertDescription>
+          </Alert>
+        )}
+        <IllustratedEmptyState
+          illustration={<RegistryIllustration />}
+          title={t("empty.title")}
+          description={
+            <>
+              {isOwner ? t("empty.body") : t("empty.bodyMember")}{" "}
+              {t.rich("empty.address", {
+                addr: (c) => <code className="font-mono">{c}</code>,
+                url: publicUrl,
+              })}
+            </>
+          }
+          actions={
+            isOwner && !unmanaged && !missing ? (
+              <Button
+                disabled={pending || !dockerAvailable}
+                onClick={() => openProvision(false)}
+              >
+                <Play data-icon="inline-start" />
+                {t("enable")}
+              </Button>
+            ) : undefined
+          }
+        />
+        {error && (
+          <p className="text-xs text-destructive" role="alert">
+            {error}
+          </p>
+        )}
+        {dialogs}
+      </div>
+    )
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <CardTitle>{t("title")}</CardTitle>
+            <CardDescription>
+              {t.rich("description", {
+                code: (c) => <code>{c}</code>,
+                addr: (c) => <code className="text-foreground">{c}</code>,
+                url: registry?.url ?? publicUrl,
+              })}
+            </CardDescription>
+          </div>
+          <StatusBadge status={status} t={t} />
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        {dockerAlert}
+        {registry && (
+          <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-xs">
+            <dt className="text-muted-foreground">{t("username")}</dt>
+            <dd className="font-mono">{registry.username}</dd>
+            <dt className="text-muted-foreground">{t("container")}</dt>
+            <dd className="font-mono">
+              {container.containerId?.slice(0, 12)} · {container.state}
+            </dd>
+            <dt className="text-muted-foreground">{t("login")}</dt>
+            <dd className="font-mono">
+              docker login {registry.url} -u {registry.username}
+            </dd>
+            <dt className="text-muted-foreground">{t("storage")}</dt>
+            <dd>{storageName}</dd>
+            {registry.domain && (
+              <>
+                <dt className="text-muted-foreground">{t("domain")}</dt>
+                <dd className="font-mono text-primary">{registry.domain}</dd>
+              </>
+            )}
+          </dl>
+        )}
+        {canManage && (
+          <form
+            className="flex flex-wrap items-end gap-2 border-t pt-3"
+            onSubmit={(e) => {
+              e.preventDefault()
+              const domain = domainInput.trim()
+              if (!domain || !registry) return
+              start(async () => {
+                setError(null)
+                const r = await setRegistryDomainAction(registry.id, domain)
+                if (r.ok) setDomainInput("")
+                else setError(r.error)
+              })
+            }}
+          >
+            <div className="min-w-0 flex-1 space-y-1">
+              <Label htmlFor="registry-domain">{t("customDomain")}</Label>
+              <Input
+                id="registry-domain"
+                placeholder="registry.example.com"
+                value={domainInput}
+                onChange={(e) => setDomainInput(e.target.value)}
+                disabled={pending}
+              />
+            </div>
+            <Button type="submit" disabled={pending || !domainInput.trim()}>
+              {t("apply")}
+            </Button>
+            {registry?.domain && (
+              <Button
+                type="button"
+                variant="outline"
+                disabled={pending}
+                onClick={() =>
+                  run(() => setRegistryDomainAction(registry.id, null))
+                }
+              >
+                {t("removeDomain")}
+              </Button>
+            )}
+            <p className="w-full text-xs text-muted-foreground">
+              {t.rich("domainNote", { code: (c) => <code>{c}</code> })}
+            </p>
+          </form>
+        )}
+        {error && (
+          <p className="text-xs text-destructive" role="alert">
+            {error}
+          </p>
+        )}
+        {gcOutput !== null && (
+          <pre className="max-h-48 overflow-auto rounded-md border bg-muted p-2 text-xs">
+            {gcOutput || t("noOutput")}
+          </pre>
+        )}
+      </CardContent>
+      {isOwner && (
+        <CardFooter className="flex flex-wrap gap-2">
+          <>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={pending}
+              onClick={() =>
+                run(async () => {
+                  const r = await garbageCollectAction(true)
+                  if (r.ok) setGcOutput(r.data.output)
+                  return r
+                })
+              }
+            >
+              {t("gcDryRun")}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={pending}
+              onClick={() =>
+                run(async () => {
+                  const r = await garbageCollectAction(false)
+                  if (r.ok) setGcOutput(r.data.output)
+                  return r
+                })
+              }
+            >
+              <Trash data-icon="inline-start" />
+              {t("gc")}
+            </Button>
+            <Button
+              variant="destructive"
+              size="sm"
+              disabled={pending}
+              onClick={() => setRemoveOpen(true)}
+            >
+              <Trash2 data-icon="inline-start" />
+              {t("remove")}
+            </Button>
+          </>
+        </CardFooter>
+      )}
+
+      {dialogs}
     </Card>
   )
 }
@@ -385,6 +503,8 @@ function StatusBadge({
 }) {
   if (!status.dockerAvailable)
     return <Badge variant="destructive">{t("status.dockerOff")}</Badge>
+  if (status.state === "unmanaged-container")
+    return <Badge variant="secondary">{t("status.unmanaged")}</Badge>
   if (!status.container.installed)
     return <Badge variant="secondary">{t("status.none")}</Badge>
   if (status.container.running) return <Badge>{t("status.running")}</Badge>

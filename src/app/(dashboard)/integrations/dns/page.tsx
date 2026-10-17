@@ -1,6 +1,11 @@
 import { getTranslations } from "next-intl/server"
 import { notFound } from "next/navigation"
-import { DnsConnectionsCard } from "@/components/custom/dns-connections-card"
+import {
+  AddConnectionDialog,
+  DnsConnectionsCard,
+} from "@/components/custom/dns-connections-card"
+import { IllustratedEmptyState } from "@/components/custom/illustrated-empty-state"
+import { DnsIllustration } from "@/components/custom/illustrations/dns-illustration"
 import { canUseTerminal } from "@/features/auth/auth.entity"
 import { getVerifiedSession } from "@/features/auth/auth.session"
 import { listDnsConnections } from "@/features/dns/dns.queries"
@@ -20,7 +25,16 @@ export default async function DnsPage() {
   if (!data) notFound()
   return (
     <IntegrationPage title={t("title")} description={t("description")}>
-      <DnsConnectionsCard connections={data} />
+      {data.length === 0 ? (
+        <IllustratedEmptyState
+          illustration={<DnsIllustration />}
+          title={t("emptyTitle")}
+          description={t("emptyBody")}
+          actions={<AddConnectionDialog size="default" />}
+        />
+      ) : (
+        <DnsConnectionsCard connections={data} />
+      )}
     </IntegrationPage>
   )
 }

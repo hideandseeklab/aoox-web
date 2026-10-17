@@ -22,7 +22,7 @@ export function DangerZone({
   items: { title: string; description: ReactNode; action: ReactNode }[]
 }) {
   return (
-    <Card className="border-destructive/50">
+    <Card className="ring-destructive/50">
       <CardHeader>
         <CardTitle className="text-destructive">{title}</CardTitle>
         <CardDescription>{description}</CardDescription>

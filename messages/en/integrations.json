@@ -6,32 +6,45 @@
     "git": {
       "metadata": "Git credentials · aoox",
       "title": "Git credentials",
-      "description": "HTTPS tokens aoox uses to clone private repositories."
+      "description": "HTTPS tokens aoox uses to clone private repositories.",
+      "emptyTitle": "No Git credentials yet",
+      "emptyBody": "Add an HTTPS token so aoox can clone private repositories. Public repositories work without one.",
+      "emptyBodyMember": "Public repositories are cloned without a token. Ask an owner or admin to add one for private repositories."
     },
     "notifications": {
       "metadata": "Notifications · aoox",
       "title": "Notifications",
-      "description": "Channels that receive deployment, backup and health events."
+      "description": "Channels that receive deployment, backup and health events.",
+      "emptyTitle": "No notification channels yet",
+      "emptyBody": "Send deploy, backup and health alerts to Telegram, Slack, Discord, email or a webhook."
     },
     "backupDestinations": {
       "metadata": "Backup destinations · aoox",
       "title": "Backup destinations",
-      "description": "S3-compatible buckets where database and volume backups are copied."
+      "description": "S3-compatible buckets where database and volume backups are copied.",
+      "emptyTitle": "No backup destinations yet",
+      "emptyBody": "Add an S3-compatible bucket to keep backup copies off this server. Until then, backups stay on its local volume."
     },
     "secrets": {
       "metadata": "Secret manager · aoox",
       "title": "Secret manager",
-      "description": "Connections to Infisical that applications pull secrets from."
+      "description": "Connections to Infisical that applications pull secrets from.",
+      "emptyTitle": "No secret manager connected",
+      "emptyBody": "Connect Infisical so applications can pull secrets when their container is created, without copying them into env."
     },
     "dns": {
       "metadata": "DNS providers · aoox",
       "title": "DNS providers",
-      "description": "Cloudflare tokens used to manage DNS records and wildcard certificates."
+      "description": "Cloudflare tokens used to manage DNS records and wildcard certificates.",
+      "emptyTitle": "No DNS provider yet",
+      "emptyBody": "Connect Cloudflare so aoox can create domain records and issue wildcard certificates for you."
     },
     "certificates": {
       "metadata": "SSL certificates · aoox",
       "title": "SSL certificates",
-      "description": "Your own certificates for application domains, instead of Let's Encrypt."
+      "description": "Your own certificates for application domains, instead of Let's Encrypt.",
+      "emptyTitle": "No custom certificates yet",
+      "emptyBody": "Upload your own certificate for domains that should not use Let's Encrypt. Without one, HTTPS domains get Let's Encrypt automatically."
     }
   }
 }

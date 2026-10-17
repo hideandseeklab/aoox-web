@@ -11,7 +11,6 @@
   "connections": {
     "title": "Penyedia DNS",
     "description": "API token Cloudflare. aoox dapat membuatkan record DNS sebuah domain dan menjawab tantangan ACME DNS-01 untuk sertifikat wildcard. Token membutuhkan Zone:Zone:Read dan Zone:DNS:Edit, disimpan terenkripsi, dan tidak dapat dilihat lagi.",
-    "empty": "Belum ada koneksi. Record DNS tetap Anda atur sendiri.",
     "testAria": "Uji koneksi {name}",
     "deleteAria": "Hapus {name}",
     "dialogTitle": "Koneksi Cloudflare baru",
@@ -47,13 +46,10 @@
   },
   "proxy": {
     "title": "Sertifikat DNS-01",
-    "description": "Menambahkan resolver ACME kedua yang membuktikan kepemilikan domain lewat penyedia DNS Anda. Cocok untuk sertifikat wildcard (misalnya preview pull request) tanpa host perlu terjangkau di port 80.",
-    "proxyOn": "Proxy di",
-    "hostOption": "Host aoox",
-    "selectProxy": "Pilih proxy",
+    "description": "Membuktikan kepemilikan domain lewat penyedia DNS Anda, sehingga proxy dapat menerbitkan sertifikat wildcard tanpa port 80.",
     "connection": "Koneksi DNS",
     "chooseConnection": "Pilih koneksi",
-    "noConnections": "Belum ada koneksi DNS. Tambahkan di Integrasi → Penyedia DNS.",
+    "noConnections": "Belum ada koneksi DNS. Tambahkan di <link>Integrasi → Penyedia DNS</link>.",
     "enable": "Aktifkan DNS-01",
     "disable": "Nonaktifkan",
     "working": "Memproses",

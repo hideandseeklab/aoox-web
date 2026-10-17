@@ -98,7 +98,7 @@ export function ApplicationMaintenance({
       <CardContent className="space-y-3">
         {saved.enabled && (
           <IllustratedEmptyState
-            className="rounded-lg border border-dashed py-6"
+            className="py-6 sm:py-6"
             illustration={<MaintenanceIllustration />}
             title={t("active.title")}
             description={t("active.body")}

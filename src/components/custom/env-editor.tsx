@@ -351,7 +351,7 @@ export function EnvEditor({
             <Button
               type="button"
               variant="outline"
-              className="mt-0.5 h-9 w-full border-dashed bg-transparent text-muted-foreground hover:text-foreground"
+              className="mt-0.5 h-9 w-full border-dashed border-border-dashed bg-transparent text-muted-foreground hover:text-foreground"
               onClick={() =>
                 updateRows([
                   ...rows,

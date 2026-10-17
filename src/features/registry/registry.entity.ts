@@ -20,7 +20,16 @@ export interface SelfHostedContainer {
   image: string | null
 }
 
+/** How the Docker container relates to the registry row; mirrors the API's `SelfHostedState`. */
+export type SelfHostedState =
+  | "docker-unavailable"
+  | "not-installed"
+  | "installed"
+  | "unmanaged-container"
+  | "missing-container"
+
 export interface SelfHostedStatus {
+  state: SelfHostedState
   dockerAvailable: boolean
   publicUrl: string
   container: SelfHostedContainer

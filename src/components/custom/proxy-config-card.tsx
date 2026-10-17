@@ -1,8 +1,15 @@
 "use client"
 
-import { FileCode2, Pencil, Plus, RefreshCw, Trash2 } from "lucide-react"
-import { useTranslations } from "next-intl"
-import { usePathname } from "next/navigation"
+import {
+  ExternalLink,
+  FileCode2,
+  Info,
+  Pencil,
+  Plus,
+  RefreshCw,
+  Trash2,
+} from "lucide-react"
+import { useLocale, useTranslations } from "next-intl"
 import { useState, useTransition } from "react"
 import { toast } from "sonner"
 import { ConfirmDialog } from "@/components/custom/confirm-dialog"
@@ -11,7 +18,9 @@ import {
   type EditorTarget,
 } from "@/components/custom/proxy-config-editor"
 import { ProxyConfigPresetDialog } from "@/components/custom/proxy-config-preset-dialog"
-import { EmptyState } from "@/components/custom/empty-state"
+import { IllustratedEmptyState } from "@/components/custom/illustrated-empty-state"
+import { ProxyConfigIllustration } from "@/components/custom/illustrations/proxy-config-illustration"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -21,13 +30,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import {
   deleteProxyConfigAction,
@@ -39,32 +41,33 @@ import type {
   ProxyConfigFile,
   ProxyPreset,
 } from "@/features/proxy-config/proxy-config.entity"
-import type { Server } from "@/features/server/server.entity"
 import { useRouter } from "@/lib/use-router"
 
-const HOST = "host"
+const DOCS = {
+  en: "https://aoox.dev/docs/proxy-configuration",
+  id: "https://aoox.dev/id/docs/konfigurasi-proxy",
+}
 
 /**
  * Operator-written Traefik dynamic configuration for one proxy (the aoox host or a remote
  * server). Each file is stored in aoox and written to the proxy as `user-<name>.yml`; Traefik
- * reloads it live. Only the owner can change anything; admins can read.
+ * reloads it live. Only the owner can change anything; admins can read. The proxy is chosen
+ * once at the top of the page (`?server=`).
  */
 export function ProxyConfigCard({
   files,
   presets,
-  servers,
   serverId,
   isOwner,
 }: {
   files: ProxyConfigFile[]
   presets: ProxyPreset[]
-  servers: Server[]
   serverId: string | null
   isOwner: boolean
 }) {
   const t = useTranslations("infra.proxyConfigCard")
+  const locale = useLocale()
   const router = useRouter()
-  const pathname = usePathname()
   const [target, setTarget] = useState<EditorTarget | null>(null)
   const [pending, start] = useTransition()
   const [ask, setAsk] = useState<{
@@ -78,9 +81,6 @@ export function ProxyConfigCard({
     if (!s.ok || !s.data.needsRecreate) return false
     return new Promise((resolve) => setAsk({ resolve }))
   }
-
-  const go = (next: string) =>
-    router.replace(next === HOST ? pathname : `${pathname}?server=${next}`)
 
   const toggle = (f: ProxyConfigFile, enabled: boolean) =>
     start(async () => {
@@ -102,9 +102,7 @@ export function ProxyConfigCard({
       const r = await syncProxyConfigAction(serverId, accept)
       if (!r.ok) return void toast.error(r.error)
       if (r.data.notice) toast.info(r.data.notice)
-      toast.success(
-        r.data.warning ?? t("resynced", { count: r.data.files })
-      )
+      toast.success(r.data.warning ?? t("resynced", { count: r.data.files }))
     })
 
   const remote = serverId !== null
@@ -113,72 +111,83 @@ export function ProxyConfigCard({
     router.refresh()
   }
 
+  const openPreset = (size: "sm" | "default") => (
+    <ProxyConfigPresetDialog
+      presets={presets}
+      size={size}
+      onResult={(name, content) => setTarget({ mode: "new", name, content })}
+    />
+  )
+  const empty = files.length === 0
+
   return (
     <Card>
       <CardHeader>
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
+        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
+          <div className="min-w-0 flex-1 basis-64 space-y-1">
             <CardTitle>{t("title")}</CardTitle>
-            <CardDescription>{t("description")}</CardDescription>
+            <CardDescription>
+              {t("description")}{" "}
+              <a
+                href={locale === "id" ? DOCS.id : DOCS.en}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-0.5 text-foreground underline underline-offset-2"
+              >
+                {t("learnMore")}
+                <ExternalLink className="size-3" aria-hidden="true" />
+              </a>
+            </CardDescription>
           </div>
           {isOwner && (
-            <div className="flex flex-wrap gap-2">
-              <ProxyConfigPresetDialog
-                presets={presets}
-                onResult={(name, content) =>
-                  setTarget({ mode: "new", name, content })
-                }
-              />
-              <Button size="sm" onClick={() => setTarget({ mode: "new" })}>
-                <Plus data-icon="inline-start" />
-                {t("newFile")}
+            <div className="flex flex-wrap items-center gap-2">
+              {!empty && openPreset("sm")}
+              {!empty && (
+                <Button size="sm" onClick={() => setTarget({ mode: "new" })}>
+                  <Plus data-icon="inline-start" />
+                  {t("newFile")}
+                </Button>
+              )}
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={pending}
+                onClick={resync}
+                title={t("resyncHint")}
+              >
+                <RefreshCw data-icon="inline-start" />
+                {t("resync")}
               </Button>
             </div>
           )}
         </div>
       </CardHeader>
       <CardContent className="space-y-3 text-xs">
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-muted-foreground">{t("proxyOn")}</span>
-          <Select value={serverId ?? HOST} onValueChange={go}>
-            <SelectTrigger size="sm" className="w-56" aria-label={t("selectProxy")}>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent position="popper">
-              <SelectItem value={HOST}>{t("hostOption")}</SelectItem>
-              {servers.map((s) => (
-                <SelectItem key={s.id} value={s.id}>
-                  {s.name} · {s.host}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          {isOwner && (
-            <Button
-              variant="outline"
-              size="sm"
-              className="ms-auto"
-              disabled={pending}
-              onClick={resync}
-              title={t("resyncHint")}
-            >
-              <RefreshCw data-icon="inline-start" />
-              {t("resync")}
-            </Button>
-          )}
-        </div>
-        {remote && (
-          <p className="text-muted-foreground">
-            {t("remoteNote")}
-          </p>
-        )}
-        <p className="text-muted-foreground">
-          {t("warning")}
-        </p>
-        {files.length === 0 ? (
-          <EmptyState icon={FileCode2} compact>
-            {isOwner ? t("emptyOwner") : t("empty")}
-          </EmptyState>
+        <Alert>
+          <Info />
+          <AlertDescription>
+            {remote ? `${t("warning")} ${t("remoteNote")}` : t("warning")}
+          </AlertDescription>
+        </Alert>
+        {empty ? (
+          <IllustratedEmptyState
+            bordered={false}
+            className="py-2 sm:py-4"
+            illustration={<ProxyConfigIllustration />}
+            title={t("emptyTitle")}
+            description={isOwner ? t("emptyOwner") : t("empty")}
+            actions={
+              isOwner ? (
+                <>
+                  {openPreset("default")}
+                  <Button onClick={() => setTarget({ mode: "new" })}>
+                    <Plus data-icon="inline-start" />
+                    {t("newFile")}
+                  </Button>
+                </>
+              ) : undefined
+            }
+          />
         ) : (
           <ul className="divide-y rounded-md border">
             {files.map((f) => (
@@ -204,7 +213,9 @@ export function ProxyConfigCard({
                   <Button
                     variant="ghost"
                     size="icon-sm"
-                    aria-label={t(isOwner ? "editFile" : "viewFile", { name: f.name })}
+                    aria-label={t(isOwner ? "editFile" : "viewFile", {
+                      name: f.name,
+                    })}
                     onClick={() => setTarget({ mode: "edit", file: f })}
                   >
                     <Pencil />

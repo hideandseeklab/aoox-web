@@ -3,7 +3,6 @@
 import { CloudUpload, Plus, RadioTower, Trash2 } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { useActionState, useState, useTransition } from "react"
-import { EmptyState } from "@/components/custom/empty-state"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -82,62 +81,56 @@ export function BackupDestinationsCard({
         </div>
       </CardHeader>
       <CardContent className="space-y-3 text-xs">
-        {destinations.length === 0 ? (
-          <EmptyState icon={CloudUpload} compact>
-            {t("backupDestinations.empty")}
-          </EmptyState>
-        ) : (
-          <ul className="divide-y rounded-md border">
-            {destinations.map((d) => {
-              const result = tests[d.id]
-              return (
-                <li key={d.id} className="space-y-1 px-3 py-2">
-                  <div className="flex items-center gap-3">
-                    <CloudUpload className="size-4 text-muted-foreground" />
-                    <span className="font-medium">{d.name}</span>
-                    <span className="truncate font-mono text-xs text-muted-foreground">
-                      s3://{d.bucket}
-                      {d.prefix ? `/${d.prefix}` : ""} ·{" "}
-                      {d.endpoint
-                        ? d.endpoint.replace(/^https?:\/\//, "")
-                        : `AWS ${d.region || t("backupDestinations.regionUnknown")}`}
-                    </span>
-                    <span className="ms-auto" />
-                    <Button
-                      variant="ghost"
-                      size="icon-sm"
-                      aria-label={t("backupDestinations.testAria", {
-                        name: d.name,
-                      })}
-                      disabled={pending}
-                      onClick={() => test(d.id)}
-                    >
-                      <RadioTower />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon-sm"
-                      aria-label={t("backupDestinations.deleteAria", {
-                        name: d.name,
-                      })}
-                      disabled={pending}
-                      onClick={() => remove(d.id)}
-                    >
-                      <Trash2 />
-                    </Button>
-                  </div>
-                  {result && (
-                    <p
-                      className={`text-xs ${result.ok ? "text-foreground" : "text-destructive"}`}
-                    >
-                      {result.message}
-                    </p>
-                  )}
-                </li>
-              )
-            })}
-          </ul>
-        )}
+        <ul className="divide-y rounded-md border">
+          {destinations.map((d) => {
+            const result = tests[d.id]
+            return (
+              <li key={d.id} className="space-y-1 px-3 py-2">
+                <div className="flex items-center gap-3">
+                  <CloudUpload className="size-4 text-muted-foreground" />
+                  <span className="font-medium">{d.name}</span>
+                  <span className="truncate font-mono text-xs text-muted-foreground">
+                    s3://{d.bucket}
+                    {d.prefix ? `/${d.prefix}` : ""} ·{" "}
+                    {d.endpoint
+                      ? d.endpoint.replace(/^https?:\/\//, "")
+                      : `AWS ${d.region || t("backupDestinations.regionUnknown")}`}
+                  </span>
+                  <span className="ms-auto" />
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    aria-label={t("backupDestinations.testAria", {
+                      name: d.name,
+                    })}
+                    disabled={pending}
+                    onClick={() => test(d.id)}
+                  >
+                    <RadioTower />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    aria-label={t("backupDestinations.deleteAria", {
+                      name: d.name,
+                    })}
+                    disabled={pending}
+                    onClick={() => remove(d.id)}
+                  >
+                    <Trash2 />
+                  </Button>
+                </div>
+                {result && (
+                  <p
+                    className={`text-xs ${result.ok ? "text-foreground" : "text-destructive"}`}
+                  >
+                    {result.message}
+                  </p>
+                )}
+              </li>
+            )
+          })}
+        </ul>
         {error && (
           <p className="text-destructive" role="alert">
             {error}
@@ -150,7 +143,12 @@ export function BackupDestinationsCard({
 
 const initialState: BackupDestinationFormState = {}
 
-function AddDestinationDialog() {
+/** `size`: "sm" in a card header, "default" as the action of an empty state. */
+export function AddDestinationDialog({
+  size = "sm",
+}: {
+  size?: "sm" | "default"
+}) {
   const t = useTranslations("settings")
   const c = useTranslations("common")
   const [open, setOpen] = useState(false)
@@ -172,7 +170,7 @@ function AddDestinationDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="sm">
+        <Button size={size}>
           <Plus data-icon="inline-start" />
           {c("actions.add")}
         </Button>
@@ -270,9 +268,11 @@ function AddDestinationDialog() {
             <Field>
               <label className="flex items-center gap-2 text-xs">
                 <Switch name="forcePathStyle" defaultChecked />
-                {t.rich("backupDestinations.pathStyle", {
-                  code: (chunks) => <code>{chunks}</code>,
-                })}
+                <span>
+                  {t.rich("backupDestinations.pathStyle", {
+                    code: (chunks) => <code>{chunks}</code>,
+                  })}
+                </span>
               </label>
             </Field>
             {state.error && (

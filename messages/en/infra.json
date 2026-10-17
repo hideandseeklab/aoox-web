@@ -102,7 +102,10 @@
     "proxy": {
       "metadata": "Reverse proxy · aoox",
       "title": "Reverse proxy",
-      "description": "Traefik on this host: routes domains to application containers and issues HTTPS certificates."
+      "description": "Traefik routes domains to application containers and issues HTTPS certificates, on the aoox host or a remote server.",
+      "proxyOn": "Proxy on",
+      "selectProxy": "Choose the proxy",
+      "hostOption": "aoox host"
     },
     "servers": {
       "metadata": "Remote servers · aoox",
@@ -182,32 +185,52 @@
     }
   },
   "proxyCard": {
-    "title": "Reverse proxy (Traefik)",
-    "description": "Routes domains to application containers through Docker labels. Port <code>{httpPort}</code> (HTTP) and <code>{httpsPort}</code> (HTTPS).",
-    "notInstalled": "Not installed",
+    "title": "Traefik",
+    "description": "Routes domains to application containers through Docker labels.",
     "running": "Running",
-    "acmeLabel": "Automatic HTTPS certificates (Let's Encrypt):",
-    "acmeOn": "enabled for <code>{email}</code>",
-    "acmeOff": "disabled — set <code>PROXY_ACME_EMAIL</code> in the API, then enable it again.",
+    "httpPort": "HTTP port",
+    "httpsPort": "HTTPS port",
+    "acmeLabel": "Let's Encrypt",
+    "acmeOn": "Enabled · {email}",
+    "acmeOffValue": "Disabled",
+    "acmeOff": "Automatic HTTPS certificates are off: set <code>PROXY_ACME_EMAIL</code> in the API, then enable the proxy again.",
+    "files": "File provider",
+    "filesOn": "Loaded",
+    "filesOff": "Not loaded yet",
+    "container": "Container",
+    "remoteSettings": "Ports, the ACME email and removal of this proxy are managed under <link>Remote servers</link>.",
+    "remoteError": "Could not read the proxy on this server",
     "provision": "Enable proxy",
     "provisioning": "Setting up…",
     "remove": "Remove proxy",
-    "failed": "Failed"
+    "removeConfirmTitle": "Remove the proxy?",
+    "removeConfirmDescription": "The Traefik container is deleted and every domain stops answering until the proxy is enabled again. Certificates are kept.",
+    "failed": "Failed",
+    "empty": {
+      "title": "The proxy is not enabled",
+      "body": "Enable Traefik to route domains to your applications and issue HTTPS certificates. It listens on port {httpPort} (HTTP) and {httpsPort} (HTTPS).",
+      "bodyMember": "Traefik routes domains to applications. An owner or admin can enable it.",
+      "remote": "Traefik is not installed on this server yet. Install it with its ports and ACME email under Remote servers.",
+      "openServers": "Open Remote servers"
+    },
+    "danger": {
+      "title": "Danger zone",
+      "description": "Actions that take every domain on the aoox host offline.",
+      "removeTitle": "Remove the proxy",
+      "removeDescription": "Deletes the Traefik container. Domains stop answering until the proxy is enabled again; certificates are kept."
+    }
   },
   "proxyConfigCard": {
     "title": "Dynamic configuration",
-    "description": "Custom Traefik middlewares, routers and services (basic auth, security headers, rate limit, IP allowlist, www redirect). Middlewares are attached per domain in the application's Domain tab. Dynamic configuration only; static configuration and certificates are not changed here.",
+    "description": "Your own Traefik middlewares, routers and services, attached per domain in the application's Domain tab.",
     "newFile": "New file",
-    "proxyOn": "Proxy on",
-    "selectProxy": "Select proxy",
-    "hostOption": "aoox host",
     "resyncHint": "Rewrite all enabled files to the proxy (e.g. after a restore or when the proxy was recreated)",
     "resync": "Apply again",
     "resynced": "{count, plural, one {# file rewritten to the proxy} other {# files rewritten to the proxy}}",
-    "remoteNote": "Remote server: this feature is written for remote servers but has not been tested there. Make sure its proxy is installed under Infrastructure → Remote servers.",
-    "warning": "Invalid files are rejected by Traefik and rolled back automatically, but a valid configuration can change the routing of every domain on this proxy. Middleware, router and service names must be unique per proxy. Traefik does not report every wrong value (e.g. an invalid service URL), so check the result after saving.",
-    "empty": "No configuration files yet.",
-    "emptyOwner": "No configuration files yet — create one from a preset or write your own.",
+    "remoteNote": "Not tested on remote servers yet.",
+    "warning": "Traefik rejects invalid files and aoox rolls them back, but a valid file can change the routing of every domain on this proxy. Check the result after saving.",
+    "empty": "An owner can add middlewares such as basic auth, security headers or a rate limit here.",
+    "emptyOwner": "Start from a preset (basic auth, security headers, rate limit, IP allowlist, www redirect) or write your own file.",
     "usedBy": "{count, plural, one {# domain uses it} other {# domains use it}}",
     "enableFile": "Enable {name}",
     "editFile": "Edit {name}",
@@ -223,7 +246,9 @@
     "disabled": "disabled",
     "recreateTitle": "Recreate the proxy once?",
     "recreateDescription": "The proxy on this server was created by an older aoox version, so it must be recreated once to load dynamic configuration: a few seconds without service for every domain on this proxy. Certificates and other routes are kept. This warning only appears once.",
-    "recreateConfirm": "Recreate proxy and save"
+    "recreateConfirm": "Recreate proxy and save",
+    "learnMore": "Learn more",
+    "emptyTitle": "No configuration files yet"
   },
   "proxyConfigEditor": {
     "template": "# Traefik dynamic configuration (the \"http\" section only).\n# Example: a response header middleware, then attach it to a domain in the application's Domain tab.\nhttp:\n  middlewares:\n    example-header:\n      headers:\n        customResponseHeaders:\n          X-Powered-By: aoox\n",

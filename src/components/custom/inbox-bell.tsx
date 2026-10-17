@@ -118,6 +118,7 @@ export function InboxBell() {
         ) : page.items.length === 0 ? (
           <IllustratedEmptyState
             size="sm"
+            bordered={false}
             illustration={<InboxIllustration />}
             title={t("emptyTitle")}
             description={t("emptyBody")}

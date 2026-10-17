@@ -1,14 +1,17 @@
 "use client"
 
-import { usePathname } from "next/navigation"
+import { TriangleAlert } from "lucide-react"
+import Link from "next/link"
 import { useTranslations } from "next-intl"
 import { useState, useTransition } from "react"
 import { toast } from "sonner"
 import { ConfirmDialog } from "@/components/custom/confirm-dialog"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
   Card,
+  CardAction,
   CardContent,
   CardDescription,
   CardHeader,
@@ -26,51 +29,36 @@ import {
   setProxyDnsAction,
 } from "@/features/dns/dns.actions"
 import type { DnsConnection, ProxyDnsState } from "@/features/dns/dns.entity"
-import type { Server } from "@/features/server/server.entity"
 import { useRouter } from "@/lib/use-router"
-
-const HOST = "host"
 
 /**
  * ACME DNS-01 for one proxy (the aoox host or a remote server): binds a DNS provider
  * connection so the proxy gets a second certificate resolver (`le-dns`). Enabling or
  * disabling recreates a running proxy, so it asks first. Only the owner can change it.
+ * The proxy is chosen once at the top of the page (`?server=`).
  */
 export function ProxyDnsCard({
   state,
   connections,
-  servers,
   serverId,
   isOwner,
 }: {
   state: ProxyDnsState
   connections: DnsConnection[]
-  servers: Server[]
   serverId: string | null
   isOwner: boolean
 }) {
   const t = useTranslations("dns.proxy")
   const router = useRouter()
-  const pathname = usePathname()
   const [pending, start] = useTransition()
   const [choice, setChoice] = useState(
     state.connectionId ?? connections[0]?.id ?? ""
   )
   const [ask, setAsk] = useState<null | "enable" | "disable">(null)
 
-  const go = (next: string) =>
-    router.replace(next === HOST ? pathname : `${pathname}?server=${next}`)
-
   const bound = state.connectionId !== null
   const running = state.proxy === "running"
   const chosen = connections.find((c) => c.id === choice)
-  const proxyLabel =
-    serverId === null
-      ? t("hostOption")
-      : (() => {
-          const s = servers.find((x) => x.id === serverId)
-          return s ? `${s.name} · ${s.host}` : serverId
-        })()
 
   const run = (kind: "enable" | "disable") =>
     start(async () => {
@@ -95,11 +83,9 @@ export function ProxyDnsCard({
   return (
     <Card>
       <CardHeader>
-        <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-2">
-          <div className="min-w-60 flex-1">
-            <CardTitle>{t("title")}</CardTitle>
-            <CardDescription>{t("description")}</CardDescription>
-          </div>
+        <CardTitle>{t("title")}</CardTitle>
+        <CardDescription>{t("description")}</CardDescription>
+        <CardAction>
           {state.proxy === "not-running" || state.proxy === "not-installed" ? (
             bound ? (
               <Badge variant="secondary">{t("stateProxyDown")}</Badge>
@@ -113,32 +99,16 @@ export function ProxyDnsCard({
           ) : (
             <Badge variant="secondary">{t("stateInactive")}</Badge>
           )}
-        </div>
+        </CardAction>
       </CardHeader>
       <CardContent className="space-y-3 text-xs">
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-muted-foreground">{t("proxyOn")}</span>
-          <Select value={serverId ?? HOST} onValueChange={go}>
-            <SelectTrigger
-              size="sm"
-              className="w-56"
-              aria-label={t("selectProxy")}
-            >
-              <SelectValue>{proxyLabel}</SelectValue>
-            </SelectTrigger>
-            <SelectContent position="popper">
-              <SelectItem value={HOST}>{t("hostOption")}</SelectItem>
-              {servers.map((s) => (
-                <SelectItem key={s.id} value={s.id}>
-                  {s.name} · {s.host}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
         {!state.acmeEmail && (
-          <p className="text-destructive">{t("needsEmail")}</p>
+          <Alert className="border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-400">
+            <TriangleAlert />
+            <AlertDescription className="text-amber-700/90 dark:text-amber-400/90">
+              {t("needsEmail")}
+            </AlertDescription>
+          </Alert>
         )}
 
         {bound ? (
@@ -158,7 +128,18 @@ export function ProxyDnsCard({
             )}
           </div>
         ) : connections.length === 0 ? (
-          <p className="text-muted-foreground">{t("noConnections")}</p>
+          <p className="text-muted-foreground">
+            {t.rich("noConnections", {
+              link: (c) => (
+                <Link
+                  href="/integrations/dns"
+                  className="text-foreground underline underline-offset-2"
+                >
+                  {c}
+                </Link>
+              ),
+            })}
+          </p>
         ) : (
           isOwner && (
             <div className="flex flex-wrap items-center gap-2">
@@ -196,7 +177,7 @@ export function ProxyDnsCard({
             {t("usedBy", { list: state.usedBy.join(", ") })}
           </p>
         )}
-        <p className="text-muted-foreground">{t("tokenNote")}</p>
+        <p className="border-t pt-3 text-muted-foreground">{t("tokenNote")}</p>
       </CardContent>
       <ConfirmDialog
         open={ask !== null}

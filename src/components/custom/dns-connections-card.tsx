@@ -3,7 +3,6 @@
 import { Cloud, Plug, Plus, Trash2 } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { useActionState, useState, useTransition } from "react"
-import { EmptyState } from "@/components/custom/empty-state"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -76,77 +75,71 @@ export function DnsConnectionsCard({
         </div>
       </CardHeader>
       <CardContent>
-        {connections.length === 0 ? (
-          <EmptyState icon={Plug} compact>
-            {t("connections.empty")}
-          </EmptyState>
-        ) : (
-          <ul className="divide-y rounded-md border">
-            {connections.map((c) => {
-              const result = tests[c.id]
-              return (
-                <li key={c.id} className="space-y-1 px-3 py-2 text-xs">
-                  <div className="flex items-center gap-3">
-                    <Cloud className="size-4 shrink-0 text-muted-foreground" />
-                    <span className="font-medium">{c.name}</span>
-                    <span className="truncate text-xs text-muted-foreground">
-                      Cloudflare
-                      {c.accountId ? ` · ${c.accountId.slice(0, 8)}…` : ""}
-                    </span>
-                    <span className="ms-auto" />
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      aria-label={t("connections.testAria", { name: c.name })}
-                      disabled={pending}
-                      onClick={() => test(c.id)}
-                    >
-                      <Plug />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      aria-label={t("connections.deleteAria", {
-                        name: c.name,
-                      })}
-                      disabled={pending}
-                      onClick={() =>
-                        start(async () => {
-                          setError(null)
-                          const r = await deleteDnsConnectionAction(c.id)
-                          if (!r.ok) setError(r.error)
-                        })
-                      }
-                    >
-                      <Trash2 />
-                    </Button>
-                  </div>
-                  {result && (
-                    <div
-                      className={
-                        result.ok
-                          ? "text-xs text-foreground"
-                          : "text-xs text-destructive"
-                      }
-                    >
-                      <p>
-                        {result.message}
-                        {result.ok && result.zones.length > 0
-                          ? ` · ${t("connections.zonesCount", { count: result.zones.length })}`
-                          : ""}
+        <ul className="divide-y rounded-md border">
+          {connections.map((c) => {
+            const result = tests[c.id]
+            return (
+              <li key={c.id} className="space-y-1 px-3 py-2 text-xs">
+                <div className="flex items-center gap-3">
+                  <Cloud className="size-4 shrink-0 text-muted-foreground" />
+                  <span className="font-medium">{c.name}</span>
+                  <span className="truncate text-xs text-muted-foreground">
+                    Cloudflare
+                    {c.accountId ? ` · ${c.accountId.slice(0, 8)}…` : ""}
+                  </span>
+                  <span className="ms-auto" />
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    aria-label={t("connections.testAria", { name: c.name })}
+                    disabled={pending}
+                    onClick={() => test(c.id)}
+                  >
+                    <Plug />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    aria-label={t("connections.deleteAria", {
+                      name: c.name,
+                    })}
+                    disabled={pending}
+                    onClick={() =>
+                      start(async () => {
+                        setError(null)
+                        const r = await deleteDnsConnectionAction(c.id)
+                        if (!r.ok) setError(r.error)
+                      })
+                    }
+                  >
+                    <Trash2 />
+                  </Button>
+                </div>
+                {result && (
+                  <div
+                    className={
+                      result.ok
+                        ? "text-xs text-foreground"
+                        : "text-xs text-destructive"
+                    }
+                  >
+                    <p>
+                      {result.message}
+                      {result.ok && result.zones.length > 0
+                        ? ` · ${t("connections.zonesCount", { count: result.zones.length })}`
+                        : ""}
+                    </p>
+                    {result.ok && result.zones.length > 0 && (
+                      <p className="truncate font-mono text-muted-foreground">
+                        {result.zones.join(", ")}
                       </p>
-                      {result.ok && result.zones.length > 0 && (
-                        <p className="truncate font-mono text-muted-foreground">
-                          {result.zones.join(", ")}
-                        </p>
-                      )}
-                    </div>
-                  )}
-                </li>
-              )
-            })}
-          </ul>
-        )}
+                    )}
+                  </div>
+                )}
+              </li>
+            )
+          })}
+        </ul>
         {error && (
           <p className="mt-2 text-xs text-destructive" role="alert">
             {error}
@@ -159,7 +152,12 @@ export function DnsConnectionsCard({
 
 const initialState: DnsConnectionFormState = {}
 
-function AddConnectionDialog() {
+/** `size`: "sm" in a card header, "default" as the action of an empty state. */
+export function AddConnectionDialog({
+  size = "sm",
+}: {
+  size?: "sm" | "default"
+}) {
   const t = useTranslations("dns")
   const c = useTranslations("common")
   const [open, setOpen] = useState(false)
@@ -177,7 +175,7 @@ function AddConnectionDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="sm">
+        <Button size={size}>
           <Plus data-icon="inline-start" />
           {c("actions.add")}
         </Button>

@@ -6,32 +6,45 @@
     "git": {
       "metadata": "Kredensial Git · aoox",
       "title": "Kredensial Git",
-      "description": "Token HTTPS yang dipakai aoox untuk meng-clone repositori privat."
+      "description": "Token HTTPS yang dipakai aoox untuk meng-clone repositori privat.",
+      "emptyTitle": "Belum ada kredensial Git",
+      "emptyBody": "Tambahkan token HTTPS agar aoox bisa meng-clone repositori privat. Repositori publik tetap bisa tanpa token.",
+      "emptyBodyMember": "Repositori publik di-clone tanpa token. Minta owner atau admin menambahkan token untuk repositori privat."
     },
     "notifications": {
       "metadata": "Notifikasi · aoox",
       "title": "Notifikasi",
-      "description": "Kanal yang menerima kejadian deployment, backup, dan kesehatan."
+      "description": "Kanal yang menerima kejadian deployment, backup, dan kesehatan.",
+      "emptyTitle": "Belum ada kanal notifikasi",
+      "emptyBody": "Kirim peringatan deploy, backup, dan kesehatan ke Telegram, Slack, Discord, email, atau webhook."
     },
     "backupDestinations": {
       "metadata": "Tujuan backup · aoox",
       "title": "Tujuan backup",
-      "description": "Bucket kompatibel S3 tempat salinan backup database dan volume dikirim."
+      "description": "Bucket kompatibel S3 tempat salinan backup database dan volume dikirim.",
+      "emptyTitle": "Belum ada tujuan backup",
+      "emptyBody": "Tambahkan bucket kompatibel S3 agar salinan backup tersimpan di luar server ini. Sampai saat itu, backup hanya ada di volume lokalnya."
     },
     "secrets": {
       "metadata": "Secret manager · aoox",
       "title": "Secret manager",
-      "description": "Koneksi ke Infisical yang dipakai aplikasi untuk mengambil secret."
+      "description": "Koneksi ke Infisical yang dipakai aplikasi untuk mengambil secret.",
+      "emptyTitle": "Belum ada secret manager yang terhubung",
+      "emptyBody": "Hubungkan Infisical agar aplikasi bisa mengambil secret saat container dibuat, tanpa menyalinnya ke env."
     },
     "dns": {
       "metadata": "Penyedia DNS · aoox",
       "title": "Penyedia DNS",
-      "description": "Token Cloudflare untuk mengelola record DNS dan sertifikat wildcard."
+      "description": "Token Cloudflare untuk mengelola record DNS dan sertifikat wildcard.",
+      "emptyTitle": "Belum ada penyedia DNS",
+      "emptyBody": "Hubungkan Cloudflare agar aoox bisa membuat record domain dan menerbitkan sertifikat wildcard untuk Anda."
     },
     "certificates": {
       "metadata": "Sertifikat SSL · aoox",
       "title": "Sertifikat SSL",
-      "description": "Sertifikat milik Anda untuk domain aplikasi, sebagai pengganti Let's Encrypt."
+      "description": "Sertifikat milik Anda untuk domain aplikasi, sebagai pengganti Let's Encrypt.",
+      "emptyTitle": "Belum ada sertifikat sendiri",
+      "emptyBody": "Unggah sertifikat milik Anda untuk domain yang tidak memakai Let's Encrypt. Tanpa itu, domain HTTPS otomatis memakai Let's Encrypt."
     }
   }
 }

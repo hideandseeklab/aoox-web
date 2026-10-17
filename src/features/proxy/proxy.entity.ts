@@ -8,4 +8,6 @@ export interface ProxyStatus {
   acmeEmail: string | null
   /** The running proxy has the DNS-01 resolver. */
   dnsChallenge?: boolean
+  /** The running proxy loads files (custom certificates, dynamic configuration). */
+  customCerts?: boolean
 }

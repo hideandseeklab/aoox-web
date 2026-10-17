@@ -26,7 +26,7 @@ export async function initSwarmAction(
       body: advertiseAddr.trim() ? { advertiseAddr: advertiseAddr.trim() } : {},
       token: await requireToken(),
     })
-    revalidatePath("/settings")
+    revalidatePath("/infra/swarm")
     return { ok: true, data }
   } catch (err) {
     return fail(err)
@@ -36,7 +36,7 @@ export async function initSwarmAction(
 export async function leaveSwarmAction(): Promise<ActionResult> {
   try {
     await api<void>("/swarm", { method: "DELETE", token: await requireToken() })
-    revalidatePath("/settings")
+    revalidatePath("/infra/swarm")
     return { ok: true, data: undefined }
   } catch (err) {
     return fail(err)
@@ -57,7 +57,7 @@ export async function updateNodeAction(
       body: patch,
       token: await requireToken(),
     })
-    revalidatePath("/settings")
+    revalidatePath("/infra/swarm")
     return { ok: true, data }
   } catch (err) {
     return fail(err)
@@ -73,7 +73,7 @@ export async function removeNodeAction(
       method: "DELETE",
       token: await requireToken(),
     })
-    revalidatePath("/settings")
+    revalidatePath("/infra/swarm")
     return { ok: true, data: undefined }
   } catch (err) {
     return fail(err)

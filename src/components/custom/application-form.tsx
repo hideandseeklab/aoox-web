@@ -652,7 +652,9 @@ export function ApplicationForm({
                                 name="staticSpa"
                                 defaultChecked={v.staticSpa === "on"}
                               />
-                              {t.rich("form.static.spaSwitch", { code })}
+                              <span>
+                                {t.rich("form.static.spaSwitch", { code })}
+                              </span>
                             </label>
                             <FieldDescription>
                               {t("form.static.spaHelp")}

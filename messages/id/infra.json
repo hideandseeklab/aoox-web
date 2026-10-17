@@ -102,7 +102,10 @@
     "proxy": {
       "metadata": "Reverse proxy · aoox",
       "title": "Reverse proxy",
-      "description": "Traefik di host ini: merutekan domain ke container aplikasi dan menerbitkan sertifikat HTTPS."
+      "description": "Traefik merutekan domain ke container aplikasi dan menerbitkan sertifikat HTTPS, di host aoox atau server remote.",
+      "proxyOn": "Proxy di",
+      "selectProxy": "Pilih proxy",
+      "hostOption": "Host aoox"
     },
     "servers": {
       "metadata": "Server remote · aoox",
@@ -182,32 +185,52 @@
     }
   },
   "proxyCard": {
-    "title": "Reverse proxy (Traefik)",
-    "description": "Mengarahkan domain ke container aplikasi lewat label Docker. Port <code>{httpPort}</code> (HTTP) dan <code>{httpsPort}</code> (HTTPS).",
-    "notInstalled": "Belum ada",
+    "title": "Traefik",
+    "description": "Mengarahkan domain ke container aplikasi lewat label Docker.",
     "running": "Berjalan",
-    "acmeLabel": "Sertifikat HTTPS otomatis (Let's Encrypt):",
-    "acmeOn": "aktif untuk <code>{email}</code>",
-    "acmeOff": "nonaktif — set <code>PROXY_ACME_EMAIL</code> di API lalu aktifkan ulang.",
+    "httpPort": "Port HTTP",
+    "httpsPort": "Port HTTPS",
+    "acmeLabel": "Let's Encrypt",
+    "acmeOn": "Aktif · {email}",
+    "acmeOffValue": "Nonaktif",
+    "acmeOff": "Sertifikat HTTPS otomatis nonaktif: set <code>PROXY_ACME_EMAIL</code> di API, lalu aktifkan ulang proxy.",
+    "files": "Penyedia berkas",
+    "filesOn": "Dimuat",
+    "filesOff": "Belum dimuat",
+    "container": "Container",
+    "remoteSettings": "Port, email ACME, dan penghapusan proxy ini diatur di <link>Server remote</link>.",
+    "remoteError": "Tidak dapat membaca proxy di server ini",
     "provision": "Aktifkan proxy",
     "provisioning": "Menyiapkan…",
     "remove": "Hapus proxy",
-    "failed": "Gagal"
+    "removeConfirmTitle": "Hapus proxy?",
+    "removeConfirmDescription": "Container Traefik dihapus dan semua domain berhenti merespons sampai proxy diaktifkan lagi. Sertifikat tetap disimpan.",
+    "failed": "Gagal",
+    "empty": {
+      "title": "Proxy belum aktif",
+      "body": "Aktifkan Traefik untuk merutekan domain ke aplikasi dan menerbitkan sertifikat HTTPS. Proxy mendengarkan port {httpPort} (HTTP) dan {httpsPort} (HTTPS).",
+      "bodyMember": "Traefik merutekan domain ke aplikasi. Owner atau admin dapat mengaktifkannya.",
+      "remote": "Traefik belum terpasang di server ini. Pasang beserta port dan email ACME-nya di Server remote.",
+      "openServers": "Buka Server remote"
+    },
+    "danger": {
+      "title": "Zona berbahaya",
+      "description": "Tindakan yang membuat semua domain di host aoox tidak dapat diakses.",
+      "removeTitle": "Hapus proxy",
+      "removeDescription": "Menghapus container Traefik. Domain berhenti merespons sampai proxy diaktifkan lagi; sertifikat tetap disimpan."
+    }
   },
   "proxyConfigCard": {
     "title": "Konfigurasi dinamis",
-    "description": "Middleware, router, dan service Traefik buatan sendiri (basic auth, header keamanan, rate limit, allowlist IP, redirect www). Middleware dipasang per domain di tab Domain aplikasi. Hanya konfigurasi dinamis; konfigurasi statis dan sertifikat tidak diubah di sini.",
+    "description": "Middleware, router, dan service Traefik buatan sendiri, dipasang per domain di tab Domain aplikasi.",
     "newFile": "Berkas baru",
-    "proxyOn": "Proxy di",
-    "selectProxy": "Pilih proxy",
-    "hostOption": "Host aoox",
     "resyncHint": "Tulis ulang semua berkas aktif ke proxy (mis. setelah restore atau proxy dibuat ulang)",
     "resync": "Terapkan ulang",
     "resynced": "{count} berkas ditulis ulang ke proxy",
-    "remoteNote": "Server remote: fitur ini ditulis untuk server remote tetapi belum diuji di sana. Pastikan proxy-nya terpasang di Infrastruktur → Server remote.",
-    "warning": "Berkas yang salah ditolak Traefik dan dikembalikan otomatis, tetapi konfigurasi yang valid dapat mengubah perutean semua domain di proxy ini. Nama middleware, router, dan service harus unik per proxy. Traefik tidak melaporkan semua nilai yang keliru (mis. URL service yang tidak valid), jadi cek hasilnya setelah menyimpan.",
-    "empty": "Belum ada berkas konfigurasi.",
-    "emptyOwner": "Belum ada berkas konfigurasi — buat dari preset atau tulis sendiri.",
+    "remoteNote": "Belum diuji di server remote.",
+    "warning": "Traefik menolak berkas yang salah dan aoox mengembalikannya, tetapi berkas yang valid dapat mengubah perutean semua domain di proxy ini. Cek hasilnya setelah menyimpan.",
+    "empty": "Owner dapat menambahkan middleware seperti basic auth, header keamanan, atau rate limit di sini.",
+    "emptyOwner": "Mulai dari preset (basic auth, header keamanan, rate limit, allowlist IP, redirect www) atau tulis berkas sendiri.",
     "usedBy": "dipakai {count} domain",
     "enableFile": "Aktifkan {name}",
     "editFile": "Ubah {name}",
@@ -223,7 +246,9 @@
     "disabled": "nonaktif",
     "recreateTitle": "Proxy akan dibuat ulang sekali?",
     "recreateDescription": "Proxy di server ini dibuat oleh aoox versi lama, jadi harus dibuat ulang satu kali agar bisa memuat konfigurasi dinamis: beberapa detik tanpa layanan untuk semua domain di proxy ini. Sertifikat dan rute lain tetap. Peringatan ini hanya muncul sekali.",
-    "recreateConfirm": "Buat ulang proxy dan simpan"
+    "recreateConfirm": "Buat ulang proxy dan simpan",
+    "learnMore": "Pelajari lebih lanjut",
+    "emptyTitle": "Belum ada berkas konfigurasi"
   },
   "proxyConfigEditor": {
     "template": "# Konfigurasi dinamis Traefik (hanya bagian \"http\").\n# Contoh: middleware header respons, lalu pasang ke domain di tab Domain aplikasi.\nhttp:\n  middlewares:\n    contoh-header:\n      headers:\n        customResponseHeaders:\n          X-Powered-By: aoox\n",

@@ -31,7 +31,7 @@ export async function createInstanceBackupAction(): Promise<
       method: "POST",
       token: await requireToken(),
     })
-    revalidatePath("/settings")
+    revalidatePath("/infra/backup")
     return { ok: true, data }
   } catch (err) {
     return fail(err)
@@ -61,7 +61,7 @@ export async function deleteInstanceBackupAction(
       method: "DELETE",
       token: await requireToken(),
     })
-    revalidatePath("/settings")
+    revalidatePath("/infra/backup")
     return { ok: true, data: undefined }
   } catch (err) {
     return fail(err)
@@ -76,7 +76,7 @@ export async function updateInstanceBackupSettingsAction(
       "/instance/backup-settings",
       { method: "PATCH", body: settings, token: await requireToken() }
     )
-    revalidatePath("/settings")
+    revalidatePath("/infra/backup")
     return { ok: true, data }
   } catch (err) {
     return fail(err)

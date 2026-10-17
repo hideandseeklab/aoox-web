@@ -1,9 +1,10 @@
 "use client"
 
-import { Package, Plus, Trash2 } from "lucide-react"
+import { Plus, Trash2 } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { useActionState, useState, useTransition } from "react"
-import { EmptyState } from "@/components/custom/empty-state"
+import { IllustratedEmptyState } from "@/components/custom/illustrated-empty-state"
+import { ExternalRegistriesIllustration } from "@/components/custom/illustrations/external-registries-illustration"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -45,40 +46,46 @@ export function ExternalRegistries({
   canManage: boolean
 }) {
   const t = useTranslations("registry.external")
+  if (registries.length === 0) {
+    return (
+      <IllustratedEmptyState
+        illustration={<ExternalRegistriesIllustration />}
+        title={t("emptyTitle")}
+        description={canManage ? t("emptyBody") : t("emptyBodyMember")}
+        actions={
+          canManage ? <AddExternalRegistryDialog size="default" /> : undefined
+        }
+      />
+    )
+  }
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <p className="text-xs text-muted-foreground">
-          {t("description")}
-        </p>
+        <p className="text-xs text-muted-foreground">{t("description")}</p>
         {canManage && <AddExternalRegistryDialog />}
       </div>
-      {registries.length === 0 ? (
-        <EmptyState icon={Package}>{t("empty")}</EmptyState>
-      ) : (
-        <div className="rounded-lg border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{t("name")}</TableHead>
-                <TableHead>{t("url")}</TableHead>
-                <TableHead>{t("username")}</TableHead>
-                <TableHead>{t("prefix")}</TableHead>
-                <TableHead className="w-44" />
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {registries.map((r) => (
-                <ExternalRegistryRow
-                  key={r.id}
-                  registry={r}
-                  canManage={canManage}
-                />
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      )}
+      <div className="rounded-lg border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>{t("name")}</TableHead>
+              <TableHead>{t("url")}</TableHead>
+              <TableHead>{t("username")}</TableHead>
+              <TableHead>{t("prefix")}</TableHead>
+              <TableHead className="w-44" />
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {registries.map((r) => (
+              <ExternalRegistryRow
+                key={r.id}
+                registry={r}
+                canManage={canManage}
+              />
+            ))}
+          </TableBody>
+        </Table>
+      </div>
     </div>
   )
 }
@@ -148,7 +155,12 @@ function ExternalRegistryRow({
 
 const initialState: ExternalRegistryFormState = {}
 
-function AddExternalRegistryDialog() {
+/** `size`: "sm" in a card header, "default" as the action of an empty state. */
+function AddExternalRegistryDialog({
+  size = "sm",
+}: {
+  size?: "sm" | "default"
+}) {
   const t = useTranslations("registry.external")
   const [open, setOpen] = useState(false)
   const [state, action, pending] = useActionState(
@@ -168,7 +180,7 @@ function AddExternalRegistryDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="sm">
+        <Button size={size}>
           <Plus data-icon="inline-start" />
           {t("add")}
         </Button>
@@ -212,7 +224,9 @@ function AddExternalRegistryDialog() {
               />
             </Field>
             <Field>
-              <FieldLabel htmlFor="reg-pass">{t("dialog.passwordToken")}</FieldLabel>
+              <FieldLabel htmlFor="reg-pass">
+                {t("dialog.passwordToken")}
+              </FieldLabel>
               <Input
                 id="reg-pass"
                 name="password"
@@ -221,7 +235,9 @@ function AddExternalRegistryDialog() {
               />
             </Field>
             <Field>
-              <FieldLabel htmlFor="reg-prefix">{t("dialog.imagePrefix")}</FieldLabel>
+              <FieldLabel htmlFor="reg-prefix">
+                {t("dialog.imagePrefix")}
+              </FieldLabel>
               <Input
                 id="reg-prefix"
                 name="imagePrefix"

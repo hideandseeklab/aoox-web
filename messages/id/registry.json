@@ -52,12 +52,37 @@
     "status": {
       "dockerOff": "Docker mati",
       "none": "Belum ada",
-      "running": "Berjalan"
+      "running": "Berjalan",
+      "unmanaged": "Belum terdaftar"
+    },
+    "unmanaged": {
+      "title": "Container registry sudah ada di server ini",
+      "description": "Container bernama <code>aoox-registry</code> berjalan di sini, tetapi belum terdaftar di aoox (misalnya setelah restore instance atau pemindahan database). Mengaktifkan registry akan bentrok dengannya.",
+      "descriptionMember": "Container bernama <code>aoox-registry</code> ada di server ini tetapi belum terdaftar di aoox. Minta owner menggantinya.",
+      "replace": "Ganti",
+      "dialogTitle": "Ganti container registry yang ada?",
+      "dialogDescription": "Container <code>aoox-registry</code> yang ada dihapus, lalu registry baru dibuat dan didaftarkan. Volume datanya dipertahankan sehingga image yang sudah di-push tetap ada. Password login dibuat ulang dan ditampilkan sekali; semua yang memakai password lama harus login ulang.",
+      "dialogConfirm": "Ganti dan aktifkan",
+      "replacing": "Mengganti…"
+    },
+    "missing": {
+      "title": "Container registry hilang",
+      "description": "aoox masih mencatat registry lokal, tetapi container <code>aoox-registry</code> sudah tidak ada. Hapus catatannya, lalu aktifkan registry lagi.",
+      "descriptionMember": "aoox masih mencatat registry lokal, tetapi container-nya sudah tidak ada. Minta owner memperbaikinya.",
+      "action": "Hapus catatan"
+    },
+    "empty": {
+      "title": "Aktifkan registry lokal",
+      "body": "Simpan image yang dibangun aoox, agar Anda bisa rollback dan deploy ke server lain.",
+      "bodyMember": "Registry ini menyimpan image yang dibangun aoox untuk rollback dan server lain. Minta owner mengaktifkannya.",
+      "address": "Alamat push: <addr>{url}</addr>"
     }
   },
   "external": {
     "description": "Docker Hub, GHCR, GitLab, atau registry lain. Kredensial disimpan terenkripsi.",
-    "empty": "Belum ada registry eksternal.",
+    "emptyTitle": "Belum ada registry eksternal",
+    "emptyBody": "Tambahkan Docker Hub, GHCR, GitLab, atau registry lain untuk men-deploy image privat dengan kredensial tersimpan.",
+    "emptyBodyMember": "Image privat dari Docker Hub, GHCR, atau GitLab butuh registry tersimpan. Minta owner atau admin menambahkannya.",
     "name": "Nama",
     "url": "URL",
     "username": "Nama pengguna",

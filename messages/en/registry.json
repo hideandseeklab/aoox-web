@@ -52,12 +52,37 @@
     "status": {
       "dockerOff": "Docker off",
       "none": "Not installed",
-      "running": "Running"
+      "running": "Running",
+      "unmanaged": "Not registered"
+    },
+    "unmanaged": {
+      "title": "A registry container already exists on this server",
+      "description": "A container named <code>aoox-registry</code> is running here, but it is not registered in aoox (for example after an instance restore or a database move). Enabling the registry would collide with it.",
+      "descriptionMember": "A container named <code>aoox-registry</code> exists on this server but is not registered in aoox. Ask an owner to replace it.",
+      "replace": "Replace it",
+      "dialogTitle": "Replace the existing registry container?",
+      "dialogDescription": "The existing <code>aoox-registry</code> container is deleted and a new registry is created and registered. Its data volumes are kept, so images already pushed stay available. The login password is regenerated and shown once; anything that used the old password must log in again.",
+      "dialogConfirm": "Replace and enable",
+      "replacing": "Replacing…"
+    },
+    "missing": {
+      "title": "The registry container is missing",
+      "description": "aoox still has a record of the local registry, but the <code>aoox-registry</code> container no longer exists. Remove the record, then enable the registry again.",
+      "descriptionMember": "aoox still has a record of the local registry, but its container no longer exists. Ask an owner to fix it.",
+      "action": "Remove record"
+    },
+    "empty": {
+      "title": "Enable the local registry",
+      "body": "Store the images aoox builds, so you can roll back and deploy to other servers.",
+      "bodyMember": "It stores the images aoox builds for rollbacks and other servers. Ask an owner to enable it.",
+      "address": "Push address: <addr>{url}</addr>"
     }
   },
   "external": {
     "description": "Docker Hub, GHCR, GitLab, or another registry. Credentials are stored encrypted.",
-    "empty": "There are no external registries yet.",
+    "emptyTitle": "No external registries yet",
+    "emptyBody": "Add Docker Hub, GHCR, GitLab or another registry to deploy private images and pull them with saved credentials.",
+    "emptyBodyMember": "Private images from Docker Hub, GHCR or GitLab need a saved registry. Ask an owner or admin to add one.",
     "name": "Name",
     "url": "URL",
     "username": "Username",

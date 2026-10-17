@@ -3,7 +3,6 @@
 import { FileUp, Plus, RefreshCw, ShieldCheck, Trash2 } from "lucide-react"
 import { useRef, useState, useTransition } from "react"
 import { ConfirmDialog } from "@/components/custom/confirm-dialog"
-import { EmptyState } from "@/components/custom/empty-state"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -92,93 +91,85 @@ export function CertificatesCard({
         </div>
       </CardHeader>
       <CardContent>
-        {certificates.length === 0 ? (
-          <EmptyState icon={ShieldCheck} compact>
-            {t("certificates.empty")}
-          </EmptyState>
-        ) : (
-          <ul className="divide-y rounded-md border">
-            {certificates.map((c) => {
-              const state = expiryState(c.notAfter)
-              return (
-                <li key={c.id} className="space-y-1 px-3 py-2 text-xs">
-                  <div className="flex items-center gap-3">
-                    <ShieldCheck className="size-4 shrink-0 text-muted-foreground" />
-                    <span className="min-w-0 truncate font-medium">
-                      {c.name}
-                    </span>
-                    <Badge
-                      variant="outline"
-                      className={EXPIRY_CLASS[state]}
-                      title={t("certificates.validUntil", {
-                        date: formatDate(c.notAfter, locale),
-                      })}
-                    >
-                      {expiryLabel(c.notAfter, t)}
-                    </Badge>
-                    <span className="ms-auto" />
-                    <CertificateDialog
-                      existing={c}
-                      trigger={
-                        <Button
-                          variant="ghost"
-                          size="icon-sm"
-                          aria-label={t("certificates.updateAria", {
-                            name: c.name,
-                          })}
-                          title={t("certificates.updateTitle")}
-                        >
-                          <RefreshCw />
-                        </Button>
-                      }
-                    />
-                    <ConfirmDialog
-                      trigger={
-                        <Button
-                          variant="ghost"
-                          size="icon-sm"
-                          aria-label={t("certificates.deleteAria", {
-                            name: c.name,
-                          })}
-                        >
-                          <Trash2 />
-                        </Button>
-                      }
-                      title={t("certificates.deleteTitle", { name: c.name })}
-                      description={
-                        c.usedBy > 0
-                          ? t("certificates.deleteInUse", { count: c.usedBy })
-                          : t("certificates.deleteDescription")
-                      }
-                      confirmLabel={tc("actions.delete")}
-                      onConfirm={() => deleteCertificateAction(c.id)}
-                    />
-                  </div>
-                  <p className="truncate text-muted-foreground">
-                    {c.domains.join(", ") || c.commonName || "—"}
-                  </p>
-                  <p className="truncate text-muted-foreground">
-                    {t("certificates.meta", {
-                      issuer: c.issuer ?? t("certificates.unknownIssuer"),
+        <ul className="divide-y rounded-md border">
+          {certificates.map((c) => {
+            const state = expiryState(c.notAfter)
+            return (
+              <li key={c.id} className="space-y-1 px-3 py-2 text-xs">
+                <div className="flex items-center gap-3">
+                  <ShieldCheck className="size-4 shrink-0 text-muted-foreground" />
+                  <span className="min-w-0 truncate font-medium">{c.name}</span>
+                  <Badge
+                    variant="outline"
+                    className={EXPIRY_CLASS[state]}
+                    title={t("certificates.validUntil", {
                       date: formatDate(c.notAfter, locale),
-                      usage:
-                        c.usedBy > 0
-                          ? t("certificates.usedBy", { count: c.usedBy })
-                          : t("certificates.unused"),
                     })}
-                  </p>
-                </li>
-              )
-            })}
-          </ul>
-        )}
+                  >
+                    {expiryLabel(c.notAfter, t)}
+                  </Badge>
+                  <span className="ms-auto" />
+                  <CertificateDialog
+                    existing={c}
+                    trigger={
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        aria-label={t("certificates.updateAria", {
+                          name: c.name,
+                        })}
+                        title={t("certificates.updateTitle")}
+                      >
+                        <RefreshCw />
+                      </Button>
+                    }
+                  />
+                  <ConfirmDialog
+                    trigger={
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        aria-label={t("certificates.deleteAria", {
+                          name: c.name,
+                        })}
+                      >
+                        <Trash2 />
+                      </Button>
+                    }
+                    title={t("certificates.deleteTitle", { name: c.name })}
+                    description={
+                      c.usedBy > 0
+                        ? t("certificates.deleteInUse", { count: c.usedBy })
+                        : t("certificates.deleteDescription")
+                    }
+                    confirmLabel={tc("actions.delete")}
+                    onConfirm={() => deleteCertificateAction(c.id)}
+                  />
+                </div>
+                <p className="truncate text-muted-foreground">
+                  {c.domains.join(", ") || c.commonName || "—"}
+                </p>
+                <p className="truncate text-muted-foreground">
+                  {t("certificates.meta", {
+                    issuer: c.issuer ?? t("certificates.unknownIssuer"),
+                    date: formatDate(c.notAfter, locale),
+                    usage:
+                      c.usedBy > 0
+                        ? t("certificates.usedBy", { count: c.usedBy })
+                        : t("certificates.unused"),
+                  })}
+                </p>
+              </li>
+            )
+          })}
+        </ul>
       </CardContent>
     </Card>
   )
 }
 
 /** Upload (new) or replace the content of (`existing`) a certificate. */
-function CertificateDialog({
+export function CertificateDialog({
   trigger,
   existing,
 }: {

@@ -186,7 +186,6 @@
   "notifications": {
     "title": "Notifications",
     "description": "Deploy started/succeeded/failed, backup failed, and container down, sent to Telegram, Slack, Discord, email, or webhook. Tokens are stored encrypted.",
-    "empty": "No channels yet.",
     "none": "off",
     "testAria": "Send a test to {name}",
     "events": {
@@ -230,7 +229,6 @@
   "gitCredentials": {
     "title": "Git credentials",
     "description": "HTTPS tokens for private repos. Stored encrypted and used only when Docker clones the repo.",
-    "empty": "No credentials yet — every repo is cloned anonymously.",
     "generic": "Generic (HTTPS)",
     "hints": {
       "github": "Personal access token (classic: repo scope; fine-grained: Contents read). Any username works, e.g. x-access-token.",
@@ -245,7 +243,6 @@
   "secretConnections": {
     "title": "Secret manager",
     "description": "Connections to Infisical (machine identity). Applications can pull secrets from it when the container is created, without copying them into env. The client secret is stored encrypted and cannot be viewed again.",
-    "empty": "No connections yet — applications use plain env.",
     "cloud": "Infisical Cloud",
     "testAria": "Test connection {name}",
     "dialogTitle": "New secret manager connection",
@@ -260,7 +257,6 @@
   "backupDestinations": {
     "title": "Backup destinations (S3)",
     "description": "S3-compatible buckets (AWS, MinIO, R2, Backblaze, …) where database backup copies are sent. Choose one per database in its Backup tab.",
-    "empty": "No destinations yet — backups are kept only on this server's volume.",
     "regionUnknown": "(region?)",
     "testAria": "Test connection {name}",
     "dialogTitle": "New backup destination",
@@ -278,7 +274,6 @@
     "title": "SSL certificates",
     "description": "Your own certificates (corporate CA, purchased wildcard, Cloudflare Origin CA) for application domains, instead of Let's Encrypt. The private key is stored encrypted and cannot be viewed again.",
     "upload": "Upload",
-    "empty": "No certificates yet — HTTPS domains use Let's Encrypt automatically.",
     "validUntil": "Valid until {date}",
     "updateAria": "Update {name}",
     "updateTitle": "Update (replace the certificate content)",

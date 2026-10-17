@@ -67,9 +67,12 @@ function payload(preset: ProxyPreset, values: Values): Record<string, unknown> {
 export function ProxyConfigPresetDialog({
   presets,
   onResult,
+  size = "sm",
 }: {
   presets: ProxyPreset[]
   onResult: (name: string, content: string) => void
+  /** Trigger size: `sm` in a card header, `default` in an empty state. */
+  size?: "sm" | "default"
 }) {
   const t = useTranslations("infra.proxyPresetDialog")
   const tp = useTranslations("infra.proxyPresets")
@@ -129,7 +132,7 @@ export function ProxyConfigPresetDialog({
       }}
     >
       <DialogTrigger asChild>
-        <Button size="sm" variant="outline">
+        <Button size={size} variant="outline">
           <Wand2 data-icon="inline-start" />
           {t("trigger")}
         </Button>
@@ -137,9 +140,7 @@ export function ProxyConfigPresetDialog({
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>{t("title")}</DialogTitle>
-          <DialogDescription>
-            {t("description")}
-          </DialogDescription>
+          <DialogDescription>{t("description")}</DialogDescription>
         </DialogHeader>
         <form
           noValidate
@@ -169,7 +170,11 @@ export function ProxyConfigPresetDialog({
               <PresetInput
                 key={`${preset.id}-${f.key}`}
                 field={f}
-                label={apiText(tp, `${preset.id}.fields.${f.key}.label`, f.label)}
+                label={apiText(
+                  tp,
+                  `${preset.id}.fields.${f.key}.label`,
+                  f.label
+                )}
                 hint={
                   f.hint
                     ? apiText(tp, `${preset.id}.fields.${f.key}.hint`, f.hint)

@@ -11,7 +11,6 @@
   "connections": {
     "title": "DNS provider",
     "description": "Cloudflare API tokens. aoox can create the DNS record of a domain for you and answer ACME DNS-01 challenges for wildcard certificates. The token needs Zone:Zone:Read and Zone:DNS:Edit, and is stored encrypted: it cannot be viewed again.",
-    "empty": "No connections yet. DNS records stay up to you.",
     "testAria": "Test connection {name}",
     "deleteAria": "Delete {name}",
     "dialogTitle": "New Cloudflare connection",
@@ -47,13 +46,10 @@
   },
   "proxy": {
     "title": "DNS-01 certificates",
-    "description": "Adds a second ACME resolver that proves domain ownership through your DNS provider. It issues wildcard certificates (for example for pull request previews) without the host being reachable on port 80.",
-    "proxyOn": "Proxy on",
-    "hostOption": "aoox host",
-    "selectProxy": "Choose the proxy",
+    "description": "Proves domain ownership through your DNS provider, so the proxy can issue wildcard certificates without port 80.",
     "connection": "DNS connection",
     "chooseConnection": "Choose a connection",
-    "noConnections": "No DNS connection yet. Add one in Integrations → DNS providers.",
+    "noConnections": "No DNS connection yet. Add one in <link>Integrations → DNS providers</link>.",
     "enable": "Enable DNS-01",
     "disable": "Disable",
     "working": "Working",

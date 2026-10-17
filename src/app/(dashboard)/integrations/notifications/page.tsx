@@ -1,6 +1,11 @@
 import { getTranslations } from "next-intl/server"
 import { notFound } from "next/navigation"
-import { NotificationsCard } from "@/components/custom/notifications-card"
+import {
+  AddNotificationDialog,
+  NotificationsCard,
+} from "@/components/custom/notifications-card"
+import { IllustratedEmptyState } from "@/components/custom/illustrated-empty-state"
+import { NotificationsIllustration } from "@/components/custom/illustrations/notifications-illustration"
 import { canUseTerminal } from "@/features/auth/auth.entity"
 import { getVerifiedSession } from "@/features/auth/auth.session"
 import { listNotifications } from "@/features/notification/notification.queries"
@@ -20,7 +25,16 @@ export default async function NotificationsPage() {
   if (!data) notFound()
   return (
     <IntegrationPage title={t("title")} description={t("description")}>
-      <NotificationsCard notifications={data} />
+      {data.length === 0 ? (
+        <IllustratedEmptyState
+          illustration={<NotificationsIllustration />}
+          title={t("emptyTitle")}
+          description={t("emptyBody")}
+          actions={<AddNotificationDialog size="default" />}
+        />
+      ) : (
+        <NotificationsCard notifications={data} />
+      )}
     </IntegrationPage>
   )
 }

@@ -506,7 +506,6 @@ export function ApplicationDeployPanel({
 
       {deployments.length === 0 ? (
         <IllustratedEmptyState
-          className="rounded-lg border border-dashed"
           illustration={<DeploymentsIllustration />}
           title={t("deploy.history.emptyTitle")}
           description={t("deploy.history.emptyBody")}
