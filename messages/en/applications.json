@@ -447,7 +447,8 @@
       "separate": "separate container",
       "timeout": "timeout {seconds}s",
       "last": "last {when}",
-      "active": "active",
+      "active": "Schedule for {name}",
+      "noSchedule": "No schedule",
       "runNow": "Run",
       "deleteAria": "Delete job",
       "deleteTitle": "Delete job \"{name}\"?",
@@ -469,7 +470,8 @@
       "schedule": "Schedule",
       "runIn": "Runs in",
       "lastRun": "Last run",
-      "active": "Active"
+      "active": "Schedule on",
+      "activeHint": "Turns the automatic schedule off; Run still works manually."
     }
   },
   "monitor": {

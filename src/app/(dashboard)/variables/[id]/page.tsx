@@ -47,6 +47,11 @@ export default async function VariableSetPage({
     : set.projects.length > 0
       ? set.projects.map((p) => p.name).join(", ")
       : t("list.notShared")
+  // The usage count is set-wide (every environment); name the linked
+  // environments so a tab saying "not linked" does not look contradictory.
+  const linkedEnvironments = set.environments
+    .filter((e) => e.usedBy.length > 0)
+    .map((e) => e.name)
 
   return (
     <>
@@ -75,6 +80,13 @@ export default async function VariableSetPage({
             apps: set.usage.applications,
             stacks: set.usage.composeApps,
           }),
+          ...(linkedEnvironments.length > 0
+            ? [
+                t("detail.linkedIn", {
+                  names: linkedEnvironments.join(", "),
+                }),
+              ]
+            : []),
         ]}
       />
 

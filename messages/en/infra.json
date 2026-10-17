@@ -146,7 +146,10 @@
     "current": {
       "title": "Currently installed",
       "web": "Dashboard",
-      "api": "API"
+      "api": "API",
+      "ports": "Ports",
+      "portsOpen": "Open on IP:port",
+      "portsRestricted": "Domain only"
     },
     "saving": "Saving…",
     "saveApply": "Save & apply",
@@ -159,6 +162,23 @@
       "domainFallback": "your-domain",
       "ports": "Ports <code>80</code> and <code>443</code> are open to the public — both the OS firewall (<code>ufw</code>) and your VPS provider's firewall/security group.",
       "cert": "Wait a moment: the HTTPS certificate (Let's Encrypt) is only issued by Traefik the first time the domain is accessed, which takes a few seconds up to a minute."
+    },
+    "restrict": {
+      "label": "Only allow access through the domain",
+      "description": "Ports <code>3000</code> and <code>3001</code> stop listening to the outside and accept connections from this server only, so every visit goes through the proxy. This also closes the way around the sign-in rate limit that a direct call to the dashboard port offers.",
+      "needsBoth": "Enter both the dashboard and the API domain to turn this on.",
+      "warningTitle": "Check that the domain works before you turn this on",
+      "warningBody": "If DNS, the firewall or the certificate is wrong you will not be able to open the panel at all, and the IP address will no longer work. The CLI and webhooks must use <code>https://{api}</code> as well. To recover over SSH: in the install folder delete the two <code>ports:</code> lines in <code>docker-compose.override.yml</code>, then run:",
+      "appliedExtra": "<code>IP:3000</code> stops working after the restart. Use <code>https://{host}</code>."
+    },
+    "remove": {
+      "button": "Remove domain",
+      "title": "Remove the panel domain?",
+      "description": "The dashboard and API go back to plain IP access. After the panel restarts (a few seconds) this page stops working at the domain: reopen the dashboard at <code>http://SERVER-IP:3000</code>. The reverse proxy, your applications' domains and the ACME email are left alone; turning off \"Only allow access through the domain\" is included.",
+      "confirm": "Remove domain",
+      "doneTitle": "Domain removed",
+      "doneBody": "The panel is restarting to go back to IP access. This page will stop responding for a moment; reopen the dashboard at <code>{url}</code> afterwards.",
+      "doneBodyUnknown": "The panel is restarting to go back to IP access. Reopen the dashboard at <code>http://SERVER-IP:3000</code> (this server's IP address, port 3000) once it is back."
     }
   },
   "proxyCard": {

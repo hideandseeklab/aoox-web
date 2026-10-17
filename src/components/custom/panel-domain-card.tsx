@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl"
 import { useState, useTransition } from "react"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { ConfirmDialog } from "@/components/custom/confirm-dialog"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -13,7 +14,11 @@ import {
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { updatePanelDomainAction } from "@/features/panel-domain/panel-domain.actions"
+import { Switch } from "@/components/ui/switch"
+import {
+  clearPanelDomainAction,
+  updatePanelDomainAction,
+} from "@/features/panel-domain/panel-domain.actions"
 import type { PanelDomainStatus } from "@/features/panel-domain/panel-domain.entity"
 
 /**
@@ -22,6 +27,9 @@ import type { PanelDomainStatus } from "@/features/panel-domain/panel-domain.ent
  * over SSH. Saving recreates the web/api containers, so the browser loses the
  * connection for a few seconds — that's expected, not an error.
  */
+const RECOVERY_COMMAND =
+  "docker compose -f docker-compose.dist.yml -f docker-compose.override.yml --env-file .env.dist up -d"
+
 export function PanelDomainCard({ status }: { status: PanelDomainStatus }) {
   const t = useTranslations("infra.panelDomain")
   const code = (c: React.ReactNode) => <code>{c}</code>
@@ -32,6 +40,18 @@ export function PanelDomainCard({ status }: { status: PanelDomainStatus }) {
   const [webHost, setWebHost] = useState(status.settings.webHost ?? "")
   const [apiHost, setApiHost] = useState(status.settings.apiHost ?? "")
   const [acmeEmail, setAcmeEmail] = useState(status.settings.acmeEmail ?? "")
+  const [restrictPorts, setRestrictPorts] = useState(
+    status.settings.restrictPorts
+  )
+  const [appliedRestrict, setAppliedRestrict] = useState(false)
+  // Set after "Remove domain": null = not removed, else the address to reopen (or "" if unknown).
+  const [removedUrl, setRemovedUrl] = useState<string | null>(null)
+  const hasDomain =
+    removedUrl === null &&
+    (status.settings.webHost !== null || status.settings.apiHost !== null)
+  // Closing 3000/3001 needs both domains (the CLI, webhooks and sockets use the API domain).
+  const bothHosts = webHost.trim() !== "" && apiHost.trim() !== ""
+  const restrict = restrictPorts && bothHosts
 
   return (
     <Card>
@@ -80,6 +100,43 @@ export function PanelDomainCard({ status }: { status: PanelDomainStatus }) {
           </div>
         </div>
 
+        <div className="space-y-3 rounded-md border px-3 py-3">
+          <div className="flex items-start justify-between gap-4">
+            <div className="min-w-0 space-y-1">
+              <Label htmlFor="pd-restrict">{t("restrict.label")}</Label>
+              <p className="text-xs text-muted-foreground">
+                {t.rich("restrict.description", { code })}
+              </p>
+              {!bothHosts && (
+                <p className="text-xs text-muted-foreground">
+                  {t("restrict.needsBoth")}
+                </p>
+              )}
+            </div>
+            <Switch
+              id="pd-restrict"
+              className="mt-0.5 shrink-0"
+              checked={restrict}
+              disabled={pending || !bothHosts}
+              onCheckedChange={setRestrictPorts}
+            />
+          </div>
+          {restrict && (
+            <Alert variant="destructive" className="grid-cols-[minmax(0,1fr)]">
+              <AlertTitle>{t("restrict.warningTitle")}</AlertTitle>
+              <AlertDescription className="min-w-0 break-words">
+                {t.rich("restrict.warningBody", {
+                  api: apiHost.trim() || t("proxy.domainFallback"),
+                  code,
+                })}
+                <pre className="mt-1.5 w-full max-w-full min-w-0 overflow-x-auto rounded-md bg-muted px-2 py-1.5 font-mono text-xs text-foreground">
+                  {RECOVERY_COMMAND}
+                </pre>
+              </AlertDescription>
+            </Alert>
+          )}
+        </div>
+
         <div className="rounded-md border px-3 py-2 text-xs">
           <p className="font-medium">{t("current.title")}</p>
           <dl className="mt-1.5 space-y-1">
@@ -91,10 +148,47 @@ export function PanelDomainCard({ status }: { status: PanelDomainStatus }) {
               label={t("current.api")}
               url={status.applied.publicApiUrl ?? "http://localhost:3001"}
             />
+            {status.applied.portsRestricted !== null && (
+              <div className="flex min-w-0 items-baseline gap-3">
+                <dt className="w-20 shrink-0 text-muted-foreground">
+                  {t("current.ports")}
+                </dt>
+                <dd>
+                  {status.applied.portsRestricted
+                    ? t("current.portsRestricted")
+                    : t("current.portsOpen")}
+                </dd>
+              </div>
+            )}
           </dl>
         </div>
 
-        <div className="flex justify-end">
+        <div className="flex flex-wrap justify-end gap-2">
+          {hasDomain && (
+            <ConfirmDialog
+              trigger={
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={pending || !status.installDirConfigured}
+                >
+                  {t("remove.button")}
+                </Button>
+              }
+              title={t("remove.title")}
+              description={t.rich("remove.description", { code })}
+              confirmLabel={t("remove.confirm")}
+              onConfirm={async () => {
+                const r = await clearPanelDomainAction()
+                if (!r.ok) return { ok: false, error: r.error }
+                setRemovedUrl(r.data.reopenUrl ?? "")
+                setApplied(false)
+                setWebHost("")
+                setApiHost("")
+                setRestrictPorts(false)
+              }}
+            />
+          )}
           <Button
             size="sm"
             disabled={
@@ -105,14 +199,17 @@ export function PanelDomainCard({ status }: { status: PanelDomainStatus }) {
                 setError(null)
                 setApplied(false)
                 setProxyAutoProvisioned(false)
+                setAppliedRestrict(false)
                 const r = await updatePanelDomainAction({
                   webHost: webHost.trim(),
                   apiHost: apiHost.trim(),
                   ...(acmeEmail.trim() ? { acmeEmail: acmeEmail.trim() } : {}),
+                  restrictPorts: restrict,
                 })
                 if (r.ok) {
                   setApplied(true)
                   setProxyAutoProvisioned(r.data.proxyAutoProvisioned)
+                  setAppliedRestrict(r.data.restrictPortsNote !== null)
                 } else setError(r.error)
               })
             }
@@ -126,11 +223,24 @@ export function PanelDomainCard({ status }: { status: PanelDomainStatus }) {
             {error}
           </p>
         )}
+        {removedUrl !== null && (
+          <Alert>
+            <AlertTitle>{t("remove.doneTitle")}</AlertTitle>
+            <AlertDescription className="min-w-0 break-words">
+              {removedUrl
+                ? t.rich("remove.doneBody", { url: removedUrl, code })
+                : t.rich("remove.doneBodyUnknown", { code })}
+            </AlertDescription>
+          </Alert>
+        )}
         {applied && (
           <Alert>
             <AlertTitle>{t("applied")}</AlertTitle>
             <AlertDescription>
               {t.rich("appliedBody", { host: webHost, code })}
+              {appliedRestrict && (
+                <> {t.rich("restrict.appliedExtra", { host: webHost, code })}</>
+              )}
             </AlertDescription>
           </Alert>
         )}

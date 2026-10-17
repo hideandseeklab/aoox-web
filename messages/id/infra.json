@@ -146,7 +146,10 @@
     "current": {
       "title": "Saat ini terpasang",
       "web": "Dashboard",
-      "api": "API"
+      "api": "API",
+      "ports": "Port",
+      "portsOpen": "Terbuka di IP:port",
+      "portsRestricted": "Hanya domain"
     },
     "saving": "Menyimpan…",
     "saveApply": "Simpan & terapkan",
@@ -159,6 +162,23 @@
       "domainFallback": "domain-kamu",
       "ports": "Port <code>80</code> dan <code>443</code> terbuka untuk publik — baik firewall OS (<code>ufw</code>) maupun firewall/security group dari provider VPS kamu.",
       "cert": "Tunggu beberapa saat: sertifikat HTTPS (Let's Encrypt) baru diterbitkan Traefik saat pertama kali domain diakses, butuh beberapa detik sampai semenit."
+    },
+    "restrict": {
+      "label": "Hanya izinkan akses lewat domain",
+      "description": "Port <code>3000</code> dan <code>3001</code> berhenti menerima koneksi dari luar dan hanya melayani server ini sendiri, jadi setiap kunjungan lewat proxy. Ini juga menutup celah untuk melewati batas percobaan login yang ada saat port dashboard dipanggil langsung.",
+      "needsBoth": "Isi domain dashboard dan domain API untuk mengaktifkan ini.",
+      "warningTitle": "Pastikan domain sudah berfungsi sebelum mengaktifkan ini",
+      "warningBody": "Kalau DNS, firewall, atau sertifikat belum benar, panel tidak bisa dibuka sama sekali dan alamat IP tidak lagi berfungsi. CLI dan webhook juga harus memakai <code>https://{api}</code>. Cara memulihkan lewat SSH: di folder instalasi hapus dua baris <code>ports:</code> di <code>docker-compose.override.yml</code>, lalu jalankan:",
+      "appliedExtra": "<code>IP:3000</code> tidak lagi berfungsi setelah restart. Gunakan <code>https://{host}</code>."
+    },
+    "remove": {
+      "button": "Hapus domain",
+      "title": "Hapus domain panel?",
+      "description": "Dashboard dan API kembali diakses lewat IP biasa. Setelah panel restart (beberapa detik), halaman ini tidak lagi bisa dibuka lewat domain: buka dashboard lagi di <code>http://IP-SERVER:3000</code>. Reverse proxy, domain aplikasi, dan email ACME tidak diubah; opsi \"Hanya izinkan akses lewat domain\" ikut dimatikan.",
+      "confirm": "Hapus domain",
+      "doneTitle": "Domain dihapus",
+      "doneBody": "Panel sedang restart untuk kembali ke akses lewat IP. Halaman ini akan sesaat tidak merespons; buka dashboard lagi di <code>{url}</code> setelahnya.",
+      "doneBodyUnknown": "Panel sedang restart untuk kembali ke akses lewat IP. Buka dashboard lagi di <code>http://IP-SERVER:3000</code> (alamat IP server ini, port 3000) setelah panel kembali."
     }
   },
   "proxyCard": {

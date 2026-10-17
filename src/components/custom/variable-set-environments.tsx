@@ -2,20 +2,26 @@
 
 import {
   Boxes,
+  Copy,
   Eye,
+  EyeOff,
   Info,
   KeyRound,
   Layers,
+  Link2,
+  Loader2,
   Lock,
+  Pencil,
   Plus,
   RotateCw,
   Trash2,
 } from "lucide-react"
 import Link from "next/link"
 import { useTranslations } from "next-intl"
-import { useState, useTransition } from "react"
+import { useEffect, useRef, useState, useTransition } from "react"
 import { toast } from "sonner"
 import { DangerZoneItem } from "@/components/custom/danger-zone"
+import { IconButton } from "@/components/custom/data-table"
 import { EnvEditor } from "@/components/custom/env-editor"
 import { EnvironmentCompare } from "@/components/custom/environment-compare"
 import { EnvironmentHistory } from "@/components/custom/environment-history"
@@ -46,7 +52,10 @@ import { Field, FieldDescription, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { Switch } from "@/components/ui/switch"
 import { Tabs, TabsContent } from "@/components/ui/tabs"
+import { copyToClipboard, copyToClipboardLater } from "@/lib/clipboard"
 import { useRouter } from "@/lib/use-router"
+import { cn } from "@/lib/utils"
+import { toRows } from "@/features/variable-set/env-rows"
 import {
   createEnvironmentAction,
   deleteEnvironmentAction,
@@ -116,6 +125,18 @@ export function VariableSetEnvironments({ set }: { set: VariableSetDetail }) {
                   <span className="text-xs text-muted-foreground tabular-nums">
                     {e.keys.length}
                   </span>
+                  {e.usedBy.length > 0 && (
+                    <span
+                      className="inline-flex items-center gap-0.5 text-xs text-muted-foreground tabular-nums"
+                      title={t("linkedCount", { count: e.usedBy.length })}
+                    >
+                      <Link2 className="size-3" aria-hidden />
+                      <span aria-hidden>{e.usedBy.length}</span>
+                      <span className="sr-only">
+                        {t("linkedCount", { count: e.usedBy.length })}
+                      </span>
+                    </span>
+                  )}
                 </PageTabsTrigger>
               ))}
             </ScrollableTabsList>
@@ -124,6 +145,7 @@ export function VariableSetEnvironments({ set }: { set: VariableSetDetail }) {
                 <EnvironmentPanel
                   set={set}
                   environment={e}
+                  others={environments.filter((o) => o.id !== e.id)}
                   onDeleted={() => setSelected("")}
                 />
               </TabsContent>
@@ -135,13 +157,39 @@ export function VariableSetEnvironments({ set }: { set: VariableSetDetail }) {
   )
 }
 
+/** Shown values hide again (and are dropped from memory) this long after the last show. */
+const REVEAL_TTL_MS = 60_000
+
+/** One audited reveal, kept in page memory until it expires. */
+interface Revealed {
+  variables: string
+  /** Value per name; a repeated name keeps its last definition (as the API merges). */
+  values: Map<string, string>
+  secretKeys: string[]
+  plainKeys: string[]
+  updatedAt?: string
+  expiresAt: number
+}
+
+function valuesOf(text: string): Map<string, string> {
+  const values = new Map<string, string>()
+  for (const row of toRows(text)) {
+    if (row.kind === "var" && row.key.trim())
+      values.set(row.key.trim(), row.value)
+  }
+  return values
+}
+
 function EnvironmentPanel({
   set,
   environment: env,
+  others,
   onDeleted,
 }: {
   set: VariableSetDetail
   environment: EnvironmentView
+  /** The set's other environments, for the "Used by" hint. */
+  others: EnvironmentView[]
   onDeleted: () => void
 }) {
   const t = useTranslations("variables.editor")
@@ -160,24 +208,171 @@ function EnvironmentPanel({
   const [editorKey, setEditorKey] = useState(0)
   const [error, setError] = useState<string | null>(null)
   const [conflict, setConflict] = useState(false)
+  // The last reveal (all values of this environment), reused by the row
+  // buttons, Reveal all and Edit until it expires, so one click does not
+  // mean one audited reveal per row. The panel unmounts on a tab switch or
+  // when leaving the page, which drops it too.
+  const [revealed, setRevealed] = useState<Revealed | null>(null)
+  const revealedRef = useRef<Revealed | null>(null)
+  const inflight = useRef<Promise<Revealed | null> | null>(null)
+  // Names whose value is shown in the list; Reveal all fills it.
+  const [shown, setShown] = useState<ReadonlySet<string>>(() => new Set())
+  const [allShown, setAllShown] = useState(false)
+  // What is waiting for the reveal: a variable name, "all" or "edit".
+  const [busy, setBusy] = useState<string | null>(null)
+  const [now, setNow] = useState(() => Date.now())
   const isViewer = set.role === "viewer"
   const canReveal = canRevealEnvironment(set.role, env)
+  const isSecret = (k: string) => env.secretKeys.includes(k)
 
-  const reveal = () =>
-    start(async () => {
-      setError(null)
-      setConflict(false)
-      const r = await revealEnvironmentAction(set.id, env.id)
-      if (r.ok) {
-        setRevealedFlags({
+  const storeRevealed = (next: Revealed | null) => {
+    revealedRef.current = next
+    setRevealed(next)
+  }
+
+  const forget = () => {
+    storeRevealed(null)
+    setShown(new Set())
+    setAllShown(false)
+  }
+
+  // Auto-hide: once the reveal expires, hide every value and drop them. Not
+  // while the editor is open (it keeps its own copy of the text).
+  useEffect(() => {
+    if (!revealed || editing !== null) return
+    const id = window.setInterval(() => {
+      const at = Date.now()
+      setNow(at)
+      if (at >= revealed.expiresAt) {
+        revealedRef.current = null
+        setRevealed(null)
+        setShown(new Set())
+        setAllShown(false)
+      }
+    }, 1000)
+    return () => window.clearInterval(id)
+  }, [revealed, editing])
+
+  /** The cached reveal, or one audited reveal call shared by concurrent clicks. */
+  const ensureRevealed = (): Promise<Revealed | null> => {
+    const cached = revealedRef.current
+    if (cached && cached.expiresAt > Date.now()) return Promise.resolve(cached)
+    if (inflight.current) return inflight.current
+    setError(null)
+    setConflict(false)
+    const request = revealEnvironmentAction(set.id, env.id).then(
+      (r) => {
+        inflight.current = null
+        if (!r.ok) {
+          setError(r.status === 429 ? t("revealThrottled") : r.error)
+          return null
+        }
+        const next: Revealed = {
+          variables: r.data.variables,
+          values: valuesOf(r.data.variables),
           secretKeys: r.data.secretKeys,
           plainKeys: r.data.plainKeys,
-        })
-        setEditing(r.data.variables)
-        setVersion(r.data.updatedAt)
-        setEditorKey((k) => k + 1)
-      } else setError(r.error)
+          updatedAt: r.data.updatedAt,
+          expiresAt: Date.now() + REVEAL_TTL_MS,
+        }
+        storeRevealed(next)
+        setNow(Date.now())
+        return next
+      },
+      () => {
+        inflight.current = null
+        setError(tc("messages.serverUnreachable"))
+        return null
+      }
+    )
+    inflight.current = request
+    return request
+  }
+
+  /** Showing something (again) restarts the 60 second window. */
+  const extend = (r: Revealed) => {
+    const at = Date.now()
+    storeRevealed({ ...r, expiresAt: at + REVEAL_TTL_MS })
+    setNow(at)
+  }
+
+  const toggleRow = async (k: string) => {
+    if (shown.has(k)) {
+      const next = new Set(shown)
+      next.delete(k)
+      setShown(next)
+      if (next.size === 0) setAllShown(false)
+      return
+    }
+    setBusy(k)
+    const r = await ensureRevealed()
+    setBusy(null)
+    if (!r) return
+    extend(r)
+    setShown((prev) => new Set(prev).add(k))
+  }
+
+  const toggleAll = async () => {
+    if (allShown) {
+      setShown(new Set())
+      setAllShown(false)
+      return
+    }
+    setBusy("all")
+    const r = await ensureRevealed()
+    setBusy(null)
+    if (!r) return
+    extend(r)
+    // Secret-flagged values stay masked until their own eye button.
+    setShown((prev) => {
+      const next = new Set(prev)
+      for (const k of env.keys) if (!isSecret(k)) next.add(k)
+      return next
     })
+    setAllShown(true)
+  }
+
+  const copyRow = (k: string) => {
+    const copied = () => toast.success(tc("copyButton.copied", { label: k }))
+    const failed = () => toast.error(tc("copyButton.failed", { label: k }))
+    const cached = revealedRef.current
+    if (cached && cached.expiresAt > Date.now()) {
+      void copyToClipboard(cached.values.get(k) ?? "").then((ok) =>
+        ok ? copied() : failed()
+      )
+      return
+    }
+    // Start the clipboard write inside the click; the value follows.
+    let revealFailed = false
+    setBusy(k)
+    const text = ensureRevealed().then((r) => {
+      if (!r) {
+        revealFailed = true
+        throw new Error("reveal failed")
+      }
+      return r.values.get(k) ?? ""
+    })
+    void copyToClipboardLater(text).then((ok) => {
+      setBusy(null)
+      if (ok) copied()
+      // A failed reveal already shows its own message.
+      else if (!revealFailed) failed()
+    })
+  }
+
+  const openEditor = async (fresh = false) => {
+    if (fresh) storeRevealed(null)
+    setBusy("edit")
+    const r = await ensureRevealed()
+    setBusy(null)
+    if (!r) return
+    setShown(new Set())
+    setAllShown(false)
+    setRevealedFlags({ secretKeys: r.secretKeys, plainKeys: r.plainKeys })
+    setEditing(r.variables)
+    setVersion(r.updatedAt)
+    setEditorKey((k) => k + 1)
+  }
 
   const save = (variables: string, flagsJson: string) =>
     start(async () => {
@@ -200,6 +395,7 @@ function EnvironmentPanel({
       )
       if (r.ok) {
         setEditing(null)
+        forget()
         toast.success(t("saved", { name: env.name }))
         router.refresh()
       } else {
@@ -208,6 +404,13 @@ function EnvironmentPanel({
         setConflict(r.status === 409)
       }
     })
+
+  const secondsLeft = revealed
+    ? Math.max(0, Math.ceil((revealed.expiresAt - now) / 1000))
+    : 0
+  const anyShown = revealed !== null && shown.size > 0
+  const maskedSecrets =
+    allShown && env.keys.some((k) => isSecret(k) && !shown.has(k))
 
   return (
     <>
@@ -231,41 +434,107 @@ function EnvironmentPanel({
             </p>
           ) : (
             <ul className="divide-y rounded-md border text-xs">
-              {env.keys.map((k) => (
-                <li
-                  key={k}
-                  className="flex items-center justify-between gap-3 px-3 py-1.5"
-                >
-                  <span className="flex min-w-0 items-center gap-2">
-                    <code className="min-w-0 truncate font-mono">{k}</code>
-                    {env.secretKeys.includes(k) && (
-                      <Badge variant="outline" className="shrink-0">
-                        <KeyRound data-icon="inline-start" />
-                        {t("secretBadge")}
-                      </Badge>
-                    )}
-                  </span>
-                  <span className="flex shrink-0 items-center gap-2">
-                    {env.notes?.[k] && (
-                      <VariableNotePopover
-                        note={env.notes[k]}
-                        label={t("noteAria", { name: k })}
-                      />
-                    )}
-                    <span
-                      className="font-mono text-muted-foreground"
-                      aria-hidden
-                    >
-                      ••••••••
+              {env.keys.map((k) => {
+                const visible = revealed !== null && shown.has(k)
+                const value = revealed?.values.get(k) ?? ""
+                const waiting = busy === k
+                return (
+                  <li
+                    key={k}
+                    className="flex min-h-8 flex-wrap items-center justify-between gap-x-3 gap-y-1 px-3 py-1"
+                  >
+                    <span className="flex min-w-0 flex-1 items-center gap-2">
+                      <code className="min-w-0 truncate font-mono" title={k}>
+                        {k}
+                      </code>
+                      {isSecret(k) && (
+                        <Badge variant="outline" className="shrink-0">
+                          <KeyRound data-icon="inline-start" />
+                          {t("secretBadge")}
+                        </Badge>
+                      )}
                     </span>
-                  </span>
-                </li>
-              ))}
+                    <span className="flex shrink-0 items-center gap-1">
+                      {env.notes?.[k] && (
+                        <VariableNotePopover
+                          note={env.notes[k]}
+                          label={t("noteAria", { name: k })}
+                        />
+                      )}
+                      {!visible && (
+                        // On a phone the eye button already says "masked";
+                        // the dots would squeeze the name.
+                        <span
+                          className={cn(
+                            "px-1 font-mono text-muted-foreground",
+                            canReveal && "hidden sm:inline"
+                          )}
+                          aria-hidden
+                        >
+                          ••••••••
+                        </span>
+                      )}
+                      {canReveal && (
+                        <>
+                          <IconButton
+                            label={
+                              visible
+                                ? t("rowHide", { name: k })
+                                : t("rowShow", { name: k })
+                            }
+                            aria-pressed={visible}
+                            disabled={busy !== null && !visible}
+                            onClick={() => void toggleRow(k)}
+                          >
+                            {waiting ? (
+                              <Loader2 className="animate-spin" />
+                            ) : visible ? (
+                              <EyeOff />
+                            ) : (
+                              <Eye />
+                            )}
+                          </IconButton>
+                          <IconButton
+                            label={t("rowCopy", { name: k })}
+                            disabled={busy !== null}
+                            onClick={() => copyRow(k)}
+                          >
+                            <Copy />
+                          </IconButton>
+                        </>
+                      )}
+                    </span>
+                    {visible && (
+                      <code className="block max-h-24 basis-full overflow-y-auto rounded bg-muted px-2 py-1 font-mono break-all whitespace-pre-wrap">
+                        {value === "" ? (
+                          <span className="text-muted-foreground">
+                            {t("history.emptyText")}
+                          </span>
+                        ) : (
+                          value
+                        )}
+                      </code>
+                    )}
+                  </li>
+                )
+              })}
             </ul>
           )}
 
-          {/* Right-aligned: note, then History, then Reveal (rightmost). On a
-              phone the note takes its own line above the buttons. */}
+          {(anyShown || maskedSecrets) && (
+            <p
+              className="text-xs text-muted-foreground tabular-nums"
+              aria-live="polite"
+            >
+              {anyShown && t("hidesIn", { seconds: secondsLeft })}
+              {anyShown && maskedSecrets && " "}
+              {maskedSecrets && t("secretsStayMasked")}
+            </p>
+          )}
+
+          {/* Right-aligned: note, then History, Reveal all and Edit
+              (rightmost). On a phone the note takes its own line above the
+              buttons. */}
           <div className="flex flex-wrap items-center justify-end gap-2">
             <p className="order-1 min-w-0 basis-full text-end text-xs text-muted-foreground sm:flex-1 sm:basis-0">
               {isViewer
@@ -285,14 +554,45 @@ function EnvironmentPanel({
                     : t("history.protectedNote", { name: env.name })
                 }
               />
+              {!isViewer && env.keys.length > 0 && (
+                <Button
+                  variant="outline"
+                  onClick={() => void toggleAll()}
+                  disabled={!canReveal || (busy !== null && !allShown)}
+                  aria-pressed={allShown}
+                >
+                  {busy === "all" ? (
+                    <Loader2
+                      data-icon="inline-start"
+                      className="animate-spin"
+                    />
+                  ) : allShown ? (
+                    <EyeOff data-icon="inline-start" />
+                  ) : (
+                    <Eye data-icon="inline-start" />
+                  )}
+                  {busy === "all"
+                    ? t("revealing")
+                    : allShown
+                      ? t("hideAll")
+                      : t("revealAll")}
+                </Button>
+              )}
               {!isViewer && (
                 <Button
                   variant="outline"
-                  onClick={reveal}
-                  disabled={!canReveal || pending}
+                  onClick={() => void openEditor()}
+                  disabled={!canReveal || busy !== null}
                 >
-                  <Eye data-icon="inline-start" />
-                  {pending ? t("revealing") : t("reveal")}
+                  {busy === "edit" ? (
+                    <Loader2
+                      data-icon="inline-start"
+                      className="animate-spin"
+                    />
+                  ) : (
+                    <Pencil data-icon="inline-start" />
+                  )}
+                  {busy === "edit" ? t("revealing") : t("edit")}
                 </Button>
               )}
             </div>
@@ -340,8 +640,8 @@ function EnvironmentPanel({
                   type="button"
                   size="sm"
                   variant="outline"
-                  disabled={pending}
-                  onClick={reveal}
+                  disabled={pending || busy !== null}
+                  onClick={() => void openEditor(true)}
                 >
                   <RotateCw data-icon="inline-start" />
                   {t("reloadLatest")}
@@ -358,6 +658,7 @@ function EnvironmentPanel({
                 setEditing(null)
                 setError(null)
                 setConflict(false)
+                forget()
               }}
             >
               {tc("actions.cancel")}
@@ -375,7 +676,7 @@ function EnvironmentPanel({
         </p>
       )}
 
-      <UsedBy environment={env} />
+      <UsedBy environment={env} others={others} />
 
       {editing === null && (
         <Alert>
@@ -401,14 +702,40 @@ function EnvironmentPanel({
   )
 }
 
-/** Applications and stacks (in projects the caller may see) linking this environment. */
-function UsedBy({ environment: env }: { environment: EnvironmentView }) {
+/**
+ * Applications and stacks (in projects the caller may see) linking this
+ * environment. When none does, it names the environments that are linked,
+ * so the set-wide count in the header does not look like a contradiction.
+ */
+function UsedBy({
+  environment: env,
+  others,
+}: {
+  environment: EnvironmentView
+  others: EnvironmentView[]
+}) {
   const t = useTranslations("variables.editor")
+  const linked = others
+    .filter((o) => o.usedBy.length > 0)
+    .map((o) => {
+      const apps = o.usedBy.filter((u) => u.kind === "application").length
+      const stacks = o.usedBy.length - apps
+      const parts = [
+        apps > 0 ? t("appsCount", { count: apps }) : null,
+        stacks > 0 ? t("stacksCount", { count: stacks }) : null,
+      ].filter(Boolean)
+      return `${o.name} (${parts.join(", ")})`
+    })
   return (
     <section className="space-y-1.5">
       <h3 className="text-xs font-medium">{t("usedByTitle")}</h3>
       {env.usedBy.length === 0 ? (
-        <p className="text-xs text-muted-foreground">{t("unused")}</p>
+        <p className="text-xs text-muted-foreground">
+          {t("unused", { name: env.name })}
+          {linked.length > 0 && (
+            <> {t("unusedOthers", { list: linked.join(", ") })}</>
+          )}
+        </p>
       ) : (
         <ul className="divide-y rounded-md border text-xs">
           {env.usedBy.map((u) => {

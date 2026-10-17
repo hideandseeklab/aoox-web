@@ -1,3 +1,5 @@
+import { headers as requestHeaders } from "next/headers"
+
 const API_URL = process.env.API_URL ?? "http://localhost:3001"
 
 /** API URL as reachable from the user's browser (read at request time, so it
@@ -35,6 +37,22 @@ type ApiOptions = Omit<RequestInit, "body"> & {
   token?: string
 }
 
+/**
+ * `X-Forwarded-For` to pass on to the API: the chain the reverse proxy in front of the
+ * web server (Traefik with the panel domain) put on the incoming request. Without it the
+ * API only sees this container's address for every sign-in, so its per-IP rate limit and
+ * audit log would treat all users as one. Empty outside a request (build, cron) and when
+ * the web is opened directly on its port (no proxy header, nothing to forward).
+ */
+async function clientForwardedFor(): Promise<Record<string, string>> {
+  try {
+    const value = (await requestHeaders()).get("x-forwarded-for")?.trim()
+    return value ? { "X-Forwarded-For": value } : {}
+  } catch {
+    return {}
+  }
+}
+
 /** Server-side fetch wrapper for aoox-api. Throws `ApiError` on non-2xx. */
 export async function api<T>(
   path: string,
@@ -46,6 +64,7 @@ export async function api<T>(
     ...rest,
     headers: {
       "Content-Type": "application/json",
+      ...(await clientForwardedFor()),
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...headers,
     },

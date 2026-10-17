@@ -8,6 +8,18 @@ Versions below 1.0.0 may include breaking changes in a minor release.
 
 ## [Unreleased]
 
+### Fixed
+
+- **Sign-in, setup and invitations now pass the real client IP to the API.** Dashboard calls go from the web server, so the API saw the web container for every user and rate-limited all sign-ins together. `api()` now forwards the incoming `X-Forwarded-For` (set by Traefik on the panel domain) to the API. Opened directly on port 3000 there is no proxy header and nothing is forwarded.
+
+### UI UX Improvement
+
+- **Panel domain: Remove domain.** An outline **Remove domain** button next to Save & apply (shown while a domain is saved) opens the standard confirmation dialog, which says the dashboard will be reachable on `IP:3000` again after the restart and to reopen it there. Afterwards the card shows where to reopen the dashboard and empties its fields (needs the matching aoox-api). English and Indonesian.
+- **Panel domain: "Only allow access through the domain" switch.** A bordered row under the ACME email with the switch, a short explanation and, when it is on, a warning that the IP address stops working if the domain breaks, with the SSH recovery steps. The switch is disabled with a hint until both the dashboard and the API domain are filled in, and "Currently installed" shows whether the ports are open or domain-only. English and Indonesian.
+- The Jobs table column "Active" is now **Schedule on** (id: Jadwal aktif) with a hint that it only turns the automatic schedule off and Run still works manually. Jobs without a cron no longer show a switch (it did nothing); the cell shows a dash with a "No schedule" label for screen readers. The switch's accessible label names the job.
+- **Variable set values: reveal per row, copy, auto-hide.** "Reveal and edit" is split. Each row of an environment has an **eye** button (show this value read-only, press again to hide) and a **copy** button (copies the value without showing it; toast "API_ENDPOINT copied"); both are labelled with the variable name and keyboard reachable. Below the list, **Reveal all** shows every value in place (secret-flagged values stay masked until their own eye button) and toggles to **Hide values**; **Edit** opens the Rows/Text editor as before. One audited reveal fetches the whole environment and is reused by the row buttons, Reveal all and Edit; shown values hide again 60 seconds after the last show (a hint counts down) and the values are dropped from the page then, on a tab switch and when leaving the page, so the next reveal or copy is a new audited reveal. The editor is never interrupted by the timer. Long values wrap in a small scrollable box. Viewers still see no value buttons; protected environments keep them for instance owners and admins only. A throttled reveal (30 per minute) says to wait a minute instead of showing the raw API error. On a phone the masked dots are left out on rows that have buttons so long names fit.
+- **"Used by" on a variable set is clearer.** The set header adds which environments are linked (`1 application · no stacks · Linked in staging`), each environment tab shows a link icon with its count when something links it, and an environment nobody links says so by name and lists the linked ones ("No application or stack you can see links development. Linked environments: staging (1 application).").
+
 ## [0.1.0-alpha.11] - 2026-10-15
 
 ### Added

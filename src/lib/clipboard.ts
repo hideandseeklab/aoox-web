@@ -30,3 +30,37 @@ export async function copyToClipboard(text: string): Promise<boolean> {
     return false
   }
 }
+
+/**
+ * Copies text that is still being fetched (for example a value behind an
+ * audited reveal). Safari only lets a page write to the clipboard during the
+ * click itself, so the write starts right away with a `ClipboardItem` whose
+ * content is the pending promise; browsers without that path copy once the
+ * text has arrived. Resolves false when the text could not be fetched or
+ * copied.
+ */
+export async function copyToClipboardLater(
+  text: Promise<string>
+): Promise<boolean> {
+  if (
+    typeof navigator !== "undefined" &&
+    navigator.clipboard?.write &&
+    typeof ClipboardItem !== "undefined"
+  ) {
+    try {
+      await navigator.clipboard.write([
+        new ClipboardItem({
+          "text/plain": text.then((t) => new Blob([t], { type: "text/plain" })),
+        }),
+      ])
+      return true
+    } catch {
+      // fall through to copying once the text is there
+    }
+  }
+  try {
+    return await copyToClipboard(await text)
+  } catch {
+    return false
+  }
+}

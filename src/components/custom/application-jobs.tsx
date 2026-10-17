@@ -263,7 +263,11 @@ export function ApplicationJobs({
             <DataHead>{t("jobs.columns.schedule")}</DataHead>
             <DataHead>{t("jobs.columns.runIn")}</DataHead>
             <DataHead>{t("jobs.columns.lastRun")}</DataHead>
-            <DataHead>{t("jobs.columns.active")}</DataHead>
+            <DataHead>
+              <span title={t("jobs.columns.activeHint")}>
+                {t("jobs.columns.active")}
+              </span>
+            </DataHead>
             <DataActionsHead label={tc("labels.actions")} />
           </DataTableHeader>
           <DataTableBody>
@@ -375,14 +379,25 @@ function JobRow({
           </div>
         </DataCell>
         <DataCell>
-          <Switch
-            checked={job.enabled}
-            disabled={pending || !canEdit}
-            aria-label={t("jobs.row.active")}
-            onCheckedChange={(enabled) =>
-              act(() => updateJobAction(owner, job.id, { enabled }))
-            }
-          />
+          {job.cron ? (
+            <Switch
+              checked={job.enabled}
+              disabled={pending || !canEdit}
+              aria-label={t("jobs.row.active", { name: job.name })}
+              title={t("jobs.columns.activeHint")}
+              onCheckedChange={(enabled) =>
+                act(() => updateJobAction(owner, job.id, { enabled }))
+              }
+            />
+          ) : (
+            <span
+              className="text-muted-foreground"
+              title={t("jobs.row.noSchedule")}
+            >
+              <span aria-hidden="true">—</span>
+              <span className="sr-only">{t("jobs.row.noSchedule")}</span>
+            </span>
+          )}
         </DataCell>
         <DataActions>
           <IconButton

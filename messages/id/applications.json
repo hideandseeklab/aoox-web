@@ -447,7 +447,8 @@
       "separate": "container terpisah",
       "timeout": "batas waktu {seconds}s",
       "last": "terakhir {when}",
-      "active": "aktif",
+      "active": "Jadwal untuk {name}",
+      "noSchedule": "Tanpa jadwal",
       "runNow": "Jalankan",
       "deleteAria": "Hapus job",
       "deleteTitle": "Hapus job \"{name}\"?",
@@ -469,7 +470,8 @@
       "schedule": "Jadwal",
       "runIn": "Dijalankan di",
       "lastRun": "Terakhir jalan",
-      "active": "Aktif"
+      "active": "Jadwal aktif",
+      "activeHint": "Mematikan jadwal otomatis; tombol Run tetap bisa dipakai secara manual."
     }
   },
   "monitor": {

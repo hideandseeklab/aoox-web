@@ -5,6 +5,7 @@ import { getTranslations } from "next-intl/server"
 import { requireToken } from "@/features/auth/auth.session"
 import { api, ApiError } from "@/lib/api"
 import type {
+  ClearPanelDomainResult,
   UpdatePanelDomainInput,
   UpdatePanelDomainResult,
 } from "./panel-domain.entity"
@@ -27,6 +28,21 @@ export async function updatePanelDomainAction(
     const data = await api<UpdatePanelDomainResult>("/instance/domain", {
       method: "PATCH",
       body: input,
+      token: await requireToken(),
+    })
+    revalidatePath("/infra/domain")
+    return { ok: true, data }
+  } catch (err) {
+    return fail(err)
+  }
+}
+
+export async function clearPanelDomainAction(): Promise<
+  ActionResult<ClearPanelDomainResult>
+> {
+  try {
+    const data = await api<ClearPanelDomainResult>("/instance/domain", {
+      method: "DELETE",
       token: await requireToken(),
     })
     revalidatePath("/infra/domain")
