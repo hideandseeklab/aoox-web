@@ -1,8 +1,9 @@
 "use client"
 
-import { Broom, HardDrive, ListTree, Trash2 } from "lucide-react"
+import { Broom, Copy, HardDrive, ListTree, Trash2 } from "lucide-react"
 import { useLocale, useTranslations } from "next-intl"
 import { useState } from "react"
+import { toast } from "sonner"
 import { ConfirmDialog } from "@/components/custom/confirm-dialog"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -25,6 +26,7 @@ import type {
   OrphanContainer,
 } from "@/features/maintenance/maintenance.entity"
 import { formatDateTime } from "@/i18n/format"
+import { copyToClipboard } from "@/lib/clipboard"
 
 function size(n: number) {
   if (n < 1024 ** 2) return `${Math.round(n / 1024)} KB`
@@ -77,6 +79,7 @@ function DiskStrip({ usage, canRun }: { usage: DiskUsage; canRun: boolean }) {
 
   const orphans = usage.orphanVolumes.length
   const removeOrphans = pruneVolumes && orphans > 0
+  const composeVolumes = usage.orphanComposeVolumes ?? []
   const orphanContainers = usage.orphanContainers ?? []
   const containerCount = orphanContainers.length
   const removeContainers = pruneContainers && containerCount > 0
@@ -194,6 +197,36 @@ function DiskStrip({ usage, canRun }: { usage: DiskUsage; canRun: boolean }) {
                 <ul className="mt-1 space-y-0.5 font-mono [overflow-wrap:anywhere]">
                   {usage.orphanVolumes.map((v) => (
                     <li key={v}>{v}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {composeVolumes.length > 0 && (
+              <div className="rounded-md border border-dashed p-2">
+                <p className="text-muted-foreground">
+                  {t("orphanComposeVolumes", { count: composeVolumes.length })}
+                </p>
+                <ul className="mt-1 space-y-1">
+                  {composeVolumes.map((v) => (
+                    <li key={v.name} className="flex items-center gap-2">
+                      <code className="min-w-0 flex-1 rounded bg-muted px-1.5 py-0.5 [overflow-wrap:anywhere]">
+                        docker volume rm {v.name}
+                      </code>
+                      <IconButton
+                        label={t("copyCommandAria", { name: v.name })}
+                        onClick={() =>
+                          void copyToClipboard(
+                            `docker volume rm ${v.name}`
+                          ).then((ok) =>
+                            ok
+                              ? toast.success(t("commandCopied"))
+                              : toast.error(t("commandCopyFailed"))
+                          )
+                        }
+                      >
+                        <Copy />
+                      </IconButton>
+                    </li>
                   ))}
                 </ul>
               </div>

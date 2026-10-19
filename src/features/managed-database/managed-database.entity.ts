@@ -87,6 +87,8 @@ export interface ManagedDatabase {
   databaseName: string
   username: string
   hostPort: number | null
+  /** Interface the host port listens on: public (all) or loopback (this server only). */
+  hostPortBind: "public" | "loopback"
   cpuMillicores: number | null
   memoryMb: number | null
   status: ManagedDatabaseStatus
@@ -117,6 +119,8 @@ export interface DatabaseConnection {
   externalHost: string | null
   externalPort: number | null
   externalUrl: string | null
+  /** The published port listens on 127.0.0.1: reachable only from the server itself (SSH tunnel). */
+  externalLoopbackOnly: boolean
 }
 
 export type BackupStatus = "running" | "success" | "failed"

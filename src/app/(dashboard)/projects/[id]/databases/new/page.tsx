@@ -47,7 +47,7 @@ export default async function NewDatabasePage({
       </div>
 
       <Card className="max-w-5xl">
-        <CardContent className="pt-6">
+        <CardContent>
           <DatabaseForm
             action={createDatabaseAction.bind(null, project.id)}
             submitLabel={t("page.createSubmit")}

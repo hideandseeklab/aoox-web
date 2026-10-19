@@ -5,6 +5,7 @@ import { DockerContainers } from "@/components/custom/docker-containers"
 import { DockerDiskStrip } from "@/components/custom/docker-disk-strip"
 import { DockerImages } from "@/components/custom/docker-images"
 import { DockerNetworks } from "@/components/custom/docker-networks"
+import { DockerPorts } from "@/components/custom/docker-ports"
 import { DockerToolbar } from "@/components/custom/docker-toolbar"
 import { DockerVolumes } from "@/components/custom/docker-volumes"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
@@ -15,6 +16,7 @@ import {
   getDockerContainers,
   getDockerImages,
   getDockerNetworks,
+  getDockerOpenPorts,
   getDockerVolumes,
 } from "@/features/docker/docker.queries"
 import type { DiskUsage } from "@/features/maintenance/maintenance.entity"
@@ -50,6 +52,8 @@ async function loadTab(
       return <DockerVolumes volumes={await getDockerVolumes(serverId)} />
     case "networks":
       return <DockerNetworks networks={await getDockerNetworks(serverId)} />
+    case "ports":
+      return <DockerPorts ports={await getDockerOpenPorts(serverId)} />
   }
 }
 

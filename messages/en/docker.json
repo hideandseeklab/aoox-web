@@ -106,13 +106,15 @@
       "containers": "Container",
       "images": "Image",
       "volumes": "Volume",
-      "networks": "Network"
+      "networks": "Network",
+      "ports": "Open ports"
     },
     "search": {
       "containers": "Search name, image, or id",
       "images": "Search tag, id, or container",
       "volumes": "Search volume name or container",
-      "networks": "Search network name or container"
+      "networks": "Search network name or container",
+      "ports": "Search port, container, or owner"
     }
   },
   "page": {
@@ -163,6 +165,28 @@
       "title": "Remove this leftover container?",
       "description": "{name} belongs to a project or application that no longer exists. It is stopped and removed; its data volumes are kept (see orphan volumes).",
       "confirm": "Remove"
-    }
+    },
+    "orphanComposeVolumes": "{count, plural, one {# volume} other {# volumes}} left by deleted stacks (declared inside a compose file). aoox never removes these: check the data is not needed, then remove each one manually on the host.",
+    "copyCommandAria": "Copy the remove command for {name}",
+    "commandCopied": "Command copied",
+    "commandCopyFailed": "Could not copy the command"
+  },
+  "ports": {
+    "infoTitle": "ufw does not filter Docker ports",
+    "info": "Ports that Docker publishes on all interfaces are reachable from the internet even when ufw denies them: Docker adds its own firewall rules that ufw does not manage.",
+    "infoFix": "Block them in your hosting provider's firewall (security group), or set the port to \"This server only\" on its resource so it listens on 127.0.0.1.",
+    "summary": "{open, plural, one {# published port is} other {# published ports are}} open to the internet; {closed} only on this server.",
+    "empty": "No ports are published on this server.",
+    "noMatch": "No matching ports.",
+    "port": "Port",
+    "reachableFrom": "Reachable from",
+    "container": "Container",
+    "notManaged": "not managed by aoox",
+    "exposure": {
+      "public": "The internet (all interfaces)",
+      "loopback": "This server only",
+      "address": "Network {address}"
+    },
+    "note": "Ports of containers on the host network and ports that are not published do not appear here. The arrow shows the port inside the container."
   }
 }

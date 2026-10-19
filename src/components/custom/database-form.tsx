@@ -1,5 +1,7 @@
 "use client"
 
+import { HostPortBindField } from "@/components/custom/host-port-bind-field"
+import type { HostPortBind } from "@/lib/host-port-bind"
 import { Check, Loader2 } from "lucide-react"
 import { useTranslations } from "next-intl"
 import Link from "next/link"
@@ -252,6 +254,16 @@ export function DatabaseForm({
             {t("form.hostPortHint")}
           </FieldDescription>
           <FieldError errors={errs("hostPort")} />
+        </Field>
+        <Field>
+          <HostPortBindField
+            id="db-port-bind"
+            name="hostPortBind"
+            defaultValue={
+              (state.values?.hostPortBind as HostPortBind | undefined) ??
+              "loopback"
+            }
+          />
         </Field>
         {state.error && (
           <FieldDescription className="text-destructive" role="alert">

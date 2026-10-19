@@ -36,7 +36,7 @@ import {
   MAX_VARIABLE_SCOPES,
   VARIABLE_SCOPE,
 } from "@/features/variable-set/variable-set.entity"
-import { copyToClipboard } from "@/lib/clipboard"
+import { copyOrSelect } from "@/lib/clipboard"
 
 const EXPIRY: { labelKey: string; days: number | null }[] = [
   { labelKey: "days30", days: 30 },
@@ -111,13 +111,16 @@ export function CreateApiTokenDialog({
     setScopeInput("")
   }
 
-  const copy = async () => {
+  const copy = async (button: Element) => {
     if (!created) return
-    const ok = await copyToClipboard(created)
-    if (ok) {
+    const result = await copyOrSelect(created, button)
+    if (result === "copied") {
       setCopied(true)
       setTimeout(() => setCopied(false), 1500)
       toast.success(t("tokens.copied"))
+    } else if (result === "selected") {
+      // Not a success: the token is selected in place, Ctrl+C copies it.
+      toast.warning(c("copyManual"))
     } else {
       toast.error(t("tokens.copyFailed"))
     }
@@ -125,12 +128,14 @@ export function CreateApiTokenDialog({
 
   const loginCommand = `aoox login --url ${dashboardUrl} --token ${created ?? ""}`
 
-  const copyLogin = async () => {
-    const ok = await copyToClipboard(loginCommand)
-    if (ok) {
+  const copyLogin = async (button: Element) => {
+    const result = await copyOrSelect(loginCommand, button)
+    if (result === "copied") {
       setLoginCopied(true)
       setTimeout(() => setLoginCopied(false), 1500)
       toast.success(t("tokens.created.loginCopied"))
+    } else if (result === "selected") {
+      toast.warning(c("copyManual"))
     } else {
       toast.error(t("tokens.copyFailed"))
     }
@@ -404,7 +409,7 @@ export function CreateApiTokenDialog({
                   variant="outline"
                   size="icon-sm"
                   aria-label={t("tokens.copyAria")}
-                  onClick={copy}
+                  onClick={(e) => void copy(e.currentTarget)}
                 >
                   {copied ? <Check /> : <Copy />}
                 </Button>
@@ -424,7 +429,7 @@ export function CreateApiTokenDialog({
                     variant="outline"
                     size="icon-sm"
                     aria-label={t("tokens.created.copyLoginAria")}
-                    onClick={copyLogin}
+                    onClick={(e) => void copyLogin(e.currentTarget)}
                   >
                     {loginCopied ? <Check /> : <Copy />}
                   </Button>

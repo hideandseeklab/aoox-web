@@ -60,7 +60,7 @@ export default async function NewComposePage({
       </div>
 
       <Card className="max-w-3xl">
-        <CardContent className="pt-6">
+        <CardContent>
           <ComposeForm
             action={createComposeAppAction.bind(null, project.id)}
             mode="create"

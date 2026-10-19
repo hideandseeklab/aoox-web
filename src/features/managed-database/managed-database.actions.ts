@@ -17,7 +17,13 @@ async function fail(err: unknown): Promise<{ ok: false; error: string }> {
   return { ok: false, error: t("messages.serverUnreachable") }
 }
 
-type Field = "name" | "engine" | "variant" | "imageTag" | "hostPort"
+type Field =
+  | "name"
+  | "engine"
+  | "variant"
+  | "imageTag"
+  | "hostPort"
+  | "hostPortBind"
 
 export interface DatabaseFormState {
   error?: string
@@ -42,6 +48,7 @@ export async function createDatabaseAction(
         : String(formData.get("variant") ?? ""),
     imageTag: String(formData.get("imageTag") ?? ""),
     hostPort: String(formData.get("hostPort") ?? ""),
+    hostPortBind: String(formData.get("hostPortBind") ?? "loopback"),
   }
   const t = await getTranslations("database")
   const parsed = createDatabaseSchema(t).safeParse(values)

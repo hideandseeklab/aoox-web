@@ -6,7 +6,7 @@ import { useState } from "react"
 import { DockerQueryContext, DockerSearch } from "@/components/custom/docker-ui"
 import { ScrollableTabsList } from "@/components/custom/scrollable-tabs-list"
 import { PageTabsTrigger } from "@/components/custom/page-tabs-trigger"
-import { Container, Layers, HardDrive, Network } from "lucide-react"
+import { Container, Layers, HardDrive, Network, Radar } from "lucide-react"
 import {
   Select,
   SelectContent,
@@ -26,6 +26,7 @@ const DOCKER_TAB_ICONS = {
   images: Layers,
   volumes: HardDrive,
   networks: Network,
+  ports: Radar,
 } as const
 
 /**

@@ -220,6 +220,11 @@ export default async function ApplicationPage({
               >
                 {app.hostPort}
               </a>
+              {app.hostPortBind === "loopback" && (
+                <span className="ms-1 text-muted-foreground">
+                  · {tc("hostPortBind.shortLoopback")}
+                </span>
+              )}
             </HeaderFact>
           ),
         ]}

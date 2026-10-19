@@ -229,9 +229,13 @@ export function DatabasePanel({
                 </h3>
                 <p className="text-xs/relaxed text-muted-foreground">
                   {connection.externalUrl
-                    ? t("panel.external.published", {
-                        port: connection.externalPort ?? 0,
-                      })
+                    ? connection.externalLoopbackOnly
+                      ? t("panel.external.publishedLoopback", {
+                          port: connection.externalPort ?? 0,
+                        })
+                      : t("panel.external.published", {
+                          port: connection.externalPort ?? 0,
+                        })
                     : t("panel.external.notPublished")}
                 </p>
               </div>

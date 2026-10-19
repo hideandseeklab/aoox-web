@@ -43,7 +43,7 @@
       "plain": "Plain"
     },
     "imageTagHint": "Leave empty to use <image></image>.",
-    "hostPortHint": "Publish a host port only if the database must be reachable from outside (e.g. from your laptop).",
+    "hostPortHint": "Publish a host port only if the database must be reachable from outside (e.g. from your laptop). Choose below who can connect.",
     "toast": {
       "created": "Database \"{name}\" created. It is being set up (pulling the image can take a few minutes).",
       "checkForm": "Check the form fields",
@@ -67,7 +67,8 @@
       "title": "External connection",
       "published": "Published on host port {port}.",
       "notPublished": "Not published; only reachable from the aoox network.",
-      "recreateHint": "Recreate the database with a host port if you need access from outside."
+      "recreateHint": "Recreate the database with a host port if you need access from outside.",
+      "publishedLoopback": "Published on 127.0.0.1:{port}: only this server itself can connect (for example through an SSH tunnel: ssh -L {port}:127.0.0.1:{port} user@server)."
     },
     "fields": {
       "database": "Database",
@@ -240,7 +241,8 @@
       "portRequired": "Host port is required",
       "portRange": "Port must be between 1 and 65535",
       "invalidInput": "Invalid input"
-    }
+    },
+    "loopbackOnly": "The admin app listens on 127.0.0.1:{port} of the server only. Open it through an SSH tunnel (ssh -L {port}:127.0.0.1:{port} user@server) or add a domain."
   },
   "browser": {
     "notRunning": "The database must be running to browse its data.",

@@ -19,6 +19,8 @@ export interface ComposeServicePort {
   /** Container port. */
   port: number
   hostPort: number
+  /** Absent = public (every interface). */
+  bind?: "public" | "loopback"
 }
 
 /** A CPU/RAM cap for one service; either field null/undefined = unlimited for it. */

@@ -47,6 +47,8 @@ export interface Application {
   gitCredentialId: string | null
   containerPort: number
   hostPort: number | null
+  /** Interface the host port listens on: public (all) or loopback (this server only). */
+  hostPortBind: "public" | "loopback"
   /** HTTP path probed in the container; enables health-gated (blue/green) deploys. */
   healthcheckPath: string | null
   /** Skip this app in the app-error-watcher's container-log scan (for apps whose normal output looks like errors). */

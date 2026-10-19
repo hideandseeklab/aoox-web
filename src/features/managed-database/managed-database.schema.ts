@@ -20,6 +20,8 @@ export const createDatabaseSchema = (t: Translator) =>
   hostPort: z
     .union([z.literal(""), z.coerce.number().int().min(1).max(65535)])
     .transform((v) => (v === "" ? null : v)),
+  // New published database ports default to this server only.
+  hostPortBind: z.enum(["public", "loopback"]).default("loopback"),
 })
 
 export type DatabaseInput = z.infer<ReturnType<typeof createDatabaseSchema>>

@@ -87,6 +87,8 @@ const createBaseSchema = (t: Translator) =>
     hostPort: z
       .union([z.literal(""), port])
       .transform((v) => (v === "" ? null : v)),
+    // Which interface the host port listens on; only meaningful with a host port.
+    hostPortBind: z.enum(["public", "loopback"]).default("public"),
     // Empty string = no health check.
     healthcheckPath: z
       .string()

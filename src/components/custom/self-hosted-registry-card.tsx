@@ -55,7 +55,7 @@ import type {
   ResetPasswordResult,
   SelfHostedStatus,
 } from "@/features/registry/registry.entity"
-import { copyToClipboard } from "@/lib/clipboard"
+import { copyOrSelect } from "@/lib/clipboard"
 import { IllustratedEmptyState } from "@/components/custom/illustrated-empty-state"
 import { RegistryIllustration } from "@/components/custom/illustrations/registry-illustration"
 
@@ -76,6 +76,7 @@ export function SelfHostedRegistryCard({
   destinations: BackupDestination[]
 }) {
   const t = useTranslations("registry.selfHosted")
+  const tc = useTranslations("common")
   const [pending, start] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const [creds, setCreds] = useState<ProvisionResult | null>(null)
@@ -518,13 +519,16 @@ export function SelfHostedRegistryCard({
                       variant="ghost"
                       size="icon-sm"
                       aria-label={t("copyPassword")}
-                      onClick={() =>
-                        void copyToClipboard(revealed).then((ok) =>
-                          ok
-                            ? toast.success(t("passwordCopied"))
-                            : toast.error(t("failed"))
-                        )
-                      }
+                      onClick={(e) => {
+                        const button = e.currentTarget
+                        void copyOrSelect(revealed, button).then((result) => {
+                          if (result === "copied")
+                            toast.success(t("passwordCopied"))
+                          else if (result === "selected")
+                            toast.warning(tc("copyManual"))
+                          else toast.error(t("failed"))
+                        })
+                      }}
                     >
                       <Copy />
                     </Button>
@@ -707,9 +711,12 @@ function StatusBadge({
 
 function CredRow({ label, value }: { label: string; value: string }) {
   const t = useTranslations("registry.selfHosted.ready")
+  const tc = useTranslations("common")
   return (
     <div className="flex items-center gap-2">
-      <span className="w-20 shrink-0 text-muted-foreground">{label}</span>
+      <span className="w-32 shrink-0 whitespace-nowrap text-muted-foreground">
+        {label}
+      </span>
       <code className="min-w-0 flex-1 truncate rounded bg-muted px-1.5 py-0.5">
         {value}
       </code>
@@ -717,13 +724,14 @@ function CredRow({ label, value }: { label: string; value: string }) {
         variant="ghost"
         size="icon-sm"
         aria-label={t("copyLabel", { label })}
-        onClick={() =>
-          void copyToClipboard(value).then((ok) =>
-            ok
-              ? toast.success(t("copied", { label }))
-              : toast.error(t("copyFailed", { label: label.toLowerCase() }))
-          )
-        }
+        onClick={(e) => {
+          const button = e.currentTarget
+          void copyOrSelect(value, button).then((result) => {
+            if (result === "copied") toast.success(t("copied", { label }))
+            else if (result === "selected") toast.warning(tc("copyManual"))
+            else toast.error(t("copyFailed", { label: label.toLowerCase() }))
+          })
+        }}
       >
         <Copy />
       </Button>

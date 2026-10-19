@@ -10,13 +10,27 @@ Versions below 1.0.0 may include breaking changes in a minor release.
 
 ### Added
 
+- **Open ports tab on the Docker page** (needs the matching aoox-api). Lists every port the containers of the host (or a chosen remote server) publish, who owns it (application, database, admin app, stack, proxy, registry, panel, or "not managed by aoox") and who can reach it: "The internet (all interfaces)" or "This server only". A banner explains that ufw does not filter Docker ports and that the provider firewall (or binding the port to 127.0.0.1) is what closes them. Owner and admin, read only, with the same server picker and search as the other tabs.
+- **"Listens on" choice next to every host port** (needs the matching aoox-api): "Public (all interfaces)" or "This server only (127.0.0.1)" on the application form (create and edit; a running application is recreated like for a new host port), the new database form, the admin app install dialog and the stack service-port editors (stack settings and the template dialog). New databases and admin apps default to "this server only", applications and stacks to public. Database and admin app connection details say the port is reachable from the server itself only (SSH tunnel) with the `ssh -L` command, and instance cards, the application/database headers and stack access links show `127.0.0.1:<port>`.
+- **Docker disk details: volumes left by deleted stacks.** A new box lists compose-declared volumes whose stack was deleted, with a copyable `docker volume rm <name>` command per volume and no delete button (needs the matching aoox-api). English and Indonesian.
+
 - **Multi-arch images.** The Docker publish workflow builds linux/amd64 and linux/arm64 (QEMU + buildx, GHA cache) from the next release; 0.1.0-alpha.12 stays amd64 only. The lockfile already carries the arm64 optional binaries (SWC, sharp, lightningcss, Tailwind oxide); not built on arm64 locally.
 - **Local registry: show and reset the password** (needs the matching aoox-api). The Local registry card has a masked **Password** row with an eye (reads it through the audited reveal route, hides again after 60 seconds) and a copy button for owners and admins, and a **Reset password** button for owners with a confirmation dialog (images are kept, every client has to `docker login` again) that then shows the new password. English and Indonesian.
 - **Local registry: address and reachability.** The card shows the address, marks it *this server only* when the port is bound to localhost, shows the address other machines use when the registry has a domain or is exposed, and explains how to expose it (custom domain or `REGISTRY_PUBLISH_ADDRESS`) or that an IP address over plain HTTP needs `insecure-registries`.
 - **Time zone next to schedules.** Job, database backup, volume backup and instance backup schedule forms show "Times are in <zone> (server time zone)" taken from `/auth/me` `timeZone` (hidden for an older API). English and Indonesian.
 
+### Fixed
+
+- **Copy buttons inside dialogs on a panel opened over plain HTTP.** On `http://<ip>` (no clipboard API) the fallback copied nothing inside a dialog (for example "Token created") but still showed "copied": its hidden textarea was added to the page body, outside the dialog's focus trap, so the selection was lost. It now lives inside the open dialog, the result is only trusted when the text was really selected, and focus goes back to the button. When copying still fails the text is selected in place with a warning ("press Ctrl+C") instead of a success toast. Used by the API token dialog (token and CLI login command), connection and admin credentials, the registry credentials and every `CopyButton`; the other copy buttons keep their error toast.
+
 ### UI UX Improvement
 
+- Docker page: the new "Open ports" tab, with an amber banner above a table (port, reachable from, container, owner badge, link), at 375 px the table scrolls inside its box.
+- "Listens on" select under the host port fields (full width under the input; compact 224 px wide inside the inline stack and template editors, without the help line).
+
+- Registry dialogs ("Registry ready", "Password reset"): the label column is wide enough that "Nama pengguna" and "From other machines" stay on one line at 360-375 px while values still truncate; the Indonesian registry texts say "Password" everywhere (the ready dialog and the token field said "Kata sandi").
+- Database page: the Resource limits card no longer stretches to the height of the taller Resource alerts card (no empty bordered space under its content).
+- New application, new compose stack and new database cards: removed the extra top padding, so top and bottom inner padding are equal (16 px both; was 40 px top, 16 px bottom).
 - Registry card rows (address, other machines, password) and the local-only / exposed notices; schedule forms gain one muted line under the frequency field.
 - Registry page: the external-registry image prefix hint and the empty-images hint showed `&lt;`/`&gt;` literally (rich text does not decode HTML entities); they now render `<` and `>` through ICU quoting, in English and Indonesian.
 

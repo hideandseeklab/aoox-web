@@ -1,5 +1,7 @@
 "use client"
 
+import { HostPortBindField } from "@/components/custom/host-port-bind-field"
+import type { HostPortBind } from "@/lib/host-port-bind"
 import { PathArrow } from "@/components/custom/arrows"
 import { ExternalLink, Plus, Trash2, Network, Globe } from "lucide-react"
 import { useTranslations } from "next-intl"
@@ -65,6 +67,7 @@ export function ComposeAccess({
   const [host, setHost] = useState("")
   const [https, setHttps] = useState(false)
   const [hostPort, setHostPort] = useState("")
+  const [hostBind, setHostBind] = useState<HostPortBind>("public")
   const [error, setError] = useState<string | null>(null)
   const [pending, start] = useTransition()
   const browserHost = useBrowserHost()
@@ -111,7 +114,10 @@ export function ComposeAccess({
     } else {
       const hp = Number(hostPort)
       if (!hp) return
-      savePorts([...ports, { service: service.trim(), port: p, hostPort: hp }])
+      savePorts([
+        ...ports,
+        { service: service.trim(), port: p, hostPort: hp, bind: hostBind },
+      ])
     }
   }
 
@@ -191,7 +197,11 @@ export function ComposeAccess({
                 className="flex items-center gap-3 px-3 py-2"
               >
                 <span className="min-w-0 flex-1">
-                  {browserHost ? (
+                  {p.bind === "loopback" ? (
+                    <span className="font-mono font-medium">
+                      127.0.0.1:{p.hostPort}
+                    </span>
+                  ) : browserHost ? (
                     <a
                       href={`http://${browserHost}:${p.hostPort}`}
                       target="_blank"
@@ -208,7 +218,11 @@ export function ComposeAccess({
                     {p.service}:{p.port}
                   </span>
                 </span>
-                <Badge variant="secondary">{t("access.ipPort")}</Badge>
+                <Badge variant="secondary">
+                  {p.bind === "loopback"
+                    ? tc("hostPortBind.shortLoopback")
+                    : t("access.ipPort")}
+                </Badge>
                 {canEdit && (
                 <Button
                   variant="ghost"
@@ -313,6 +327,15 @@ export function ComposeAccess({
                 placeholder="8080"
               />
             </div>
+          )}
+          {mode === "port" && (
+            <HostPortBindField
+              id="cd-host-port-bind"
+              value={hostBind}
+              onValueChange={setHostBind}
+              hideHelp
+              className="w-56"
+            />
           )}
           <Button type="submit" variant="outline" disabled={pending}>
             <Plus data-icon="inline-start" />

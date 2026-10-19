@@ -77,8 +77,8 @@ export function ComposeAccessHint({
     ...ports.map((p) => ({
       key: `p:${p.service}:${p.hostPort}`,
       service: p.service,
-      label: `${hostLabel}:${p.hostPort}`,
-      url: `http://${browserHost ?? "localhost"}:${p.hostPort}`,
+      label: `${p.bind === "loopback" ? "127.0.0.1" : hostLabel}:${p.hostPort}`,
+      url: `http://${p.bind === "loopback" ? "127.0.0.1" : (browserHost ?? "localhost")}:${p.hostPort}`,
       needsProxy: false,
     })),
   ]

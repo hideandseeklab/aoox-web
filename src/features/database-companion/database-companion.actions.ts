@@ -38,7 +38,11 @@ export async function installCompanionAction(
   const body =
     v.access === "domain"
       ? { tool: v.tool, host: v.host.toLowerCase(), https: v.https }
-      : { tool: v.tool, hostPort: Number(v.hostPort) }
+      : {
+          tool: v.tool,
+          hostPort: Number(v.hostPort),
+          hostPortBind: v.hostPortBind,
+        }
   try {
     const data = await api<DatabaseCompanion>(
       `/databases/${databaseId}/companion`,

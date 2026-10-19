@@ -5,6 +5,7 @@ import type {
   DockerImage,
   DockerNetwork,
   DockerVolume,
+  OpenPort,
 } from "./docker.entity"
 
 /** `serverId` null = the aoox host; owner/admin only (the page gates on it). */
@@ -32,6 +33,14 @@ export async function getDockerVolumes(
   serverId: string | null
 ): Promise<DockerVolume[]> {
   return api<DockerVolume[]>(path("volumes", serverId), {
+    token: await requireToken(),
+  })
+}
+
+export async function getDockerOpenPorts(
+  serverId: string | null
+): Promise<OpenPort[]> {
+  return api<OpenPort[]>(path("open-ports", serverId), {
     token: await requireToken(),
   })
 }

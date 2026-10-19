@@ -185,7 +185,7 @@ export function ApplicationInstanceCard({
             url: "",
           },
         ]
-      : [portTarget(browserHost, app.hostPort)]
+      : [portTarget(browserHost, app.hostPort, undefined, app.hostPortBind)]
   }
   return (
     <InstanceCardShell
@@ -225,7 +225,7 @@ export function ComposeInstanceCard({
       domainTarget(d.host, d.https, proxy, d.service)
     ),
     ...stack.servicePorts.map((p) =>
-      portTarget(browserHost, p.hostPort, p.service)
+      portTarget(browserHost, p.hostPort, p.service, p.bind)
     ),
   ]
   return (
@@ -262,7 +262,9 @@ export function ComposeInstanceCard({
 export function DatabaseInstanceCard({ db }: { db: ManagedDatabase }) {
   const t = useTranslations("projects")
   const browserHost = useBrowserHost()
-  const address = db.hostPort ? `${browserHost ?? ""}:${db.hostPort}` : null
+  const address = db.hostPort
+    ? `${db.hostPortBind === "loopback" ? "127.0.0.1" : (browserHost ?? "")}:${db.hostPort}`
+    : null
   async function copy() {
     if (!address) return
     const ok = await copyToClipboard(address)

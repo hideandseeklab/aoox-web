@@ -41,8 +41,18 @@ export function domainTarget(
 export function portTarget(
   browserHost: string | null,
   hostPort: number,
-  service?: string
+  service?: string,
+  bind?: "public" | "loopback" | null
 ): AccessTarget {
+  // Bound to 127.0.0.1: only the server itself (or an SSH tunnel) can open it.
+  if (bind === "loopback") {
+    return {
+      key: `p:${service ?? ""}:${hostPort}`,
+      label: `127.0.0.1:${hostPort}`,
+      service,
+      url: `http://127.0.0.1:${hostPort}`,
+    }
+  }
   return {
     key: `p:${service ?? ""}:${hostPort}`,
     label: `${browserHost ?? "<ip-server>"}:${hostPort}`,

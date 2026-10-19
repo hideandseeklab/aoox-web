@@ -78,11 +78,28 @@ export interface DockerNetwork {
   managed: boolean
 }
 
+/** One published host port (mirrors OpenPortDto in aoox-api). */
+export interface OpenPort {
+  port: number
+  protocol: string
+  containerPort: number
+  addresses: string[]
+  /** public = every interface, loopback = 127.0.0.1 only, address = one other IP. */
+  exposure: "public" | "loopback" | "address"
+  /** Anything but loopback: ufw does not filter it, the provider firewall must. */
+  openToInternet: boolean
+  containerId: string
+  containerName: string
+  image: string
+  managed: ManagedInfo | null
+}
+
 export const DOCKER_TABS = [
   "containers",
   "images",
   "volumes",
   "networks",
+  "ports",
 ] as const
 export type DockerTab = (typeof DOCKER_TABS)[number]
 

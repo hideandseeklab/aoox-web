@@ -36,7 +36,7 @@
       "title": "Registry siap",
       "description": "Simpan password ini. Kamu bisa menampilkannya lagi dari kartu ini (Tampilkan password), atau meresetnya tanpa kehilangan image.",
       "address": "Alamat",
-      "password": "Kata sandi",
+      "password": "Password",
       "localhostNote": "Alamat <code>localhost</code> ini hanya berfungsi kalau perintah dijalankan langsung di server ini (mis. lewat terminal SSH) — bukan dari komputermu sendiri. Untuk bisa push/pull dari mana saja lewat HTTPS, set <b>Domain kustom</b> di kartu ini setelah menutup dialog. Password bisa ditampilkan lagi nanti lewat <b>Tampilkan password</b>.",
       "saved": "Sudah saya simpan",
       "copyLabel": "Salin {label}",
@@ -115,7 +115,7 @@
     "dialog": {
       "title": "Registry eksternal",
       "description": "Untuk Docker Hub isi URL <code>docker.io</code>; GHCR <code>ghcr.io</code>; GitLab <code>registry.gitlab.com</code>.",
-      "passwordToken": "Kata sandi / token",
+      "passwordToken": "Password / token",
       "imagePrefix": "Awalan image",
       "prefixHint": "Opsional; image akan di-push sebagai <code>'<'url'>'/'<'prefix'>'/'<'app'>'</code>.",
       "saving": "Menyimpan…",

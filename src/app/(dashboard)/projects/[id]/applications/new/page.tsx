@@ -63,7 +63,7 @@ export default async function NewApplicationPage({
       </div>
 
       <Card className="max-w-3xl">
-        <CardContent className="pt-6">
+        <CardContent>
           <CreateApplicationPageForm
             projectId={project.id}
             credentials={credentials}

@@ -1,5 +1,7 @@
 "use client"
 
+import { HostPortBindField } from "@/components/custom/host-port-bind-field"
+import type { HostPortBind } from "@/lib/host-port-bind"
 import {
   Copy,
   ExternalLink,
@@ -46,7 +48,7 @@ import type {
 } from "@/features/database-companion/database-companion.entity"
 import { createCompanionSchema } from "@/features/database-companion/database-companion.schema"
 import type { ManagedDatabaseDetail } from "@/features/managed-database/managed-database.entity"
-import { copyToClipboard } from "@/lib/clipboard"
+import { copyOrSelect } from "@/lib/clipboard"
 import { cn } from "@/lib/utils"
 
 export function DatabaseCompanionCard({
@@ -195,6 +197,11 @@ export function DatabaseCompanionCard({
                 </a>
               </div>
             )}
+            {companion.loopbackOnly && (
+              <p className="text-muted-foreground">
+                {t("companion.loopbackOnly", { port: companion.hostPort ?? 0 })}
+              </p>
+            )}
             {canManage && (
               <div className="space-y-2">
                 {tool?.usesDatabaseLogin ? (
@@ -291,6 +298,7 @@ function CredRow({
   value: string | null
 }) {
   const t = useTranslations("database")
+  const tc = useTranslations("common")
   return (
     <div className="flex items-center gap-2">
       <span className="w-20 shrink-0 text-muted-foreground">{label}</span>
@@ -302,13 +310,16 @@ function CredRow({
           variant="ghost"
           size="icon-sm"
           aria-label={t("companion.credentials.copyAria", { label })}
-          onClick={() =>
-            void copyToClipboard(value).then((ok) =>
-              ok
-                ? toast.success(t(`companion.credentials.copied.${kind}`))
-                : toast.error(t(`companion.credentials.copyFailed.${kind}`))
-            )
-          }
+          onClick={(e) => {
+            const button = e.currentTarget
+            void copyOrSelect(value, button).then((result) => {
+              if (result === "copied")
+                toast.success(t(`companion.credentials.copied.${kind}`))
+              else if (result === "selected")
+                toast.warning(tc("copyManual"))
+              else toast.error(t(`companion.credentials.copyFailed.${kind}`))
+            })
+          }}
         >
           <Copy />
         </Button>
@@ -341,6 +352,7 @@ function InstallDialog({
   const [host, setHost] = useState("")
   const [https, setHttps] = useState(true)
   const [hostPort, setHostPort] = useState("")
+  const [hostPortBind, setHostPortBind] = useState<HostPortBind>("loopback")
   const [errors, setErrors] = useState<Record<string, string>>({})
 
   const submit = (e: React.FormEvent) => {
@@ -351,6 +363,7 @@ function InstallDialog({
       host,
       https,
       hostPort,
+      hostPortBind,
     })
     if (!parsed.success) {
       const next: Record<string, string> = {}
@@ -482,6 +495,11 @@ function InstallDialog({
                   {errors.hostPort}
                 </p>
               )}
+              <HostPortBindField
+                id="companion-port-bind"
+                value={hostPortBind}
+                onValueChange={setHostPortBind}
+              />
             </div>
           )}
 

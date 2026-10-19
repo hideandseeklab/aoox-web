@@ -1,5 +1,7 @@
 "use client"
 
+import { HostPortBindField } from "@/components/custom/host-port-bind-field"
+import type { HostPortBind } from "@/lib/host-port-bind"
 import { PathArrow } from "@/components/custom/arrows"
 import { Loader2, Rocket } from "lucide-react"
 import { useTranslations } from "next-intl"
@@ -65,6 +67,7 @@ export function DeployTemplateDialog({
   const [hosts, setHosts] = useState<Record<string, string>>({})
   const [https, setHttps] = useState<Record<string, boolean>>({})
   const [hostPorts, setHostPorts] = useState<Record<string, string>>({})
+  const [hostBinds, setHostBinds] = useState<Record<string, HostPortBind>>({})
   const [values, setValues] = useState<Record<string, string>>({})
   // Optional set environment to link (per project; reset when the project changes).
   const [linkEnv, setLinkEnv] = useState("")
@@ -91,6 +94,7 @@ export function DeployTemplateDialog({
           service: s.service,
           port: s.port,
           hostPort: Number(hostPorts[key(s)]),
+          bind: hostBinds[key(s)] ?? ("public" as const),
         }))
       const r = await deployTemplateAction({
         projectId,
@@ -243,6 +247,17 @@ export function DeployTemplateDialog({
                         className="w-24"
                       />
                     </div>
+                    {Number(hostPorts[key(s)]) > 0 && (
+                      <HostPortBindField
+                        id={`tpl-port-bind-${key(s)}`}
+                        value={hostBinds[key(s)] ?? "public"}
+                        onValueChange={(b) =>
+                          setHostBinds((h) => ({ ...h, [key(s)]: b }))
+                        }
+                        hideHelp
+                        className="w-56"
+                      />
+                    )}
                   </div>
                 ))}
               </fieldset>

@@ -47,6 +47,7 @@ type Field =
   | "gitCredentialId"
   | "containerPort"
   | "hostPort"
+  | "hostPortBind"
   | "healthcheckPath"
   | "cpuMillicores"
   | "memoryMb"
@@ -99,6 +100,7 @@ function readForm(formData: FormData): Record<Field, string> {
       get("gitCredentialId") === "none" ? "" : get("gitCredentialId"),
     containerPort: get("containerPort"),
     hostPort: get("hostPort"),
+    hostPortBind: get("hostPortBind") || "public",
     healthcheckPath: get("healthcheckPath"),
     cpuMillicores: get("cpuMillicores"),
     memoryMb: get("memoryMb"),

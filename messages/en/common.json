@@ -86,7 +86,8 @@
   "copyButton": {
     "label": "Copy {label}",
     "copied": "{label} copied",
-    "failed": "Could not copy {label}"
+    "failed": "Could not copy {label}",
+    "manual": "Could not copy {label} automatically. It is selected: press Ctrl+C to copy it."
   },
   "envEditor": {
     "rows": "Rows",
@@ -132,5 +133,15 @@
     "storedNotePerHour": "Stored history: average per hour ({count} points). Large values = at that time, not now.",
     "sparklineLabel": "1 hour history, latest {value}"
   },
-  "scheduleTimeZone": "Times are in {zone} (server time zone)."
+  "scheduleTimeZone": "Times are in {zone} (server time zone).",
+  "hostPortBind": {
+    "label": "Listens on",
+    "public": "Public (all interfaces)",
+    "loopback": "This server only (127.0.0.1)",
+    "publicHelp": "Anyone who can reach this server can connect. ufw does not filter Docker ports; only your provider firewall does.",
+    "loopbackHelp": "Only this server itself can connect (for example through an SSH tunnel). Nothing is exposed to the internet.",
+    "serviceModeNote": "Swarm services always publish on every interface.",
+    "shortLoopback": "this server only"
+  },
+  "copyManual": "Could not copy automatically. The text is selected: press Ctrl+C to copy it."
 }

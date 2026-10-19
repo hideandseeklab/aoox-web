@@ -43,7 +43,7 @@
       "plain": "Polos"
     },
     "imageTagHint": "Kosongkan untuk memakai <image></image>.",
-    "hostPortHint": "Publikasikan port host hanya kalau perlu diakses dari luar (mis. dari laptop kamu).",
+    "hostPortHint": "Publikasikan port host hanya jika database harus bisa diakses dari luar (mis. dari laptop Anda). Pilih di bawah siapa yang boleh terhubung.",
     "toast": {
       "created": "Database \"{name}\" dibuat — sedang disiapkan (pull image bisa beberapa menit).",
       "checkForm": "Periksa isian form",
@@ -67,7 +67,8 @@
       "title": "Koneksi eksternal",
       "published": "Dipublikasikan di port host {port}.",
       "notPublished": "Tidak dipublikasikan — hanya bisa diakses dari network aoox.",
-      "recreateHint": "Buat ulang database dengan port host bila perlu akses dari luar."
+      "recreateHint": "Buat ulang database dengan port host bila perlu akses dari luar.",
+      "publishedLoopback": "Dipublikasikan di 127.0.0.1:{port}: hanya server ini sendiri yang bisa terhubung (misalnya lewat SSH tunnel: ssh -L {port}:127.0.0.1:{port} user@server)."
     },
     "fields": {
       "database": "Database",
@@ -240,7 +241,8 @@
       "portRequired": "Port host wajib diisi",
       "portRange": "Port harus 1 sampai 65535",
       "invalidInput": "Input tidak valid"
-    }
+    },
+    "loopbackOnly": "Aplikasi admin hanya mendengarkan di 127.0.0.1:{port} server. Buka lewat SSH tunnel (ssh -L {port}:127.0.0.1:{port} user@server) atau tambahkan domain."
   },
   "browser": {
     "notRunning": "Database harus berjalan untuk menjelajahi data.",

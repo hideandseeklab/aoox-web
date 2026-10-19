@@ -65,6 +65,7 @@ export default async function DatabasePage({
   const { id } = await params
   const t = await getTranslations("database")
   const tb = await getTranslations("breadcrumb")
+  const tc = await getTranslations("common")
   const db = await getDatabase(id)
   if (!db) notFound()
   const running = db.container?.state === "running"
@@ -160,6 +161,11 @@ export default async function DatabasePage({
           db.hostPort && (
             <HeaderFact key="p" label={t("page.port")}>
               <span className="font-mono">{db.hostPort}</span>
+              {db.hostPortBind === "loopback" && (
+                <span className="ms-1 text-muted-foreground">
+                  · {tc("hostPortBind.shortLoopback")}
+                </span>
+              )}
             </HeaderFact>
           ),
         ]}
@@ -207,7 +213,9 @@ export default async function DatabasePage({
             tools={companionTools}
             running={running}
           />
-          <div className={cn("grid gap-4", alerts && "lg:grid-cols-2")}>
+          <div
+            className={cn("grid items-start gap-4", alerts && "lg:grid-cols-2")}
+          >
             <DatabaseResources db={db} />
             {alerts && (
               <ResourceAlertsCard

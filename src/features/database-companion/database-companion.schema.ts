@@ -13,6 +13,8 @@ export const createCompanionSchema = (t: Translator) =>
     host: z.string().trim(),
     https: z.boolean(),
     hostPort: z.string().trim(),
+    // The admin UI holds full database access: closed to the internet by default.
+    hostPortBind: z.enum(["public", "loopback"]).default("loopback"),
   })
   .superRefine((v, ctx) => {
     if (v.access === "domain") {

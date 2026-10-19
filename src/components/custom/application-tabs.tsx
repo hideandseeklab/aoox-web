@@ -383,6 +383,7 @@ export function ApplicationTabs({
                 gitCredentialId: app.gitCredentialId ?? "",
                 containerPort: String(app.containerPort),
                 hostPort: app.hostPort ? String(app.hostPort) : "",
+                hostPortBind: app.hostPortBind ?? "public",
                 healthcheckPath: app.healthcheckPath ?? "",
                 cpuMillicores: app.cpuMillicores
                   ? String(app.cpuMillicores)

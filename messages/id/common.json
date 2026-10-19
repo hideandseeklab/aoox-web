@@ -86,7 +86,8 @@
   "copyButton": {
     "label": "Salin {label}",
     "copied": "{label} disalin",
-    "failed": "Gagal menyalin {label}"
+    "failed": "Gagal menyalin {label}",
+    "manual": "{label} tidak bisa disalin otomatis. Teks sudah dipilih: tekan Ctrl+C untuk menyalinnya."
   },
   "envEditor": {
     "rows": "Baris",
@@ -132,5 +133,15 @@
     "storedNotePerHour": "Riwayat tersimpan: rata-rata per jam ({count} titik). Nilai besar = saat itu, bukan sekarang.",
     "sparklineLabel": "Riwayat 1 jam, terakhir {value}"
   },
-  "scheduleTimeZone": "Waktu memakai {zone} (zona waktu server)."
+  "scheduleTimeZone": "Waktu memakai {zone} (zona waktu server).",
+  "hostPortBind": {
+    "label": "Mendengarkan di",
+    "public": "Publik (semua interface)",
+    "loopback": "Hanya server ini (127.0.0.1)",
+    "publicHelp": "Siapa pun yang bisa menjangkau server ini bisa terhubung. ufw tidak menyaring port Docker; hanya firewall penyedia hosting yang menyaringnya.",
+    "loopbackHelp": "Hanya server ini sendiri yang bisa terhubung (misalnya lewat SSH tunnel). Tidak ada yang terbuka ke internet.",
+    "serviceModeNote": "Service Swarm selalu dipublikasikan di semua interface.",
+    "shortLoopback": "hanya server ini"
+  },
+  "copyManual": "Tidak bisa menyalin otomatis. Teks sudah dipilih: tekan Ctrl+C untuk menyalinnya."
 }

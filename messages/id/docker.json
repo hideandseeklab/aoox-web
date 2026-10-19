@@ -106,13 +106,15 @@
       "containers": "Container",
       "images": "Image",
       "volumes": "Volume",
-      "networks": "Jaringan"
+      "networks": "Jaringan",
+      "ports": "Port terbuka"
     },
     "search": {
       "containers": "Cari nama, image, atau id",
       "images": "Cari tag, id, atau container",
       "volumes": "Cari nama volume atau container",
-      "networks": "Cari nama network atau container"
+      "networks": "Cari nama network atau container",
+      "ports": "Cari port, container, atau pemilik"
     }
   },
   "page": {
@@ -163,6 +165,28 @@
       "title": "Hapus container sisa ini?",
       "description": "{name} milik project atau aplikasi yang sudah tidak ada. Container dihentikan lalu dihapus; volume datanya tetap ada (lihat volume yatim).",
       "confirm": "Hapus"
-    }
+    },
+    "orphanComposeVolumes": "{count} volume tertinggal dari stack yang sudah dihapus (dideklarasikan di dalam file compose). aoox tidak pernah menghapusnya: pastikan datanya tidak dibutuhkan, lalu hapus satu per satu secara manual di host.",
+    "copyCommandAria": "Salin perintah hapus untuk {name}",
+    "commandCopied": "Perintah disalin",
+    "commandCopyFailed": "Perintah tidak bisa disalin"
+  },
+  "ports": {
+    "infoTitle": "ufw tidak menyaring port Docker",
+    "info": "Port yang dipublikasikan Docker di semua interface bisa diakses dari internet meskipun ufw menolaknya: Docker menambahkan aturan firewall sendiri yang tidak dikelola ufw.",
+    "infoFix": "Blokir di firewall penyedia hosting Anda (security group), atau ubah port itu menjadi \"Hanya server ini\" di resource-nya agar mendengarkan di 127.0.0.1.",
+    "summary": "{open, plural, other {# port terpublikasi terbuka}} ke internet; {closed} hanya di server ini.",
+    "empty": "Belum ada port yang dipublikasikan di server ini.",
+    "noMatch": "Tidak ada port yang cocok.",
+    "port": "Port",
+    "reachableFrom": "Bisa diakses dari",
+    "container": "Container",
+    "notManaged": "tidak dikelola aoox",
+    "exposure": {
+      "public": "Internet (semua interface)",
+      "loopback": "Hanya server ini",
+      "address": "Jaringan {address}"
+    },
+    "note": "Port milik container di jaringan host dan port yang tidak dipublikasikan tidak muncul di sini. Tanda panah menunjukkan port di dalam container."
   }
 }

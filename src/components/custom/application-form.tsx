@@ -1,5 +1,7 @@
 "use client"
 
+import { HostPortBindField } from "@/components/custom/host-port-bind-field"
+import { normalizeBind } from "@/lib/host-port-bind"
 import { PathArrow } from "@/components/custom/arrows"
 import { Check, Container, GitBranch, Loader2 } from "lucide-react"
 import { useTranslations } from "next-intl"
@@ -78,6 +80,7 @@ const EMPTY: Values = {
   gitCredentialId: "",
   containerPort: "3000",
   hostPort: "",
+  hostPortBind: "public",
   healthcheckPath: "",
   cpuMillicores: "",
   memoryMb: "",
@@ -205,6 +208,7 @@ export function ApplicationForm({
   const portTouched = useRef(false)
   const [sourceType, setSourceType] = useState(v.sourceType)
   const [deployMode, setDeployMode] = useState(v.deployMode)
+  const [hostBind, setHostBind] = useState(normalizeBind(v.hostPortBind))
   const [imageRef, setImageRef] = useState(v.imageRef)
   const [imageRegistryId, setImageRegistryId] = useState(
     v.imageRegistryId || "public"
@@ -298,7 +302,13 @@ export function ApplicationForm({
     const next = String(
       new FormData(e.currentTarget).get("hostPort") ?? ""
     ).trim()
-    const changed = next !== (defaultValues?.hostPort ?? "")
+    const nextBind = String(
+      new FormData(e.currentTarget).get("hostPortBind") ?? "public"
+    )
+    // A new bind address is applied exactly like a new host port, but only while a port is published.
+    const changed =
+      next !== (defaultValues?.hostPort ?? "") ||
+      (next !== "" && nextBind !== (defaultValues?.hostPortBind ?? "public"))
     const message =
       !changed || hostPortApply === "next-deploy" || !hostPortApply
         ? t("form.toast.saved")
@@ -785,6 +795,17 @@ export function ApplicationForm({
                         )}
                       </Field>
                     )}
+                    {mode === "edit" && (
+                      <Field>
+                        <HostPortBindField
+                          id="app-hport-bind"
+                          name="hostPortBind"
+                          value={deployMode === "service" ? "public" : hostBind}
+                          onValueChange={setHostBind}
+                          disableLoopback={deployMode === "service"}
+                        />
+                      </Field>
+                    )}
                   </div>
 
                   {mode === "create" && (
@@ -856,6 +877,13 @@ export function ApplicationForm({
                               {state.error}
                             </p>
                           )}
+                          <HostPortBindField
+                            id="app-hport-bind"
+                            name="hostPortBind"
+                            value={deployMode === "service" ? "public" : hostBind}
+                            onValueChange={setHostBind}
+                            disableLoopback={deployMode === "service"}
+                          />
                         </div>
                       )}
                       {access === "domain" && (
