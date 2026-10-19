@@ -60,6 +60,7 @@ type Field =
   | "imageRef"
   | "imageRegistryId"
   | "autoUpdate"
+  | "autoUpdateFollowTags"
   | "autoUpdateIntervalMinutes"
   | "deployMode"
   | "replicas"
@@ -114,6 +115,8 @@ function readForm(formData: FormData): Record<Field, string> {
     imageRegistryId:
       get("imageRegistryId") === "public" ? "" : get("imageRegistryId"),
     autoUpdate: formData.get("autoUpdate") === "on" ? "on" : "",
+    autoUpdateFollowTags:
+      formData.get("autoUpdateFollowTags") === "on" ? "on" : "",
     autoUpdateIntervalMinutes: get("autoUpdateIntervalMinutes") || "60",
     deployMode: get("deployMode") || "container",
     replicas: get("replicas") || "1",
@@ -154,6 +157,7 @@ async function parse(values: Record<Field, string>) {
     staticSpa: values.staticSpa === "on",
     watchRootOnly: values.watchRootOnly === "on",
     autoUpdate: values.autoUpdate === "on",
+    autoUpdateFollowTags: values.autoUpdateFollowTags === "on",
     ignoreErrorLogs: values.ignoreErrorLogs === "on",
   })
   if (parsed.success) return { data: parsed.data, fieldErrors: undefined }
@@ -313,6 +317,33 @@ export async function checkImageUpdateAction(
       `/applications/${id}/check-image`,
       { method: "POST", body: { deploy }, token: await requireToken() }
     )
+    revalidatePath(`/applications/${id}`)
+    return { ok: true, data }
+  } catch (err) {
+    return await fail(err)
+  }
+}
+
+/**
+ * "Switch and deploy" from the image check: saves only the new image reference
+ * (PATCH `{ imageRef }`, validated and audited like any settings change) and
+ * queues a deployment of it.
+ */
+export async function switchImageTagAction(
+  id: string,
+  imageRef: string
+): Promise<ActionResult<DeploymentSummary>> {
+  try {
+    const token = await requireToken()
+    await api<Application>(`/applications/${id}`, {
+      method: "PATCH",
+      body: { imageRef },
+      token,
+    })
+    const data = await api<DeploymentSummary>(`/applications/${id}/deploy`, {
+      method: "POST",
+      token,
+    })
     revalidatePath(`/applications/${id}`)
     return { ok: true, data }
   } catch (err) {

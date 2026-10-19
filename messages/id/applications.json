@@ -41,7 +41,9 @@
       "autoUpdateSwitch": "Deploy ulang saat digest tag berubah di registry",
       "checkEvery": "cek tiap <input></input> menit",
       "intervalAria": "Interval cek (menit)",
-      "autoUpdateHelp": "Seperti Watchtower: digest manifest dibandingkan lewat registry API (Docker Hub, GHCR, registry lokal), tanpa pull. Tag yang dipin digest (<code>@sha256:…</code>) tidak pernah berubah."
+      "autoUpdateHelp": "Seperti Watchtower: digest manifest dibandingkan lewat registry API (Docker Hub, GHCR, registry lokal), tanpa pull. Tag yang dipin digest (<code>@sha256:…</code>) tidak pernah berubah.",
+      "followTagsSwitch": "Ikuti juga tag versi yang lebih baru",
+      "followTagsHelp": "Kalau tag-nya berupa versi (<code>1.4.2</code>, <code>v1.4.2</code>, <code>0.1.0-alpha.2</code>), tag di registry didaftar setiap pengecekan dan aplikasi pindah ke tag kompatibel terbaru, lalu deploy ulang. Tidak pernah melompati versi mayor, dan selama mayornya <code>0</code> juga tidak melompati minor (<code>0.1.x</code> tetap di <code>0.1.x</code>, <code>0.2.0</code> dianggap perubahan yang merusak). Tag stabil tidak pernah pindah ke pre-release; pre-release juga pindah ke rilis stabil. Tag yang gagal di-deploy tidak dicoba lagi. Tag seperti <code>latest</code> atau <code>1.27-alpine</code> bukan versi dan hanya dicek digest-nya seperti di atas."
     },
     "git": {
       "title": "Repository git",
@@ -258,7 +260,8 @@
       "webhookDetail": "Webhook — {detail}",
       "autoUpdate": "Update otomatis (image berubah)",
       "manual": "Manual",
-      "manualBy": "Manual oleh {name}"
+      "manualBy": "Manual oleh {name}",
+      "autoUpdateTag": "Update otomatis — tag baru {to} (sebelumnya {from})"
     },
     "proxyWarning": {
       "title": "Reverse proxy belum aktif — sudah dinyalakan otomatis",
@@ -281,11 +284,19 @@
     },
     "image": {
       "check": "Cek update image",
-      "pinned": "Referensi memakai digest tetap — tidak ada yang berubah.",
-      "baseline": "Digest dicatat ({digest}); belum ada pembanding.",
-      "changedStarted": "Image berubah ({digest}) — deploy dimulai.",
-      "changedBusy": "Image berubah ({digest}) — deployment lain sedang berjalan.",
-      "upToDate": "Sudah yang terbaru ({digest})."
+      "pinned": "Referensi dipin ke digest tetap, jadi tidak bisa berubah.",
+      "baseline": "Tag {tag}: digest dicatat ({digest}); belum ada pembanding.",
+      "changedStarted": "Tag {tag} diperbarui di registry (digest {digest}) — deploy dimulai.",
+      "changedBusy": "Tag {tag} diperbarui di registry (digest {digest}) — deployment lain sedang berjalan.",
+      "upToDate": "Tag {tag} tidak berubah (digest {digest}). Hanya tag ini yang dibandingkan.",
+      "tagError": "Gagal mencari tag versi yang lebih baru: {error}",
+      "newer": {
+        "title": "Ada versi yang lebih baru: <code>{tag}</code>",
+        "body": "Aplikasi ini memakai {current}. Pengecekan hanya membandingkan tag yang sama, jadi versi yang lebih baru ditawarkan terpisah.",
+        "switch": "Ganti dan deploy",
+        "confirmTitle": "Ganti ke {tag} dan deploy?",
+        "confirmBody": "Image berubah dari tag {current} ke {ref} (tersimpan di pengaturan aplikasi) dan deployment langsung dimulai. Bisa di-rollback dari riwayat."
+      }
     },
     "logs": {
       "follow": "Log container (live)",

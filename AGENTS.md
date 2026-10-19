@@ -149,7 +149,7 @@ Read `AGENTS.md` — this version of Next.js has breaking changes; check `node_m
 - **Navigation labels** live in the `nav` namespace; `src/components/custom/nav-items.ts` holds only keys (`key: "dockerSwarm"`), so the sidebar and the command palette stay in sync.
 - **Dates, times, numbers**: never call `toLocaleString("id-ID")` or similar. Use `src/i18n/format.ts` (`formatDateTime`, `formatDate`, `formatTime`, `formatNumber`, `formatRelative`),
   passing `useLocale()` (client) or `await getLocale()` (server). These are pure functions, usable in module-level helpers that take `locale` as a parameter.
-- Tooling note: `next-intl`'s plugin loads `@swc/core` when `next.config.ts` is read. On Windows, a restricted-token shell can make its native cache check fail
+- **Local dev in a sandbox (Windows)**: `next-intl`'s plugin loads `@swc/core` when `next.config.ts` is read, and in a sandboxed agent shell `next dev` dies with `ERR_SWC_NATIVE_CACHE`: the native addon refuses a cache root whose parent folder grants write access to the sandbox's app-container SID, and `%LOCALAPPDATA%` (its default) does. Fix: point `SWC_NATIVE_BINDING_CACHE` at a **short** directory directly under the user profile (a long base path overflows MAX_PATH) and pre-create `swc-native-<your SID>1` inside it (`whoami /user` prints the SID; from Git Bash call `whoami.exe`, the GNU `whoami` has no `/user`). `npm run dev:sandbox -- -p 3151` (`scripts/dev-sandbox.mjs`) does exactly that with `~/.swc-cache` and starts `next dev` (other platforms, or an already set `SWC_NATIVE_BINDING_CACHE`: plain `next dev`). Normal shells are not affected. Remove any cache directory you create just for a test.
   (`ERR_SWC_NATIVE_CACHE`); setting `SWC_NATIVE_BINDING_CACHE` to a directory under the user profile with a clean ACL (for example `C:\Users\<you>\.swc-cache`) fixes it. Normal shells are not affected.
 
 ## Shared UI components (status, logo, empty state, log, charts)
@@ -392,7 +392,7 @@ Read `AGENTS.md` — this version of Next.js has breaking changes; check `node_m
 
 - Application form (image section): the `autoUpdate` switch + interval in minutes (`autoUpdateIntervalMinutes`, zod 5–1440); `application-deploy-panel.tsx` has the **Check image update** button
   (`checkImageUpdateAction(id, deploy=true)` → `POST /applications/:id/check-image`) with a result message (baseline/latest/changed → pick the new deployment); the history marks
-  `kind === "auto-update"` with ⟳.
+  `kind === "auto-update"` with ⟳. The check result names the checked tag in every variant (`deploy.image.*`: baseline/changed/upToDate take `{tag}`; `pinned` has none) and appends `tagError` when listing tags failed. `ImageCheckResult.newerTag/newerImageRef` (needs the matching aoox-api) renders an Alert "A newer version is available" with **Switch and deploy** in a `ConfirmDialog` (neutral tone): `switchImageTagAction` = PATCH `{ imageRef }` then POST deploy, so it is validated and audited like Settings. It is part of the `canEdit && sourceType === "image"` block (viewers see neither the check button nor the hint), is kept in component state only (looked up on click, never on page load) and is dropped when `app.imageRef` changes. The image section has a second switch `autoUpdateFollowTags` (disabled while auto update is off, saved as "on"/"" like the other switches) whose help text states the major rule (0.x: never a minor either). Deployments whose `commitMessage` matches `to X (was Y)` render as "Automatic update — new tag X (was Y)".
 
 ## Open ports and host port bind address
 

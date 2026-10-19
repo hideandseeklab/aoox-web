@@ -10,6 +10,9 @@ Versions below 1.0.0 may include breaking changes in a minor release.
 
 ### Added
 
+- **Image update check names the tag and offers newer versions** (needs the matching aoox-api). "Check image update" says which tag was compared ("Tag 0.1.0-alpha.2 has not changed"), and when a newer version tag exists shows "A newer version is available: 0.1.0-alpha.3" with **Switch and deploy** (confirm dialog; saves the new image reference through the normal settings update and deploys). Developers and above only.
+- **Auto-follow newer version tags** (needs the matching aoox-api). New switch in the image section next to Auto update: also move to the newest compatible version tag and redeploy. It never crosses a major version, and for `0.x` never a minor (`0.1.x` stays on `0.1.x`); the help text says so. Off by default.
+- **`npm run dev:sandbox`**: starts `next dev` with the SWC native cache set up for sandboxed Windows shells (`ERR_SWC_NATIVE_CACHE`), see AGENTS.md "Local dev in a sandbox".
 - **Docker disk details: unused anonymous volumes** (needs the matching aoox-api). A new box shows the number and size of unused anonymous volumes on the host, with copyable `docker volume ls -qf dangling=true` and `docker volume prune` and a warning that prune affects every unused anonymous volume on the host, not only aoox's. Report only.
 
 - **Open ports tab on the Docker page** (needs the matching aoox-api). Lists every port the containers of the host (or a chosen remote server) publish, who owns it (application, database, admin app, stack, proxy, registry, panel, or "not managed by aoox") and who can reach it: "The internet (all interfaces)" or "This server only". A banner explains that ufw does not filter Docker ports and that the provider firewall (or binding the port to 127.0.0.1) is what closes them. Owner and admin, read only, with the same server picker and search as the other tabs.
@@ -39,6 +42,8 @@ Versions below 1.0.0 may include breaking changes in a minor release.
 
 ### UI UX Improvement
 
+- The image update check result and the "newer version" hint are shown in the Deployments header (Alert with a Switch and deploy button), laid out for 375 px, light and dark, English and Indonesian.
+- Database page: the error banner reads "Provisioning failed: …" (it said "Database creation failed" even when a mount change, a limit removal or a retry caused it), and the header badge follows the row status while it is `error` or `creating` instead of showing the container state; when the container is still running under an `error` row the banner adds a sentence saying so. Project cards and lists already used the row status.
 - Database page: when a database is in `error`, the error banner has a "Retry provisioning" button (developer and up, hidden for viewers) with a confirm dialog; the page polls until the status leaves `creating` (needs the matching aoox-api). English and Indonesian texts.
 - Mounts tabs (application, database, compose stack) on a phone: each mount is a stacked card with its path, source, type badges and actions (or "Hidden for viewers") instead of a table that scrolled sideways inside its card; from `sm` up the table is unchanged. Same approach as the Open ports tab.
 - Webhook tab for viewers: a card with the title and one muted sentence instead of the URL and secret; file mount rows for viewers show an eye-off icon with "Hidden for viewers" where the view button was; Docker disk details gain a dashed box with two copyable commands for the unused anonymous volumes.

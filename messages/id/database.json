@@ -56,7 +56,8 @@
     "description": "Host, port, user, dan password untuk aplikasi dan alat yang terhubung ke database ini.",
     "showPassword": "Tampilkan password",
     "hidePassword": "Sembunyikan password",
-    "createFailed": "Pembuatan database gagal: {error}",
+    "provisionFailed": "Provisioning gagal: {error}",
+    "containerStillRunning": "Container masih berjalan, tetapi provisioning belum selesai sehingga database mungkin belum utuh.",
     "retry": {
       "trigger": "Coba provisioning lagi",
       "title": "Coba provisioning {name} lagi?",

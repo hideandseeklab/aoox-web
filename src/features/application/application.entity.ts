@@ -25,6 +25,8 @@ export interface Application {
   imageRegistryId: string | null
   /** Image source: redeploy when the tag's digest changes in the registry. */
   autoUpdate: boolean
+  /** With autoUpdate: also move to the newest compatible version tag (same major; 0.x: same minor). */
+  autoUpdateFollowTags: boolean
   autoUpdateIntervalMinutes: number
   imageDigest: string | null
   imageCheckedAt: string | null
@@ -280,6 +282,16 @@ export interface WebhookInfo {
 
 /** `POST /applications/:id/check-image` — registry digest vs the deployed one. */
 export interface ImageCheckResult {
+  /** Tag of the image reference that was checked. */
+  tag: string
+  /** Newest higher version tag in the repository (null: none, not a semver tag, or lookup failed). */
+  newerTag: string | null
+  /** The image reference with `newerTag` in place of the current tag. */
+  newerImageRef: string | null
+  /** Short reason when listing tags failed; the digest check itself still ran. */
+  tagError: string | null
+  /** Set when the watcher moved the app to a newer tag (auto-follow; not on manual checks). */
+  switchedTo: string | null
   remoteDigest: string | null
   previousDigest: string | null
   changed: boolean

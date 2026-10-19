@@ -56,7 +56,8 @@
     "description": "Host, port, user and password for apps and tools that connect to this database.",
     "showPassword": "Show password",
     "hidePassword": "Hide password",
-    "createFailed": "Database creation failed: {error}",
+    "provisionFailed": "Provisioning failed: {error}",
+    "containerStillRunning": "The container is still running, but provisioning did not finish, so the database may be incomplete.",
     "retry": {
       "trigger": "Retry provisioning",
       "title": "Retry provisioning {name}?",

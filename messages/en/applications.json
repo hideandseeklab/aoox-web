@@ -41,7 +41,9 @@
       "autoUpdateSwitch": "Redeploy when the tag's digest changes in the registry",
       "checkEvery": "check every <input></input> minutes",
       "intervalAria": "Check interval (minutes)",
-      "autoUpdateHelp": "Like Watchtower: the manifest digest is compared through the registry API (Docker Hub, GHCR, local registry), without pulling. Tags pinned by digest (<code>@sha256:…</code>) never change."
+      "autoUpdateHelp": "Like Watchtower: the manifest digest is compared through the registry API (Docker Hub, GHCR, local registry), without pulling. Tags pinned by digest (<code>@sha256:…</code>) never change.",
+      "followTagsSwitch": "Also follow newer version tags",
+      "followTagsHelp": "When the tag is a version (<code>1.4.2</code>, <code>v1.4.2</code>, <code>0.1.0-alpha.2</code>), the registry's tags are listed on every check and the app moves to the newest compatible one, then redeploys. It never crosses a major version, and while the major is <code>0</code> never a minor one either (<code>0.1.x</code> stays on <code>0.1.x</code>, <code>0.2.0</code> is a breaking change). A stable tag never moves to a pre-release; a pre-release also moves to stable releases. A tag that failed to deploy is not tried again. Tags such as <code>latest</code> or <code>1.27-alpine</code> are not versions and only get the digest check above."
     },
     "git": {
       "title": "Git repository",
@@ -258,7 +260,8 @@
       "webhookDetail": "Webhook — {detail}",
       "autoUpdate": "Automatic update (image changed)",
       "manual": "Manual",
-      "manualBy": "Manual by {name}"
+      "manualBy": "Manual by {name}",
+      "autoUpdateTag": "Automatic update — new tag {to} (was {from})"
     },
     "proxyWarning": {
       "title": "Reverse proxy was not running — it has been started automatically",
@@ -281,11 +284,19 @@
     },
     "image": {
       "check": "Check image update",
-      "pinned": "The reference uses a fixed digest — nothing changed.",
-      "baseline": "Digest recorded ({digest}); nothing to compare yet.",
-      "changedStarted": "Image changed ({digest}) — deploy started.",
-      "changedBusy": "Image changed ({digest}) — another deployment is running.",
-      "upToDate": "Already up to date ({digest})."
+      "pinned": "The reference is pinned to a fixed digest, so it cannot change.",
+      "baseline": "Tag {tag}: digest recorded ({digest}); nothing to compare yet.",
+      "changedStarted": "Tag {tag} was updated in the registry (digest {digest}) — deploy started.",
+      "changedBusy": "Tag {tag} was updated in the registry (digest {digest}) — another deployment is running.",
+      "upToDate": "Tag {tag} has not changed (digest {digest}). Only this tag was compared.",
+      "tagError": "Could not look for newer version tags: {error}",
+      "newer": {
+        "title": "A newer version is available: <code>{tag}</code>",
+        "body": "This app runs {current}. Checking a tag only compares that same tag, so the newer version is offered separately.",
+        "switch": "Switch and deploy",
+        "confirmTitle": "Switch to {tag} and deploy?",
+        "confirmBody": "The image changes from tag {current} to {ref} (saved in the app settings) and a deployment starts right away. You can roll back from the history."
+      }
     },
     "logs": {
       "follow": "Container logs (live)",

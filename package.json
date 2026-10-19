@@ -26,6 +26,7 @@
   "scripts": {
     "postversion": "git push && git push --follow-tags",
     "dev": "next dev",
+    "dev:sandbox": "node scripts/dev-sandbox.mjs",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",

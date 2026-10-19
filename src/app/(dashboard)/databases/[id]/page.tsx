@@ -69,6 +69,11 @@ export default async function DatabasePage({
   const db = await getDatabase(id)
   if (!db) notFound()
   const running = db.container?.state === "running"
+  // The row status wins while provisioning or after a failed one (the
+  // container may still be running under an `error` row: the banner says so);
+  // otherwise the container state is shown as it is.
+  const rowWins = db.status === "creating" || db.status === "error"
+  const shownStatus = rowWins ? db.status : (db.container?.state ?? db.status)
   const [
     connection,
     backups,
@@ -132,11 +137,9 @@ export default async function DatabasePage({
                       : "neutral"
               }
             >
-              {db.status === "creating"
-                ? t("status.creating")
-                : t.has(`status.${db.container?.state ?? db.status}`)
-                  ? t(`status.${db.container?.state ?? db.status}`)
-                  : (db.container?.state ?? db.status)}
+              {t.has(`status.${shownStatus}`)
+                ? t(`status.${shownStatus}`)
+                : shownStatus}
             </ResourceStatus>
             {db.projectRole === "viewer" && (
               <Badge variant="outline">{t("page.readOnly")}</Badge>

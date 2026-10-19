@@ -126,9 +126,16 @@ export function DatabasePanel({
     <div className="space-y-4">
       {db.status === "error" && (
         <div className="flex flex-col gap-3 rounded-md border border-destructive/40 bg-destructive/10 p-3 text-xs text-destructive sm:flex-row sm:items-center sm:justify-between">
-          <p className="min-w-0 break-words" role="alert">
-            {t("panel.createFailed", { error: db.errorMessage ?? "" })}
-          </p>
+          <div className="min-w-0 space-y-1 break-words" role="alert">
+            <p>
+              {t("panel.provisionFailed", { error: db.errorMessage ?? "" })}
+            </p>
+            {db.container?.state === "running" && (
+              <p className="text-destructive/80">
+                {t("panel.containerStillRunning")}
+              </p>
+            )}
+          </div>
           {canRetry && db.retryable && (
             <ConfirmDialog
               tone="neutral"

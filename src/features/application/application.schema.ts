@@ -25,6 +25,7 @@ const createBaseSchema = (t: Translator) =>
       .trim()
       .transform((v) => (v ? v : null)),
     autoUpdate: z.boolean().default(false),
+    autoUpdateFollowTags: z.boolean().default(false),
     deployMode: z.enum(["container", "service"]).default("container"),
     replicas: z.coerce.number().int().min(1).max(20).default(1),
     // Empty = any node.

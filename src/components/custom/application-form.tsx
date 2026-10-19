@@ -16,6 +16,7 @@ import {
 } from "react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 import {
   Card,
   CardContent,
@@ -93,6 +94,7 @@ const EMPTY: Values = {
   imageRef: "",
   imageRegistryId: "",
   autoUpdate: "",
+  autoUpdateFollowTags: "",
   autoUpdateIntervalMinutes: "60",
   deployMode: "container",
   replicas: "1",
@@ -213,6 +215,7 @@ export function ApplicationForm({
   const [deployMode, setDeployMode] = useState(v.deployMode)
   const [hostBind, setHostBind] = useState(normalizeBind(v.hostPortBind))
   const [imageRef, setImageRef] = useState(v.imageRef)
+  const [autoUpdateOn, setAutoUpdateOn] = useState(v.autoUpdate === "on")
   const [imageRegistryId, setImageRegistryId] = useState(
     v.imageRegistryId || "public"
   )
@@ -487,6 +490,7 @@ export function ApplicationForm({
                             <Switch
                               name="autoUpdate"
                               defaultChecked={v.autoUpdate === "on"}
+                              onCheckedChange={setAutoUpdateOn}
                             />
                             {t("form.image.autoUpdateSwitch")}
                           </label>
@@ -508,6 +512,22 @@ export function ApplicationForm({
                         </div>
                         <FieldDescription>
                           {t.rich("form.image.autoUpdateHelp", { code })}
+                        </FieldDescription>
+                        <label
+                          className={cn(
+                            "flex items-center gap-2 text-xs",
+                            !autoUpdateOn && "opacity-60"
+                          )}
+                        >
+                          <Switch
+                            name="autoUpdateFollowTags"
+                            defaultChecked={v.autoUpdateFollowTags === "on"}
+                            disabled={!autoUpdateOn}
+                          />
+                          {t("form.image.followTagsSwitch")}
+                        </label>
+                        <FieldDescription>
+                          {t.rich("form.image.followTagsHelp", { code })}
                         </FieldDescription>
                         <FieldError
                           errors={errs("autoUpdateIntervalMinutes")}

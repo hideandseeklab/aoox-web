@@ -7,11 +7,13 @@ import {
   Radio,
   RefreshCw,
   Rocket,
+  Sparkles,
   Webhook,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useEffect, useRef, useState, useTransition } from "react"
 import { toast } from "sonner"
+import { ConfirmDialog } from "@/components/custom/confirm-dialog"
 import { LogViewer } from "@/components/custom/log-viewer"
 import { IllustratedEmptyState } from "@/components/custom/illustrated-empty-state"
 import { DeploymentsIllustration } from "@/components/custom/illustrations/deployments-illustration"
@@ -22,6 +24,7 @@ import {
   checkImageUpdateAction,
   deployApplicationAction,
   rollbackApplicationAction,
+  switchImageTagAction,
 } from "@/features/application/application.actions"
 import {
   ACTIVE_DEPLOYMENT_STATUSES,
@@ -29,6 +32,7 @@ import {
   type DeploymentStatus,
   type DeploymentStepTimes,
   type DeploymentSummary,
+  type ImageCheckResult,
 } from "@/features/application/application.entity"
 import {
   formatDuration,
@@ -81,7 +85,13 @@ function triggerLabel(
       ? t("deploy.trigger.webhookDetail", { detail: parts })
       : t("deploy.trigger.webhook")
   }
-  if (d.trigger === "auto-update") return t("deploy.trigger.autoUpdate")
+  if (d.trigger === "auto-update") {
+    // Following version tags writes "to 0.1.1 (was 0.1.0)" as the message.
+    const moved = d.commitMessage?.match(/^to (\S+) \(was (\S+)\)$/)
+    return moved
+      ? t("deploy.trigger.autoUpdateTag", { to: moved[1], from: moved[2] })
+      : t("deploy.trigger.autoUpdate")
+  }
   return d.triggeredBy
     ? t("deploy.trigger.manualBy", { name: d.triggeredBy })
     : t("deploy.trigger.manual")
@@ -120,6 +130,16 @@ export function ApplicationDeployPanel({
   const [error, setError] = useState<string | null>(null)
   const [proxyWarningDismissed, setProxyWarningDismissed] = useState(false)
   const [imageNote, setImageNote] = useState<string | null>(null)
+  // Last "Check image update" result: carries the newer-version hint. Looked up
+  // only when the button is pressed, never on page load.
+  const [imageCheck, setImageCheck] = useState<ImageCheckResult | null>(null)
+  const [lastImageRef, setLastImageRef] = useState(app.imageRef)
+  if (lastImageRef !== app.imageRef) {
+    // The reference changed (switched here or in Settings): the hint is stale.
+    setLastImageRef(app.imageRef)
+    setImageCheck(null)
+    setImageNote(null)
+  }
   const [selectedId, setSelectedId] = useState<string | null>(
     deployments[0]?.id ?? null
   )
@@ -404,27 +424,33 @@ export function ApplicationDeployPanel({
                 onClick={() =>
                   run(async () => {
                     setImageNote(null)
+                    setImageCheck(null)
                     const r = await checkImageUpdateAction(app.id, true)
                     if (r.ok) {
                       const d = r.data
-                      setImageNote(
+                      const values = {
+                        tag: d.tag,
+                        digest: d.remoteDigest?.slice(7, 19) ?? "",
+                      }
+                      const note =
                         d.remoteDigest === null
                           ? t("deploy.image.pinned")
                           : d.baseline
-                            ? t("deploy.image.baseline", {
-                                digest: d.remoteDigest.slice(7, 19),
-                              })
+                            ? t("deploy.image.baseline", values)
                             : d.changed
                               ? t(
                                   d.deploymentId
                                     ? "deploy.image.changedStarted"
                                     : "deploy.image.changedBusy",
-                                  { digest: d.remoteDigest.slice(7, 19) }
+                                  values
                                 )
-                              : t("deploy.image.upToDate", {
-                                  digest: d.remoteDigest.slice(7, 19),
-                                })
+                              : t("deploy.image.upToDate", values)
+                      setImageNote(
+                        d.tagError
+                          ? `${note} ${t("deploy.image.tagError", { error: d.tagError })}`
+                          : note
                       )
+                      setImageCheck(d)
                       if (d.deploymentId) selectDeployment(d.deploymentId)
                     }
                     return r
@@ -469,6 +495,51 @@ export function ApplicationDeployPanel({
             </span>
           )}
         </div>
+      )}
+
+      {canEdit && imageCheck?.newerTag && imageCheck.newerImageRef && (
+        <Alert>
+          <Sparkles />
+          <AlertTitle>
+            {t.rich("deploy.image.newer.title", {
+              tag: imageCheck.newerTag,
+              code: (chunks) => <code>{chunks}</code>,
+            })}
+          </AlertTitle>
+          <AlertDescription className="space-y-2">
+            <p>
+              {t("deploy.image.newer.body", { current: imageCheck.tag })}
+            </p>
+            <ConfirmDialog
+              tone="neutral"
+              trigger={
+                <Button variant="outline" size="sm" disabled={pending || active}>
+                  <Rocket data-icon="inline-start" />
+                  {t("deploy.image.newer.switch")}
+                </Button>
+              }
+              title={t("deploy.image.newer.confirmTitle", {
+                tag: imageCheck.newerTag,
+              })}
+              description={t("deploy.image.newer.confirmBody", {
+                ref: imageCheck.newerImageRef,
+                current: imageCheck.tag,
+              })}
+              confirmLabel={t("deploy.image.newer.switch")}
+              onConfirm={async () => {
+                const r = await switchImageTagAction(
+                  app.id,
+                  imageCheck.newerImageRef as string
+                )
+                if (r.ok) {
+                  selectDeployment(r.data.id)
+                  router.refresh()
+                }
+                return r
+              }}
+            />
+          </AlertDescription>
+        </Alert>
       )}
 
       {originMismatch && (

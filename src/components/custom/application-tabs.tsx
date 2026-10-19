@@ -373,6 +373,7 @@ export function ApplicationTabs({
                 imageRef: app.imageRef ?? "",
                 imageRegistryId: app.imageRegistryId ?? "",
                 autoUpdate: app.autoUpdate ? "on" : "",
+                autoUpdateFollowTags: app.autoUpdateFollowTags ? "on" : "",
                 deployMode: app.deployMode,
                 replicas: String(app.replicas ?? 1),
                 swarmNodeId: app.swarmNodeId ?? "",
