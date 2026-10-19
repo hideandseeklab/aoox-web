@@ -270,6 +270,10 @@
       "ports": "Port <code>80</code> dan <code>443</code> terbuka untuk publik (firewall OS maupun provider VPS).",
       "cert": "Sertifikat HTTPS (Let's Encrypt) baru diterbitkan saat domain pertama kali diakses — tunggu semenit."
     },
+    "lastFailed": {
+      "title": "Deployment terakhir gagal; versi sebelumnya masih melayani",
+      "viewLog": "Lihat log"
+    },
     "noAccess": {
       "title": "Aplikasi belum punya alamat akses",
       "body": "Tanpa port host atau domain, aplikasi ini hanya bisa dijangkau di dalam network Docker.",

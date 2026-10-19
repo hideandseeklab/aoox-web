@@ -8,6 +8,7 @@ import {
   RefreshCw,
   Rocket,
   Sparkles,
+  TriangleAlert,
   Webhook,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
@@ -295,6 +296,12 @@ export function ApplicationDeployPanel({
       else router.refresh()
     })
 
+  // The newest deployment failed but the previous version still answers (the
+  // app stays "running"): without this the failure is only visible in history.
+  const latestFailedStillServing =
+    deployments[0]?.status === "failed" &&
+    app.status === "running" &&
+    app.container?.state === "running"
   const shownStatus = liveStatus ?? selected?.status ?? null
   const shownError = error ?? socketError
 
@@ -349,6 +356,27 @@ export function ApplicationDeployPanel({
               </Button>
             </div>
             )}
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {latestFailedStillServing && (
+        <Alert variant="destructive">
+          <TriangleAlert />
+          <AlertTitle>{t("deploy.lastFailed.title")}</AlertTitle>
+          <AlertDescription className="space-y-2">
+            {deployments[0].errorMessage && (
+              <p className="line-clamp-3 break-words font-mono text-xs">
+                {deployments[0].errorMessage}
+              </p>
+            )}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => selectDeployment(deployments[0].id)}
+            >
+              {t("deploy.lastFailed.viewLog")}
+            </Button>
           </AlertDescription>
         </Alert>
       )}

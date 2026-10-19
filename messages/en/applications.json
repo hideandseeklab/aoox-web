@@ -270,6 +270,10 @@
       "ports": "Ports <code>80</code> and <code>443</code> are open to the public (OS firewall and VPS provider).",
       "cert": "The HTTPS certificate (Let's Encrypt) is only issued the first time the domain is visited — wait a minute."
     },
+    "lastFailed": {
+      "title": "The last deployment failed; the previous version is still serving",
+      "viewLog": "View log"
+    },
     "noAccess": {
       "title": "This application has no access address",
       "body": "Without a host port or a domain, this application can only be reached inside the Docker network.",

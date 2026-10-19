@@ -42,6 +42,7 @@ Versions below 1.0.0 may include breaking changes in a minor release.
 
 ### UI UX Improvement
 
+- Deploy tab: when the newest deployment failed but the previous version is still serving, an alert says so, shows the error and has a "View log" button (needs the matching aoox-api, which keeps such an application `running`).
 - The image update check result and the "newer version" hint are shown in the Deployments header (Alert with a Switch and deploy button), laid out for 375 px, light and dark, English and Indonesian.
 - Database page: the error banner reads "Provisioning failed: …" (it said "Database creation failed" even when a mount change, a limit removal or a retry caused it), and the header badge follows the row status while it is `error` or `creating` instead of showing the container state; when the container is still running under an `error` row the banner adds a sentence saying so. Project cards and lists already used the row status.
 - Database page: when a database is in `error`, the error banner has a "Retry provisioning" button (developer and up, hidden for viewers) with a confirm dialog; the page polls until the status leaves `creating` (needs the matching aoox-api). English and Indonesian texts.
