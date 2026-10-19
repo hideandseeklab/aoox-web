@@ -252,6 +252,7 @@ export default async function DatabasePage({
             running={running}
             canWrite={canWrite}
             canQuery={db.projectRole !== "viewer"}
+            canExport={db.projectRole !== "viewer"}
           />
         </TabsContent>
         <TabsContent value="mounts" className="pt-4">

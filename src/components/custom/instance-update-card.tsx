@@ -321,8 +321,17 @@ function ImageRow({
         <p className="truncate font-mono text-xs text-muted-foreground">
           {image.image}
         </p>
+        {image.error && (
+          <p className="mt-1 text-xs break-words text-destructive">
+            {image.error}
+          </p>
+        )}
       </div>
-      {image.currentDigest === null ? (
+      {image.error ? (
+        <Badge variant="destructive" className="shrink-0">
+          {t("image.lookupFailed")}
+        </Badge>
+      ) : image.currentDigest === null ? (
         <Badge variant="outline">{t("image.newBaseline")}</Badge>
       ) : image.updateAvailable ? (
         <Badge>{t("image.available")}</Badge>

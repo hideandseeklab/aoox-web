@@ -22,6 +22,38 @@ import {
 } from "@/components/ui/table"
 import type { OpenPort } from "@/features/docker/docker.entity"
 
+/** The "reachable from" badge, shared by the table and the phone cards. */
+function ExposureBadge({ p }: { p: OpenPort }) {
+  const t = useTranslations("docker")
+  return p.exposure === "loopback" ? (
+    <Badge variant="secondary" title={p.addresses.join(", ")}>
+      <Lock data-icon="inline-start" />
+      {t("ports.exposure.loopback")}
+    </Badge>
+  ) : (
+    <Badge
+      variant="outline"
+      className="border-amber-500/40 text-amber-700 dark:text-amber-400"
+      title={p.addresses.join(", ")}
+    >
+      <Globe data-icon="inline-start" />
+      {p.exposure === "public"
+        ? t("ports.exposure.public")
+        : t("ports.exposure.address", { address: p.addresses.join(", ") })}
+    </Badge>
+  )
+}
+
+/** The "managed by" badge (or the muted "not managed" text). */
+function OwnerBadge({ p }: { p: OpenPort }) {
+  const t = useTranslations("docker")
+  return p.managed ? (
+    <Badge variant="outline">{t(`managed.kinds.${p.managed.kind}`)}</Badge>
+  ) : (
+    <span className="text-muted-foreground">{t("ports.notManaged")}</span>
+  )
+}
+
 function resourceHref(p: OpenPort): string | null {
   const l = p.managed?.link
   if (!l) return null
@@ -69,89 +101,119 @@ export function DockerPorts({ ports }: { ports: OpenPort[] }) {
           {ports.length === 0 ? t("ports.empty") : t("ports.noMatch")}
         </DockerEmpty>
       ) : (
-        <div className="rounded-lg border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{t("ports.port")}</TableHead>
-                <TableHead>{t("ports.reachableFrom")}</TableHead>
-                <TableHead>{t("ports.container")}</TableHead>
-                <TableHead>{t("managedBy")}</TableHead>
-                <TableHead className="text-end">{t("actions")}</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {rows.map((p) => {
-                const href = resourceHref(p)
-                return (
-                  <TableRow key={`${p.containerId}-${p.port}-${p.protocol}-${p.containerPort}`}>
-                    <TableCell className="font-mono whitespace-nowrap">
-                      <div>
+        <>
+          {/* Phone: one card per port, so nothing scrolls sideways. */}
+          <ul className="space-y-2 sm:hidden">
+            {rows.map((p) => {
+              const href = resourceHref(p)
+              return (
+                <li
+                  key={`${p.containerId}-${p.port}-${p.protocol}-${p.containerPort}`}
+                  className="space-y-2 rounded-lg border p-3 text-xs"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="font-mono">
+                      <span className="text-sm font-medium">
                         {p.port}/{p.protocol}
-                      </div>
-                      <div className="text-muted-foreground">
+                      </span>
+                      <span className="text-muted-foreground">
+                        {" "}
                         → {p.containerPort}
-                      </div>
-                    </TableCell>
-                    <TableCell className="whitespace-nowrap">
-                      {p.exposure === "loopback" ? (
-                        <Badge variant="secondary" title={p.addresses.join(", ")}>
-                          <Lock data-icon="inline-start" />
-                          {t("ports.exposure.loopback")}
-                        </Badge>
-                      ) : (
-                        <Badge
-                          variant="outline"
-                          className="border-amber-500/40 text-amber-700 dark:text-amber-400"
-                          title={p.addresses.join(", ")}
+                      </span>
+                    </div>
+                    <div className="min-w-0 shrink-0">
+                      <ExposureBadge p={p} />
+                    </div>
+                  </div>
+                  <div className="min-w-0">
+                    <div className="truncate font-mono" title={p.containerName}>
+                      {p.containerName}
+                    </div>
+                    <div
+                      className="truncate font-mono text-muted-foreground"
+                      title={p.image}
+                    >
+                      {p.image}
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between gap-2">
+                    <OwnerBadge p={p} />
+                    {href && (
+                      <Button asChild variant="outline" size="sm">
+                        <Link href={href}>
+                          {t("containers.openPage")}
+                          <LinkArrow />
+                        </Link>
+                      </Button>
+                    )}
+                  </div>
+                </li>
+              )
+            })}
+          </ul>
+          <div className="hidden rounded-lg border sm:block">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>{t("ports.port")}</TableHead>
+                  <TableHead>{t("ports.reachableFrom")}</TableHead>
+                  <TableHead>{t("ports.container")}</TableHead>
+                  <TableHead>{t("managedBy")}</TableHead>
+                  <TableHead className="text-end">{t("actions")}</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {rows.map((p) => {
+                  const href = resourceHref(p)
+                  return (
+                    <TableRow
+                      key={`${p.containerId}-${p.port}-${p.protocol}-${p.containerPort}`}
+                    >
+                      <TableCell className="font-mono whitespace-nowrap">
+                        <div>
+                          {p.port}/{p.protocol}
+                        </div>
+                        <div className="text-muted-foreground">
+                          → {p.containerPort}
+                        </div>
+                      </TableCell>
+                      <TableCell className="whitespace-nowrap">
+                        <ExposureBadge p={p} />
+                      </TableCell>
+                      <TableCell className="max-w-64">
+                        <div
+                          className="truncate font-mono"
+                          title={p.containerName}
                         >
-                          <Globe data-icon="inline-start" />
-                          {p.exposure === "public"
-                            ? t("ports.exposure.public")
-                            : t("ports.exposure.address", {
-                                address: p.addresses.join(", "),
-                              })}
-                        </Badge>
-                      )}
-                    </TableCell>
-                    <TableCell className="max-w-64">
-                      <div className="truncate font-mono" title={p.containerName}>
-                        {p.containerName}
-                      </div>
-                      <div
-                        className="truncate font-mono text-muted-foreground"
-                        title={p.image}
-                      >
-                        {p.image}
-                      </div>
-                    </TableCell>
-                    <TableCell className="whitespace-nowrap">
-                      {p.managed ? (
-                        <Badge variant="outline">
-                          {t(`managed.kinds.${p.managed.kind}`)}
-                        </Badge>
-                      ) : (
-                        <span className="text-muted-foreground">
-                          {t("ports.notManaged")}
-                        </span>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-end">
-                      {href && (
-                        <Button asChild variant="outline" size="sm">
-                          <Link href={href}>
-                            {t("containers.openPage")}
-                            <LinkArrow />
-                          </Link>
-                        </Button>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                )
-              })}
-            </TableBody>
-          </Table>
-        </div>
+                          {p.containerName}
+                        </div>
+                        <div
+                          className="truncate font-mono text-muted-foreground"
+                          title={p.image}
+                        >
+                          {p.image}
+                        </div>
+                      </TableCell>
+                      <TableCell className="whitespace-nowrap">
+                        <OwnerBadge p={p} />
+                      </TableCell>
+                      <TableCell className="text-end">
+                        {href && (
+                          <Button asChild variant="outline" size="sm">
+                            <Link href={href}>
+                              {t("containers.openPage")}
+                              <LinkArrow />
+                            </Link>
+                          </Button>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  )
+                })}
+              </TableBody>
+            </Table>
+          </div>
+        </>
       )}
       <p className="text-xs text-muted-foreground">{t("ports.note")}</p>
     </div>

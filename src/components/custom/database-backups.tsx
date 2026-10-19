@@ -241,11 +241,14 @@ export function DatabaseBackups({
                 <DataActions>
                   {b.status === "success" && (
                     <>
-                      <IconButton asChild label={tc("actions.download")}>
-                        <a href={`/api/backups/${b.id}/download`}>
-                          <Download />
-                        </a>
-                      </IconButton>
+                      {/* Viewers cannot download: a backup file is the whole database. */}
+                      {canEdit && (
+                        <IconButton asChild label={tc("actions.download")}>
+                          <a href={`/api/backups/${b.id}/download`}>
+                            <Download />
+                          </a>
+                        </IconButton>
+                      )}
                       {canEdit && (
                         <IconButton
                           label={t("backups.restore")}

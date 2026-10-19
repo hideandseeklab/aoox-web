@@ -9,7 +9,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { createComposeAppAction } from "@/features/compose/compose.actions"
 import { listGitCredentials } from "@/features/git-credential/git-credential.queries"
 import { listDatabases } from "@/features/managed-database/managed-database.queries"
-import { listProjectMembers } from "@/features/project-member/project-member.queries"
+import { redirectViewerToProject } from "@/features/project-member/project-member.queries"
 import { getProject } from "@/features/project/project.queries"
 import { listProjectVariableSets } from "@/features/variable-set/variable-set.queries"
 
@@ -23,12 +23,12 @@ export default async function NewComposePage({
   const tb = await getTranslations("breadcrumb")
   const project = await getProject(id)
   if (!project) notFound()
+  const members = await redirectViewerToProject(project.id)
 
-  const [credentials, databases, variableSets, members] = await Promise.all([
+  const [credentials, databases, variableSets] = await Promise.all([
     listGitCredentials(),
     listDatabases(project.id),
     listProjectVariableSets(project.id).catch(() => []),
-    listProjectMembers(project.id).catch(() => null),
   ])
 
   return (

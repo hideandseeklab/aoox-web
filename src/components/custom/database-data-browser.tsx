@@ -73,12 +73,15 @@ export function DatabaseDataBrowser({
   running,
   canWrite,
   canQuery = true,
+  canExport = true,
 }: {
   db: ManagedDatabase
   running: boolean
   canWrite: boolean
   /** False for project viewers: the API rejects POST /query even for SELECT. */
   canQuery?: boolean
+  /** False for project viewers: SQL dumps and CSV exports are refused for them. */
+  canExport?: boolean
 }) {
   const t = useTranslations("database")
   const tc = useTranslations("common")
@@ -469,7 +472,7 @@ export function DatabaseDataBrowser({
               </CardTitle>
               <div className="flex items-center gap-1">
                 {canQuery && <QueryHistoryMenu databaseId={db.id} onPick={setSql} />}
-                {!isRedis && !isMongo && (
+                {!isRedis && !isMongo && canExport && (
                   <Button asChild variant="outline" size="sm">
                     <a
                       href={`/api/databases/${db.id}/export${dbParam ? `?db=${encodeURIComponent(dbParam)}` : ""}`}
@@ -609,7 +612,7 @@ export function DatabaseDataBrowser({
                     </button>
                   </div>
                 )}
-                {rows && !result && !isRedis && (
+                {rows && !result && !isRedis && canExport && (
                   <Button
                     asChild
                     variant="ghost"

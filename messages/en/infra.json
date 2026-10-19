@@ -388,6 +388,7 @@
       "lastChecked": "Last checked {time}"
     },
     "image": {
+      "lookupFailed": "Lookup failed",
       "newBaseline": "new baseline",
       "available": "Update available",
       "latest": "Latest"

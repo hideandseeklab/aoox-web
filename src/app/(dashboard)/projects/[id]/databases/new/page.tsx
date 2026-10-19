@@ -7,6 +7,7 @@ import { DatabaseForm } from "@/components/custom/database-form"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { createDatabaseAction } from "@/features/managed-database/managed-database.actions"
+import { redirectViewerToProject } from "@/features/project-member/project-member.queries"
 import { getProject } from "@/features/project/project.queries"
 
 export default async function NewDatabasePage({
@@ -19,6 +20,7 @@ export default async function NewDatabasePage({
   const tb = await getTranslations("breadcrumb")
   const project = await getProject(id)
   if (!project) notFound()
+  await redirectViewerToProject(project.id)
 
   return (
     <>

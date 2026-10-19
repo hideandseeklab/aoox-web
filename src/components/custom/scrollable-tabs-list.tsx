@@ -18,10 +18,17 @@ const FADE = { background: "from-background", card: "from-card" } as const
 export function ScrollableTabsList({
   className,
   fade = "background",
+  wrapOnPhone = false,
   ...props
 }: ComponentProps<typeof TabsList> & {
   /** Surface the strip sits on, so the edge fade blends in (page or card). */
   fade?: "background" | "card"
+  /**
+   * Below `sm` the tabs wrap onto further lines instead of scrolling sideways. For a strip whose
+   * every tab matters (environments: the one you need may be the last), so none is hidden behind
+   * the edge. From `sm` up it scrolls as usual.
+   */
+  wrapOnPhone?: boolean
 }) {
   const scrollerRef = useRef<HTMLDivElement>(null)
   // Fade edges tell the user there is more to scroll to.
@@ -98,6 +105,7 @@ export function ScrollableTabsList({
         <TabsList
           className={cn(
             "justify-start gap-1 rounded-none bg-transparent p-0 group-data-horizontal/tabs:h-auto",
+            wrapOnPhone && "max-sm:flex-wrap",
             className
           )}
           {...props}

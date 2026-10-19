@@ -388,6 +388,7 @@
       "lastChecked": "Terakhir dicek {time}"
     },
     "image": {
+      "lookupFailed": "Pencarian gagal",
       "newBaseline": "baseline baru",
       "available": "Update tersedia",
       "latest": "Terbaru"

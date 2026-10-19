@@ -1,8 +1,11 @@
 export interface ImageUpdateStatus {
   image: string
   currentDigest: string | null
-  remoteDigest: string
+  /** Null when the registry lookup failed (see `error`). */
+  remoteDigest: string | null
   updateAvailable: boolean
+  /** Short reason the lookup failed, null when it worked. */
+  error: string | null
 }
 
 /** Mirrors `InstanceUpdateStatus` in the API (instance-update module). */

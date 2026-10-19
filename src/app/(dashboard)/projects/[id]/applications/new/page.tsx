@@ -12,7 +12,7 @@ import { listServers } from "@/features/server/server.queries"
 import { getProject } from "@/features/project/project.queries"
 import { listProjectVariableSets } from "@/features/variable-set/variable-set.queries"
 import { getProxyStatus } from "@/features/proxy/proxy.queries"
-import { listProjectMembers } from "@/features/project-member/project-member.queries"
+import { redirectViewerToProject } from "@/features/project-member/project-member.queries"
 
 export default async function NewApplicationPage({
   params,
@@ -24,8 +24,9 @@ export default async function NewApplicationPage({
   const { id } = await params
   const project = await getProject(id)
   if (!project) notFound()
+  const members = await redirectViewerToProject(project.id)
 
-  const [credentials, servers, registries, proxy, variableSets, members] =
+  const [credentials, servers, registries, proxy, variableSets] =
     await Promise.all([
       listGitCredentials(),
       // Members get 403 here; they can still create apps on the host.
@@ -33,7 +34,6 @@ export default async function NewApplicationPage({
       listRegistries().catch(() => []),
       getProxyStatus(),
       listProjectVariableSets(project.id).catch(() => []),
-      listProjectMembers(project.id).catch(() => null),
     ])
 
   return (

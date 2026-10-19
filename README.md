@@ -16,6 +16,12 @@ npm install
 npm run dev          # http://localhost:3000
 ```
 
+To open the dev server from another machine (a LAN IP or a tunnel host) set `AOOX_DEV_ORIGINS` to a
+comma-separated list of hosts, for example `AOOX_DEV_ORIGINS=192.168.1.20,dev.example.test npm run dev`
+(hosts only, no scheme or port). Next 16 dev blocks client JavaScript and HMR from any other origin, so
+selects and tabs stay dead without it. It is read by `next.config.ts` into `allowedDevOrigins` and ignored
+in production builds.
+
 Point it at a running [aoox-api](https://github.com/hideandseeklab/aoox-api) instance — see that
 repo for backend setup, or use `docker-compose.dist.yml` there to run the full stack.
 

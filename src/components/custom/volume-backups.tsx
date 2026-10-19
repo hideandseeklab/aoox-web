@@ -257,14 +257,14 @@ export function VolumeBackups({
                 <DataActions>
                   {b.status === "success" && (
                     <>
-                      <IconButton
-                        asChild
-                        label={tc("actions.download")}
-                      >
-                        <a href={`/api/volume-backups/${b.id}/download`}>
-                          <Download />
-                        </a>
-                      </IconButton>
+                      {/* Viewers cannot download: the archive is the app's data. */}
+                      {canEdit && (
+                        <IconButton asChild label={tc("actions.download")}>
+                          <a href={`/api/volume-backups/${b.id}/download`}>
+                            <Download />
+                          </a>
+                        </IconButton>
+                      )}
                       {canEdit && (
                         <IconButton
                           label={t("volumeBackups.restore")}

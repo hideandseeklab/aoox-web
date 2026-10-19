@@ -115,7 +115,7 @@ export function VariableSetEnvironments({ set }: { set: VariableSetDetail }) {
           </p>
         ) : (
           <Tabs value={current} onValueChange={setSelected}>
-            <ScrollableTabsList fade="card">
+            <ScrollableTabsList fade="card" wrapOnPhone>
               {environments.map((e) => (
                 <PageTabsTrigger
                   key={e.id}
@@ -575,9 +575,9 @@ function EnvironmentPanel({
                   key={k}
                   className="flex flex-wrap items-center gap-1.5 sm:flex-nowrap"
                 >
-                  {/* Phone: the name shares its line with the buttons; the
-                      value takes the full line below. */}
-                  <div className="relative order-1 min-w-0 flex-1 basis-[calc(100%-6.5rem)] sm:order-none sm:w-2/5 sm:max-w-sm sm:flex-none sm:basis-auto">
+                  {/* Phone: the name takes its own line; the value and the
+                      buttons that act on it (note, eye, copy) share the line below. */}
+                  <div className="relative order-1 min-w-0 basis-full sm:order-none sm:w-2/5 sm:max-w-sm sm:flex-none sm:basis-auto">
                     <Input
                       readOnly
                       value={k}
@@ -615,7 +615,7 @@ function EnvironmentPanel({
                     // Masked boxes hold nothing to read or select.
                     tabIndex={visible ? undefined : -1}
                     className={cn(
-                      "order-3 max-h-24 min-h-7 min-w-0 flex-1 basis-full overflow-y-auto py-[3px] font-mono text-xs/relaxed break-all sm:order-none sm:basis-0",
+                      "order-2 max-h-24 min-h-7 min-w-0 flex-1 basis-0 overflow-y-auto py-[3px] font-mono text-xs/relaxed break-all sm:order-none",
                       visible
                         ? "cursor-text"
                         : "cursor-default text-muted-foreground select-none"
@@ -623,7 +623,7 @@ function EnvironmentPanel({
                     spellCheck={false}
                   />
                   {hasActions && (
-                    <div className="order-2 flex shrink-0 items-center gap-0.5 sm:order-none">
+                    <div className="order-3 flex shrink-0 items-center gap-0.5 sm:order-none">
                       <span className="flex size-7 items-center justify-center">
                         {env.notes?.[k] && (
                           <VariableNotePopover

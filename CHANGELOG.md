@@ -18,10 +18,15 @@ Versions below 1.0.0 may include breaking changes in a minor release.
 - **Local registry: show and reset the password** (needs the matching aoox-api). The Local registry card has a masked **Password** row with an eye (reads it through the audited reveal route, hides again after 60 seconds) and a copy button for owners and admins, and a **Reset password** button for owners with a confirmation dialog (images are kept, every client has to `docker login` again) that then shows the new password. English and Indonesian.
 - **Local registry: address and reachability.** The card shows the address, marks it *this server only* when the port is bound to localhost, shows the address other machines use when the registry has a domain or is exposed, and explains how to expose it (custom domain or `REGISTRY_PUBLISH_ADDRESS`) or that an IP address over plain HTTP needs `insecure-registries`.
 - **Time zone next to schedules.** Job, database backup, volume backup and instance backup schedule forms show "Times are in <zone> (server time zone)" taken from `/auth/me` `timeZone` (hidden for an older API). English and Indonesian.
+- **`AOOX_DEV_ORIGINS` for development**: a comma-separated list of hosts passed to Next's `allowedDevOrigins`, so the dev server works when opened from a LAN IP or a tunnel host (selects and tabs were dead there). Ignored in production builds; see the README.
 
 ### Fixed
 
 - **Copy buttons inside dialogs on a panel opened over plain HTTP.** On `http://<ip>` (no clipboard API) the fallback copied nothing inside a dialog (for example "Token created") but still showed "copied": its hidden textarea was added to the page body, outside the dialog's focus trap, so the selection was lost. It now lives inside the open dialog, the result is only trusted when the text was really selected, and focus goes back to the button. When copying still fails the text is selected in place with a warning ("press Ctrl+C") instead of a success toast. Used by the API token dialog (token and CLI login command), connection and admin credentials, the registry credentials and every `CopyButton`; the other copy buttons keep their error toast.
+- **Viewers no longer see export and download buttons** (needs the matching aoox-api): the Data tab's SQL export and CSV export, and the database and volume backup download icons are hidden for project viewers, whom the API now refuses.
+- **Viewers can no longer open the create pages.** `/projects/:id/applications/new`, `/compose/new` and `/databases/new` send a viewer back to the project page instead of showing a form the API would refuse on submit.
+- **Variable set page on a phone.** The environment tabs wrap instead of hiding `production` behind a sideways scroll, and a variable row now puts the note, show and copy buttons next to its value instead of next to its name.
+- **Update card shows a registry lookup failure** (needs the matching aoox-api): an image that cannot be looked up gets a "Lookup failed" badge and the reason, instead of the page failing.
 
 ### UI UX Improvement
 
@@ -33,6 +38,8 @@ Versions below 1.0.0 may include breaking changes in a minor release.
 - New application, new compose stack and new database cards: removed the extra top padding, so top and bottom inner padding are equal (16 px both; was 40 px top, 16 px bottom).
 - Registry card rows (address, other machines, password) and the local-only / exposed notices; schedule forms gain one muted line under the frequency field.
 - Registry page: the external-registry image prefix hint and the empty-images hint showed `&lt;`/`&gt;` literally (rich text does not decode HTML entities); they now render `<` and `>` through ICU quoting, in English and Indonesian.
+- Docker page, Open ports tab: below 640 px each port is a card (port and exposure badge, container and image, owner badge and the open-page button) instead of a table that scrolled sideways.
+- Variable set page at 375 px: environment tabs wrap onto a second line; the eye, copy and note buttons sit beside the value they act on.
 
 ## [0.1.0-alpha.12] - 2026-10-17
 
