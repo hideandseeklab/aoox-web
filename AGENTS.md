@@ -199,6 +199,8 @@ Read `AGENTS.md` — this version of Next.js has breaking changes; check `node_m
 
 ## Registry
 
+- Registry card (`self-hosted-registry-card.tsx`): password row with eye/copy for owner/admin (`revealRegistryPasswordAction` -> `POST /registries/:id/credentials/reveal` so the audit log records it; hides after 60 s) and **Reset password** for owners (`resetRegistryPasswordAction`, confirm dialog, new password shown in a dialog). `SelfHostedStatus` carries `localOnly`/`externalAddress`/`publishAddress`: while local only the address is tagged *this server only* with a hint (domain or `REGISTRY_PUBLISH_ADDRESS`); exposed shows the external address and the insecure-registries note. The local-only state was not visually verified (the dev machine's registry container is exposed). Schedule forms (jobs, database/volume/instance backup) render `<ScheduleTimeZoneHint />` (`schedule-time-zone.tsx`; zone from `/auth/me` `timeZone` via `ServerTimeZoneProvider` in the dashboard layout, hidden for an older API).
+
 - `/registry` — the `"Local registry"` tab (`self-hosted-registry-card.tsx`: provision/GC/delete, credentials shown once; `registry-repositories.tsx`: repo → tag, delete tag with a shared-digest warning)
   and the `"External"` tab (`external-registries.tsx`). `src/features/registry/` = entity, schema, queries, actions (`ActionResult<T>` for non-form actions).
 

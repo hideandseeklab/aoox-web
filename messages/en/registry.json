@@ -3,7 +3,7 @@
     "storageLocal": "Local (disk)",
     "failed": "Failed",
     "title": "Local registry",
-    "description": "A <code>registry:3</code> container managed by aoox. Push address: <addr>{url}</addr>",
+    "description": "A <code>registry:3</code> container managed by aoox. Address: <addr>{url}</addr>",
     "dockerUnavailable": {
       "title": "Docker is unreachable",
       "description": "The API cannot reach the Docker engine (check <code>DOCKER_SOCKET</code> and the socket mount in the container)."
@@ -34,10 +34,10 @@
     },
     "ready": {
       "title": "Registry ready",
-      "description": "Save this password now — it is shown only once. After that it is stored encrypted on the server.",
+      "description": "Save this password. You can show it again later from this card (Show password), or reset it without losing images.",
       "address": "Address",
       "password": "Password",
-      "localhostNote": "This <code>localhost</code> address only works when the command is run directly on this server (e.g. over an SSH terminal) — not from your own computer. To push/pull from anywhere over HTTPS, set a <b>Custom domain</b> on this card after closing the dialog.",
+      "localhostNote": "This <code>localhost</code> address only works when the command is run directly on this server (e.g. over an SSH terminal) — not from your own computer. To push/pull from anywhere over HTTPS, set a <b>Custom domain</b> on this card after closing the dialog. You can show the password again later with <b>Show password</b>.",
       "saved": "I have saved it",
       "copyLabel": "Copy {label}",
       "copied": "{label} copied",
@@ -76,6 +76,28 @@
       "body": "Store the images aoox builds, so you can roll back and deploy to other servers.",
       "bodyMember": "It stores the images aoox builds for rollbacks and other servers. Ask an owner to enable it.",
       "address": "Push address: <addr>{url}</addr>"
+    },
+    "address": "Address",
+    "thisServerOnly": "this server only",
+    "otherMachines": "From other machines",
+    "password": "Password",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
+    "copyPassword": "Copy password",
+    "passwordCopied": "Password copied",
+    "passwordLoadFailed": "Could not load the password",
+    "localOnlyHint": "Only this server can push to this registry (it listens on 127.0.0.1). To use it from other machines, set a <b>Custom domain</b> below, or set <code>REGISTRY_PUBLISH_ADDRESS=0.0.0.0</code> in the API environment and re-enable or re-apply the domain so the container is recreated.",
+    "exposedNoAddress": "The registry port is open to other machines, but the server's public address is unknown. Set <code>PUBLIC_IP</code> or <code>REGISTRY_PUBLIC_HOST</code> in the API environment.",
+    "exposedInsecureNote": "Plain HTTP on an IP address: other Docker daemons need this address in <code>insecure-registries</code>. A custom domain with HTTPS avoids that.",
+    "reset": {
+      "button": "Reset password",
+      "title": "Reset the registry password?",
+      "description": "A new password is generated and the registry restarts briefly. Images are not touched. Every client and CI job that uses the old password must run <code>docker login</code> again with the new one.",
+      "confirm": "Reset password",
+      "resetting": "Resetting…",
+      "doneTitle": "Password reset",
+      "doneDescription": "Use this password for <code>docker login</code> from now on. You can show it again later with Show password.",
+      "done": "Close"
     }
   },
   "external": {
@@ -95,13 +117,13 @@
       "description": "For Docker Hub use the URL <code>docker.io</code>; for GHCR <code>ghcr.io</code>; for GitLab <code>registry.gitlab.com</code>.",
       "passwordToken": "Password / token",
       "imagePrefix": "Image prefix",
-      "prefixHint": "Optional; images are pushed as <code>&lt;url&gt;/&lt;prefix&gt;/&lt;app&gt;</code>.",
+      "prefixHint": "Optional; images are pushed as <code>'<'url'>'/'<'prefix'>'/'<'app'>'</code>.",
       "saving": "Saving…",
       "save": "Save"
     }
   },
   "repositories": {
-    "empty": "There are no images yet. First push: <code>docker push &lt;registry&gt;/&lt;name&gt;:&lt;tag&gt;</code>",
+    "empty": "There are no images yet. First push: <code>docker push '<'registry'>'/'<'name'>':'<'tag'>'</code>",
     "deletingImage": "Deleting image {name}…",
     "imageDeleted": "Image {name} deleted",
     "tagCount": "{count, plural, one {# tag} other {# tags}}",

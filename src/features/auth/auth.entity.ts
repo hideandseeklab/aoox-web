@@ -9,6 +9,8 @@ export interface AuthUser {
   twoFactorEnabled?: boolean
   /** Running API version; present on `/auth/me` responses (any role). */
   version?: string
+  /** IANA time zone the API runs in; cron schedules are evaluated in it. */
+  timeZone?: string
   /**
    * Owner only: a newer aoox is published for the tag this install follows
    * (`/auth/me`, from the API's cached check — no registry call). Absent for

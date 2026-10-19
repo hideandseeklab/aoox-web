@@ -131,5 +131,6 @@
     "storedNotePerMinute": "Riwayat tersimpan: rata-rata per menit ({count} titik). Nilai besar = saat itu, bukan sekarang.",
     "storedNotePerHour": "Riwayat tersimpan: rata-rata per jam ({count} titik). Nilai besar = saat itu, bukan sekarang.",
     "sparklineLabel": "Riwayat 1 jam, terakhir {value}"
-  }
+  },
+  "scheduleTimeZone": "Waktu memakai {zone} (zona waktu server)."
 }

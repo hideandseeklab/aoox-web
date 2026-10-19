@@ -2,6 +2,7 @@ import { cookies } from "next/headers"
 import { redirect } from "next/navigation"
 import { AppNavbar } from "@/components/custom/app-navbar"
 import { AppSidebar } from "@/components/custom/app-sidebar"
+import { ServerTimeZoneProvider } from "@/components/custom/schedule-time-zone"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { canUseTerminal } from "@/features/auth/auth.entity"
 import { getVerifiedSession } from "@/features/auth/auth.session"
@@ -36,7 +37,11 @@ export default async function DashboardLayout({
           showTerminal={canUseTerminal(session.user)}
           isOwner={session.user.role === "owner"}
         />
-        <div className="flex flex-1 flex-col gap-6 p-6">{children}</div>
+        <div className="flex flex-1 flex-col gap-6 p-6">
+          <ServerTimeZoneProvider timeZone={session.user.timeZone}>
+            {children}
+          </ServerTimeZoneProvider>
+        </div>
       </SidebarInset>
     </SidebarProvider>
   )

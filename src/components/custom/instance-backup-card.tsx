@@ -55,6 +55,7 @@ import type {
   RestoreReport,
 } from "@/features/instance-backup/instance-backup.entity"
 import { formatDateTime } from "@/i18n/format"
+import { ScheduleTimeZoneHint } from "@/components/custom/schedule-time-zone"
 import { useLocale, useTranslations } from "next-intl"
 
 const INCLUDED = [
@@ -438,6 +439,7 @@ export function InstanceBackupCard({
                 />
               </div>
             )}
+            {mode !== "off" && <ScheduleTimeZoneHint />}
             <div className="space-y-1.5">
               <Label htmlFor="ib-keep">{t("keep")}</Label>
               <Input

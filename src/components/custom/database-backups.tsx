@@ -62,6 +62,7 @@ import type {
   ManagedDatabaseDetail,
 } from "@/features/managed-database/managed-database.entity"
 import { formatDateTime, formatNumber } from "@/i18n/format"
+import { ScheduleTimeZoneHint } from "@/components/custom/schedule-time-zone"
 import { useLocale, useTranslations } from "next-intl"
 
 const PRESETS: { key: string; cron: string }[] = [
@@ -323,6 +324,7 @@ export function DatabaseBackups({
                 />
               </div>
             )}
+            {mode !== "off" && <ScheduleTimeZoneHint />}
             <div className="space-y-1">
               <Label htmlFor="bk-keep">{t("backups.schedule.keep")}</Label>
               <Input

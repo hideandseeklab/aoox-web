@@ -419,6 +419,8 @@
       "postRegistriesTest": "Tes registry",
       "patchRegistriesDomain": "Atur domain registry",
       "postRegistriesSelfHosted": "Pasang registry lokal",
+      "postRegistriesSelfHostedPassword": "Reset password registry",
+      "postRegistriesCredentialsReveal": "Tampilkan password registry",
       "deleteRegistriesSelfHosted": "Hapus registry lokal",
       "postRegistriesSelfHostedGarbageCollect": "Pembersihan data tak terpakai registry",
       "deleteRegistriesRepositoriesRepository": "Hapus image dari registry",

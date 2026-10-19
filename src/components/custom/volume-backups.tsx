@@ -55,6 +55,7 @@ import {
 } from "@/features/volume-backup/volume-backup.actions"
 import type { VolumeBackup } from "@/features/volume-backup/volume-backup.entity"
 import { formatDateTime } from "@/i18n/format"
+import { ScheduleTimeZoneHint } from "@/components/custom/schedule-time-zone"
 import { useLocale, useTranslations } from "next-intl"
 
 const PRESETS: { key: string; cron: string }[] = [
@@ -346,6 +347,7 @@ export function VolumeBackups({
                   />
                 </div>
               )}
+              {mode !== "off" && <ScheduleTimeZoneHint />}
               <div className="space-y-1">
                 <Label htmlFor="vbk-keep">{t("volumeBackups.schedule.keep")}</Label>
                 <Input

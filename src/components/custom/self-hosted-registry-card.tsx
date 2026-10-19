@@ -1,8 +1,17 @@
 "use client"
 
-import { Copy, Info, Play, Trash2, Trash } from "lucide-react"
+import {
+  Copy,
+  Eye,
+  EyeOff,
+  Info,
+  KeyRound,
+  Play,
+  Trash2,
+  Trash,
+} from "lucide-react"
 import { useTranslations } from "next-intl"
-import { useState, useTransition } from "react"
+import { useEffect, useState, useTransition } from "react"
 import { toast } from "sonner"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
@@ -37,15 +46,21 @@ import {
   garbageCollectAction,
   provisionSelfHostedAction,
   removeSelfHostedAction,
+  resetRegistryPasswordAction,
+  revealRegistryPasswordAction,
   setRegistryDomainAction,
 } from "@/features/registry/registry.actions"
 import type {
   ProvisionResult,
+  ResetPasswordResult,
   SelfHostedStatus,
 } from "@/features/registry/registry.entity"
 import { copyToClipboard } from "@/lib/clipboard"
 import { IllustratedEmptyState } from "@/components/custom/illustrated-empty-state"
 import { RegistryIllustration } from "@/components/custom/illustrations/registry-illustration"
+
+/** A revealed password hides itself again after this long (same idea as the variables page). */
+const REVEAL_TTL_MS = 60_000
 
 export function SelfHostedRegistryCard({
   status,
@@ -70,13 +85,42 @@ export function SelfHostedRegistryCard({
   const [provisionOpen, setProvisionOpen] = useState(false)
   const [destinationId, setDestinationId] = useState("local")
   const [replaceMode, setReplaceMode] = useState(false)
+  const [revealed, setRevealed] = useState<string | null>(null)
+  const [resetOpen, setResetOpen] = useState(false)
+  const [resetDone, setResetDone] = useState<ResetPasswordResult | null>(null)
+
+  useEffect(() => {
+    if (revealed === null) return
+    const timer = setTimeout(() => setRevealed(null), REVEAL_TTL_MS)
+    return () => clearTimeout(timer)
+  }, [revealed])
+
+  const togglePassword = (registryId: string) => {
+    if (revealed !== null) {
+      setRevealed(null)
+      return
+    }
+    start(async () => {
+      setError(null)
+      const r = await revealRegistryPasswordAction(registryId)
+      if (r.ok && r.data.password) setRevealed(r.data.password)
+      else setError(r.ok ? t("passwordLoadFailed") : r.error)
+    })
+  }
 
   const openProvision = (replace: boolean) => {
     setReplaceMode(replace)
     setProvisionOpen(true)
   }
 
-  const { container, registry, dockerAvailable, publicUrl } = status
+  const {
+    container,
+    registry,
+    dockerAvailable,
+    publicUrl,
+    localOnly,
+    externalAddress,
+  } = status
   const installed =
     registry !== null &&
     (status.state === "installed" || status.state === "docker-unavailable")
@@ -174,17 +218,20 @@ export function SelfHostedRegistryCard({
             <DialogDescription>{t("ready.description")}</DialogDescription>
           </DialogHeader>
           {creds && (
-            <div className="space-y-2 text-xs">
+            <div className="min-w-0 space-y-2 text-xs">
               <CredRow label={t("ready.address")} value={creds.registry.url} />
+              {externalAddress && externalAddress !== creds.registry.url && (
+                <CredRow label={t("otherMachines")} value={externalAddress} />
+              )}
               <CredRow label={t("username")} value={creds.username} />
               <CredRow label={t("ready.password")} value={creds.password} />
               <CredRow
                 label={t("login")}
-                value={`docker login ${creds.registry.url} -u ${creds.username}`}
+                value={`docker login ${externalAddress ?? creds.registry.url} -u ${creds.username}`}
               />
             </div>
           )}
-          {creds?.registry.url.startsWith("localhost:") && (
+          {creds?.registry.url.startsWith("localhost:") && !externalAddress && (
             <Alert>
               <Info />
               <AlertDescription>
@@ -197,6 +244,69 @@ export function SelfHostedRegistryCard({
           )}
           <DialogFooter>
             <Button onClick={() => setCreds(null)}>{t("ready.saved")}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={resetOpen} onOpenChange={setResetOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{t("reset.title")}</DialogTitle>
+            <DialogDescription>
+              {t.rich("reset.description", { code: (c) => <code>{c}</code> })}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setResetOpen(false)}>
+              {t("cancel")}
+            </Button>
+            <Button
+              disabled={pending}
+              onClick={() =>
+                run(async () => {
+                  const r = await resetRegistryPasswordAction()
+                  if (r.ok) {
+                    setResetOpen(false)
+                    setRevealed(null)
+                    setResetDone(r.data)
+                  }
+                  return r
+                })
+              }
+            >
+              {pending ? t("reset.resetting") : t("reset.confirm")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={resetDone !== null}
+        onOpenChange={(o) => !o && setResetDone(null)}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{t("reset.doneTitle")}</DialogTitle>
+            <DialogDescription>
+              {t.rich("reset.doneDescription", {
+                code: (c) => <code>{c}</code>,
+              })}
+            </DialogDescription>
+          </DialogHeader>
+          {resetDone && registry && (
+            <div className="min-w-0 space-y-2 text-xs">
+              <CredRow label={t("username")} value={resetDone.username} />
+              <CredRow label={t("ready.password")} value={resetDone.password} />
+              <CredRow
+                label={t("login")}
+                value={`docker login ${externalAddress ?? registry.url} -u ${resetDone.username}`}
+              />
+            </div>
+          )}
+          <DialogFooter>
+            <Button onClick={() => setResetDone(null)}>
+              {t("reset.done")}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -368,15 +478,68 @@ export function SelfHostedRegistryCard({
         {dockerAlert}
         {registry && (
           <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-xs">
+            <dt className="text-muted-foreground">{t("address")}</dt>
+            <dd className="font-mono">
+              {registry.url}
+              {localOnly && !registry.domain && (
+                <span className="ml-2 font-sans text-muted-foreground">
+                  ({t("thisServerOnly")})
+                </span>
+              )}
+            </dd>
+            {externalAddress && externalAddress !== registry.url && (
+              <>
+                <dt className="text-muted-foreground">{t("otherMachines")}</dt>
+                <dd className="font-mono">{externalAddress}</dd>
+              </>
+            )}
             <dt className="text-muted-foreground">{t("username")}</dt>
             <dd className="font-mono">{registry.username}</dd>
+            {canManage && (
+              <>
+                <dt className="text-muted-foreground">{t("password")}</dt>
+                <dd className="-my-1 flex min-w-0 items-center gap-1">
+                  <code className="min-w-0 truncate font-mono">
+                    {revealed ?? "••••••••••••"}
+                  </code>
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    disabled={pending}
+                    aria-label={
+                      revealed === null ? t("showPassword") : t("hidePassword")
+                    }
+                    onClick={() => togglePassword(registry.id)}
+                  >
+                    {revealed === null ? <Eye /> : <EyeOff />}
+                  </Button>
+                  {revealed !== null && (
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      aria-label={t("copyPassword")}
+                      onClick={() =>
+                        void copyToClipboard(revealed).then((ok) =>
+                          ok
+                            ? toast.success(t("passwordCopied"))
+                            : toast.error(t("failed"))
+                        )
+                      }
+                    >
+                      <Copy />
+                    </Button>
+                  )}
+                </dd>
+              </>
+            )}
             <dt className="text-muted-foreground">{t("container")}</dt>
             <dd className="font-mono">
               {container.containerId?.slice(0, 12)} · {container.state}
             </dd>
             <dt className="text-muted-foreground">{t("login")}</dt>
             <dd className="font-mono">
-              docker login {registry.url} -u {registry.username}
+              docker login {externalAddress ?? registry.url} -u{" "}
+              {registry.username}
             </dd>
             <dt className="text-muted-foreground">{t("storage")}</dt>
             <dd>{storageName}</dd>
@@ -387,6 +550,28 @@ export function SelfHostedRegistryCard({
               </>
             )}
           </dl>
+        )}
+        {registry && !registry.domain && localOnly && (
+          <Alert>
+            <Info />
+            <AlertDescription>
+              {t.rich("localOnlyHint", {
+                code: (c) => <code>{c}</code>,
+                b: (c) => <strong>{c}</strong>,
+              })}
+            </AlertDescription>
+          </Alert>
+        )}
+        {registry && !registry.domain && !localOnly && (
+          <Alert>
+            <Info />
+            <AlertDescription>
+              {t.rich(
+                externalAddress ? "exposedInsecureNote" : "exposedNoAddress",
+                { code: (c) => <code>{c}</code> }
+              )}
+            </AlertDescription>
+          </Alert>
         )}
         {canManage && (
           <form
@@ -447,6 +632,15 @@ export function SelfHostedRegistryCard({
       {isOwner && (
         <CardFooter className="flex flex-wrap gap-2">
           <>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={pending}
+              onClick={() => setResetOpen(true)}
+            >
+              <KeyRound data-icon="inline-start" />
+              {t("reset.button")}
+            </Button>
             <Button
               variant="outline"
               size="sm"

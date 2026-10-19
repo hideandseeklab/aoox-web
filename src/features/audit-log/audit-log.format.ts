@@ -147,6 +147,8 @@ export const ACTION_KEY: Record<string, string> = {
   "POST /registries/:id/test": "postRegistriesTest",
   "PATCH /registries/:id/domain": "patchRegistriesDomain",
   "POST /registries/self-hosted": "postRegistriesSelfHosted",
+  "POST /registries/self-hosted/password": "postRegistriesSelfHostedPassword",
+  "POST /registries/:id/credentials/reveal": "postRegistriesCredentialsReveal",
   "DELETE /registries/self-hosted": "deleteRegistriesSelfHosted",
   "POST /registries/self-hosted/garbage-collect":
     "postRegistriesSelfHostedGarbageCollect",

@@ -131,5 +131,6 @@
     "storedNotePerMinute": "Stored history: average per minute ({count} points). Large values = at that time, not now.",
     "storedNotePerHour": "Stored history: average per hour ({count} points). Large values = at that time, not now.",
     "sparklineLabel": "1 hour history, latest {value}"
-  }
+  },
+  "scheduleTimeZone": "Times are in {zone} (server time zone)."
 }

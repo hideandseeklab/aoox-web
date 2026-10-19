@@ -8,6 +8,18 @@ Versions below 1.0.0 may include breaking changes in a minor release.
 
 ## [Unreleased]
 
+### Added
+
+- **Multi-arch images.** The Docker publish workflow builds linux/amd64 and linux/arm64 (QEMU + buildx, GHA cache) from the next release; 0.1.0-alpha.12 stays amd64 only. The lockfile already carries the arm64 optional binaries (SWC, sharp, lightningcss, Tailwind oxide); not built on arm64 locally.
+- **Local registry: show and reset the password** (needs the matching aoox-api). The Local registry card has a masked **Password** row with an eye (reads it through the audited reveal route, hides again after 60 seconds) and a copy button for owners and admins, and a **Reset password** button for owners with a confirmation dialog (images are kept, every client has to `docker login` again) that then shows the new password. English and Indonesian.
+- **Local registry: address and reachability.** The card shows the address, marks it *this server only* when the port is bound to localhost, shows the address other machines use when the registry has a domain or is exposed, and explains how to expose it (custom domain or `REGISTRY_PUBLISH_ADDRESS`) or that an IP address over plain HTTP needs `insecure-registries`.
+- **Time zone next to schedules.** Job, database backup, volume backup and instance backup schedule forms show "Times are in <zone> (server time zone)" taken from `/auth/me` `timeZone` (hidden for an older API). English and Indonesian.
+
+### UI UX Improvement
+
+- Registry card rows (address, other machines, password) and the local-only / exposed notices; schedule forms gain one muted line under the frequency field.
+- Registry page: the external-registry image prefix hint and the empty-images hint showed `&lt;`/`&gt;` literally (rich text does not decode HTML entities); they now render `<` and `>` through ICU quoting, in English and Indonesian.
+
 ## [0.1.0-alpha.12] - 2026-10-17
 
 ### Fixed

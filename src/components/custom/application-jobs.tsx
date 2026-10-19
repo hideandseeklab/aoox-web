@@ -47,6 +47,7 @@ import type {
   JobTarget,
 } from "@/features/job/job.entity"
 import { formatDateTime } from "@/i18n/format"
+import { ScheduleTimeZoneHint } from "@/components/custom/schedule-time-zone"
 import { useLocale, useTranslations } from "next-intl"
 import { SectionHeader } from "@/components/custom/section-header"
 
@@ -236,6 +237,7 @@ export function ApplicationJobs({
                     />
                   </div>
                 )}
+                {mode !== "off" && <ScheduleTimeZoneHint />}
                 <div className="space-y-1">
                   <Label htmlFor="job-timeout">{t("jobs.new.timeout")}</Label>
                   <Input

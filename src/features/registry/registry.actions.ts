@@ -8,7 +8,9 @@ import type {
   DeleteRepositoryResult,
   ProvisionResult,
   Registry,
+  RegistryCredentials,
   RegistryTestResult,
+  ResetPasswordResult,
   RepositorySummary,
   RepositoryUsage,
   Tag,
@@ -37,6 +39,39 @@ export async function provisionSelfHostedAction(
       },
       token: await requireToken(),
     })
+    revalidatePath("/registry")
+    return { ok: true, data }
+  } catch (err) {
+    return await fail(err)
+  }
+}
+
+/**
+ * Reads the stored password through the POST reveal route, so the audit log
+ * records who looked at it (the GET used by the CLI is not logged).
+ */
+export async function revealRegistryPasswordAction(
+  registryId: string
+): Promise<ActionResult<RegistryCredentials>> {
+  try {
+    const data = await api<RegistryCredentials>(
+      `/registries/${registryId}/credentials/reveal`,
+      { method: "POST", token: await requireToken() }
+    )
+    return { ok: true, data }
+  } catch (err) {
+    return await fail(err)
+  }
+}
+
+export async function resetRegistryPasswordAction(): Promise<
+  ActionResult<ResetPasswordResult>
+> {
+  try {
+    const data = await api<ResetPasswordResult>(
+      "/registries/self-hosted/password",
+      { method: "POST", token: await requireToken() }
+    )
     revalidatePath("/registry")
     return { ok: true, data }
   } catch (err) {

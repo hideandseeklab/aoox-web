@@ -3,7 +3,7 @@
     "storageLocal": "Lokal (disk)",
     "failed": "Gagal",
     "title": "Registry lokal",
-    "description": "Container <code>registry:3</code> yang dikelola aoox. Alamat push: <addr>{url}</addr>",
+    "description": "Container <code>registry:3</code> yang dikelola aoox. Alamat: <addr>{url}</addr>",
     "dockerUnavailable": {
       "title": "Docker tidak terjangkau",
       "description": "API tidak bisa mengakses Docker engine (cek <code>DOCKER_SOCKET</code> dan mount socket di container)."
@@ -34,10 +34,10 @@
     },
     "ready": {
       "title": "Registry siap",
-      "description": "Simpan password ini sekarang — hanya ditampilkan sekali. Setelah itu disimpan terenkripsi di server.",
+      "description": "Simpan password ini. Kamu bisa menampilkannya lagi dari kartu ini (Tampilkan password), atau meresetnya tanpa kehilangan image.",
       "address": "Alamat",
       "password": "Kata sandi",
-      "localhostNote": "Alamat <code>localhost</code> ini hanya berfungsi kalau perintah dijalankan langsung di server ini (mis. lewat terminal SSH) — bukan dari komputermu sendiri. Untuk bisa push/pull dari mana saja lewat HTTPS, set <b>Domain kustom</b> di kartu ini setelah menutup dialog.",
+      "localhostNote": "Alamat <code>localhost</code> ini hanya berfungsi kalau perintah dijalankan langsung di server ini (mis. lewat terminal SSH) — bukan dari komputermu sendiri. Untuk bisa push/pull dari mana saja lewat HTTPS, set <b>Domain kustom</b> di kartu ini setelah menutup dialog. Password bisa ditampilkan lagi nanti lewat <b>Tampilkan password</b>.",
       "saved": "Sudah saya simpan",
       "copyLabel": "Salin {label}",
       "copied": "{label} disalin",
@@ -76,6 +76,28 @@
       "body": "Simpan image yang dibangun aoox, agar Anda bisa rollback dan deploy ke server lain.",
       "bodyMember": "Registry ini menyimpan image yang dibangun aoox untuk rollback dan server lain. Minta owner mengaktifkannya.",
       "address": "Alamat push: <addr>{url}</addr>"
+    },
+    "address": "Alamat",
+    "thisServerOnly": "hanya server ini",
+    "otherMachines": "Dari mesin lain",
+    "password": "Password",
+    "showPassword": "Tampilkan password",
+    "hidePassword": "Sembunyikan password",
+    "copyPassword": "Salin password",
+    "passwordCopied": "Password disalin",
+    "passwordLoadFailed": "Password tidak bisa dimuat",
+    "localOnlyHint": "Hanya server ini yang bisa push ke registry ini (listen di 127.0.0.1). Untuk memakainya dari mesin lain, set <b>Domain kustom</b> di bawah, atau set <code>REGISTRY_PUBLISH_ADDRESS=0.0.0.0</code> di environment API lalu aktifkan ulang atau terapkan ulang domain agar container dibuat ulang.",
+    "exposedNoAddress": "Port registry terbuka untuk mesin lain, tetapi alamat publik server tidak diketahui. Set <code>PUBLIC_IP</code> atau <code>REGISTRY_PUBLIC_HOST</code> di environment API.",
+    "exposedInsecureNote": "HTTP biasa pada alamat IP: daemon Docker lain perlu alamat ini di <code>insecure-registries</code>. Domain kustom dengan HTTPS menghindarinya.",
+    "reset": {
+      "button": "Reset password",
+      "title": "Reset password registry?",
+      "description": "Password baru dibuat dan registry restart sebentar. Image tidak disentuh. Setiap klien dan job CI yang memakai password lama harus menjalankan <code>docker login</code> lagi dengan password baru.",
+      "confirm": "Reset password",
+      "resetting": "Mereset…",
+      "doneTitle": "Password direset",
+      "doneDescription": "Pakai password ini untuk <code>docker login</code> mulai sekarang. Kamu bisa menampilkannya lagi nanti lewat Tampilkan password.",
+      "done": "Tutup"
     }
   },
   "external": {
@@ -95,13 +117,13 @@
       "description": "Untuk Docker Hub isi URL <code>docker.io</code>; GHCR <code>ghcr.io</code>; GitLab <code>registry.gitlab.com</code>.",
       "passwordToken": "Kata sandi / token",
       "imagePrefix": "Awalan image",
-      "prefixHint": "Opsional; image akan di-push sebagai <code>&lt;url&gt;/&lt;prefix&gt;/&lt;app&gt;</code>.",
+      "prefixHint": "Opsional; image akan di-push sebagai <code>'<'url'>'/'<'prefix'>'/'<'app'>'</code>.",
       "saving": "Menyimpan…",
       "save": "Simpan"
     }
   },
   "repositories": {
-    "empty": "Belum ada image. Push pertama: <code>docker push &lt;registry&gt;/&lt;nama&gt;:&lt;tag&gt;</code>",
+    "empty": "Belum ada image. Push pertama: <code>docker push '<'registry'>'/'<'nama'>':'<'tag'>'</code>",
     "deletingImage": "Menghapus image {name}…",
     "imageDeleted": "Image {name} dihapus",
     "tagCount": "{count} tag",

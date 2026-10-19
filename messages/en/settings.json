@@ -419,6 +419,8 @@
       "postRegistriesTest": "Test registry",
       "patchRegistriesDomain": "Set registry domain",
       "postRegistriesSelfHosted": "Install local registry",
+      "postRegistriesSelfHostedPassword": "Reset registry password",
+      "postRegistriesCredentialsReveal": "Show registry password",
       "deleteRegistriesSelfHosted": "Remove local registry",
       "postRegistriesSelfHostedGarbageCollect": "Garbage collect registry",
       "deleteRegistriesRepositoriesRepository": "Delete image from registry",
