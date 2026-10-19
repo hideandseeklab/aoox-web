@@ -166,6 +166,7 @@
     "readOnly": "Baca saja",
     "containerName": "Nama container",
     "image": "Image",
+    "imageConfigured": "dikonfigurasi:",
     "source": "Sumber",
     "container": "Container",
     "port": "Port",

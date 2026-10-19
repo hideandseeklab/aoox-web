@@ -91,7 +91,7 @@ export function ResourceHeader({
                   key={i}
                   className="inline-flex min-w-0 items-baseline gap-1.5"
                 >
-                  <span className="min-w-0 break-all">{f}</span>
+                  <span className="min-w-0 break-words">{f}</span>
                   {i < facts.length - 1 && (
                     <span aria-hidden className="hidden shrink-0 sm:inline">
                       ·

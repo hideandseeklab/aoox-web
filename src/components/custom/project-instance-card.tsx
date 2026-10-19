@@ -1,5 +1,6 @@
 "use client"
 
+import { imageDisplay } from "@/features/application/image-ref"
 import { Copy, ExternalLink } from "lucide-react"
 import { useTranslations } from "next-intl"
 import Link from "next/link"
@@ -202,7 +203,7 @@ export function ApplicationInstanceCard({
       badge={<StatusDot status={app.status} showLabel />}
       subtitle={
         app.sourceType === "image"
-          ? `image · ${app.imageRef ?? ""}`
+          ? `image · ${imageDisplay(app).shown}`
           : `${(app.gitUrl ?? "").replace(/^https?:\/\//, "")}#${app.gitBranch}`
       }
     >

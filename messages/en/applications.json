@@ -166,6 +166,7 @@
     "readOnly": "Read only",
     "containerName": "Container name",
     "image": "Image",
+    "imageConfigured": "configured:",
     "source": "Source",
     "container": "Container",
     "port": "Port",

@@ -11,8 +11,9 @@ import {
   ResourceStatus,
 } from "@/components/custom/resource-header"
 import { ContainerName } from "@/components/custom/container-name"
+import { BreakRef } from "@/components/custom/break-ref"
 import { HeaderFact } from "@/components/custom/header-fact"
-import { effectiveImageRef } from "@/features/application/image-ref"
+import { imageDisplay } from "@/features/application/image-ref"
 import { Badge } from "@/components/ui/badge"
 import { canUseTerminal } from "@/features/auth/auth.entity"
 import { getVerifiedSession } from "@/features/auth/auth.session"
@@ -191,10 +192,25 @@ export default async function ApplicationPage({
               app.sourceType === "image" ? t("page.image") : t("page.source")
             }
           >
-            <span className="font-mono">
-              {app.sourceType === "image"
-                ? effectiveImageRef(app.imageRef ?? "")
-                : `${app.gitUrl}#${app.gitBranch}${app.rootDirectory ? `:${app.rootDirectory}` : ""}`}
+            <span className="min-w-0">
+              <span className="font-mono break-words">
+                <BreakRef
+                  text={
+                    app.sourceType === "image"
+                      ? imageDisplay(app).shown
+                      : `${app.gitUrl}#${app.gitBranch}${app.rootDirectory ? `:${app.rootDirectory}` : ""}`
+                  }
+                />
+              </span>
+              {app.sourceType === "image" && imageDisplay(app).configured && (
+                <span className="block text-muted-foreground sm:ms-1 sm:inline">
+                  <span className="hidden sm:inline">· </span>
+                  {t("page.imageConfigured")}{" "}
+                  <span className="font-mono break-words">
+                    <BreakRef text={imageDisplay(app).configured as string} />
+                  </span>
+                </span>
+              )}
             </span>
           </HeaderFact>,
           <HeaderFact key="n" label={t("page.container")}>

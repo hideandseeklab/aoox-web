@@ -1,5 +1,6 @@
 "use client"
 
+import { BreakRef } from "@/components/custom/break-ref"
 import { CopyButton } from "@/components/custom/copy-button"
 import {
   Tooltip,
@@ -28,9 +29,9 @@ export function ContainerName({
           <TooltipTrigger asChild>
             <span
               tabIndex={0}
-              className="cursor-help font-mono break-all underline decoration-dotted underline-offset-2"
+              className="cursor-help font-mono break-words underline decoration-dotted underline-offset-2"
             >
-              {name}
+              <BreakRef text={name} separators="-_" />
             </span>
           </TooltipTrigger>
           <TooltipContent className="max-w-72 text-balance">
@@ -38,7 +39,9 @@ export function ContainerName({
           </TooltipContent>
         </Tooltip>
       ) : (
-        <span className="font-mono break-all">{name}</span>
+        <span className="font-mono break-words">
+          <BreakRef text={name} separators="-_" />
+        </span>
       )}
       <CopyButton
         label={label}
