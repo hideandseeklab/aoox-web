@@ -77,7 +77,7 @@
     "delete": {
       "trigger": "Hapus database",
       "title": "Hapus {name}?",
-      "description": "Container dihentikan dan dihapus. Pilih apakah data (volume) ikut dihapus — ini tidak bisa dibatalkan.",
+      "description": "Container dihentikan dan dihapus. Pilih apakah datanya ikut dihapus. Dengan data berarti volume database, volume mount-nya, dan semua backup-nya (berkas di server ini beserta salinan S3) ikut dihapus. Tanpa data, volume dan berkas backup tetap ada di server ini. Tidak bisa dibatalkan.",
       "keepData": "Hapus, simpan data",
       "withData": "Hapus beserta data"
     },
@@ -92,7 +92,8 @@
       "ariaLabel": "Hapus database {name}",
       "title": "Hapus database {name}?",
       "description": "Database <code>{name}</code> beserta seluruh tabel dan datanya dihapus permanen dan tidak bisa dibatalkan. Aplikasi yang masih memakainya akan gagal terhubung."
-    }
+    },
+    "viewerNote": "Hanya developer dan admin yang bisa melihat password dan URL koneksi."
   },
   "resources": {
     "title": "Batas sumber daya",
@@ -309,7 +310,10 @@
     "importDone": "Import selesai",
     "errors": {
       "pickSqlFile": "Pilih file .sql dulu"
-    }
+    },
+    "viewerNotice": "Viewer proyek bisa melihat nama tabel dan kolom tetapi tidak baris datanya. Hanya developer dan admin yang bisa membaca data.",
+    "viewerNoticeNames": "Viewer proyek bisa melihat nama koleksi tetapi tidak dokumennya. Hanya developer dan admin yang bisa membaca data.",
+    "viewerNoticeKv": "Viewer proyek tidak bisa melihat key maupun isinya. Hanya developer dan admin yang bisa membaca data."
   },
   "rowEdit": {
     "trigger": "Ubah baris",

@@ -74,6 +74,7 @@ export function DatabaseDataBrowser({
   canWrite,
   canQuery = true,
   canExport = true,
+  canRead = true,
 }: {
   db: ManagedDatabase
   running: boolean
@@ -82,6 +83,11 @@ export function DatabaseDataBrowser({
   canQuery?: boolean
   /** False for project viewers: SQL dumps and CSV exports are refused for them. */
   canExport?: boolean
+  /**
+   * False for project viewers: rows, documents and Redis/Valkey keys are data the API
+   * refuses them. They still see table and column names (structure).
+   */
+  canRead?: boolean
 }) {
   const t = useTranslations("database")
   const tc = useTranslations("common")
@@ -184,9 +190,11 @@ export function DatabaseDataBrowser({
     [db.id, dbParam]
   )
 
+  // Redis/Valkey keys are data: a viewer gets the notice instead of the list.
+  const listVisible = canRead || !isRedis
   useEffect(() => {
-    if (running && tables === null) loadTables()
-  }, [running, tables, loadTables])
+    if (running && listVisible && tables === null) loadTables()
+  }, [running, listVisible, tables, loadTables])
 
   useEffect(() => {
     if (running && !isRedis && schemas === null) loadSchemas()
@@ -205,9 +213,14 @@ export function DatabaseDataBrowser({
     setOffset(0)
     setOrder(null)
     setResult(null)
-    setView("data")
     setColumns(null)
-    loadRows(t, 0, null)
+    if (canRead) {
+      setView("data")
+      loadRows(t, 0, null)
+    } else {
+      // Viewers: structure only, no rows.
+      setView("structure")
+    }
     if (!isRedis && !isMongo) loadColumns(t)
   }
 
@@ -277,13 +290,24 @@ export function DatabaseDataBrowser({
 
   if (!running) {
     return (
-      <p className="text-xs text-muted-foreground">
-        {t("browser.notRunning")}
-      </p>
+      <p className="text-xs text-muted-foreground">{t("browser.notRunning")}</p>
     )
   }
 
   const grid = result ?? rows
+  // Viewers see names and column structure only (no rows to page through).
+  const structureOnly = !canRead && !isRedis && !isMongo
+
+  if (!canRead && isRedis) {
+    return (
+      <p
+        className="rounded-md border bg-muted/40 p-3 text-xs text-muted-foreground"
+        role="note"
+      >
+        {t("browser.viewerNoticeKv")}
+      </p>
+    )
+  }
 
   const pkSummary = (values: (string | null)[]) => {
     const record = rowRecord(values)
@@ -437,7 +461,8 @@ export function DatabaseDataBrowser({
                     <button
                       type="button"
                       onClick={() => openTable(t)}
-                      className={`flex w-full items-center gap-2 px-4 py-1.5 text-start hover:bg-muted ${active ? "bg-muted font-medium" : ""}`}
+                      disabled={!canRead && isMongo}
+                      className={`flex w-full items-center gap-2 px-4 py-1.5 text-start enabled:hover:bg-muted disabled:cursor-default ${active ? "bg-muted font-medium" : ""}`}
                     >
                       <Table2 className="size-3.5 shrink-0 text-muted-foreground" />
                       <span className="min-w-0 flex-1 truncate font-mono text-xs">
@@ -460,111 +485,127 @@ export function DatabaseDataBrowser({
       </Card>
 
       <div className="min-w-0 space-y-4">
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between gap-2">
-              <CardTitle>
-                {isRedis
-                  ? t("browser.query.titleKv", { engine: kvLabel })
-                  : isMongo
-                    ? t("browser.query.titleMongo")
-                    : t("browser.query.titleSql")}
-              </CardTitle>
-              <div className="flex items-center gap-1">
-                {canQuery && <QueryHistoryMenu databaseId={db.id} onPick={setSql} />}
-                {!isRedis && !isMongo && canExport && (
-                  <Button asChild variant="outline" size="sm">
-                    <a
-                      href={`/api/databases/${db.id}/export${dbParam ? `?db=${encodeURIComponent(dbParam)}` : ""}`}
-                    >
-                      <Download data-icon="inline-start" />
-                      {t("browser.exportSql")}
-                    </a>
-                  </Button>
-                )}
-                {!isRedis && !isMongo && canWrite && (
-                  <>
-                    <input
-                      ref={fileInput}
-                      type="file"
-                      accept=".sql,text/plain,application/sql"
-                      className="hidden"
-                      onChange={(e) => {
-                        const f = e.target.files?.[0]
-                        e.target.value = ""
-                        if (f) setFileToImport(f)
-                      }}
-                    />
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      disabled={pending}
-                      onClick={() => fileInput.current?.click()}
-                    >
-                      <Upload data-icon="inline-start" />
-                      {t("browser.importSql")}
+        {!canRead && (
+          <p
+            className="rounded-md border bg-muted/40 p-3 text-xs text-muted-foreground"
+            role="note"
+          >
+            {isMongo
+              ? t("browser.viewerNoticeNames")
+              : t("browser.viewerNotice")}
+          </p>
+        )}
+        {canRead && (
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between gap-2">
+                <CardTitle>
+                  {isRedis
+                    ? t("browser.query.titleKv", { engine: kvLabel })
+                    : isMongo
+                      ? t("browser.query.titleMongo")
+                      : t("browser.query.titleSql")}
+                </CardTitle>
+                <div className="flex items-center gap-1">
+                  {canQuery && (
+                    <QueryHistoryMenu databaseId={db.id} onPick={setSql} />
+                  )}
+                  {!isRedis && !isMongo && canExport && (
+                    <Button asChild variant="outline" size="sm">
+                      <a
+                        href={`/api/databases/${db.id}/export${dbParam ? `?db=${encodeURIComponent(dbParam)}` : ""}`}
+                      >
+                        <Download data-icon="inline-start" />
+                        {t("browser.exportSql")}
+                      </a>
                     </Button>
-                  </>
+                  )}
+                  {!isRedis && !isMongo && canWrite && (
+                    <>
+                      <input
+                        ref={fileInput}
+                        type="file"
+                        accept=".sql,text/plain,application/sql"
+                        className="hidden"
+                        onChange={(e) => {
+                          const f = e.target.files?.[0]
+                          e.target.value = ""
+                          if (f) setFileToImport(f)
+                        }}
+                      />
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={pending}
+                        onClick={() => fileInput.current?.click()}
+                      >
+                        <Upload data-icon="inline-start" />
+                        {t("browser.importSql")}
+                      </Button>
+                    </>
+                  )}
+                </div>
+              </div>
+              <CardDescription>
+                {isRedis
+                  ? t("browser.query.hintKv")
+                  : isMongo
+                    ? t("browser.query.hintMongo")
+                    : t("browser.query.hintSql")}{" "}
+                {!canQuery
+                  ? t("browser.query.viewerHint")
+                  : !isMongo &&
+                    (canWrite
+                      ? t("browser.query.writeHint")
+                      : t("browser.query.readOnlyHint"))}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <Textarea
+                value={sql}
+                onChange={(e) => setSql(e.target.value)}
+                onKeyDown={(e) => {
+                  if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+                    e.preventDefault()
+                    run()
+                  }
+                }}
+                placeholder={
+                  isRedis
+                    ? "KEYS *"
+                    : isMongo
+                      ? "users.find({})"
+                      : "select * from users order by id desc"
+                }
+                className="min-h-24 font-mono text-xs"
+                spellCheck={false}
+                disabled={!canQuery}
+              />
+              <div className="flex items-center gap-3">
+                <Button
+                  size="sm"
+                  disabled={pending || !sql.trim() || !canQuery}
+                  onClick={run}
+                >
+                  <Play data-icon="inline-start" />
+                  {t("browser.query.run")}
+                </Button>
+                <span className="text-xs text-muted-foreground">
+                  Ctrl+Enter
+                </span>
+                {grid && (
+                  <span className="ms-auto text-xs text-muted-foreground">
+                    {t("browser.query.summary", {
+                      count: grid.rows.length,
+                      ms: grid.durationMs,
+                    })}
+                    {grid.truncated && ` · ${t("browser.query.truncated")}`}
+                  </span>
                 )}
               </div>
-            </div>
-            <CardDescription>
-              {isRedis
-                ? t("browser.query.hintKv")
-                : isMongo
-                  ? t("browser.query.hintMongo")
-                  : t("browser.query.hintSql")}{" "}
-              {!canQuery
-                ? t("browser.query.viewerHint")
-                : !isMongo &&
-                  (canWrite
-                    ? t("browser.query.writeHint")
-                    : t("browser.query.readOnlyHint"))}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            <Textarea
-              value={sql}
-              onChange={(e) => setSql(e.target.value)}
-              onKeyDown={(e) => {
-                if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
-                  e.preventDefault()
-                  run()
-                }
-              }}
-              placeholder={
-                isRedis
-                  ? "KEYS *"
-                  : isMongo
-                    ? "users.find({})"
-                    : "select * from users order by id desc"
-              }
-              className="min-h-24 font-mono text-xs"
-              spellCheck={false}
-              disabled={!canQuery}
-            />
-            <div className="flex items-center gap-3">
-              <Button
-                size="sm"
-                disabled={pending || !sql.trim() || !canQuery}
-                onClick={run}
-              >
-                <Play data-icon="inline-start" />
-                {t("browser.query.run")}
-              </Button>
-              <span className="text-xs text-muted-foreground">Ctrl+Enter</span>
-              {grid && (
-                <span className="ms-auto text-xs text-muted-foreground">
-                  {t("browser.query.summary", {
-                    count: grid.rows.length,
-                    ms: grid.durationMs,
-                  })}
-                  {grid.truncated && ` · ${t("browser.query.truncated")}`}
-                </span>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
 
         {notice && (
           <p className="rounded-md border p-3 text-xs" role="status">
@@ -594,7 +635,7 @@ export function DatabaseDataBrowser({
                 {grid?.message && (
                   <Badge variant="secondary">{grid.message}</Badge>
                 )}
-                {rows && !result && !isRedis && !isMongo && (
+                {rows && !result && !isRedis && !isMongo && canRead && (
                   <div className="inline-flex overflow-hidden rounded-md border text-xs">
                     <button
                       type="button"
@@ -664,7 +705,10 @@ export function DatabaseDataBrowser({
               </div>
             </CardHeader>
             <CardContent className="p-0">
-              {view === "structure" && rows && !result && !isRedis ? (
+              {view === "structure" &&
+              (rows || structureOnly) &&
+              !result &&
+              !isRedis ? (
                 columns === null ? (
                   <p className="px-4 pb-4 text-xs text-muted-foreground">
                     {tc("states.loading")}
@@ -693,7 +737,9 @@ export function DatabaseDataBrowser({
                           <TableCell className="font-mono text-muted-foreground">
                             {c.dataType}
                           </TableCell>
-                          <TableCell>{c.nullable ? tc("states.yes") : tc("states.no")}</TableCell>
+                          <TableCell>
+                            {c.nullable ? tc("states.yes") : tc("states.no")}
+                          </TableCell>
                           <TableCell className="max-w-[220px] truncate font-mono text-muted-foreground">
                             {c.defaultValue ?? "—"}
                           </TableCell>
@@ -736,7 +782,9 @@ export function DatabaseDataBrowser({
                         !isRedis &&
                         canWrite &&
                         columns?.some((c) => c.isPrimaryKey) && (
-                          <TableHead className="w-0">{tc("labels.actions")}</TableHead>
+                          <TableHead className="w-0">
+                            {tc("labels.actions")}
+                          </TableHead>
                         )}
                     </TableRow>
                   </TableHeader>

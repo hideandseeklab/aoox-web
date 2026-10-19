@@ -103,7 +103,7 @@
     "title": "Hapus project?",
     "description": "Project <b>{name}</b> akan dihapus permanen beserta aplikasi, database, dan stack compose di dalamnya. Container-nya dihentikan dan dihapus, sehingga domainnya berhenti berfungsi.",
     "purgeLabel": "Hapus juga datanya",
-    "purgeHint": "Menghapus volume database, mount volume aplikasi, dan stack compose. Jika tidak dicentang, volume dibiarkan: volume database dan aplikasi lalu muncul sebagai yatim di Infrastruktur > Docker, tempat Anda bisa menghapusnya nanti. Volume yang dideklarasikan sendiri oleh file compose juga dibiarkan dan ditampilkan di sana dalam kelompok terpisah, hanya untuk dihapus manual."
+    "purgeHint": "Menghapus volume database, mount volume aplikasi, dan stack compose, serta semua backup database dan volume aplikasinya (berkas di server ini beserta salinan S3). Jika tidak dicentang, volume dan berkas backup dibiarkan: volume database dan aplikasi lalu muncul sebagai yatim di Infrastruktur > Docker, tempat Anda bisa menghapusnya nanti. Volume yang dideklarasikan sendiri oleh file compose juga dibiarkan dan ditampilkan di sana dalam kelompok terpisah, hanya untuk dihapus manual. Berkas backup yang dibiarkan tetap berada di volume backup di server ini (aoox_backups) dan tidak lagi tampil di dashboard."
   },
   "export": {
     "label": "Ekspor konfigurasi (JSON)",

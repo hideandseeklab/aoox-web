@@ -22,6 +22,8 @@ Versions below 1.0.0 may include breaking changes in a minor release.
 
 ### Fixed
 
+- **Project viewers no longer see database passwords or rows** (needs the matching aoox-api, which now refuses them). The Connection card shows host, port, database and user with a note and no password, URL or Show password button; the Data tab lists table names and column structure but no rows, and replaces the query box with a notice; Redis/Valkey show only the notice (keys are data); MongoDB lists collection names. Developers and admins are unchanged.
+- **Delete dialogs say what is removed with the data.** Deleting a database or a project with "data" also removes the backups of its databases and application volumes, local files and S3 copies, and the texts say the backup files stay in the backups volume otherwise (needs the matching aoox-api). English and Indonesian.
 - **Copy buttons inside dialogs on a panel opened over plain HTTP.** On `http://<ip>` (no clipboard API) the fallback copied nothing inside a dialog (for example "Token created") but still showed "copied": its hidden textarea was added to the page body, outside the dialog's focus trap, so the selection was lost. It now lives inside the open dialog, the result is only trusted when the text was really selected, and focus goes back to the button. When copying still fails the text is selected in place with a warning ("press Ctrl+C") instead of a success toast. Used by the API token dialog (token and CLI login command), connection and admin credentials, the registry credentials and every `CopyButton`; the other copy buttons keep their error toast.
 - **Viewers no longer see export and download buttons** (needs the matching aoox-api): the Data tab's SQL export and CSV export, and the database and volume backup download icons are hidden for project viewers, whom the API now refuses.
 - **Viewers can no longer open the create pages.** `/projects/:id/applications/new`, `/compose/new` and `/databases/new` send a viewer back to the project page instead of showing a form the API would refuse on submit.
@@ -30,6 +32,7 @@ Versions below 1.0.0 may include breaking changes in a minor release.
 
 ### UI UX Improvement
 
+- Database page for viewers: the Connection card keeps its two columns without the password and URL rows and shows a one-line note; the Data tab shows the table list with the Structure view and a note (Redis/Valkey: the note alone).
 - Docker page: the new "Open ports" tab, with an amber banner above a table (port, reachable from, container, owner badge, link), at 375 px the table scrolls inside its box.
 - "Listens on" select under the host port fields (full width under the input; compact 224 px wide inside the inline stack and template editors, without the help line).
 

@@ -41,9 +41,10 @@ import {
   startDatabaseAction,
   stopDatabaseAction,
 } from "@/features/managed-database/managed-database.actions"
-import type {
-  DatabaseConnection,
-  ManagedDatabaseDetail,
+import {
+  ENGINE_CONTAINER_PORT,
+  type DatabaseConnection,
+  type ManagedDatabaseDetail,
 } from "@/features/managed-database/managed-database.entity"
 
 /** Swaps the database name at the end of a connection URL (`…:5432/app` → `…:5432/reports`). */
@@ -53,12 +54,13 @@ function withDatabase(url: string, name: string): string {
 
 export function DatabasePanel({
   db,
-  connection: primary,
+  connection: connectionProp,
   schemas = [],
   canManageDatabases = false,
 }: {
   db: ManagedDatabaseDetail
-  connection: DatabaseConnection
+  /** Null for project viewers: they see host, port, user and database, never the password or a URL. */
+  connection: DatabaseConnection | null
   /** Other databases on the same server (see the Data tab); primary first. */
   schemas?: SchemaInfo[]
   /** Owner/admin on a running SQL/Mongo server: add or drop databases on it. */
@@ -67,6 +69,20 @@ export function DatabasePanel({
   const t = useTranslations("database")
   const tc = useTranslations("common")
   const router = useRouter()
+  const restricted = connectionProp === null
+  // Without credentials the non-secret facts come from the database itself.
+  const primary: DatabaseConnection = connectionProp ?? {
+    username: db.username,
+    password: "",
+    database: db.databaseName,
+    internalHost: `aoox-db-${db.slug}`,
+    internalPort: ENGINE_CONTAINER_PORT[db.engine],
+    internalUrl: "",
+    externalHost: null,
+    externalPort: db.hostPort,
+    externalUrl: null,
+    externalLoopbackOnly: db.hostPortBind === "loopback",
+  }
   // Same host/user/password for every database on the server; only the
   // name (and thus the URL path) changes with the selection.
   const [selected, setSelected] = useState(primary.database)
@@ -105,22 +121,32 @@ export function DatabasePanel({
         <CardHeader>
           <CardTitle>{t("panel.title")}</CardTitle>
           <CardDescription>{t("panel.description")}</CardDescription>
-          <CardAction>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setReveal((r) => !r)}
-            >
-              {reveal ? (
-                <EyeOff data-icon="inline-start" />
-              ) : (
-                <Eye data-icon="inline-start" />
-              )}
-              {reveal ? t("panel.hidePassword") : t("panel.showPassword")}
-            </Button>
-          </CardAction>
+          {!restricted && (
+            <CardAction>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setReveal((r) => !r)}
+              >
+                {reveal ? (
+                  <EyeOff data-icon="inline-start" />
+                ) : (
+                  <Eye data-icon="inline-start" />
+                )}
+                {reveal ? t("panel.hidePassword") : t("panel.showPassword")}
+              </Button>
+            </CardAction>
+          )}
         </CardHeader>
         <CardContent className="space-y-6">
+          {restricted && (
+            <p
+              className="rounded-md border bg-muted/40 p-3 text-xs text-muted-foreground"
+              role="note"
+            >
+              {t("panel.viewerNote")}
+            </p>
+          )}
           {(schemas.length > 1 || canManageDatabases) && (
             <div className="flex flex-wrap items-center gap-2 text-xs">
               <Database className="size-4 text-muted-foreground" />
@@ -207,18 +233,22 @@ export function DatabasePanel({
                     value: connection.username,
                     mono: true,
                   },
-                  {
-                    label: tc("labels.password"),
-                    value: reveal ? connection.password : "••••••••",
-                    mono: true,
-                    copy: connection.password,
-                  },
-                  {
-                    label: tc("labels.url"),
-                    value: mask(connection.internalUrl),
-                    mono: true,
-                    copy: connection.internalUrl,
-                  },
+                  ...(restricted
+                    ? []
+                    : [
+                        {
+                          label: tc("labels.password"),
+                          value: reveal ? connection.password : "••••••••",
+                          mono: true,
+                          copy: connection.password,
+                        },
+                        {
+                          label: tc("labels.url"),
+                          value: mask(connection.internalUrl),
+                          mono: true,
+                          copy: connection.internalUrl,
+                        },
+                      ]),
                 ]}
               />
             </section>
@@ -228,7 +258,7 @@ export function DatabasePanel({
                   {t("panel.external.title")}
                 </h3>
                 <p className="text-xs/relaxed text-muted-foreground">
-                  {connection.externalUrl
+                  {connection.externalUrl || (restricted && db.hostPort)
                     ? connection.externalLoopbackOnly
                       ? t("panel.external.publishedLoopback", {
                           port: connection.externalPort ?? 0,
@@ -260,7 +290,17 @@ export function DatabasePanel({
                     },
                   ]}
                 />
-              ) : (
+              ) : restricted && db.hostPort ? (
+                <DetailList
+                  items={[
+                    {
+                      label: tc("labels.port"),
+                      value: String(db.hostPort),
+                      mono: true,
+                    },
+                  ]}
+                />
+              ) : restricted ? null : (
                 <p className="text-xs text-muted-foreground">
                   {t("panel.external.recreateHint")}
                 </p>

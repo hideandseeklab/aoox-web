@@ -77,7 +77,7 @@
     "delete": {
       "trigger": "Delete database",
       "title": "Delete {name}?",
-      "description": "The container is stopped and removed. Choose whether the data (volume) is deleted too. This cannot be undone.",
+      "description": "The container is stopped and removed. Choose whether the data is deleted too. With data deletes the database volume, its volume mounts and all of its backups (the files on this server and their S3 copies). Without, the volumes and the backup files stay on this server. This cannot be undone.",
       "keepData": "Delete, keep data",
       "withData": "Delete with data"
     },
@@ -92,7 +92,8 @@
       "ariaLabel": "Delete database {name}",
       "title": "Delete database {name}?",
       "description": "Database <code>{name}</code> and all its tables and data are deleted permanently and this cannot be undone. Applications still using it will fail to connect."
-    }
+    },
+    "viewerNote": "Only developers and admins can see the password and the connection URLs."
   },
   "resources": {
     "title": "Resource limits",
@@ -309,7 +310,10 @@
     "importDone": "Import finished",
     "errors": {
       "pickSqlFile": "Choose a .sql file first"
-    }
+    },
+    "viewerNotice": "Project viewers can see table and column names but not the rows. Only developers and admins can read data.",
+    "viewerNoticeNames": "Project viewers can see collection names but not the documents. Only developers and admins can read data.",
+    "viewerNoticeKv": "Project viewers cannot see keys or values. Only developers and admins can read data."
   },
   "rowEdit": {
     "trigger": "Edit row",

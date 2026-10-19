@@ -82,7 +82,8 @@ export default async function DatabasePage({
     companionTools,
     alerts,
   ] = await Promise.all([
-    getDatabaseCredentials(db.id),
+    // Viewers never get the password: the API refuses them, so do not ask.
+    db.projectRole === "viewer" ? null : getDatabaseCredentials(db.id),
     listBackups(db.id),
     fetchMetricsAction("database", db.id),
     listBackupDestinations(),
@@ -253,6 +254,7 @@ export default async function DatabasePage({
             canWrite={canWrite}
             canQuery={db.projectRole !== "viewer"}
             canExport={db.projectRole !== "viewer"}
+            canRead={db.projectRole !== "viewer"}
           />
         </TabsContent>
         <TabsContent value="mounts" className="pt-4">
