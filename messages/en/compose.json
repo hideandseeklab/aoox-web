@@ -25,6 +25,7 @@
     "gitCredential": "Git credential",
     "noCredential": "None (public repo)",
     "env": "Environment (.env)",
+    "envHidden": "The environment values are hidden from viewers, because they usually hold secrets. Ask a developer or admin of this project to change or share them.",
     "envHint": "Written to <code>.aoox.env</code> and used as the source for <code>{varExample}</code> interpolation in the compose file (not passed into containers automatically — use <code>environment:</code> or <code>env_file: .aoox.env</code>). Supports <code>{varsRef}</code>.",
     "envHintDb": "Written to <code>.aoox.env</code> and used as the source for <code>{varExample}</code> interpolation in the compose file (not passed into containers automatically — use <code>environment:</code> or <code>env_file: .aoox.env</code>). Supports <code>{varsRef}</code> and <databases></databases>.",
     "saved": "Saved — applies on the next deploy.",

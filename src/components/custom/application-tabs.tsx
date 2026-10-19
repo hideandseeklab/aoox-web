@@ -254,15 +254,16 @@ export function ApplicationTabs({
           owner={{ kind: "application", id: app.id }}
           initial={app.variableSets ?? []}
           available={variableSets}
-          ownEnv={app.env}
+          ownEnv={app.env ?? ""}
           canEdit={canEdit}
           canLinkProtected={app.projectRole === "admin"}
         />
         <ApplicationEnvironment
           applicationId={app.id}
-          env={app.env}
+          env={app.env ?? ""}
           databaseSlugs={databaseSlugs}
           canEdit={canEdit}
+          envHidden={app.envHidden}
         />
         <ApplicationSecretSource
           applicationId={app.id}
@@ -399,8 +400,8 @@ export function ApplicationTabs({
                 staticBuildCommand: app.staticBuildCommand ?? "",
                 staticOutputDir: app.staticOutputDir ?? "dist",
                 staticSpa: app.staticSpa === false ? "" : "on",
-                env: app.env,
-                buildArgs: app.buildArgs,
+                env: app.env ?? "",
+                buildArgs: app.buildArgs ?? "",
                 buildType: app.buildType,
                 serverId: app.serverId ?? "",
                 previewsEnabled: app.previewsEnabled ? "on" : "",
@@ -424,6 +425,7 @@ export function ApplicationTabs({
               swarmActive={swarmActive}
               swarmNodes={swarmNodes}
               readOnly={!canEdit}
+              buildArgsHidden={app.envHidden}
               exposedPortAlert={{
                 applicationId: app.id,
                 containerPort: app.containerPort,

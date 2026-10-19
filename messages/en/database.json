@@ -77,7 +77,7 @@
     "delete": {
       "trigger": "Delete database",
       "title": "Delete {name}?",
-      "description": "The container is stopped and removed. Choose whether the data is deleted too. With data deletes the database volume, its volume mounts and all of its backups (the files on this server and their S3 copies). Without, the volumes and the backup files stay on this server. This cannot be undone.",
+      "description": "The container is stopped and removed. Choose whether the data is deleted too. With data deletes the database volume, the volumes of its mounts (including stored config files) and all of its backups (the files on this server and their S3 copies). Without, the volumes and the backup files stay on this server. This cannot be undone.",
       "keepData": "Delete, keep data",
       "withData": "Delete with data"
     },

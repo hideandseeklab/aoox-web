@@ -116,10 +116,13 @@ export default async function ProjectDetailPage({
           }),
         ]}
         actions={
-          <ExportProjectButton
-            id={project.id}
-            canExportSecrets={session?.user.role === "owner"}
-          />
+          // The export carries every env value, which viewers cannot read.
+          canWrite ? (
+            <ExportProjectButton
+              id={project.id}
+              canExportSecrets={session?.user.role === "owner"}
+            />
+          ) : undefined
         }
       />
 

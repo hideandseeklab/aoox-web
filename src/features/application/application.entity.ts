@@ -61,11 +61,14 @@ export interface Application {
   /** Memory limit in MiB; null = unlimited. */
   memoryMb: number | null
   deploymentKeep: number
-  env: string
+  /** null for project viewers (`envHidden`): the API never sends them the values. */
+  env: string | null
+  /** True when the API left `env` and `buildArgs` out because the caller is a viewer. */
+  envHidden?: boolean
   /** Linked variable set environments, in merge order (later wins). */
   variableSets?: LinkView[]
   /** `KEY=VALUE` lines passed as Docker build args (not secrets). */
-  buildArgs: string
+  buildArgs: string | null
   /** `dockerfile` builds the repo's Dockerfile; `nixpacks` auto-detects the stack. */
   buildType: BuildType
   staticBuildCommand: string | null

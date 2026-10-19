@@ -129,6 +129,7 @@ export function ApplicationForm({
   hostPortApply,
   cancelHref,
   readOnly = false,
+  buildArgsHidden = false,
   exposedPortAlert,
 }: {
   action: (
@@ -141,6 +142,8 @@ export function ApplicationForm({
   submitLabel: string
   /** Project viewers: show every value but disable all fields and hide Save. */
   readOnly?: boolean
+  /** Viewers: build args are not sent to them; show a note instead of the field. */
+  buildArgsHidden?: boolean
   /** Edit mode: warns when the image's EXPOSE ports exclude the saved Container port. */
   exposedPortAlert?: {
     applicationId: string
@@ -1301,17 +1304,25 @@ export function ApplicationForm({
                     <FieldLabel htmlFor="app-build-args">
                       {t("form.advanced.buildArgs")}
                     </FieldLabel>
-                    <Textarea
-                      id="app-build-args"
-                      name="buildArgs"
-                      rows={3}
-                      placeholder="NODE_VERSION=22"
-                      defaultValue={v.buildArgs}
-                      className="font-mono text-xs"
-                    />
-                    <FieldDescription>
-                      {t.rich("form.advanced.buildArgsHelp", { code })}
-                    </FieldDescription>
+                    {buildArgsHidden ? (
+                      <FieldDescription>
+                        {t("form.advanced.buildArgsHidden")}
+                      </FieldDescription>
+                    ) : (
+                      <>
+                        <Textarea
+                          id="app-build-args"
+                          name="buildArgs"
+                          rows={3}
+                          placeholder="NODE_VERSION=22"
+                          defaultValue={v.buildArgs}
+                          className="font-mono text-xs"
+                        />
+                        <FieldDescription>
+                          {t.rich("form.advanced.buildArgsHelp", { code })}
+                        </FieldDescription>
+                      </>
+                    )}
                     <FieldError errors={errs("buildArgs")} />
                   </Field>
                 </FieldGroup>

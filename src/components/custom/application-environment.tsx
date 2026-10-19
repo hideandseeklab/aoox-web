@@ -66,11 +66,14 @@ export function ApplicationEnvironment({
   env,
   databaseSlugs,
   canEdit,
+  envHidden = false,
 }: {
   applicationId: string
   env: string
   databaseSlugs: string[]
   canEdit: boolean
+  /** Viewers: the API sends no values, so show why instead of an empty editor. */
+  envHidden?: boolean
 }) {
   const t = useTranslations("applications")
   const tc = useTranslations("common")
@@ -94,6 +97,19 @@ export function ApplicationEnvironment({
       toast.error(r.error, { id: toastId.current })
     }
     setPending(false)
+  }
+
+  if (envHidden) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>{t("environment.title")}</CardTitle>
+          <CardDescription className="max-w-3xl">
+            {t("environment.viewerHidden")}
+          </CardDescription>
+        </CardHeader>
+      </Card>
+    )
   }
 
   return (

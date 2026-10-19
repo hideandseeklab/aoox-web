@@ -46,7 +46,10 @@ export interface ComposeApp {
   gitBranch: string
   gitCredentialId: string | null
   composePath: string
-  env: string
+  /** null for project viewers (`envHidden`): the API never sends them the values. */
+  env: string | null
+  /** True when the API left `env` out because the caller is a viewer. */
+  envHidden?: boolean
   /** Linked variable set environments, in merge order (later wins). */
   variableSets?: LinkView[]
   status: ComposeAppStatus

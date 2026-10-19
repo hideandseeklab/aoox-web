@@ -204,106 +204,166 @@ export function ComposeMounts({
           {t("mounts.empty")}
         </EmptyState>
       ) : (
-        <DataTable minWidth="min-w-[40rem]">
-          <DataTableHeader>
-            <DataHead>{t("mounts.columns.service")}</DataHead>
-            <DataHead>{t("mounts.columns.path")}</DataHead>
-            <DataHead>{t("mounts.columns.source")}</DataHead>
-            <DataHead>{t("mounts.columns.type")}</DataHead>
-            <DataActionsHead label={t("mounts.columns.actions")} />
-          </DataTableHeader>
-          <DataTableBody>
+        <>
+          {/* Phone: one card per mount, so nothing scrolls sideways. */}
+          <ul className="space-y-2 sm:hidden">
             {mounts.map((m) => (
-              <MountRow key={m.id} owner={owner} mount={m} canEdit={canEdit} />
+              <MountCard key={m.id} owner={owner} mount={m} canEdit={canEdit} />
             ))}
-          </DataTableBody>
-        </DataTable>
+          </ul>
+          <DataTable minWidth="min-w-[40rem]" className="hidden sm:block">
+            <DataTableHeader>
+              <DataHead>{t("mounts.columns.service")}</DataHead>
+              <DataHead>{t("mounts.columns.path")}</DataHead>
+              <DataHead>{t("mounts.columns.source")}</DataHead>
+              <DataHead>{t("mounts.columns.type")}</DataHead>
+              <DataActionsHead label={t("mounts.columns.actions")} />
+            </DataTableHeader>
+            <DataTableBody>
+              {mounts.map((m) => (
+                <MountRow
+                  key={m.id}
+                  owner={owner}
+                  mount={m}
+                  canEdit={canEdit}
+                />
+              ))}
+            </DataTableBody>
+          </DataTable>
+        </>
       )}
     </div>
   )
 }
 
-function MountRow({
-  owner,
-  mount,
-  canEdit,
-}: {
+type MountProps = {
   owner: { kind: "compose"; id: string }
   mount: Mount
   canEdit: boolean
-}) {
+}
+
+function useMountSource(mount: Mount) {
+  const t = useTranslations("compose")
+  return mount.type === "volume"
+    ? t("mounts.volumeSource", { name: mount.name ?? "" })
+    : mount.type === "bind"
+      ? mount.hostPath
+      : mount.name
+}
+
+function MountBadges({ mount }: { mount: Mount }) {
+  const t = useTranslations("compose")
+  return (
+    <div className="flex items-center gap-1.5">
+      <Badge variant="outline">{t(`mounts.type.${mount.type}`)}</Badge>
+      {mount.readOnly && <Badge variant="secondary">ro</Badge>}
+    </div>
+  )
+}
+
+/** Content dialog (or the "hidden for viewers" label) and detach: shared by the table row and the phone card. */
+function MountActions({ owner, mount, canEdit }: MountProps) {
   const t = useTranslations("compose")
   const tc = useTranslations("common")
+  return (
+    <>
+      {mount.type === "file" && (
+        <MountContentDialog
+          title={mount.name ?? mount.containerPath}
+          description={mount.containerPath}
+          content={mount.content ?? ""}
+          canEdit={canEdit}
+          openLabel={t("mounts.contentAria", { name: mount.name ?? "" })}
+          saveLabel={tc("actions.save")}
+          pendingLabel={tc("states.saving")}
+          contentAria={t("mounts.contentAria", { name: mount.name ?? "" })}
+          onSave={(content) => updateMountAction(owner, mount.id, { content })}
+          hidden={mount.contentHidden}
+          hiddenLabel={t("mounts.contentHidden")}
+        />
+      )}
+      {canEdit && (
+        <ConfirmDialog
+          trigger={
+            <IconButton label={t("mounts.detachAria")}>
+              <Trash2 />
+            </IconButton>
+          }
+          title={t("mounts.detachTitle", { name: mount.name ?? "" })}
+          description={
+            mount.type === "volume"
+              ? t("mounts.detachDescriptionVolume")
+              : t("mounts.detachDescriptionOther")
+          }
+          confirmLabel={
+            mount.type === "volume"
+              ? t("mounts.detachAndDelete")
+              : t("mounts.detach")
+          }
+          tone={mount.type === "volume" ? "destructive" : "neutral"}
+          onConfirm={() =>
+            deleteMountAction(owner, mount.id, mount.type === "volume")
+          }
+          alternative={
+            mount.type === "volume"
+              ? {
+                  label: t("mounts.detachKeepData"),
+                  onConfirm: () => deleteMountAction(owner, mount.id, false),
+                }
+              : undefined
+          }
+        />
+      )}
+    </>
+  )
+}
 
-  const source =
-    mount.type === "volume"
-      ? t("mounts.volumeSource", { name: mount.name ?? "" })
-      : mount.type === "bind"
-        ? mount.hostPath
-        : mount.name
-
+function MountRow(props: MountProps) {
+  const source = useMountSource(props.mount)
   return (
     <DataRow>
-      <DataCell mono>{mount.service}</DataCell>
-      <DataCell mono>{mount.containerPath}</DataCell>
+      <DataCell mono>{props.mount.service}</DataCell>
+      <DataCell mono>{props.mount.containerPath}</DataCell>
       <DataCell mono className="text-muted-foreground">
         {source}
       </DataCell>
       <DataCell>
-        <div className="flex items-center gap-1.5">
-          <Badge variant="outline">{t(`mounts.type.${mount.type}`)}</Badge>
-          {mount.readOnly && <Badge variant="secondary">ro</Badge>}
-        </div>
+        <MountBadges mount={props.mount} />
       </DataCell>
       <DataActions>
-        {mount.type === "file" && (
-          <MountContentDialog
-            title={mount.name ?? mount.containerPath}
-            description={mount.containerPath}
-            content={mount.content ?? ""}
-            canEdit={canEdit}
-            openLabel={t("mounts.contentAria", { name: mount.name ?? "" })}
-            saveLabel={tc("actions.save")}
-            pendingLabel={tc("states.saving")}
-            contentAria={t("mounts.contentAria", { name: mount.name ?? "" })}
-            onSave={(content) => updateMountAction(owner, mount.id, { content })}
-            hidden={mount.contentHidden}
-            hiddenLabel={t("mounts.contentHidden")}
-          />
-        )}
-        {canEdit && (
-          <ConfirmDialog
-            trigger={
-              <IconButton label={t("mounts.detachAria")}>
-                <Trash2 />
-              </IconButton>
-            }
-            title={t("mounts.detachTitle", { name: mount.name ?? "" })}
-            description={
-              mount.type === "volume"
-                ? t("mounts.detachDescriptionVolume")
-                : t("mounts.detachDescriptionOther")
-            }
-            confirmLabel={
-              mount.type === "volume"
-                ? t("mounts.detachAndDelete")
-                : t("mounts.detach")
-            }
-            tone={mount.type === "volume" ? "destructive" : "neutral"}
-            onConfirm={() =>
-              deleteMountAction(owner, mount.id, mount.type === "volume")
-            }
-            alternative={
-              mount.type === "volume"
-                ? {
-                    label: t("mounts.detachKeepData"),
-                    onConfirm: () => deleteMountAction(owner, mount.id, false),
-                  }
-                : undefined
-            }
-          />
-        )}
+        <MountActions {...props} />
       </DataActions>
     </DataRow>
+  )
+}
+
+function MountCard(props: MountProps) {
+  const { mount, canEdit } = props
+  const source = useMountSource(mount)
+  const hasActions = canEdit || mount.type === "file"
+  return (
+    <li className="space-y-2 rounded-lg border p-3 text-xs">
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0">
+          <div className="font-mono text-sm font-medium break-all">
+            {mount.containerPath}
+          </div>
+          {mount.service && (
+            <div className="font-mono break-all text-muted-foreground">
+              {mount.service}
+            </div>
+          )}
+        </div>
+        <div className="shrink-0">
+          <MountBadges mount={mount} />
+        </div>
+      </div>
+      <div className="font-mono break-all text-muted-foreground">{source}</div>
+      {hasActions && (
+        <div className="flex items-center justify-end gap-1">
+          <MountActions {...props} />
+        </div>
+      )}
+    </li>
   )
 }

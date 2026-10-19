@@ -55,6 +55,7 @@ export function ComposeForm({
   onPendingChange,
   cancelHref,
   readOnly = false,
+  envHidden = false,
 }: {
   action: (
     prev: ComposeFormState,
@@ -65,6 +66,8 @@ export function ComposeForm({
   defaultValues?: Partial<Values>
   /** Project viewers: show every value but disable all fields and hide Save. */
   readOnly?: boolean
+  /** Viewers: the API sends no env values; show a note instead of the editor. */
+  envHidden?: boolean
   submitLabel: string
   credentials: GitCredential[]
   databaseSlugs?: string[]
@@ -243,28 +246,30 @@ export function ComposeForm({
 
         <Field data-invalid={invalid("env")}>
           <FieldLabel>{t("form.env")}</FieldLabel>
-          <EnvEditor
-            name="env"
-            defaultValue={v.env}
-            readOnly={readOnly}
-          />
-          <FieldDescription>
-            {t.rich(databaseSlugs?.length ? "form.envHintDb" : "form.envHint", {
-              varExample: "${VAR}",
-              varsRef: "${{vars.KEY}}",
-              code: (chunks) => <code>{chunks}</code>,
-              databases: () => (
-                <>
-                  {(databaseSlugs ?? []).map((s, i) => (
-                    <span key={s}>
-                      {i > 0 && ", "}
-                      <code>{`\${{database.${s}.url}}`}</code>
-                    </span>
-                  ))}
-                </>
-              ),
-            })}
-          </FieldDescription>
+          {envHidden ? (
+            <FieldDescription>{t("form.envHidden")}</FieldDescription>
+          ) : (
+            <EnvEditor name="env" defaultValue={v.env} readOnly={readOnly} />
+          )}
+          {!envHidden && (
+            <FieldDescription>
+              {t.rich(databaseSlugs?.length ? "form.envHintDb" : "form.envHint", {
+                varExample: "${VAR}",
+                varsRef: "${{vars.KEY}}",
+                code: (chunks) => <code>{chunks}</code>,
+                databases: () => (
+                  <>
+                    {(databaseSlugs ?? []).map((s, i) => (
+                      <span key={s}>
+                        {i > 0 && ", "}
+                        <code>{`\${{database.${s}.url}}`}</code>
+                      </span>
+                    ))}
+                  </>
+                ),
+              })}
+            </FieldDescription>
+          )}
           <FieldError errors={errs("env")} />
         </Field>
 

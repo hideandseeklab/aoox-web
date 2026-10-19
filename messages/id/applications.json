@@ -142,6 +142,7 @@
       "ignoreErrors": "Abaikan error di log",
       "ignoreErrorsHelp": "Lewati aplikasi ini dari pemindaian log otomatis (notifikasi <em>Error aplikasi</em>) — untuk aplikasi yang output normalnya memang terlihat seperti error.",
       "buildArgs": "Argumen build",
+      "buildArgsHidden": "Disembunyikan dari viewer, karena argumen build tersimpan di image dan bisa berisi secret.",
       "buildArgsHelp": "Satu <code>KEY=VALUE</code> per baris, diteruskan ke <code>ARG</code> di Dockerfile saat build. Ikut tersimpan di image — jangan untuk rahasia; tidak mendukung referensi."
     },
     "previews": {
@@ -197,7 +198,8 @@
     "description": "Variabel env aplikasi ini. Berlaku pada deploy berikutnya (nilai dibaca saat container dibuat), di atas set variabel yang ditautkan: bila key sama, yang ini menang.",
     "saving": "Menyimpan environment…",
     "saved": "Environment disimpan",
-    "readOnly": "Hanya developer ke atas yang bisa mengubah environment."
+    "readOnly": "Hanya developer ke atas yang bisa mengubah environment.",
+    "viewerHidden": "Nilai environment disembunyikan dari viewer, karena biasanya berisi secret. Mintalah developer atau admin project ini untuk mengubah atau membagikannya."
   },
   "imagePicker": {
     "trigger": "Pilih dari registry",

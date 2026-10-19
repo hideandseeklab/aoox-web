@@ -142,6 +142,7 @@
       "ignoreErrors": "Ignore errors in logs",
       "ignoreErrorsHelp": "Skip this application in the automatic log scan (the <em>Application error</em> notification) — for applications whose normal output looks like errors.",
       "buildArgs": "Build args",
+      "buildArgsHidden": "Hidden from viewers, because build args are stored in the image and can hold secrets.",
       "buildArgsHelp": "One <code>KEY=VALUE</code> per line, passed to <code>ARG</code> in the Dockerfile at build time. They are stored in the image — do not use for secrets; references are not supported."
     },
     "previews": {
@@ -197,7 +198,8 @@
     "description": "This application's env variables. Applied on the next deploy (values are read when the container is created), on top of the linked variable sets: on the same key, this one wins.",
     "saving": "Saving environment…",
     "saved": "Environment saved",
-    "readOnly": "Only developers and above can change the environment."
+    "readOnly": "Only developers and above can change the environment.",
+    "viewerHidden": "The environment values are hidden from viewers, because they usually hold secrets. Ask a developer or admin of this project to change or share them."
   },
   "imagePicker": {
     "trigger": "Choose from registry",

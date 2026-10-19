@@ -189,7 +189,7 @@ export default async function ComposeAppPage({
               owner={{ kind: "compose", id: app.id }}
               initial={app.variableSets ?? []}
               available={variableSets}
-              ownEnv={app.env}
+              ownEnv={app.env ?? ""}
               canEdit={canEdit}
               canLinkProtected={app.projectRole === "admin"}
             />
@@ -209,7 +209,7 @@ export default async function ComposeAppPage({
                     gitBranch: app.gitBranch,
                     composePath: app.composePath,
                     gitCredentialId: app.gitCredentialId ?? "",
-                    env: app.env,
+                    env: app.env ?? "",
                     composeContent: app.composeContent ?? "",
                   }}
                   source={app.source}
@@ -217,6 +217,7 @@ export default async function ComposeAppPage({
                   credentials={credentials}
                   databaseSlugs={databases.map((d) => d.slug)}
                   readOnly={!canEdit}
+                  envHidden={app.envHidden}
                 />
               </CardContent>
             </Card>

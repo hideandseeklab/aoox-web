@@ -24,6 +24,8 @@ Versions below 1.0.0 may include breaking changes in a minor release.
 
 ### Fixed
 
+- **Viewers no longer see environment values or build args** (needs the matching aoox-api, which now leaves them out). The application Environment tab, the compose stack Settings and the application build args field show a one-line note for viewers instead of the values, and the Export button on the project page is hidden for them (the export file holds every env value).
+- **Deleting a database with data says what goes**: the dialog now mentions the stored config files of its mounts, which the API removes with the volume since this release (needs the matching aoox-api).
 - **Viewers no longer see webhook URLs, tokens or secrets** (needs the matching aoox-api, which now refuses them). The application Webhook tab and the compose stack's webhook card show a one-line note instead, and the page no longer asks for the webhook when the project role is viewer. Developers see the card as before.
 - **Viewers no longer see the contents of file mounts** (needs the matching aoox-api). The Mounts tab of applications, databases and compose stacks lists the file name and path and shows "Hidden for viewers" in place of the view button.
 
@@ -37,6 +39,7 @@ Versions below 1.0.0 may include breaking changes in a minor release.
 
 ### UI UX Improvement
 
+- Mounts tabs (application, database, compose stack) on a phone: each mount is a stacked card with its path, source, type badges and actions (or "Hidden for viewers") instead of a table that scrolled sideways inside its card; from `sm` up the table is unchanged. Same approach as the Open ports tab.
 - Webhook tab for viewers: a card with the title and one muted sentence instead of the URL and secret; file mount rows for viewers show an eye-off icon with "Hidden for viewers" where the view button was; Docker disk details gain a dashed box with two copyable commands for the unused anonymous volumes.
 
 - Database page for viewers: the Connection card keeps its two columns without the password and URL rows and shows a one-line note; the Data tab shows the table list with the Structure view and a note (Redis/Valkey: the note alone).

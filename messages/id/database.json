@@ -77,7 +77,7 @@
     "delete": {
       "trigger": "Hapus database",
       "title": "Hapus {name}?",
-      "description": "Container dihentikan dan dihapus. Pilih apakah datanya ikut dihapus. Dengan data berarti volume database, volume mount-nya, dan semua backup-nya (berkas di server ini beserta salinan S3) ikut dihapus. Tanpa data, volume dan berkas backup tetap ada di server ini. Tidak bisa dibatalkan.",
+      "description": "Container dihentikan dan dihapus. Pilih apakah datanya ikut dihapus. Dengan data berarti volume database, volume dari mount-nya (termasuk berkas konfigurasi yang tersimpan), dan semua backup-nya (berkas di server ini beserta salinan S3) ikut dihapus. Tanpa data, volume dan berkas backup tetap ada di server ini. Tidak bisa dibatalkan.",
       "keepData": "Hapus, simpan data",
       "withData": "Hapus beserta data"
     },
