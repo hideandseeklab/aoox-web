@@ -1,6 +1,15 @@
 "use client"
 
-import { Database, Eye, EyeOff, Play, Plus, Square, Trash2 } from "lucide-react"
+import {
+  Database,
+  Eye,
+  EyeOff,
+  Play,
+  Plus,
+  RotateCw,
+  Square,
+  Trash2,
+} from "lucide-react"
 import { useTranslations } from "next-intl"
 import { useRouter } from "next/navigation"
 import { useEffect, useState, useTransition } from "react"
@@ -38,6 +47,7 @@ import {
   dropSchemaAction,
 } from "@/features/managed-database/data-browser.actions"
 import {
+  reprovisionDatabaseAction,
   startDatabaseAction,
   stopDatabaseAction,
 } from "@/features/managed-database/managed-database.actions"
@@ -57,6 +67,7 @@ export function DatabasePanel({
   connection: connectionProp,
   schemas = [],
   canManageDatabases = false,
+  canRetry = false,
 }: {
   db: ManagedDatabaseDetail
   /** Null for project viewers: they see host, port, user and database, never the password or a URL. */
@@ -65,6 +76,8 @@ export function DatabasePanel({
   schemas?: SchemaInfo[]
   /** Owner/admin on a running SQL/Mongo server: add or drop databases on it. */
   canManageDatabases?: boolean
+  /** Developer or higher: show "Retry provisioning" on a database in error. */
+  canRetry?: boolean
 }) {
   const t = useTranslations("database")
   const tc = useTranslations("common")
@@ -112,9 +125,30 @@ export function DatabasePanel({
   return (
     <div className="space-y-4">
       {db.status === "error" && (
-        <p className="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-xs text-destructive">
-          {t("panel.createFailed", { error: db.errorMessage ?? "" })}
-        </p>
+        <div className="flex flex-col gap-3 rounded-md border border-destructive/40 bg-destructive/10 p-3 text-xs text-destructive sm:flex-row sm:items-center sm:justify-between">
+          <p className="min-w-0 break-words" role="alert">
+            {t("panel.createFailed", { error: db.errorMessage ?? "" })}
+          </p>
+          {canRetry && db.retryable && (
+            <ConfirmDialog
+              tone="neutral"
+              trigger={
+                <Button variant="outline" size="sm" className="shrink-0">
+                  <RotateCw data-icon="inline-start" />
+                  {t("panel.retry.trigger")}
+                </Button>
+              }
+              title={t("panel.retry.title", { name: db.name })}
+              description={t("panel.retry.description")}
+              confirmLabel={t("panel.retry.confirm")}
+              onConfirm={async () => {
+                const r = await reprovisionDatabaseAction(db.id)
+                if (r.ok) router.refresh()
+                return r
+              }}
+            />
+          )}
+        </div>
       )}
 
       <Card>

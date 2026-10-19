@@ -105,6 +105,22 @@ export async function startDatabaseAction(id: string): Promise<ActionResult> {
   }
 }
 
+/** Retry provisioning of a database in `error` (the API answers 202 and finishes in the background). */
+export async function reprovisionDatabaseAction(
+  id: string
+): Promise<ActionResult> {
+  try {
+    await api<ManagedDatabase>(`/databases/${id}/reprovision`, {
+      method: "POST",
+      token: await requireToken(),
+    })
+    revalidatePath(`/databases/${id}`)
+    return { ok: true, data: undefined }
+  } catch (err) {
+    return await fail(err)
+  }
+}
+
 export async function updateDatabaseResourcesAction(
   id: string,
   cpuMillicores: number | null,

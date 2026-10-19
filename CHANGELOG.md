@@ -39,6 +39,7 @@ Versions below 1.0.0 may include breaking changes in a minor release.
 
 ### UI UX Improvement
 
+- Database page: when a database is in `error`, the error banner has a "Retry provisioning" button (developer and up, hidden for viewers) with a confirm dialog; the page polls until the status leaves `creating` (needs the matching aoox-api). English and Indonesian texts.
 - Mounts tabs (application, database, compose stack) on a phone: each mount is a stacked card with its path, source, type badges and actions (or "Hidden for viewers") instead of a table that scrolled sideways inside its card; from `sm` up the table is unchanged. Same approach as the Open ports tab.
 - Webhook tab for viewers: a card with the title and one muted sentence instead of the URL and secret; file mount rows for viewers show an eye-off icon with "Hidden for viewers" where the view button was; Docker disk details gain a dashed box with two copyable commands for the unused anonymous volumes.
 

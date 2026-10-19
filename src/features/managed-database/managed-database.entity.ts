@@ -107,6 +107,8 @@ export interface ManagedDatabaseDetail extends ManagedDatabase {
   container: { id: string; state: string; status: string } | null
   /** The signed-in user's role in the owning project. */
   projectRole: "admin" | "developer" | "viewer"
+  /** The API would accept "Retry provisioning" (status error, not interrupted by an API restart). Absent on an older API. */
+  retryable?: boolean
 }
 
 export interface DatabaseConnection {

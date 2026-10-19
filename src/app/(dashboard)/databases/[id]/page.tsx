@@ -201,6 +201,7 @@ export default async function DatabasePage({
             db={db}
             connection={connection}
             schemas={schemas}
+            canRetry={db.projectRole !== "viewer"}
             canManageDatabases={
               canWrite &&
               running &&

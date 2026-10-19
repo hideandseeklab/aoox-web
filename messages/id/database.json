@@ -57,6 +57,13 @@
     "showPassword": "Tampilkan password",
     "hidePassword": "Sembunyikan password",
     "createFailed": "Pembuatan database gagal: {error}",
+    "retry": {
+      "trigger": "Coba provisioning lagi",
+      "title": "Coba provisioning {name} lagi?",
+      "description": "Container dibuat ulang dengan mount dan batas yang berlaku sekarang. Volume data tidak disentuh. Ini bisa memakan waktu beberapa menit selama image diunduh dan database dimulai.",
+      "confirm": "Coba lagi",
+      "started": "Provisioning dimulai"
+    },
     "connectionFor": "Koneksi untuk database",
     "primary": "utama",
     "internal": {

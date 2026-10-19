@@ -57,6 +57,13 @@
     "showPassword": "Show password",
     "hidePassword": "Hide password",
     "createFailed": "Database creation failed: {error}",
+    "retry": {
+      "trigger": "Retry provisioning",
+      "title": "Retry provisioning {name}?",
+      "description": "The container is created again with the current mounts and limits. The data volume is not touched. This can take a few minutes while the image is pulled and the database starts.",
+      "confirm": "Retry",
+      "started": "Provisioning started"
+    },
     "connectionFor": "Connection for database",
     "primary": "primary",
     "internal": {
