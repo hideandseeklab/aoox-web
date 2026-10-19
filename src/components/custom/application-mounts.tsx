@@ -258,6 +258,8 @@ function MountRow({
             pendingLabel={t("mounts.applying")}
             contentAria={t("mounts.row.contentAria", { name: mount.name ?? "" })}
             onSave={(content) => updateMountAction(owner, mount.id, { content })}
+            hidden={mount.contentHidden}
+            hiddenLabel={t("mounts.row.contentHidden")}
           />
         )}
         {canEdit && (

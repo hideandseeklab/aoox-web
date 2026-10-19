@@ -133,6 +133,7 @@
     "detach": "Lepas mount",
     "detachKeepData": "Lepas mount saja (data tetap ada)",
     "contentAria": "Isi {name}",
+    "contentHidden": "Disembunyikan untuk viewer",
     "section": {
       "title": "Mount",
       "description": "{count, plural, =0 {Belum ada mount} other {# mount}} · Berlaku pada deploy berikutnya; data di volume tetap aman."

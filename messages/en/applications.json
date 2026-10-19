@@ -577,6 +577,7 @@
       "detach": "Detach mount",
       "detachKeep": "Detach mount only (data stays)",
       "contentAria": "Content of {name}",
+      "contentHidden": "Hidden for viewers",
       "saveApply": "Save & apply"
     },
     "section": {
@@ -641,6 +642,7 @@
   },
   "webhook": {
     "title": "Auto-deploy webhook",
+    "viewerHidden": "The webhook URL and secret are hidden from viewers, because they are enough to trigger deploys. Ask a developer or admin of this project for them.",
     "description": "Every push to the <code>{branch}</code> branch triggers a deploy. Pushes to other branches are ignored; if a deploy is already running, the event is skipped.",
     "copyUrlAria": "Copy webhook URL",
     "urlCopied": "Webhook URL copied",

@@ -1,6 +1,6 @@
 "use client"
 
-import { Eye, Pencil } from "lucide-react"
+import { Eye, EyeOff, Pencil } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { useState, useTransition } from "react"
 import { IconButton } from "@/components/custom/data-table"
@@ -29,6 +29,8 @@ export function MountContentDialog({
   pendingLabel,
   contentAria,
   onSave,
+  hidden = false,
+  hiddenLabel,
 }: {
   title: string
   description: string
@@ -40,12 +42,24 @@ export function MountContentDialog({
   pendingLabel: string
   contentAria: string
   onSave: (content: string) => Promise<{ ok: boolean; error?: string }>
+  /** The API left the body out (project viewers): show `hiddenLabel` instead of a dialog. */
+  hidden?: boolean
+  hiddenLabel?: string
 }) {
   const tc = useTranslations("common")
   const [open, setOpen] = useState(false)
   const [draft, setDraft] = useState(content)
   const [error, setError] = useState<string | null>(null)
   const [pending, start] = useTransition()
+
+  if (hidden) {
+    return (
+      <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+        <EyeOff className="size-3.5" aria-hidden />
+        {hiddenLabel}
+      </span>
+    )
+  }
 
   return (
     <>

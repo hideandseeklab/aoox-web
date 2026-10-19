@@ -98,7 +98,8 @@ export default async function ApplicationPage({
     listVolumeBackups(app.id),
     listBackupDestinations(),
     getProxyStatus(),
-    getWebhook(app.id),
+    // Viewers cannot read the webhook token/secret (403): skip the call.
+    app.projectRole === "viewer" ? Promise.resolve(null) : getWebhook(app.id),
     listGitCredentials(),
     listRegistries().catch(() => []),
     listDatabases(app.projectId),

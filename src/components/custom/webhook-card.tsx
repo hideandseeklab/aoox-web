@@ -197,3 +197,22 @@ export function WebhookCard({
     </Card>
   )
 }
+
+/**
+ * Shown to project viewers instead of {@link WebhookCard}: the URL token and
+ * secret are enough to trigger deploys, so the API only gives them to
+ * developers and above.
+ */
+export function WebhookHiddenCard() {
+  const t = useTranslations("applications")
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>{t("webhook.title")}</CardTitle>
+        <CardDescription className="max-w-3xl">
+          {t("webhook.viewerHidden")}
+        </CardDescription>
+      </CardHeader>
+    </Card>
+  )
+}

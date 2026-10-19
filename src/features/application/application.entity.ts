@@ -259,6 +259,8 @@ export interface Mount {
   name: string | null
   hostPath: string | null
   content: string | null
+  /** True when the API left a file's body out because the caller is a project viewer. */
+  contentHidden?: boolean
   containerPath: string
   readOnly: boolean
   createdAt: string

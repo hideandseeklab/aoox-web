@@ -82,6 +82,7 @@ function DiskStrip({ usage, canRun }: { usage: DiskUsage; canRun: boolean }) {
   const composeVolumes = usage.orphanComposeVolumes ?? []
   const orphanContainers = usage.orphanContainers ?? []
   const containerCount = orphanContainers.length
+  const anonymous = usage.danglingAnonymousVolumes ?? { count: 0, bytes: 0 }
   const removeContainers = pruneContainers && containerCount > 0
   const total =
     usage.imagesBytes +
@@ -218,6 +219,40 @@ function DiskStrip({ usage, canRun }: { usage: DiskUsage; canRun: boolean }) {
                           void copyToClipboard(
                             `docker volume rm ${v.name}`
                           ).then((ok) =>
+                            ok
+                              ? toast.success(t("commandCopied"))
+                              : toast.error(t("commandCopyFailed"))
+                          )
+                        }
+                      >
+                        <Copy />
+                      </IconButton>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {anonymous.count > 0 && (
+              <div className="rounded-md border border-dashed p-2">
+                <p className="text-muted-foreground">
+                  {t("danglingAnonymous", {
+                    count: anonymous.count,
+                    size: size(anonymous.bytes),
+                  })}
+                </p>
+                <ul className="mt-1 space-y-1">
+                  {[
+                    "docker volume ls -qf dangling=true",
+                    "docker volume prune",
+                  ].map((cmd) => (
+                    <li key={cmd} className="flex items-center gap-2">
+                      <code className="min-w-0 flex-1 rounded bg-muted px-1.5 py-0.5 [overflow-wrap:anywhere]">
+                        {cmd}
+                      </code>
+                      <IconButton
+                        label={t("copyShellCommandAria", { command: cmd })}
+                        onClick={() =>
+                          void copyToClipboard(cmd).then((ok) =>
                             ok
                               ? toast.success(t("commandCopied"))
                               : toast.error(t("commandCopyFailed"))

@@ -133,6 +133,7 @@
     "detach": "Detach mount",
     "detachKeepData": "Detach mount only (keep data)",
     "contentAria": "Contents of {name}",
+    "contentHidden": "Hidden for viewers",
     "section": {
       "title": "Mounts",
       "description": "{count, plural, =0 {No mounts yet} one {# mount} other {# mounts}} · Applied on the next deploy; data in volumes is kept."

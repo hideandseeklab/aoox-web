@@ -167,7 +167,9 @@
       "confirm": "Remove"
     },
     "orphanComposeVolumes": "{count, plural, one {# volume} other {# volumes}} left by deleted stacks (declared inside a compose file). aoox never removes these: check the data is not needed, then remove each one manually on the host.",
+    "danglingAnonymous": "{count, plural, one {# unused anonymous volume} other {# unused anonymous volumes}} on this Docker host ({size}). Some were left behind by aoox helper containers before they were cleaned up automatically, but Docker does not say who created them, so aoox cannot tell and never removes them. Warning: docker volume prune removes every unused anonymous volume on the host, not just aoox's. List them first and make sure none holds data you need.",
     "copyCommandAria": "Copy the remove command for {name}",
+    "copyShellCommandAria": "Copy the command {command}",
     "commandCopied": "Command copied",
     "commandCopyFailed": "Could not copy the command"
   },

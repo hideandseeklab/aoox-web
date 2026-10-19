@@ -10,6 +10,8 @@ Versions below 1.0.0 may include breaking changes in a minor release.
 
 ### Added
 
+- **Docker disk details: unused anonymous volumes** (needs the matching aoox-api). A new box shows the number and size of unused anonymous volumes on the host, with copyable `docker volume ls -qf dangling=true` and `docker volume prune` and a warning that prune affects every unused anonymous volume on the host, not only aoox's. Report only.
+
 - **Open ports tab on the Docker page** (needs the matching aoox-api). Lists every port the containers of the host (or a chosen remote server) publish, who owns it (application, database, admin app, stack, proxy, registry, panel, or "not managed by aoox") and who can reach it: "The internet (all interfaces)" or "This server only". A banner explains that ufw does not filter Docker ports and that the provider firewall (or binding the port to 127.0.0.1) is what closes them. Owner and admin, read only, with the same server picker and search as the other tabs.
 - **"Listens on" choice next to every host port** (needs the matching aoox-api): "Public (all interfaces)" or "This server only (127.0.0.1)" on the application form (create and edit; a running application is recreated like for a new host port), the new database form, the admin app install dialog and the stack service-port editors (stack settings and the template dialog). New databases and admin apps default to "this server only", applications and stacks to public. Database and admin app connection details say the port is reachable from the server itself only (SSH tunnel) with the `ssh -L` command, and instance cards, the application/database headers and stack access links show `127.0.0.1:<port>`.
 - **Docker disk details: volumes left by deleted stacks.** A new box lists compose-declared volumes whose stack was deleted, with a copyable `docker volume rm <name>` command per volume and no delete button (needs the matching aoox-api). English and Indonesian.
@@ -22,6 +24,9 @@ Versions below 1.0.0 may include breaking changes in a minor release.
 
 ### Fixed
 
+- **Viewers no longer see webhook URLs, tokens or secrets** (needs the matching aoox-api, which now refuses them). The application Webhook tab and the compose stack's webhook card show a one-line note instead, and the page no longer asks for the webhook when the project role is viewer. Developers see the card as before.
+- **Viewers no longer see the contents of file mounts** (needs the matching aoox-api). The Mounts tab of applications, databases and compose stacks lists the file name and path and shows "Hidden for viewers" in place of the view button.
+
 - **Project viewers no longer see database passwords or rows** (needs the matching aoox-api, which now refuses them). The Connection card shows host, port, database and user with a note and no password, URL or Show password button; the Data tab lists table names and column structure but no rows, and replaces the query box with a notice; Redis/Valkey show only the notice (keys are data); MongoDB lists collection names. Developers and admins are unchanged.
 - **Delete dialogs say what is removed with the data.** Deleting a database or a project with "data" also removes the backups of its databases and application volumes, local files and S3 copies, and the texts say the backup files stay in the backups volume otherwise (needs the matching aoox-api). English and Indonesian.
 - **Copy buttons inside dialogs on a panel opened over plain HTTP.** On `http://<ip>` (no clipboard API) the fallback copied nothing inside a dialog (for example "Token created") but still showed "copied": its hidden textarea was added to the page body, outside the dialog's focus trap, so the selection was lost. It now lives inside the open dialog, the result is only trusted when the text was really selected, and focus goes back to the button. When copying still fails the text is selected in place with a warning ("press Ctrl+C") instead of a success toast. Used by the API token dialog (token and CLI login command), connection and admin credentials, the registry credentials and every `CopyButton`; the other copy buttons keep their error toast.
@@ -31,6 +36,8 @@ Versions below 1.0.0 may include breaking changes in a minor release.
 - **Update card shows a registry lookup failure** (needs the matching aoox-api): an image that cannot be looked up gets a "Lookup failed" badge and the reason, instead of the page failing.
 
 ### UI UX Improvement
+
+- Webhook tab for viewers: a card with the title and one muted sentence instead of the URL and secret; file mount rows for viewers show an eye-off icon with "Hidden for viewers" where the view button was; Docker disk details gain a dashed box with two copyable commands for the unused anonymous volumes.
 
 - Database page for viewers: the Connection card keeps its two columns without the password and URL rows and shows a one-line note; the Data tab shows the table list with the Structure view and a note (Redis/Valkey: the note alone).
 - Docker page: the new "Open ports" tab, with an amber banner above a table (port, reachable from, container, owner badge, link), at 375 px the table scrolls inside its box.

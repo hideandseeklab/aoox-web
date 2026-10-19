@@ -577,6 +577,7 @@
       "detach": "Lepas mount",
       "detachKeep": "Lepas mount saja (data tetap ada)",
       "contentAria": "Isi {name}",
+      "contentHidden": "Disembunyikan untuk viewer",
       "saveApply": "Simpan & terapkan"
     },
     "section": {
@@ -641,6 +642,7 @@
   },
   "webhook": {
     "title": "Webhook auto-deploy",
+    "viewerHidden": "URL dan secret webhook disembunyikan dari viewer, karena keduanya cukup untuk memicu deploy. Mintalah kepada developer atau admin project ini.",
     "description": "Setiap push ke branch <code>{branch}</code> memicu deploy. Push ke branch lain diabaikan; kalau deploy sedang berjalan, event dilewati.",
     "copyUrlAria": "Salin URL webhook",
     "urlCopied": "URL webhook disalin",

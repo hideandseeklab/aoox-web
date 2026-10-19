@@ -167,7 +167,9 @@
       "confirm": "Hapus"
     },
     "orphanComposeVolumes": "{count} volume tertinggal dari stack yang sudah dihapus (dideklarasikan di dalam file compose). aoox tidak pernah menghapusnya: pastikan datanya tidak dibutuhkan, lalu hapus satu per satu secara manual di host.",
+    "danglingAnonymous": "{count} volume anonim tidak terpakai di host Docker ini ({size}). Sebagian ditinggalkan oleh container bantu aoox sebelum dibersihkan otomatis, tetapi Docker tidak mencatat pembuatnya, jadi aoox tidak bisa membedakannya dan tidak pernah menghapusnya. Peringatan: docker volume prune menghapus semua volume anonim yang tidak terpakai di host, bukan hanya milik aoox. Lihat daftarnya dulu dan pastikan tidak ada yang berisi data yang Anda butuhkan.",
     "copyCommandAria": "Salin perintah hapus untuk {name}",
+    "copyShellCommandAria": "Salin perintah {command}",
     "commandCopied": "Perintah disalin",
     "commandCopyFailed": "Perintah tidak bisa disalin"
   },

@@ -22,6 +22,7 @@ import { ComposePanel } from "@/components/custom/compose-panel"
 import { ComposeHeader } from "@/components/custom/compose-header"
 import { ComposeResources } from "@/components/custom/compose-resources"
 import { ComposeWebhook } from "@/components/custom/compose-webhook"
+import { WebhookHiddenCard } from "@/components/custom/webhook-card"
 import {
   Card,
   CardContent,
@@ -78,7 +79,10 @@ export default async function ComposeAppPage({
     app.templateId ? listTemplates() : Promise.resolve([]),
     listJobs({ kind: "compose", id: app.id }),
     listComposeDeployments(app.id),
-    getComposeWebhook(app.id),
+    // Viewers cannot read the webhook token/secret (403): skip the call.
+    app.projectRole === "viewer"
+      ? Promise.resolve(null)
+      : getComposeWebhook(app.id),
     listMounts({ kind: "compose", id: app.id }),
     getVerifiedSession(),
     fetchMetricsAction("compose", app.id),
@@ -157,12 +161,14 @@ export default async function ComposeAppPage({
             />
           </TabsContent>
           <TabsContent value="settings" className="space-y-4 pt-4">
-            {webhook && (
+            {webhook ? (
               <ComposeWebhook
                 composeAppId={app.id}
                 webhook={webhook}
                 canEdit={canEdit}
               />
+            ) : (
+              !canEdit && <WebhookHiddenCard />
             )}
             <ComposeAccess
               appId={app.id}

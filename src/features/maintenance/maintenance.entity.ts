@@ -42,6 +42,11 @@ export interface DiskUsage {
   orphanVolumes: string[]
   /** Report-only: compose-declared volumes of deleted stacks. Never removed by aoox. */
   orphanComposeVolumes?: OrphanComposeVolume[]
+  /**
+   * Report-only: anonymous volumes no container uses, counted over the whole
+   * daemon (they cannot be attributed to aoox). Never removed by aoox.
+   */
+  danglingAnonymousVolumes?: { count: number; bytes: number }
   /** Local aoox containers left behind by projects/apps deleted on older versions. */
   orphanContainers?: OrphanContainer[]
   lastCleanup: CleanupReport | null

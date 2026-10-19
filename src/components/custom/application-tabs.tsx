@@ -8,6 +8,7 @@ import { ApplicationForm } from "@/components/custom/application-form"
 import { ApplicationJobs } from "@/components/custom/application-jobs"
 import { ApplicationMounts } from "@/components/custom/application-mounts"
 import { ApplicationWebhook } from "@/components/custom/application-webhook"
+import { WebhookHiddenCard } from "@/components/custom/webhook-card"
 import { ConsoleView } from "@/components/custom/console-view"
 import { DangerZone } from "@/components/custom/danger-zone"
 import { DeleteApplicationButton } from "@/components/custom/delete-application-button"
@@ -126,7 +127,8 @@ export function ApplicationTabs({
   volumeBackups: VolumeBackup[]
   destinations: BackupDestination[]
   proxy: ProxyStatus
-  webhook: WebhookInfo
+  /** Null for project viewers: the API does not give them the token or secret. */
+  webhook: WebhookInfo | null
   credentials: GitCredential[]
   registries: Registry[]
   databaseSlugs: string[]
@@ -297,11 +299,15 @@ export function ApplicationTabs({
       </TabsContent>
       <TabsContent value="webhook" className="pt-4">
         <div className="space-y-4">
-          <ApplicationWebhook
-            applicationId={app.id}
-            webhook={webhook}
-            canEdit={canEdit}
-          />
+          {webhook ? (
+            <ApplicationWebhook
+              applicationId={app.id}
+              webhook={webhook}
+              canEdit={canEdit}
+            />
+          ) : (
+            <WebhookHiddenCard />
+          )}
           <PreviewsPanel
             applicationId={app.id}
             enabled={app.previewsEnabled}
