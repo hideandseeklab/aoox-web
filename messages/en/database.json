@@ -61,8 +61,12 @@
     "retry": {
       "trigger": "Retry provisioning",
       "title": "Retry provisioning {name}?",
-      "description": "The container is created again with the current mounts and limits. The data volume is not touched. This can take a few minutes while the image is pulled and the database starts.",
+      "description": "The container is created again with the current mounts and limits. The existing data volume is kept and reused, because it may hold data. If this database failed during its very first start and keeps failing to authenticate, delete it and create it again. This can take a few minutes while the image is pulled and the database starts.",
       "confirm": "Retry",
+      "triggerFresh": "Retry with a fresh data volume",
+      "titleFresh": "Retry {name} with a fresh data volume?",
+      "descriptionFresh": "This database never became ready, so it holds no data yet. Its half-initialised data volume (and the volumes of its mounts) is deleted and created again, then the container starts with the current mounts and limits. Nothing is lost. This can take a few minutes.",
+      "confirmFresh": "Retry with a fresh volume",
       "started": "Provisioning started"
     },
     "connectionFor": "Connection for database",

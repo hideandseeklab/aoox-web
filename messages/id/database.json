@@ -61,8 +61,12 @@
     "retry": {
       "trigger": "Coba provisioning lagi",
       "title": "Coba provisioning {name} lagi?",
-      "description": "Container dibuat ulang dengan mount dan batas yang berlaku sekarang. Volume data tidak disentuh. Ini bisa memakan waktu beberapa menit selama image diunduh dan database dimulai.",
+      "description": "Container dibuat ulang dengan mount dan batas yang berlaku sekarang. Volume data yang ada dipertahankan dan dipakai lagi karena mungkin berisi data. Jika database ini gagal pada start pertamanya dan terus gagal autentikasi, hapus lalu buat ulang. Ini bisa memakan waktu beberapa menit selama image diunduh dan database dimulai.",
       "confirm": "Coba lagi",
+      "triggerFresh": "Coba lagi dengan volume data baru",
+      "titleFresh": "Coba {name} lagi dengan volume data baru?",
+      "descriptionFresh": "Database ini belum pernah siap, jadi belum menyimpan data. Volume datanya yang setengah terinisialisasi (beserta volume mount-nya) dihapus dan dibuat ulang, lalu container dimulai dengan mount dan batas yang berlaku sekarang. Tidak ada data yang hilang. Ini bisa memakan waktu beberapa menit.",
+      "confirmFresh": "Coba dengan volume baru",
       "started": "Provisioning dimulai"
     },
     "connectionFor": "Koneksi untuk database",

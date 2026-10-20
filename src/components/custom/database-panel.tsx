@@ -142,12 +142,29 @@ export function DatabasePanel({
               trigger={
                 <Button variant="outline" size="sm" className="shrink-0">
                   <RotateCw data-icon="inline-start" />
-                  {t("panel.retry.trigger")}
+                  {t(
+                    db.retryMode === "fresh-volume"
+                      ? "panel.retry.triggerFresh"
+                      : "panel.retry.trigger"
+                  )}
                 </Button>
               }
-              title={t("panel.retry.title", { name: db.name })}
-              description={t("panel.retry.description")}
-              confirmLabel={t("panel.retry.confirm")}
+              title={t(
+                db.retryMode === "fresh-volume"
+                  ? "panel.retry.titleFresh"
+                  : "panel.retry.title",
+                { name: db.name }
+              )}
+              description={t(
+                db.retryMode === "fresh-volume"
+                  ? "panel.retry.descriptionFresh"
+                  : "panel.retry.description"
+              )}
+              confirmLabel={t(
+                db.retryMode === "fresh-volume"
+                  ? "panel.retry.confirmFresh"
+                  : "panel.retry.confirm"
+              )}
               onConfirm={async () => {
                 const r = await reprovisionDatabaseAction(db.id)
                 if (r.ok) router.refresh()

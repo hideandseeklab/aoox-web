@@ -109,6 +109,12 @@ export interface ManagedDatabaseDetail extends ManagedDatabase {
   projectRole: "admin" | "developer" | "viewer"
   /** The API would accept "Retry provisioning" (status error, not interrupted by an API restart). Absent on an older API. */
   retryable?: boolean
+  /**
+   * What a retry does to the data volume: "fresh-volume" (the database never
+   * became ready, so nothing is lost and the volume is recreated) or
+   * "reuse-volume" (kept). Absent on an older API.
+   */
+  retryMode?: "fresh-volume" | "reuse-volume" | null
 }
 
 export interface DatabaseConnection {

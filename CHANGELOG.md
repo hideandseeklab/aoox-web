@@ -42,6 +42,7 @@ Versions below 1.0.0 may include breaking changes in a minor release.
 
 ### UI UX Improvement
 
+- **Retry provisioning says what it will do** (needs the matching aoox-api). For a database that never became ready the button reads "Retry with a fresh data volume" and the dialog explains that its half-initialised volume is recreated and nothing is lost; otherwise the dialog says the existing data volume is kept and to delete and recreate a database that failed on its very first start. English and Indonesian.
 - **The application header shows the image that is running** (needs the matching aoox-api). After a failed deploy of a newer tag the Image line used to show the configured target while the previous version still served. It now shows the deployed image (`currentImage`) and, when the configured target differs, a small "configured: <ref>" note. The project instance cards use the same image. Image references and container names in resource headers now wrap only after `/`, `:`, `@`, `-` or `_` (new `BreakRef`) instead of in the middle of a token such as `0.1.0`. Git applications still show their source (repository and branch).
 - Deploy tab: when the newest deployment failed but the previous version is still serving, an alert says so, shows the error and has a "View log" button (needs the matching aoox-api, which keeps such an application `running`).
 - The image update check result and the "newer version" hint are shown in the Deployments header (Alert with a Switch and deploy button), laid out for 375 px, light and dark, English and Indonesian.
