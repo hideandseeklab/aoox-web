@@ -405,6 +405,15 @@
         "restart": "Restarting the panel",
         "back": "Panel is back, reloading…"
       },
+      "stepDetails": {
+        "download": "Pulling the new images from Docker Hub",
+        "restart": "Recreating the api and web containers",
+        "back": "This page reloads by itself"
+      },
+      "stepStatus": {
+        "done": "Done",
+        "running": "Running…"
+      },
       "explain": "The panel is unavailable for about a minute while it restarts. This is normal. This page reloads by itself, and your deployed applications keep running.",
       "waiting": "Waiting for the panel to come back…",
       "slow": "This is taking longer than usual. You can reload now, or check from a terminal with <code>aoox update panel</code>.",

@@ -1,6 +1,6 @@
 "use client"
 
-import { CheckCircle2, Loader2, TriangleAlert } from "lucide-react"
+import { Check, Loader2, TriangleAlert } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { useEffect, useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
@@ -12,6 +12,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import {
+  Item,
+  ItemActions,
+  ItemContent,
+  ItemDescription,
+  ItemGroup,
+  ItemMedia,
+  ItemTitle,
+} from "@/components/ui/item"
+import { cn } from "@/lib/utils"
 import {
   isUpdated,
   phaseOf,
@@ -137,10 +147,18 @@ export function InstanceUpdateOverlay({
   const failed = elapsed >= FAIL_AFTER_MS && phase !== "back"
   const slow = elapsed >= HINT_AFTER_MS && !failed && phase !== "back"
 
-  const steps: { key: UpdatePhase; label: string }[] = [
-    { key: "downloading", label: t("steps.download") },
-    { key: "restarting", label: t("steps.restart") },
-    { key: "back", label: t("steps.back") },
+  const steps: { key: UpdatePhase; label: string; detail: string }[] = [
+    {
+      key: "downloading",
+      label: t("steps.download"),
+      detail: t("stepDetails.download"),
+    },
+    {
+      key: "restarting",
+      label: t("steps.restart"),
+      detail: t("stepDetails.restart"),
+    },
+    { key: "back", label: t("steps.back"), detail: t("stepDetails.back") },
   ]
 
   return (
@@ -173,35 +191,84 @@ export function InstanceUpdateOverlay({
             <p className="text-xs text-muted-foreground">{t("failed.logs")}</p>
           </div>
         ) : (
-          <div className="space-y-4">
-            <ol className="space-y-2 rounded-md border p-3 text-xs">
-              {steps.map((s) => {
+          <div className="space-y-3">
+            <ItemGroup className="gap-2 has-data-[size=sm]:gap-2">
+              {steps.map((s, i) => {
                 const idx = ORDER.indexOf(s.key)
                 const cur = ORDER.indexOf(phase)
                 const done = idx < cur || (s.key === "back" && phase === "back")
                 const active = idx === cur && !done
+                const state = done ? "done" : active ? "active" : "pending"
                 return (
-                  <li key={s.key} className="flex items-center gap-2">
-                    {done ? (
-                      <CheckCircle2 className="size-4 shrink-0 text-primary" />
-                    ) : active ? (
-                      <Loader2 className="size-4 shrink-0 animate-spin text-muted-foreground" />
-                    ) : (
-                      <span className="size-4 shrink-0 rounded-full border" />
+                  <Item
+                    key={s.key}
+                    role="listitem"
+                    variant="outline"
+                    size="sm"
+                    data-state={state}
+                    aria-current={active ? "step" : undefined}
+                    className={cn(
+                      "flex-nowrap items-start",
+                      active && "border-primary/50 bg-primary/5",
+                      !done && !active && "border-dashed"
                     )}
-                    <span
-                      className={
-                        done || active
-                          ? "text-foreground"
-                          : "text-muted-foreground"
-                      }
-                    >
-                      {s.label}
-                    </span>
-                  </li>
+                  >
+                    <ItemMedia>
+                      <span
+                        aria-hidden
+                        className={cn(
+                          "flex size-6 items-center justify-center rounded-full border text-[11px] font-medium tabular-nums",
+                          done &&
+                            "border-primary bg-primary text-primary-foreground",
+                          active && "border-primary text-foreground",
+                          !done && !active && "text-muted-foreground"
+                        )}
+                      >
+                        {done ? (
+                          <Check className="size-3.5" />
+                        ) : active ? (
+                          <Loader2 className="size-3.5 animate-spin" />
+                        ) : (
+                          i + 1
+                        )}
+                      </span>
+                    </ItemMedia>
+                    <ItemContent className="min-w-0 gap-0.5">
+                      <ItemTitle
+                        className={cn(
+                          "line-clamp-none w-auto",
+                          !done && !active && "text-muted-foreground"
+                        )}
+                      >
+                        {s.label}
+                      </ItemTitle>
+                      <ItemDescription
+                        className={cn(
+                          "line-clamp-none",
+                          !done && !active && "text-muted-foreground/70"
+                        )}
+                      >
+                        {s.detail}
+                      </ItemDescription>
+                    </ItemContent>
+                    {(done || active) && (
+                      <ItemActions className="shrink-0 pt-px">
+                        <span
+                          className={cn(
+                            "text-xs whitespace-nowrap",
+                            active
+                              ? "font-medium text-foreground"
+                              : "text-muted-foreground"
+                          )}
+                        >
+                          {done ? t("stepStatus.done") : t("stepStatus.running")}
+                        </span>
+                      </ItemActions>
+                    )}
+                  </Item>
                 )
               })}
-            </ol>
+            </ItemGroup>
             {unreachable && phase !== "back" && (
               <p
                 className="text-xs text-muted-foreground"

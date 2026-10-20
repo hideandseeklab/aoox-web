@@ -399,11 +399,20 @@
       "title": "Memperbarui aoox",
       "versions": "{from} → {to}",
       "unknownTarget": "versi baru",
-      "elapsed": "Berjalan {time}",
+      "elapsed": "Waktu berlalu {time}",
       "steps": {
         "download": "Mengunduh versi baru",
         "restart": "Me-restart panel",
         "back": "Panel sudah kembali, memuat ulang…"
+      },
+      "stepDetails": {
+        "download": "Menarik image baru dari Docker Hub",
+        "restart": "Membuat ulang container api dan web",
+        "back": "Halaman ini memuat ulang dengan sendirinya"
+      },
+      "stepStatus": {
+        "done": "Selesai",
+        "running": "Berjalan…"
       },
       "explain": "Panel tidak dapat diakses sekitar satu menit selama restart. Ini wajar. Halaman ini memuat ulang sendiri, dan aplikasi yang sudah di-deploy tetap berjalan.",
       "waiting": "Menunggu panel kembali…",

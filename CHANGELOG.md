@@ -8,6 +8,10 @@ Versions below 1.0.0 may include breaking changes in a minor release.
 
 ## [Unreleased]
 
+### UI UX Improvement
+
+- **Panel update steps are tidier.** The three steps in the update overlay (downloading, restarting, back) are now separate rows, each with a status circle (check, spinner or step number), a one-line detail ("Pulling the new images from Docker Hub", "Recreating the api and web containers", "This page reloads by itself") and a Done / Running… label; the running step is highlighted and pending steps are dimmed. English and Indonesian, wraps cleanly at 375 px.
+
 ## [0.1.0-alpha.13] - 2026-10-20
 
 ### Added
