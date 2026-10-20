@@ -176,6 +176,7 @@
   },
   "tabs": {
     "deploy": "Deploy",
+    "logs": "Log",
     "domains": "Domain ({count})",
     "mounts": "Mount ({count})",
     "environment": "Environment",
@@ -303,17 +304,6 @@
         "confirmBody": "Image berubah dari tag {current} ke {ref} (tersimpan di pengaturan aplikasi) dan deployment langsung dimulai. Bisa di-rollback dari riwayat."
       }
     },
-    "logs": {
-      "follow": "Log container (live)",
-      "stopFollow": "Berhenti mengikuti log",
-      "containerLabel": "Log container",
-      "connectFailed": "Tidak dapat terhubung ke log"
-    },
-    "origin": {
-      "title": "Log realtime tidak tersedia lewat alamat ini",
-      "body": "Panel ini punya domain kustom (<code>{webOrigin}</code>), dan log realtime hanya menerima koneksi dari domain itu — bukan dari <code>{browserOrigin}</code> yang sedang kamu pakai.",
-      "open": "Buka halaman ini di {origin}"
-    },
     "history": {
       "emptyTitle": "Belum ada deployment",
       "emptyBody": "Deploy aplikasimu untuk melihat riwayat build di sini.",
@@ -336,6 +326,46 @@
       "title": "Deployment",
       "description": "{count, plural, =0 {Belum pernah di-deploy} other {# deployment}} · Pilih salah satu untuk membaca lognya."
     }
+  },
+  "logs": {
+    "title": "Log container",
+    "description": "Output live (stdout dan stderr) dari container aplikasi.",
+    "descriptionService": "Output live (stdout dan stderr) dari semua task service.",
+    "tailLabel": "Baris awal",
+    "tailOption": "{count} baris terakhir",
+    "reconnect": "Sambung ulang",
+    "connectFailed": "Tidak dapat terhubung ke log",
+    "status": {
+      "connecting": "Menghubungkan…",
+      "live": "Live",
+      "ended": "Selesai",
+      "disconnected": "Terputus",
+      "noContainer": "Tanpa container",
+      "error": "Galat",
+      "stopped": "Tidak berjalan"
+    },
+    "noContainer": {
+      "title": "Tidak ada container yang berjalan",
+      "body": "Aplikasi ini belum punya container. Deploy dulu, atau jalankan kembali kalau tadi dihentikan.",
+      "stoppedBody": "Container sedang berhenti, jadi ini baris terakhir yang ditulisnya. Jalankan aplikasinya, lalu sambung ulang."
+    },
+    "ended": {
+      "title": "Aliran log berakhir",
+      "body": "Container berhenti atau diganti (dihentikan, crash, atau redeploy). Baris yang sudah diterima tetap di sini; sambung ulang setelah container berjalan lagi."
+    },
+    "disconnected": {
+      "title": "Koneksi ke log terputus",
+      "body": "Sambung ulang untuk lanjut mengikuti output."
+    },
+    "error": {
+      "title": "Gagal memuat log"
+    },
+    "emptyNoContainer": "Tidak ada output."
+  },
+  "realtimeOrigin": {
+    "title": "Log realtime tidak tersedia lewat alamat ini",
+    "body": "Panel ini punya domain kustom (<code>{webOrigin}</code>), dan log realtime hanya menerima koneksi dari domain itu — bukan dari <code>{browserOrigin}</code> yang sedang kamu pakai.",
+    "open": "Buka halaman ini di {origin}"
   },
   "stepper": {
     "ariaLabel": "Langkah deployment",

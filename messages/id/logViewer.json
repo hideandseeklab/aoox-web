@@ -13,5 +13,7 @@
   "copyAllTitle": "Salin semua",
   "copied": "Log disalin",
   "copyFailed": "Gagal menyalin log",
-  "olderHidden": "{count} baris sebelumnya disembunyikan — tampilkan lebih banyak"
+  "olderHidden": "{count} baris sebelumnya disembunyikan — tampilkan lebih banyak",
+  "downloadAria": "Unduh {label} sebagai file teks",
+  "downloadTitle": "Unduh .txt"
 }

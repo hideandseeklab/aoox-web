@@ -1,10 +1,8 @@
 "use client"
 
 import {
-  ExternalLink,
   Globe,
   History,
-  Radio,
   RefreshCw,
   Rocket,
   Sparkles,
@@ -42,6 +40,7 @@ import {
 import { useLogsSocket } from "@/features/application/use-logs-socket"
 import { DEPLOYMENT_QUEUED_EVENT } from "./application-actions"
 import { DeployStepper } from "./deploy-stepper"
+import { RealtimeOriginAlert } from "./realtime-origin-alert"
 import { useBrowserOrigin } from "./use-browser-host"
 import { formatDateTime, formatTime } from "@/i18n/format"
 import { useLocale, useTranslations } from "next-intl"
@@ -151,8 +150,6 @@ export function ApplicationDeployPanel({
   const [liveTimes, setLiveTimes] = useState<
     Record<string, DeploymentStepTimes & { finished?: string }>
   >({})
-  const [containerLogs, setContainerLogs] = useState<string | null>(null)
-  const [following, setFollowing] = useState(false)
 
   const {
     socket,
@@ -171,7 +168,7 @@ export function ApplicationDeployPanel({
   // Stream the selected deployment's log over the socket; refresh server
   // data once it reaches a terminal state.
   useEffect(() => {
-    if (!socket || !selectedId || following) return
+    if (!socket || !selectedId) return
     const onLog = ({
       deploymentId,
       chunk,
@@ -223,7 +220,7 @@ export function ApplicationDeployPanel({
       socket.off("deployment:status", onStatus)
       socket.emit("unsubscribe")
     }
-  }, [socket, selectedId, following, router])
+  }, [socket, selectedId, router])
 
   // A new deployment from anywhere (webhook, auto-update, another user's
   // manual deploy) — broadcast to every socket ticketed for this app, not
@@ -240,7 +237,6 @@ export function ApplicationDeployPanel({
       toast.info(
         t("deploy.toast.started", { trigger: triggerLabel(payload, t) })
       )
-      setFollowing(false)
       setLogText("")
       setLiveStatus(null)
       setSelectedId(payload.id)
@@ -252,23 +248,7 @@ export function ApplicationDeployPanel({
     }
   }, [socket, router, t])
 
-  // Follow container stdout/stderr live while toggled on.
-  useEffect(() => {
-    if (!socket || !following) return
-    const onLog = (chunk: string) => setContainerLogs((t) => (t ?? "") + chunk)
-    const onEnd = () => setFollowing(false)
-    socket.on("container:log", onLog)
-    socket.on("container:end", onEnd)
-    socket.emit("subscribe:container", 200)
-    return () => {
-      socket.off("container:log", onLog)
-      socket.off("container:end", onEnd)
-      socket.emit("unsubscribe")
-    }
-  }, [socket, following])
-
   const selectDeployment = (id: string) => {
-    setFollowing(false)
     setLogText("")
     setLiveStatus(null)
     setSelectedId(id)
@@ -279,7 +259,6 @@ export function ApplicationDeployPanel({
     const onQueued = (e: Event) => {
       const id = (e as CustomEvent<{ id: string }>).detail?.id
       if (!id) return
-      setFollowing(false)
       setLogText("")
       setLiveStatus(null)
       setSelectedId(id)
@@ -339,22 +318,22 @@ export function ApplicationDeployPanel({
           <AlertDescription className="space-y-2">
             <p>{t("deploy.noAccess.body")}</p>
             {canEdit && (
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => onNavigateTab?.("settings")}
-              >
-                {t("deploy.noAccess.setPort")}
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => onNavigateTab?.("domains")}
-              >
-                {t("deploy.noAccess.addDomain")}
-              </Button>
-            </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onNavigateTab?.("settings")}
+                >
+                  {t("deploy.noAccess.setPort")}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onNavigateTab?.("domains")}
+                >
+                  {t("deploy.noAccess.addDomain")}
+                </Button>
+              </div>
             )}
           </AlertDescription>
         </Alert>
@@ -366,7 +345,7 @@ export function ApplicationDeployPanel({
           <AlertTitle>{t("deploy.lastFailed.title")}</AlertTitle>
           <AlertDescription className="space-y-2">
             {deployments[0].errorMessage && (
-              <p className="line-clamp-3 break-words font-mono text-xs">
+              <p className="line-clamp-3 font-mono text-xs break-words">
                 {deployments[0].errorMessage}
               </p>
             )}
@@ -444,64 +423,50 @@ export function ApplicationDeployPanel({
           count: deployments.length,
         })}
         action={
-          <>
-            {canEdit && app.sourceType === "image" && (
-              <Button
-                variant="outline"
-                disabled={pending || active}
-                onClick={() =>
-                  run(async () => {
-                    setImageNote(null)
-                    setImageCheck(null)
-                    const r = await checkImageUpdateAction(app.id, true)
-                    if (r.ok) {
-                      const d = r.data
-                      const values = {
-                        tag: d.tag,
-                        digest: d.remoteDigest?.slice(7, 19) ?? "",
-                      }
-                      const note =
-                        d.remoteDigest === null
-                          ? t("deploy.image.pinned")
-                          : d.baseline
-                            ? t("deploy.image.baseline", values)
-                            : d.changed
-                              ? t(
-                                  d.deploymentId
-                                    ? "deploy.image.changedStarted"
-                                    : "deploy.image.changedBusy",
-                                  values
-                                )
-                              : t("deploy.image.upToDate", values)
-                      setImageNote(
-                        d.tagError
-                          ? `${note} ${t("deploy.image.tagError", { error: d.tagError })}`
-                          : note
-                      )
-                      setImageCheck(d)
-                      if (d.deploymentId) selectDeployment(d.deploymentId)
-                    }
-                    return r
-                  })
-                }
-              >
-                <RefreshCw data-icon="inline-start" />
-                {t("deploy.image.check")}
-              </Button>
-            )}
+          canEdit && app.sourceType === "image" ? (
             <Button
-              variant={following ? "secondary" : "ghost"}
-              size="sm"
-              disabled={!app.container || !socket}
-              onClick={() => {
-                setContainerLogs("")
-                setFollowing((f) => !f)
-              }}
+              variant="outline"
+              disabled={pending || active}
+              onClick={() =>
+                run(async () => {
+                  setImageNote(null)
+                  setImageCheck(null)
+                  const r = await checkImageUpdateAction(app.id, true)
+                  if (r.ok) {
+                    const d = r.data
+                    const values = {
+                      tag: d.tag,
+                      digest: d.remoteDigest?.slice(7, 19) ?? "",
+                    }
+                    const note =
+                      d.remoteDigest === null
+                        ? t("deploy.image.pinned")
+                        : d.baseline
+                          ? t("deploy.image.baseline", values)
+                          : d.changed
+                            ? t(
+                                d.deploymentId
+                                  ? "deploy.image.changedStarted"
+                                  : "deploy.image.changedBusy",
+                                values
+                              )
+                            : t("deploy.image.upToDate", values)
+                    setImageNote(
+                      d.tagError
+                        ? `${note} ${t("deploy.image.tagError", { error: d.tagError })}`
+                        : note
+                    )
+                    setImageCheck(d)
+                    if (d.deploymentId) selectDeployment(d.deploymentId)
+                  }
+                  return r
+                })
+              }
             >
-              <Radio data-icon="inline-start" />
-              {following ? t("deploy.logs.stopFollow") : t("deploy.logs.follow")}
+              <RefreshCw data-icon="inline-start" />
+              {t("deploy.image.check")}
             </Button>
-          </>
+          ) : undefined
         }
       />
       {(shownError || imageNote) && (
@@ -535,13 +500,15 @@ export function ApplicationDeployPanel({
             })}
           </AlertTitle>
           <AlertDescription className="space-y-2">
-            <p>
-              {t("deploy.image.newer.body", { current: imageCheck.tag })}
-            </p>
+            <p>{t("deploy.image.newer.body", { current: imageCheck.tag })}</p>
             <ConfirmDialog
               tone="neutral"
               trigger={
-                <Button variant="outline" size="sm" disabled={pending || active}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={pending || active}
+                >
                   <Rocket data-icon="inline-start" />
                   {t("deploy.image.newer.switch")}
                 </Button>
@@ -571,35 +538,9 @@ export function ApplicationDeployPanel({
       )}
 
       {originMismatch && (
-        <Alert variant="destructive">
-          <AlertTitle>{t("deploy.origin.title")}</AlertTitle>
-          <AlertDescription className="space-y-2">
-            <p>
-              {t.rich("deploy.origin.body", {
-                code: (chunks) => <code>{chunks}</code>,
-                webOrigin,
-                browserOrigin: browserOrigin ?? "",
-              })}
-            </p>
-            <Button size="sm" asChild>
-              <a
-                href={
-                  webOrigin + window.location.pathname + window.location.search
-                }
-              >
-                <ExternalLink data-icon="inline-start" />
-                {t("deploy.origin.open", { origin: webOrigin })}
-              </a>
-            </Button>
-          </AlertDescription>
-        </Alert>
-      )}
-
-      {following && (
-        <LogViewer
-          text={containerLogs ?? ""}
-          label={t("deploy.logs.containerLabel")}
-          className="h-64"
+        <RealtimeOriginAlert
+          webOrigin={webOrigin}
+          browserOrigin={browserOrigin ?? ""}
         />
       )}
 
@@ -632,132 +573,134 @@ export function ApplicationDeployPanel({
           }
         />
       ) : (
-      <div className="grid gap-4 lg:grid-cols-[16rem_1fr]">
-        <div className="space-y-1">
-          <ul className="divide-y rounded-md border">
-            {deployments.map((d) => {
-              const status =
-                d.id === selectedId && liveStatus ? liveStatus : d.status
-              return (
-                <li key={d.id}>
-                  <button
-                    type="button"
-                    onClick={() => selectDeployment(d.id)}
-                    className={`flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-xs hover:bg-muted/50 ${
-                      d.id === selectedId ? "bg-muted/60" : ""
-                    }`}
-                  >
-                    <span className="min-w-0">
-                      <span className="block truncate font-mono">
-                        {d.id.slice(0, 12)}
-                        {d.kind === "rollback" && (
-                          <span className="ms-1 text-muted-foreground">↺</span>
-                        )}
-                        {d.kind === "config" && (
-                          <span
-                            className="ms-1 text-muted-foreground"
-                            title={t("deploy.kind.configTitle")}
-                          >
-                            ⚙
-                          </span>
-                        )}
-                        {d.kind === "auto-update" && (
-                          <span
-                            className="ms-1 text-muted-foreground"
-                            title={t("deploy.kind.autoUpdateTitle")}
-                          >
-                            ⟳
-                          </span>
-                        )}
-                        {d.trigger === "webhook" && (
-                          <span
-                            className="ms-1 inline-flex align-middle text-muted-foreground"
-                            title={triggerLabel(d, t)}
-                          >
-                            <Webhook className="size-3" />
-                          </span>
-                        )}
+        <div className="grid gap-4 lg:grid-cols-[16rem_1fr]">
+          <div className="space-y-1">
+            <ul className="divide-y rounded-md border">
+              {deployments.map((d) => {
+                const status =
+                  d.id === selectedId && liveStatus ? liveStatus : d.status
+                return (
+                  <li key={d.id}>
+                    <button
+                      type="button"
+                      onClick={() => selectDeployment(d.id)}
+                      className={`flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-xs hover:bg-muted/50 ${
+                        d.id === selectedId ? "bg-muted/60" : ""
+                      }`}
+                    >
+                      <span className="min-w-0">
+                        <span className="block truncate font-mono">
+                          {d.id.slice(0, 12)}
+                          {d.kind === "rollback" && (
+                            <span className="ms-1 text-muted-foreground">
+                              ↺
+                            </span>
+                          )}
+                          {d.kind === "config" && (
+                            <span
+                              className="ms-1 text-muted-foreground"
+                              title={t("deploy.kind.configTitle")}
+                            >
+                              ⚙
+                            </span>
+                          )}
+                          {d.kind === "auto-update" && (
+                            <span
+                              className="ms-1 text-muted-foreground"
+                              title={t("deploy.kind.autoUpdateTitle")}
+                            >
+                              ⟳
+                            </span>
+                          )}
+                          {d.trigger === "webhook" && (
+                            <span
+                              className="ms-1 inline-flex align-middle text-muted-foreground"
+                              title={triggerLabel(d, t)}
+                            >
+                              <Webhook className="size-3" />
+                            </span>
+                          )}
+                        </span>
+                        <span
+                          className="block truncate text-muted-foreground"
+                          title={triggerLabel(d, t)}
+                        >
+                          {formatDateTime(d.createdAt, locale, {
+                            dateStyle: "short",
+                            timeStyle: "short",
+                          })}
+                          {d.commitSha && ` · ${d.commitSha.slice(0, 7)}`}
+                          {totalDuration(d) !== null &&
+                            ` · ${formatDuration(totalDuration(d)!, locale, t)}`}
+                        </span>
                       </span>
-                      <span
-                        className="block truncate text-muted-foreground"
-                        title={triggerLabel(d, t)}
+                      <Badge
+                        variant={STATUS_VARIANT[status as DeploymentStatus]}
                       >
-                        {formatDateTime(d.createdAt, locale, {
-                          dateStyle: "short",
-                          timeStyle: "short",
-                        })}
-                        {d.commitSha && ` · ${d.commitSha.slice(0, 7)}`}
-                        {totalDuration(d) !== null &&
-                          ` · ${formatDuration(totalDuration(d)!, locale, t)}`}
-                      </span>
-                    </span>
-                    <Badge variant={STATUS_VARIANT[status as DeploymentStatus]}>
-                      {status}
-                    </Badge>
-                  </button>
-                </li>
-              )
-            })}
-          </ul>
-        </div>
-        <div className="min-w-0 space-y-1">
-          <div className="flex items-center justify-between gap-2">
-            <h3 className="min-w-0 truncate text-sm font-medium">
-              {t("deploy.log.title")}{" "}
-              {selected && (
-                <span className="font-normal text-muted-foreground">
-                  ·{" "}
-                  {t(`deploy.kind.${selected.kind}`)}{" "}
-                  · {shownStatus}
-                  {selected.imageRef && ` · ${selected.imageRef}`}
-                  {" · "}
-                  <span title={triggerLabel(selected, t)}>
-                    {triggerLabel(selected, t)}
-                  </span>
-                </span>
-              )}
-            </h3>
-            {canEdit &&
-              selected?.status === "success" &&
-              selected.imageRef &&
-              selected.imageRef !== app.currentImage && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={pending || active}
-                  onClick={() =>
-                    run(async () => {
-                      const r = await rollbackApplicationAction(
-                        app.id,
-                        selected.id
-                      )
-                      if (r.ok) selectDeployment(r.data.id)
-                      return r
-                    })
-                  }
-                >
-                  <History data-icon="inline-start" />
-                  {t("deploy.rollbackHere")}
-                </Button>
-              )}
+                        {status}
+                      </Badge>
+                    </button>
+                  </li>
+                )
+              })}
+            </ul>
           </div>
-          {selected && (
-            <DeployStepper
-              deployment={selected}
-              sourceType={app.sourceType}
-              remote={!!app.serverId}
-              liveStatus={liveStatus}
-              liveTimes={liveTimes[selected.id]}
+          <div className="min-w-0 space-y-1">
+            <div className="flex items-center justify-between gap-2">
+              <h3 className="min-w-0 truncate text-sm font-medium">
+                {t("deploy.log.title")}{" "}
+                {selected && (
+                  <span className="font-normal text-muted-foreground">
+                    · {t(`deploy.kind.${selected.kind}`)} · {shownStatus}
+                    {selected.imageRef && ` · ${selected.imageRef}`}
+                    {" · "}
+                    <span title={triggerLabel(selected, t)}>
+                      {triggerLabel(selected, t)}
+                    </span>
+                  </span>
+                )}
+              </h3>
+              {canEdit &&
+                selected?.status === "success" &&
+                selected.imageRef &&
+                selected.imageRef !== app.currentImage && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={pending || active}
+                    onClick={() =>
+                      run(async () => {
+                        const r = await rollbackApplicationAction(
+                          app.id,
+                          selected.id
+                        )
+                        if (r.ok) selectDeployment(r.data.id)
+                        return r
+                      })
+                    }
+                  >
+                    <History data-icon="inline-start" />
+                    {t("deploy.rollbackHere")}
+                  </Button>
+                )}
+            </div>
+            {selected && (
+              <DeployStepper
+                deployment={selected}
+                sourceType={app.sourceType}
+                remote={!!app.serverId}
+                liveStatus={liveStatus}
+                liveTimes={liveTimes[selected.id]}
+              />
+            )}
+            <LogViewer
+              key={selectedId ?? "none"}
+              text={logText}
+              label={t("deploy.log.label")}
+              empty={selectedId ? tc("states.loading") : t("deploy.log.select")}
             />
-          )}
-          <LogViewer
-            key={selectedId ?? "none"}
-            text={logText}
-            label={t("deploy.log.label")}
-            empty={selectedId ? tc("states.loading") : t("deploy.log.select")}
-          />
+          </div>
         </div>
-      </div>
       )}
     </div>
   )

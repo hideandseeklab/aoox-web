@@ -18,7 +18,7 @@ export function PageTabsTrigger({
   return (
     <TabsTrigger
       className={cn(
-        "h-auto flex-none gap-2 rounded-md border-transparent bg-transparent px-3 py-2.5 text-[13px] text-muted-foreground shadow-none hover:text-foreground data-[state=active]:bg-transparent data-[state=active]:text-foreground dark:border-transparent dark:bg-transparent dark:text-muted-foreground dark:hover:text-foreground dark:data-[state=active]:bg-transparent dark:data-[state=active]:text-foreground data-active:border-transparent data-active:bg-transparent dark:data-active:border-transparent dark:data-active:bg-transparent [&_svg:not([class*='size-'])]:size-4",
+        "h-auto flex-none gap-1.5 rounded-md border-transparent bg-transparent px-2.5 py-2.5 text-[13px] text-muted-foreground shadow-none hover:text-foreground data-[state=active]:bg-transparent data-[state=active]:text-foreground dark:border-transparent dark:bg-transparent dark:text-muted-foreground dark:hover:text-foreground dark:data-[state=active]:bg-transparent dark:data-[state=active]:text-foreground data-active:border-transparent data-active:bg-transparent dark:data-active:border-transparent dark:data-active:bg-transparent [&_svg:not([class*='size-'])]:size-4",
         "after:bg-primary group-data-horizontal/tabs:after:bottom-[-1px] group-data-horizontal/tabs:after:h-0.5 data-[state=active]:after:opacity-100",
         className
       )}

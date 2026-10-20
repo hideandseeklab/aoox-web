@@ -5,6 +5,7 @@ import {
   ChevronDown,
   ChevronUp,
   Copy,
+  Download,
   Search,
   WrapText,
 } from "lucide-react"
@@ -127,7 +128,9 @@ function LineText({
         }
         if (cursor < offset)
           parts.push(
-            <Fragment key={`t${cursor}`}>{s.text.slice(cursor - from)}</Fragment>
+            <Fragment key={`t${cursor}`}>
+              {s.text.slice(cursor - from)}
+            </Fragment>
           )
         return (
           <span key={i} style={style}>
@@ -156,6 +159,7 @@ export function LogViewer({
   initialFollow = true,
   lineNumbers = true,
   label,
+  downloadName,
 }: {
   text: string
   /** Shown while there is no text. */
@@ -165,6 +169,8 @@ export function LogViewer({
   initialFollow?: boolean
   lineNumbers?: boolean
   label?: string
+  /** File name for a "Download .txt" button (plain text, colours stripped); no button without it. */
+  downloadName?: string
 }) {
   const locale = useLocale()
   const t = useTranslations("logViewer")
@@ -179,8 +185,7 @@ export function LogViewer({
   const [current, setCurrent] = useState(0)
 
   const lines = useMemo(
-    () =>
-      parseAnsi(text.length > MAX_CHARS ? text.slice(-MAX_CHARS) : text),
+    () => parseAnsi(text.length > MAX_CHARS ? text.slice(-MAX_CHARS) : text),
     [text]
   )
   const hasText = text.length > 0
@@ -236,6 +241,18 @@ export function LogViewer({
     const ok = await copyToClipboard(lines.map((l) => l.plain).join("\n"))
     if (ok) toast.success(t("copied"))
     else toast.error(t("copyFailed"))
+  }
+
+  function download() {
+    const blob = new Blob([lines.map((l) => l.plain).join("\n") + "\n"], {
+      type: "text/plain;charset=utf-8",
+    })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement("a")
+    a.href = url
+    a.download = downloadName ?? "log.txt"
+    a.click()
+    setTimeout(() => URL.revokeObjectURL(url), 0)
   }
 
   const rangesByLine = useMemo(() => {
@@ -371,6 +388,20 @@ export function LogViewer({
           >
             <Copy />
           </Button>
+          {downloadName && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className={ghost}
+              aria-label={t("downloadAria", { label: label.toLowerCase() })}
+              title={t("downloadTitle")}
+              disabled={!hasText}
+              onClick={download}
+            >
+              <Download />
+            </Button>
+          )}
         </span>
       </div>
       <div

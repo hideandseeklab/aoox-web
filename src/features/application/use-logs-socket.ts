@@ -29,7 +29,7 @@ export function useLogsSocket(
   const [reconnectKey, setReconnectKey] = useState(0)
   const socketRef = useRef<LogsSocket | null>(null)
   const t = useTranslations("applications")
-  const connectFailed = t("deploy.logs.connectFailed")
+  const connectFailed = t("logs.connectFailed")
 
   useEffect(() => {
     if (!enabled) return
@@ -38,6 +38,8 @@ export function useLogsSocket(
       const r = await createLogTicketAction(applicationId)
       if (disposed) return
       if (!r.ok) return setError(r.error)
+      // A reconnect starts clean: an error from the previous socket is stale.
+      setError(null)
       const s: LogsSocket = io(logsNamespaceUrl(publicApiUrl), {
         auth: { ticket: r.data.ticket },
         transports: ["websocket"],

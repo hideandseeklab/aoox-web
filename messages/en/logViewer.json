@@ -13,5 +13,7 @@
   "copyAllTitle": "Copy all",
   "copied": "Log copied",
   "copyFailed": "Could not copy the log",
-  "olderHidden": "{count} earlier lines hidden — show more"
+  "olderHidden": "{count} earlier lines hidden — show more",
+  "downloadAria": "Download {label} as a text file",
+  "downloadTitle": "Download .txt"
 }

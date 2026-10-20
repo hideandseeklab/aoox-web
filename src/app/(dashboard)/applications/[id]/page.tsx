@@ -51,14 +51,17 @@ export default async function ApplicationPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>
-  /** Set by the "New application" page's "Domain" option; see create-application-page-form.tsx. */
-  searchParams: Promise<{ domainProxyAutoProvisioned?: string }>
+  /**
+   * `domainProxyAutoProvisioned`: set by the "New application" page's "Domain" option (see
+   * create-application-page-form.tsx). `tab`: opens that tab (`?tab=logs`).
+   */
+  searchParams: Promise<{ domainProxyAutoProvisioned?: string; tab?: string }>
 }) {
   const t = await getTranslations("applications")
   const tb = await getTranslations("breadcrumb")
   const tc = await getTranslations("common")
   const { id } = await params
-  const { domainProxyAutoProvisioned } = await searchParams
+  const { domainProxyAutoProvisioned, tab } = await searchParams
   const app = await getApplication(id)
   if (!app) notFound()
   const [
@@ -282,6 +285,7 @@ export default async function ApplicationPage({
         publicApiUrl={publicApiUrl()}
         webOrigin={webOrigin()}
         domainProxyAutoProvisioned={domainProxyAutoProvisioned === "1"}
+        initialTab={typeof tab === "string" ? tab : undefined}
       />
     </>
   )

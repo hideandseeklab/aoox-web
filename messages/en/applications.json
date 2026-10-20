@@ -176,6 +176,7 @@
   },
   "tabs": {
     "deploy": "Deploy",
+    "logs": "Logs",
     "domains": "Domains ({count})",
     "mounts": "Mounts ({count})",
     "environment": "Environment",
@@ -303,17 +304,6 @@
         "confirmBody": "The image changes from tag {current} to {ref} (saved in the app settings) and a deployment starts right away. You can roll back from the history."
       }
     },
-    "logs": {
-      "follow": "Container logs (live)",
-      "stopFollow": "Stop following logs",
-      "containerLabel": "Container logs",
-      "connectFailed": "Could not connect to the logs"
-    },
-    "origin": {
-      "title": "Realtime logs are not available at this address",
-      "body": "This panel has a custom domain (<code>{webOrigin}</code>), and realtime logs only accept connections from that domain — not from <code>{browserOrigin}</code>, which you are using now.",
-      "open": "Open this page at {origin}"
-    },
     "history": {
       "emptyTitle": "No deployments yet",
       "emptyBody": "Deploy your app to see its build history here.",
@@ -336,6 +326,46 @@
       "title": "Deployments",
       "description": "{count, plural, =0 {Never deployed} one {# deployment} other {# deployments}} · Select one to read its log."
     }
+  },
+  "logs": {
+    "title": "Container logs",
+    "description": "Live output (stdout and stderr) of the application container.",
+    "descriptionService": "Live output (stdout and stderr) of every task of the service.",
+    "tailLabel": "Initial lines",
+    "tailOption": "Last {count} lines",
+    "reconnect": "Reconnect",
+    "connectFailed": "Could not connect to the logs",
+    "status": {
+      "connecting": "Connecting…",
+      "live": "Live",
+      "ended": "Ended",
+      "disconnected": "Disconnected",
+      "noContainer": "No container",
+      "error": "Error",
+      "stopped": "Not running"
+    },
+    "noContainer": {
+      "title": "No running container",
+      "body": "This application has no container yet. Deploy it first, or start it if it was stopped.",
+      "stoppedBody": "The container is stopped, so these are the last lines it wrote. Start the application, then reconnect."
+    },
+    "ended": {
+      "title": "The log stream ended",
+      "body": "The container stopped or was replaced (a stop, a crash or a redeploy). The lines received so far stay here; reconnect once it runs again."
+    },
+    "disconnected": {
+      "title": "The connection to the logs was lost",
+      "body": "Reconnect to continue following the output."
+    },
+    "error": {
+      "title": "Could not load the logs"
+    },
+    "emptyNoContainer": "No output."
+  },
+  "realtimeOrigin": {
+    "title": "Realtime logs are not available at this address",
+    "body": "This panel has a custom domain (<code>{webOrigin}</code>), and realtime logs only accept connections from that domain — not from <code>{browserOrigin}</code>, which you are using now.",
+    "open": "Open this page at {origin}"
   },
   "stepper": {
     "ariaLabel": "Deployment steps",

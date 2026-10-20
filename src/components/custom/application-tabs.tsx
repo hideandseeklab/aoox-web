@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl"
 import { useState } from "react"
 import { ApplicationDeployPanel } from "@/components/custom/application-deploy-panel"
+import { ApplicationLogsPanel } from "@/components/custom/application-logs-panel"
 import { ApplicationDomains } from "@/components/custom/application-domains"
 import { ApplicationForm } from "@/components/custom/application-form"
 import { ApplicationJobs } from "@/components/custom/application-jobs"
@@ -36,6 +37,7 @@ import { ScrollableTabsList } from "@/components/custom/scrollable-tabs-list"
 import { PageTabsTrigger } from "@/components/custom/page-tabs-trigger"
 import {
   Rocket,
+  FileText,
   Globe,
   HardDrive,
   KeyRound,
@@ -70,6 +72,7 @@ import type { VolumeBackup } from "@/features/volume-backup/volume-backup.entity
 
 export type ApplicationTab =
   | "deploy"
+  | "logs"
   | "domains"
   | "mounts"
   | "environment"
@@ -114,6 +117,7 @@ export function ApplicationTabs({
   publicApiUrl,
   webOrigin,
   domainProxyAutoProvisioned,
+  initialTab,
 }: {
   app: ApplicationDetail
   deployments: DeploymentSummary[]
@@ -153,14 +157,30 @@ export function ApplicationTabs({
   webOrigin: string
   /** Came from the create dialog's "Domain" option; see applications/[id]/page.tsx. */
   domainProxyAutoProvisioned: boolean
+  /** `?tab=` of the page URL (a deep link, read once); unknown or hidden tabs fall back to Deploy. */
+  initialTab?: string
 }) {
   const t = useTranslations("applications")
   const tc = useTranslations("common")
-  const [tab, setTab] = useState<ApplicationTab>("deploy")
   const running = app.container?.state === "running"
   // Console is developer+ (see AGENTS.md "Console container") — the API
   // enforces this too, but hiding the tab keeps a viewer from hitting a 403.
   const canUseConsole = app.projectRole !== "viewer"
+  const [tab, setTab] = useState<ApplicationTab>(() => {
+    const shown: ApplicationTab[] = [
+      "deploy",
+      "logs",
+      "domains",
+      "mounts",
+      "environment",
+      "jobs",
+      "webhook",
+      "settings",
+      ...(monitor ? (["monitor"] as const) : []),
+      ...(canUseConsole ? (["console"] as const) : []),
+    ]
+    return shown.find((v) => v === initialTab) ?? "deploy"
+  })
   const canEdit = app.projectRole !== "viewer"
 
   return (
@@ -168,6 +188,10 @@ export function ApplicationTabs({
       <ScrollableTabsList>
         <PageTabsTrigger icon={Rocket} value="deploy">
           {t("tabs.deploy")}
+        </PageTabsTrigger>
+        {/* Every role, viewers included: a log ticket counts as a read. */}
+        <PageTabsTrigger icon={FileText} value="logs">
+          {t("tabs.logs")}
         </PageTabsTrigger>
         <PageTabsTrigger icon={Globe} value="domains">
           {t("tabs.domains", { count: domains.length })}
@@ -213,6 +237,13 @@ export function ApplicationTabs({
           hasAccess={!!app.hostPort || domains.length > 0}
           domainProxyAutoProvisioned={domainProxyAutoProvisioned}
           onNavigateTab={setTab}
+        />
+      </TabsContent>
+      <TabsContent value="logs" className="pt-4">
+        <ApplicationLogsPanel
+          app={app}
+          publicApiUrl={publicApiUrl}
+          webOrigin={webOrigin}
         />
       </TabsContent>
       <TabsContent value="domains" className="pt-4">
