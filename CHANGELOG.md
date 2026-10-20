@@ -8,18 +8,18 @@ Versions below 1.0.0 may include breaking changes in a minor release.
 
 ## [Unreleased]
 
+## [0.1.0-alpha.13] - 2026-10-20
+
 ### Added
 
 - **Image update check names the tag and offers newer versions** (needs the matching aoox-api). "Check image update" says which tag was compared ("Tag 0.1.0-alpha.2 has not changed"), and when a newer version tag exists shows "A newer version is available: 0.1.0-alpha.3" with **Switch and deploy** (confirm dialog; saves the new image reference through the normal settings update and deploys). Developers and above only.
 - **Auto-follow newer version tags** (needs the matching aoox-api). New switch in the image section next to Auto update: also move to the newest compatible version tag and redeploy. It never crosses a major version, and for `0.x` never a minor (`0.1.x` stays on `0.1.x`); the help text says so. Off by default.
 - **`npm run dev:sandbox`**: starts `next dev` with the SWC native cache set up for sandboxed Windows shells (`ERR_SWC_NATIVE_CACHE`), see AGENTS.md "Local dev in a sandbox".
 - **Docker disk details: unused anonymous volumes** (needs the matching aoox-api). A new box shows the number and size of unused anonymous volumes on the host, with copyable `docker volume ls -qf dangling=true` and `docker volume prune` and a warning that prune affects every unused anonymous volume on the host, not only aoox's. Report only.
-
 - **Open ports tab on the Docker page** (needs the matching aoox-api). Lists every port the containers of the host (or a chosen remote server) publish, who owns it (application, database, admin app, stack, proxy, registry, panel, or "not managed by aoox") and who can reach it: "The internet (all interfaces)" or "This server only". A banner explains that ufw does not filter Docker ports and that the provider firewall (or binding the port to 127.0.0.1) is what closes them. Owner and admin, read only, with the same server picker and search as the other tabs.
 - **"Listens on" choice next to every host port** (needs the matching aoox-api): "Public (all interfaces)" or "This server only (127.0.0.1)" on the application form (create and edit; a running application is recreated like for a new host port), the new database form, the admin app install dialog and the stack service-port editors (stack settings and the template dialog). New databases and admin apps default to "this server only", applications and stacks to public. Database and admin app connection details say the port is reachable from the server itself only (SSH tunnel) with the `ssh -L` command, and instance cards, the application/database headers and stack access links show `127.0.0.1:<port>`.
 - **Docker disk details: volumes left by deleted stacks.** A new box lists compose-declared volumes whose stack was deleted, with a copyable `docker volume rm <name>` command per volume and no delete button (needs the matching aoox-api). English and Indonesian.
-
-- **Multi-arch images.** The Docker publish workflow builds linux/amd64 and linux/arm64 (QEMU + buildx, GHA cache) from the next release; 0.1.0-alpha.12 stays amd64 only. The lockfile already carries the arm64 optional binaries (SWC, sharp, lightningcss, Tailwind oxide); not built on arm64 locally.
+- **Multi-arch images.** The Docker publish workflow builds linux/amd64 and linux/arm64 (QEMU + buildx, GHA cache) from this release; 0.1.0-alpha.12 stays amd64 only. The lockfile already carries the arm64 optional binaries (SWC, sharp, lightningcss, Tailwind oxide); not built on arm64 locally.
 - **Local registry: show and reset the password** (needs the matching aoox-api). The Local registry card has a masked **Password** row with an eye (reads it through the audited reveal route, hides again after 60 seconds) and a copy button for owners and admins, and a **Reset password** button for owners with a confirmation dialog (images are kept, every client has to `docker login` again) that then shows the new password. English and Indonesian.
 - **Local registry: address and reachability.** The card shows the address, marks it *this server only* when the port is bound to localhost, shows the address other machines use when the registry has a domain or is exposed, and explains how to expose it (custom domain or `REGISTRY_PUBLISH_ADDRESS`) or that an IP address over plain HTTP needs `insecure-registries`.
 - **Time zone next to schedules.** Job, database backup, volume backup and instance backup schedule forms show "Times are in <zone> (server time zone)" taken from `/auth/me` `timeZone` (hidden for an older API). English and Indonesian.
@@ -31,7 +31,6 @@ Versions below 1.0.0 may include breaking changes in a minor release.
 - **Deleting a database with data says what goes**: the dialog now mentions the stored config files of its mounts, which the API removes with the volume since this release (needs the matching aoox-api).
 - **Viewers no longer see webhook URLs, tokens or secrets** (needs the matching aoox-api, which now refuses them). The application Webhook tab and the compose stack's webhook card show a one-line note instead, and the page no longer asks for the webhook when the project role is viewer. Developers see the card as before.
 - **Viewers no longer see the contents of file mounts** (needs the matching aoox-api). The Mounts tab of applications, databases and compose stacks lists the file name and path and shows "Hidden for viewers" in place of the view button.
-
 - **Project viewers no longer see database passwords or rows** (needs the matching aoox-api, which now refuses them). The Connection card shows host, port, database and user with a note and no password, URL or Show password button; the Data tab lists table names and column structure but no rows, and replaces the query box with a notice; Redis/Valkey show only the notice (keys are data); MongoDB lists collection names. Developers and admins are unchanged.
 - **Delete dialogs say what is removed with the data.** Deleting a database or a project with "data" also removes the backups of its databases and application volumes, local files and S3 copies, and the texts say the backup files stay in the backups volume otherwise (needs the matching aoox-api). English and Indonesian.
 - **Copy buttons inside dialogs on a panel opened over plain HTTP.** On `http://<ip>` (no clipboard API) the fallback copied nothing inside a dialog (for example "Token created") but still showed "copied": its hidden textarea was added to the page body, outside the dialog's focus trap, so the selection was lost. It now lives inside the open dialog, the result is only trusted when the text was really selected, and focus goes back to the button. When copying still fails the text is selected in place with a warning ("press Ctrl+C") instead of a success toast. Used by the API token dialog (token and CLI login command), connection and admin credentials, the registry credentials and every `CopyButton`; the other copy buttons keep their error toast.
@@ -52,18 +51,15 @@ Versions below 1.0.0 may include breaking changes in a minor release.
 - Database page: when a database is in `error`, the error banner has a "Retry provisioning" button (developer and up, hidden for viewers) with a confirm dialog; the page polls until the status leaves `creating` (needs the matching aoox-api). English and Indonesian texts.
 - Mounts tabs (application, database, compose stack) on a phone: each mount is a stacked card with its path, source, type badges and actions (or "Hidden for viewers") instead of a table that scrolled sideways inside its card; from `sm` up the table is unchanged. Same approach as the Open ports tab.
 - Webhook tab for viewers: a card with the title and one muted sentence instead of the URL and secret; file mount rows for viewers show an eye-off icon with "Hidden for viewers" where the view button was; Docker disk details gain a dashed box with two copyable commands for the unused anonymous volumes.
-
 - Database page for viewers: the Connection card keeps its two columns without the password and URL rows and shows a one-line note; the Data tab shows the table list with the Structure view and a note (Redis/Valkey: the note alone).
 - Docker page: the new "Open ports" tab, with an amber banner above a table (port, reachable from, container, owner badge, link), at 375 px the table scrolls inside its box.
 - "Listens on" select under the host port fields (full width under the input; compact 224 px wide inside the inline stack and template editors, without the help line).
-
 - Registry dialogs ("Registry ready", "Password reset"): the label column is wide enough that "Nama pengguna" and "From other machines" stay on one line at 360-375 px while values still truncate; the Indonesian registry texts say "Password" everywhere (the ready dialog and the token field said "Kata sandi").
 - Database page: the Resource limits card no longer stretches to the height of the taller Resource alerts card (no empty bordered space under its content).
 - New application, new compose stack and new database cards: removed the extra top padding, so top and bottom inner padding are equal (16 px both; was 40 px top, 16 px bottom).
 - Registry card rows (address, other machines, password) and the local-only / exposed notices; schedule forms gain one muted line under the frequency field.
 - Registry page: the external-registry image prefix hint and the empty-images hint showed `&lt;`/`&gt;` literally (rich text does not decode HTML entities); they now render `<` and `>` through ICU quoting, in English and Indonesian.
 - Docker page, Open ports tab: below 640 px each port is a card (port and exposure badge, container and image, owner badge and the open-page button) instead of a table that scrolled sideways.
-- Variable set page at 375 px: environment tabs wrap onto a second line; the eye, copy and note buttons sit beside the value they act on.
 
 ## [0.1.0-alpha.12] - 2026-10-17
 
@@ -751,7 +747,8 @@ Versions below 1.0.0 may include breaking changes in a minor release.
   backups, notifications, and account/instance settings.
 - A web terminal (shell on the host or inside the API container) over WebSocket.
 
-[Unreleased]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.0-alpha.12...HEAD
+[Unreleased]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.0-alpha.13...HEAD
+[0.1.0-alpha.13]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.0-alpha.12...v0.1.0-alpha.13
 [0.1.0-alpha.12]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.0-alpha.11...v0.1.0-alpha.12
 [0.1.0-alpha.11]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.0-alpha.10...v0.1.0-alpha.11
 [0.1.0-alpha.10]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.0-alpha.9...v0.1.0-alpha.10
