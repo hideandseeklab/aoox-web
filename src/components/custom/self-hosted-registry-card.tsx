@@ -192,8 +192,9 @@ export function SelfHostedRegistryCard({
                     replaceMode
                   )
                   if (r.ok) {
-                    setCreds(r.data)
                     setProvisionOpen(false)
+                    if (r.data.password) setCreds(r.data)
+                    else return { ok: false, error: t("passwordLoadFailed") }
                   }
 
                   return r
@@ -265,11 +266,14 @@ export function SelfHostedRegistryCard({
               disabled={pending}
               onClick={() =>
                 run(async () => {
-                  const r = await resetRegistryPasswordAction()
+                  const r = await resetRegistryPasswordAction(
+                    registry?.id ?? ""
+                  )
                   if (r.ok) {
                     setResetOpen(false)
                     setRevealed(null)
-                    setResetDone(r.data)
+                    if (r.data.password) setResetDone(r.data)
+                    else return { ok: false, error: t("passwordLoadFailed") }
                   }
                   return r
                 })

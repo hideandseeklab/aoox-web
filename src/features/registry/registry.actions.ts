@@ -26,21 +26,40 @@ async function fail(err: unknown): Promise<{ ok: false; error: string }> {
   return { ok: false, error: t("errors.serverUnreachable") }
 }
 
+/** Audited read of the stored password; "" when it cannot be read. */
+async function revealPassword(registryId: string): Promise<string> {
+  try {
+    const creds = await api<RegistryCredentials>(
+      `/registries/${registryId}/credentials/reveal`,
+      { method: "POST", token: await requireToken() }
+    )
+    return creds.password ?? ""
+  } catch {
+    return ""
+  }
+}
+
 export async function provisionSelfHostedAction(
   destinationId?: string,
   replace = false
 ): Promise<ActionResult<ProvisionResult>> {
   try {
-    const data = await api<ProvisionResult>("/registries/self-hosted", {
-      method: "POST",
-      body: {
-        ...(destinationId ? { destinationId } : {}),
-        ...(replace ? { replace: true } : {}),
-      },
-      token: await requireToken(),
-    })
+    const created = await api<Omit<ProvisionResult, "password">>(
+      "/registries/self-hosted",
+      {
+        method: "POST",
+        body: {
+          ...(destinationId ? { destinationId } : {}),
+          ...(replace ? { replace: true } : {}),
+        },
+        token: await requireToken(),
+      }
+    )
     revalidatePath("/registry")
-    return { ok: true, data }
+    // The API never returns the password here; read it through the audited
+    // reveal route. Empty when that read fails (the UI says so).
+    const password = await revealPassword(created.registry.id)
+    return { ok: true, data: { ...created, password } }
   } catch (err) {
     return await fail(err)
   }
@@ -64,16 +83,17 @@ export async function revealRegistryPasswordAction(
   }
 }
 
-export async function resetRegistryPasswordAction(): Promise<
-  ActionResult<ResetPasswordResult>
-> {
+export async function resetRegistryPasswordAction(
+  registryId: string
+): Promise<ActionResult<ResetPasswordResult>> {
   try {
-    const data = await api<ResetPasswordResult>(
+    const reset = await api<Omit<ResetPasswordResult, "password">>(
       "/registries/self-hosted/password",
       { method: "POST", token: await requireToken() }
     )
     revalidatePath("/registry")
-    return { ok: true, data }
+    const password = await revealPassword(registryId)
+    return { ok: true, data: { ...reset, password } }
   } catch (err) {
     return await fail(err)
   }
