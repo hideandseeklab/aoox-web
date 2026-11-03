@@ -8,6 +8,8 @@ Versions below 1.0.0 may include breaking changes in a minor release.
 
 ## [Unreleased]
 
+## [0.1.0-beta.0] - 2026-11-03
+
 ### Security
 
 - **The registry password is read through the audited reveal route.** Provisioning the local registry and resetting its password no longer get the password from the API response (the API stopped returning it); the dashboard now fetches it with "reveal" right after, so the dialog still shows the credentials and the audit log records the read. If that read fails, an error says so and "Show password" on the card can be used instead. Needs the matching API version.
@@ -755,7 +757,8 @@ Versions below 1.0.0 may include breaking changes in a minor release.
   backups, notifications, and account/instance settings.
 - A web terminal (shell on the host or inside the API container) over WebSocket.
 
-[Unreleased]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.0-alpha.13...HEAD
+[Unreleased]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.0-beta.0...HEAD
+[0.1.0-beta.0]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.0-alpha.13...v0.1.0-beta.0
 [0.1.0-alpha.13]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.0-alpha.12...v0.1.0-alpha.13
 [0.1.0-alpha.12]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.0-alpha.11...v0.1.0-alpha.12
 [0.1.0-alpha.11]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.0-alpha.10...v0.1.0-alpha.11
