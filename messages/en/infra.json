@@ -166,6 +166,10 @@
       "ports": "Ports <code>80</code> and <code>443</code> are open to the public — both the OS firewall (<code>ufw</code>) and your VPS provider's firewall/security group.",
       "cert": "Wait a moment: the HTTPS certificate (Let's Encrypt) is only issued by Traefik the first time the domain is accessed, which takes a few seconds up to a minute."
     },
+    "proxyRecreated": {
+      "title": "The reverse proxy was restarted to enable HTTPS certificates",
+      "body": "The proxy was already running without Let's Encrypt (or with another email), so it was recreated once with the email you saved. Every application routed through it is unreachable for a few seconds. Existing certificates are kept."
+    },
     "restrict": {
       "label": "Only allow access through the domain",
       "description": "Ports <code>3000</code> and <code>3001</code> stop listening to the outside and accept connections from this server only, so every visit goes through the proxy. This also closes the way around the sign-in rate limit that a direct call to the dashboard port offers.",
@@ -339,6 +343,13 @@
     "inactive": "Inactive",
     "advertise": "Advertise address (optional)",
     "advertisePlaceholder": "Public/private IP of the host, for other nodes",
+    "listen": "Listen address (optional)",
+    "listenPlaceholder": "Defaults to the advertise address",
+    "overlayMtu": "Overlay MTU (optional)",
+    "proxyRestarting": "The proxy is restarting; this page refreshes by itself in a few seconds.",
+    "vpnHint": "Nodes over a VPN such as WireGuard: advertise the tunnel IP, and set the overlay MTU to the tunnel MTU (1420 for WireGuard; containers then get 1370).",
+    "overlayMtuValue": "Overlay network MTU: {mtu}. To change it, leave the swarm and initialise it again.",
+    "overlayMtuDefault": "Overlay network MTU: Docker default (1450). To change it, leave the swarm and initialise it again.",
     "reinit": "Re-init swarm",
     "init": "Init swarm",
     "leader": "leader",
@@ -354,6 +365,11 @@
     "leave": "Leave swarm",
     "leaveTitle": "Leave the swarm?",
     "leaveDescription": "This node leaves the swarm: services running there disappear, and the swarm overlay network is removed. The proxy will be reinstalled without swarm mode.",
+    "restartCommandLabel": "Restart command",
+    "leaveRestartWarning": "Docker bug: after leaving, run this on the server, or the panel will stop working at its next restart or update.",
+    "leaveRestartTitle": "Restart Docker on the server",
+    "leaveRestartBody": "Leaving the swarm triggers a bug in Docker (the issue is still open): its internal DNS stops resolving container names for containers that are already running. The panel keeps working until its api container is recreated or restarted (for example by the next update), then it cannot reach its database. Run this on the server; all aoox containers start again by themselves.",
+    "leaveRestartIssue": "Docker issue #45144",
     "labelsPlaceholder": "labels: zone=eu tier=db",
     "labelsAria": "Labels of node {hostname}",
     "save": "Save",

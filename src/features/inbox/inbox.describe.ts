@@ -156,6 +156,7 @@ const BUILDERS: Record<string, Builder> = {
       project: str(p, "project"),
       running: num(p, "running"),
       desired: num(p, "desired"),
+      node: orNone(str(p, "node")),
     }),
   "containerDown.database": (p) => {
     const database = str(p, "database")

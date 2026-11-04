@@ -26,4 +26,13 @@ export interface SwarmStatus {
   serviceApps: number
   /** Built images are pulled from the self-hosted registry; `localhost:` is only reachable on the host. */
   registry: { url: string | null; reachableFromNodes: boolean }
+  /** MTU option of the aoox-swarm overlay; null = Docker default. */
+  overlayMtu: number | null
+}
+
+/** Answer of leaving the swarm: Docker breaks container DNS until it is restarted (moby/moby#45144). */
+export interface LeaveSwarmResult {
+  restartDockerRequired: boolean
+  /** English text from the API (null from an older API); the dashboard shows its own translation. */
+  notice: string | null
 }

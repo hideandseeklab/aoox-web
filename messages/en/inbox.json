@@ -53,7 +53,7 @@
       },
       "task": {
         "title": "Application task crashed: {application} ({running}/{desired} replicas)",
-        "summary": "{project}"
+        "summary": "{project}{node, select, none {} other { · node {node}}}"
       },
       "database": {
         "title": "{restarting, select, true {Database crashed: {database}} other {Database went down: {database}}}",

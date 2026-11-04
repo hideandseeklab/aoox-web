@@ -1,10 +1,13 @@
 "use client"
 
-import { Copy, Network, Trash2 } from "lucide-react"
+import { Copy, Network, Trash2, TriangleAlert } from "lucide-react"
 import { useTranslations } from "next-intl"
-import { useState, useTransition } from "react"
+import { useRouter } from "next/navigation"
+import { useEffect, useRef, useState, useTransition } from "react"
 import { toast } from "sonner"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
+import { CopyButton } from "@/components/custom/copy-button"
 import { ConfirmDialog } from "@/components/custom/confirm-dialog"
 import { Button } from "@/components/ui/button"
 import {
@@ -24,6 +27,30 @@ import {
 } from "@/features/swarm/swarm.actions"
 import type { SwarmNode, SwarmStatus } from "@/features/swarm/swarm.entity"
 import { copyToClipboard } from "@/lib/clipboard"
+
+const MOBY_ISSUE = "https://github.com/moby/moby/issues/45144"
+
+/** The one command that repairs Docker's DNS after leaving a swarm, with a copy button. */
+function RestartCommand({ label }: { label: string }) {
+  return (
+    <span className="flex items-center gap-2">
+      <code className="min-w-0 flex-1 truncate rounded-md bg-muted px-3 py-1.5 text-xs text-foreground">
+        sudo systemctl restart docker
+      </code>
+      <CopyButton label={label} text="sudo systemctl restart docker" />
+    </span>
+  )
+}
+
+/**
+ * init makes the API re-create the reverse proxy about 1.5 s after it answers;
+ * with the panel opened through that proxy, the next requests can fail for a
+ * moment. Poll until the page answers, then refresh, so the card recovers by itself. (Not used after
+ * leave: Docker's DNS is broken then, see the restart alert.)
+ */
+const SETTLE_FIRST_MS = 6000
+const SETTLE_POLL_MS = 2000
+const SETTLE_MAX_ATTEMPTS = 15
 
 function gb(n: number) {
   return `${(n / 1024 ** 3).toFixed(1)} GB`
@@ -46,13 +73,73 @@ export function SwarmCard({
   const [pending, start] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const [advertise, setAdvertise] = useState("")
+  const [listen, setListen] = useState("")
+  const [mtu, setMtu] = useState("")
   const [copied, setCopied] = useState<string | null>(null)
+  const [restartDocker, setRestartDocker] = useState(false)
+  // Set once a leave went through: the page is stale (nodes, join tokens) until reloaded.
+  const [left, setLeft] = useState(false)
+  const [proxyRestarting, setProxyRestarting] = useState(false)
+  const router = useRouter()
+  const timers = useRef<ReturnType<typeof setTimeout>[]>([])
+  useEffect(() => {
+    const list = timers.current
+    return () => list.forEach(clearTimeout)
+  }, [])
+
+  // Refresh only once the page answers again: a refresh that fails while the
+  // proxy is down makes Next fall back to a hard navigation, and the browser
+  // then lands on a certificate error page.
+  const settle = () => {
+    setProxyRestarting(true)
+    timers.current.forEach(clearTimeout)
+    let attempts = 0
+    const poll = async () => {
+      attempts += 1
+      let up = false
+      try {
+        const res = await fetch(window.location.href, {
+          method: "HEAD",
+          cache: "no-store",
+        })
+        up = res.ok
+      } catch {
+        up = false
+      }
+      if (up || attempts >= SETTLE_MAX_ATTEMPTS) {
+        if (up) router.refresh()
+        setProxyRestarting(false)
+        return
+      }
+      timers.current = [setTimeout(poll, SETTLE_POLL_MS)]
+    }
+    timers.current = [setTimeout(poll, SETTLE_FIRST_MS)]
+  }
 
   const run = (fn: () => Promise<{ ok: boolean; error?: string }>) =>
     start(async () => {
       setError(null)
       const r = await fn()
       if (!r.ok) setError(r.error ?? t("failed"))
+    })
+
+  // init: the server action can lose its response when the proxy restarts
+  // under the panel ("Failed to fetch"). The init most likely ran: refresh
+  // instead of showing an error page.
+  const runInit = () =>
+    start(async () => {
+      setError(null)
+      try {
+        const r = await initSwarmAction({
+          advertiseAddr: advertise,
+          listenAddr: listen,
+          overlayMtu: mtu,
+        })
+        if (!r.ok) return setError(r.error ?? t("failed"))
+      } catch {
+        // no response: fall through to the refresh below
+      }
+      settle()
     })
 
   const joinCmd = (token: string) =>
@@ -80,9 +167,9 @@ export function SwarmCard({
               {t.rich("description", { em: (c) => <em>{c}</em> })}
             </CardDescription>
           </div>
-          {status.state === "active" ? (
+          {status.state === "active" && !left ? (
             <Badge>{status.isManager ? t("manager") : t("worker")}</Badge>
-          ) : status.state === "inactive" ? (
+          ) : status.state === "inactive" || left ? (
             <Badge variant="secondary">{t("inactive")}</Badge>
           ) : (
             <Badge variant="destructive">{status.state}</Badge>
@@ -90,17 +177,40 @@ export function SwarmCard({
         </div>
       </CardHeader>
       <CardContent className="space-y-6 text-xs">
+        {restartDocker && (
+          <Alert className="border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-400">
+            <TriangleAlert />
+            <AlertTitle>{t("leaveRestartTitle")}</AlertTitle>
+            <AlertDescription className="space-y-2 text-amber-700/90 dark:text-amber-400/90">
+              <p>{t("leaveRestartBody")}</p>
+              <RestartCommand label={t("restartCommandLabel")} />
+              <a
+                href={MOBY_ISSUE}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-block underline underline-offset-2"
+              >
+                {t("leaveRestartIssue")}
+              </a>
+            </AlertDescription>
+          </Alert>
+        )}
+        {proxyRestarting && (
+          <p className="text-muted-foreground" role="status">
+            {t("proxyRestarting")}
+          </p>
+        )}
         {status.error && <p className="text-destructive">{status.error}</p>}
 
-        {status.state !== "active" && isOwner && (
+        {status.state !== "active" && !left && isOwner && (
           <form
-            className="flex flex-wrap items-end gap-2"
+            className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_11rem] sm:items-end"
             onSubmit={(e) => {
               e.preventDefault()
-              run(() => initSwarmAction(advertise))
+              runInit()
             }}
           >
-            <div className="min-w-48 flex-1 space-y-1">
+            <div className="space-y-1">
               <Label htmlFor="swarm-adv">{t("advertise")}</Label>
               <Input
                 id="swarm-adv"
@@ -109,14 +219,38 @@ export function SwarmCard({
                 placeholder={t("advertisePlaceholder")}
               />
             </div>
-            <Button type="submit" disabled={pending}>
+            <div className="space-y-1">
+              <Label htmlFor="swarm-listen">{t("listen")}</Label>
+              <Input
+                id="swarm-listen"
+                value={listen}
+                onChange={(e) => setListen(e.target.value)}
+                placeholder={t("listenPlaceholder")}
+              />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="swarm-mtu" className="whitespace-nowrap">
+                {t("overlayMtu")}
+              </Label>
+              <Input
+                id="swarm-mtu"
+                inputMode="numeric"
+                value={mtu}
+                onChange={(e) => setMtu(e.target.value.replace(/\D/g, ""))}
+                placeholder="1500"
+              />
+            </div>
+            <p className="text-muted-foreground sm:col-span-3">
+              {t("vpnHint")}
+            </p>
+            <Button type="submit" disabled={pending} className="justify-self-start sm:col-span-3">
               <Network data-icon="inline-start" />
               {status.state === "error" ? t("reinit") : t("init")}
             </Button>
           </form>
         )}
 
-        {status.isManager && (
+        {status.isManager && !left && (
           <>
             <section className="space-y-2">
               <h3 className="text-xs font-medium">
@@ -210,6 +344,12 @@ export function SwarmCard({
               </ul>
             </section>
 
+            <p className="text-muted-foreground">
+              {status.overlayMtu
+                ? t("overlayMtuValue", { mtu: status.overlayMtu })
+                : t("overlayMtuDefault")}
+            </p>
+
             {status.joinTokens && (
               <section className="space-y-2">
                 <h3 className="text-xs font-medium">{t("joinTitle")}</h3>
@@ -264,9 +404,34 @@ export function SwarmCard({
                     </Button>
                   }
                   title={t("leaveTitle")}
-                  description={t("leaveDescription")}
+                  description={
+                    <span className="block space-y-2">
+                      <span className="block">{t("leaveDescription")}</span>
+                      <span className="block font-medium text-amber-700 dark:text-amber-400">
+                        {t("leaveRestartWarning")}
+                      </span>
+                      <RestartCommand label={t("restartCommandLabel")} />
+                    </span>
+                  }
                   confirmLabel={t("leave")}
-                  onConfirm={leaveSwarmAction}
+                  onConfirm={async () => {
+                    try {
+                      const r = await leaveSwarmAction()
+                      if (r.ok) setLeft(true)
+                      if (r.ok && r.data.restartDockerRequired)
+                        setRestartDocker(true)
+                      // No refresh timers here: after a leave Docker's DNS is broken, so
+                      // server renders that call the api fail until Docker restarts.
+                      return r.ok ? { ok: true } : r
+                    } catch {
+                      // The proxy restarted under the panel and the answer was
+                      // lost. The Docker bug lives in the leave itself, which most
+                      // likely ran, so the restart warning still applies.
+                      setRestartDocker(true)
+                      setLeft(true)
+                      return { ok: true }
+                    }
+                  }}
                 />
               )}
             </div>

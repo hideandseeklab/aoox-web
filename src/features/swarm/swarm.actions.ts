@@ -4,7 +4,11 @@ import { revalidatePath } from "next/cache"
 import { getTranslations } from "next-intl/server"
 import { requireToken } from "@/features/auth/auth.session"
 import { api, ApiError } from "@/lib/api"
-import type { SwarmNode, SwarmStatus } from "./swarm.entity"
+import type {
+  LeaveSwarmResult,
+  SwarmNode,
+  SwarmStatus,
+} from "./swarm.entity"
 
 export type ActionResult<T = undefined> =
   { ok: true; data: T } | { ok: false; error: string }
@@ -18,12 +22,21 @@ async function fail(err: unknown): Promise<{ ok: false; error: string }> {
 }
 
 export async function initSwarmAction(
-  advertiseAddr: string
+  input: { advertiseAddr: string; listenAddr: string; overlayMtu: string }
 ): Promise<ActionResult<SwarmStatus>> {
   try {
+    const mtu = Number(input.overlayMtu.trim())
     const data = await api<SwarmStatus>("/swarm/init", {
       method: "POST",
-      body: advertiseAddr.trim() ? { advertiseAddr: advertiseAddr.trim() } : {},
+      body: {
+        ...(input.advertiseAddr.trim()
+          ? { advertiseAddr: input.advertiseAddr.trim() }
+          : {}),
+        ...(input.listenAddr.trim()
+          ? { listenAddr: input.listenAddr.trim() }
+          : {}),
+        ...(input.overlayMtu.trim() ? { overlayMtu: mtu } : {}),
+      },
       token: await requireToken(),
     })
     revalidatePath("/infra/swarm")
@@ -33,11 +46,24 @@ export async function initSwarmAction(
   }
 }
 
-export async function leaveSwarmAction(): Promise<ActionResult> {
+export async function leaveSwarmAction(): Promise<
+  ActionResult<LeaveSwarmResult>
+> {
   try {
-    await api<void>("/swarm", { method: "DELETE", token: await requireToken() })
-    revalidatePath("/infra/swarm")
-    return { ok: true, data: undefined }
+    // Older APIs answer 204 without a body: the restart notice is then unknown,
+    // so assume it applies (the bug is in Docker, not in aoox).
+    const res = await api<LeaveSwarmResult | undefined>("/swarm", {
+      method: "DELETE",
+      token: await requireToken(),
+    })
+    // No revalidatePath here: after a leave Docker's DNS no longer resolves
+    // the api container for this server, so re-rendering the page would throw
+    // (error page) and swallow the restart alert. The card hides what the
+    // leave made stale instead; a reload after the Docker restart is fresh.
+    return {
+      ok: true,
+      data: res ?? { restartDockerRequired: true, notice: null },
+    }
   } catch (err) {
     return fail(err)
   }

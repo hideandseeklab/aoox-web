@@ -166,6 +166,10 @@
       "ports": "Port <code>80</code> dan <code>443</code> terbuka untuk publik — baik firewall OS (<code>ufw</code>) maupun firewall/security group dari provider VPS kamu.",
       "cert": "Tunggu beberapa saat: sertifikat HTTPS (Let's Encrypt) baru diterbitkan Traefik saat pertama kali domain diakses, butuh beberapa detik sampai semenit."
     },
+    "proxyRecreated": {
+      "title": "Reverse proxy dimulai ulang untuk mengaktifkan sertifikat HTTPS",
+      "body": "Proxy sudah berjalan tanpa Let's Encrypt (atau dengan email lain), jadi dibuat ulang satu kali dengan email yang kamu simpan. Semua aplikasi yang lewat proxy tidak bisa diakses selama beberapa detik. Sertifikat yang sudah ada tetap tersimpan."
+    },
     "restrict": {
       "label": "Hanya izinkan akses lewat domain",
       "description": "Port <code>3000</code> dan <code>3001</code> berhenti menerima koneksi dari luar dan hanya melayani server ini sendiri, jadi setiap kunjungan lewat proxy. Ini juga menutup celah untuk melewati batas percobaan login yang ada saat port dashboard dipanggil langsung.",
@@ -339,6 +343,13 @@
     "inactive": "Nonaktif",
     "advertise": "Advertise address (opsional)",
     "advertisePlaceholder": "IP publik/privat host, untuk node lain",
+    "listen": "Listen address (opsional)",
+    "listenPlaceholder": "Default: sama dengan advertise address",
+    "overlayMtu": "MTU overlay (opsional)",
+    "proxyRestarting": "Proxy sedang dimulai ulang; halaman ini menyegarkan dirinya sendiri dalam beberapa detik.",
+    "vpnHint": "Node lewat VPN seperti WireGuard: advertise IP tunnel, dan set MTU overlay ke MTU tunnel (1420 untuk WireGuard; container lalu mendapat 1370).",
+    "overlayMtuValue": "MTU jaringan overlay: {mtu}. Untuk mengubahnya, keluar dari swarm lalu inisialisasi ulang.",
+    "overlayMtuDefault": "MTU jaringan overlay: bawaan Docker (1450). Untuk mengubahnya, keluar dari swarm lalu inisialisasi ulang.",
     "reinit": "Init ulang swarm",
     "init": "Inisialisasi swarm",
     "leader": "pemimpin",
@@ -354,6 +365,11 @@
     "leave": "Keluar dari swarm",
     "leaveTitle": "Keluar dari swarm?",
     "leaveDescription": "Node ini meninggalkan swarm: service yang berjalan di sana hilang, dan jaringan overlay swarm dihapus. Proxy akan dipasang ulang tanpa mode swarm.",
+    "restartCommandLabel": "Perintah restart",
+    "leaveRestartWarning": "Bug Docker: setelah keluar, jalankan ini di server, kalau tidak panel berhenti berfungsi saat restart atau update berikutnya.",
+    "leaveRestartTitle": "Restart Docker di server",
+    "leaveRestartBody": "Keluar dari swarm memicu bug di Docker (issue-nya masih terbuka): DNS internal Docker berhenti me-resolve nama container untuk container yang sudah berjalan. Panel tetap berfungsi sampai container api-nya dibuat ulang atau di-restart (misalnya oleh update berikutnya), lalu tidak bisa menjangkau databasenya. Jalankan ini di server; semua container aoox menyala lagi sendiri.",
+    "leaveRestartIssue": "Issue Docker #45144",
     "labelsPlaceholder": "label: zone=eu tier=db",
     "labelsAria": "Label node {hostname}",
     "save": "Simpan",

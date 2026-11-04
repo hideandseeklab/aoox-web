@@ -8,6 +8,18 @@ Versions below 1.0.0 may include breaking changes in a minor release.
 
 ## [Unreleased]
 
+### Added
+
+- **Swarm init: listen address and overlay MTU** (needs the matching aoox-api). The init form has optional "Listen address" and "Overlay MTU" fields next to "Advertise address", with a hint for nodes over a VPN such as WireGuard (advertise the tunnel IP, MTU = the tunnel MTU). Once the swarm is up the card shows the overlay MTU and how to change it. Inbox entries for a crashed task name the node.
+
+### UI UX Improvement
+
+- **Leaving the swarm warns about a Docker bug** (needs the matching aoox-api for the post-leave alert). The confirmation dialog says that, after leaving, `sudo systemctl restart docker` must be run on the server (copy button), and after a successful leave the Swarm card keeps an alert with the command, the reason (Docker's DNS stops resolving container names; the panel fails at its next api restart) and a link to moby/moby#45144. English and Indonesian.
+- **Swarm card init form** wraps the three fields and a hint on one row set (English and Indonesian, 375 px).
+- **Swarm init form layout.** The three fields are a grid: the labels share one baseline and stay on a single line at 1366 px (the "Overlay MTU" label no longer wraps), and all three inputs are full width at 375 px. The MTU placeholder is now `1500` (the MTU of the network under the VXLAN; Docker takes 50 off inside containers).
+- **Swarm init and leave survive the proxy restarting under the panel.** If the response is lost ("Failed to fetch") after init or leave, the card no longer shows the error page: after init it waits for the page to answer again, then refreshes, with a short note, and after a confirmed leave it still shows the persistent "Restart Docker on the server" alert (no refresh after leave: Docker's DNS is broken until it restarts, so the card hides the stale nodes and tokens instead).
+- **Panel domain: notice when the proxy was recreated** (needs the matching aoox-api). Saving a domain with an ACME email on a proxy that ran without Let's Encrypt recreates it once; the card says so and that routed apps are unreachable for a few seconds.
+
 ## [0.1.0-beta.0] - 2026-11-03
 
 ### Security

@@ -30,6 +30,8 @@ export interface UpdatePanelDomainInput {
 export interface UpdatePanelDomainResult {
   settings: PanelDomainSettings
   proxyAutoProvisioned: boolean
+  /** The running proxy was recreated once to get the ACME resolver (a few seconds of downtime for routed apps). */
+  proxyRecreated: boolean
   restrictPortsNote: string | null
 }
 

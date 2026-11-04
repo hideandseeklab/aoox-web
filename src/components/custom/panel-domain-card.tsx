@@ -37,6 +37,7 @@ export function PanelDomainCard({ status }: { status: PanelDomainStatus }) {
   const [error, setError] = useState<string | null>(null)
   const [applied, setApplied] = useState(false)
   const [proxyAutoProvisioned, setProxyAutoProvisioned] = useState(false)
+  const [proxyRecreated, setProxyRecreated] = useState(false)
   const [webHost, setWebHost] = useState(status.settings.webHost ?? "")
   const [apiHost, setApiHost] = useState(status.settings.apiHost ?? "")
   const [acmeEmail, setAcmeEmail] = useState(status.settings.acmeEmail ?? "")
@@ -199,6 +200,7 @@ export function PanelDomainCard({ status }: { status: PanelDomainStatus }) {
                 setError(null)
                 setApplied(false)
                 setProxyAutoProvisioned(false)
+                setProxyRecreated(false)
                 setAppliedRestrict(false)
                 const r = await updatePanelDomainAction({
                   webHost: webHost.trim(),
@@ -209,6 +211,7 @@ export function PanelDomainCard({ status }: { status: PanelDomainStatus }) {
                 if (r.ok) {
                   setApplied(true)
                   setProxyAutoProvisioned(r.data.proxyAutoProvisioned)
+                  setProxyRecreated(r.data.proxyRecreated === true)
                   setAppliedRestrict(r.data.restrictPortsNote !== null)
                 } else setError(r.error)
               })
@@ -242,6 +245,12 @@ export function PanelDomainCard({ status }: { status: PanelDomainStatus }) {
                 <> {t.rich("restrict.appliedExtra", { host: webHost, code })}</>
               )}
             </AlertDescription>
+          </Alert>
+        )}
+        {applied && proxyRecreated && (
+          <Alert>
+            <AlertTitle>{t("proxyRecreated.title")}</AlertTitle>
+            <AlertDescription>{t("proxyRecreated.body")}</AlertDescription>
           </Alert>
         )}
         {applied && proxyAutoProvisioned && (
