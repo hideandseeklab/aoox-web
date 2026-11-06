@@ -298,7 +298,7 @@
       "tagError": "Gagal mencari tag versi yang lebih baru: {error}",
       "newer": {
         "title": "Ada versi yang lebih baru: <code>{tag}</code>",
-        "body": "Aplikasi ini memakai {current}. Pengecekan hanya membandingkan tag yang sama, jadi versi yang lebih baru ditawarkan terpisah.",
+        "body": "Aplikasi ini memakai {current}. {newer} tersedia di registry.",
         "switch": "Ganti dan deploy",
         "confirmTitle": "Ganti ke {tag} dan deploy?",
         "confirmBody": "Image berubah dari tag {current} ke {ref} (tersimpan di pengaturan aplikasi) dan deployment langsung dimulai. Bisa di-rollback dari riwayat."

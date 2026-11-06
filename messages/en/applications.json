@@ -298,7 +298,7 @@
       "tagError": "Could not look for newer version tags: {error}",
       "newer": {
         "title": "A newer version is available: <code>{tag}</code>",
-        "body": "This app runs {current}. Checking a tag only compares that same tag, so the newer version is offered separately.",
+        "body": "This app runs {current}. {newer} is available in the registry.",
         "switch": "Switch and deploy",
         "confirmTitle": "Switch to {tag} and deploy?",
         "confirmBody": "The image changes from tag {current} to {ref} (saved in the app settings) and a deployment starts right away. You can roll back from the history."

@@ -2,7 +2,7 @@
 
 import { ExternalLink } from "lucide-react"
 import { useTranslations } from "next-intl"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { ActionAlert } from "@/components/custom/action-alert"
 import { Button } from "@/components/ui/button"
 
 /**
@@ -19,16 +19,15 @@ export function RealtimeOriginAlert({
 }) {
   const t = useTranslations("applications")
   return (
-    <Alert variant="destructive">
-      <AlertTitle>{t("realtimeOrigin.title")}</AlertTitle>
-      <AlertDescription className="space-y-2">
-        <p>
-          {t.rich("realtimeOrigin.body", {
-            code: (chunks) => <code>{chunks}</code>,
-            webOrigin,
-            browserOrigin,
-          })}
-        </p>
+    <ActionAlert
+      variant="destructive"
+      title={t("realtimeOrigin.title")}
+      description={t.rich("realtimeOrigin.body", {
+        code: (chunks) => <code>{chunks}</code>,
+        webOrigin,
+        browserOrigin,
+      })}
+      actions={
         <Button size="sm" asChild>
           <a
             href={webOrigin + window.location.pathname + window.location.search}
@@ -37,7 +36,7 @@ export function RealtimeOriginAlert({
             {t("realtimeOrigin.open", { origin: webOrigin })}
           </a>
         </Button>
-      </AlertDescription>
-    </Alert>
+      }
+    />
   )
 }

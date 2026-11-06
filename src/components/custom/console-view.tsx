@@ -6,7 +6,7 @@ import { ExternalLink, RotateCw } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { io, type Socket } from "socket.io-client"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { ActionAlert } from "@/components/custom/action-alert"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -191,24 +191,23 @@ export function ConsoleView({
   if (originMismatch) {
     const target = webOrigin + window.location.pathname + window.location.search
     return (
-      <Alert variant="destructive">
-        <AlertTitle>{t("console.origin.title")}</AlertTitle>
-        <AlertDescription className="space-y-3">
-          <p>
-            {t.rich("console.origin.body", {
-              code: (chunks) => <code>{chunks}</code>,
-              webOrigin,
-              browserOrigin: browserOrigin ?? "",
-            })}
-          </p>
+      <ActionAlert
+        variant="destructive"
+        title={t("console.origin.title")}
+        description={t.rich("console.origin.body", {
+          code: (chunks) => <code>{chunks}</code>,
+          webOrigin,
+          browserOrigin: browserOrigin ?? "",
+        })}
+        actions={
           <Button size="sm" asChild>
             <a href={target}>
               <ExternalLink data-icon="inline-start" />
               {t("console.origin.open", { origin: webOrigin })}
             </a>
           </Button>
-        </AlertDescription>
-      </Alert>
+        }
+      />
     )
   }
 

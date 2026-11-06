@@ -4,7 +4,7 @@ import { Loader2, TriangleAlert } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { useState, useTransition } from "react"
 import { toast } from "sonner"
-import { Alert, AlertDescription } from "@/components/ui/alert"
+import { ActionAlert } from "@/components/custom/action-alert"
 import { Button } from "@/components/ui/button"
 import { setContainerPortAction } from "@/features/application/application.actions"
 import { useRouter } from "@/lib/use-router"
@@ -62,34 +62,37 @@ export function ExposedPortAlert({
     })
 
   return (
-    <Alert
-      className={`border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-400 ${className ?? ""}`}
-    >
-      <TriangleAlert />
-      <AlertDescription className="space-y-2 text-amber-700/90 dark:text-amber-400/90">
-        <p>
+    <ActionAlert
+      variant="warning"
+      icon={<TriangleAlert />}
+      className={className}
+      description={
+        <>
           {t(single !== null ? "single" : "multiple", {
             exposed,
             port: containerPort,
           })}
-        </p>
-        {canEdit && single !== null && (
+          {error && (
+            <span className="mt-1 block text-destructive" role="alert">
+              {error}
+            </span>
+          )}
+        </>
+      }
+      actions={
+        canEdit && single !== null ? (
           <Button
             type="button"
             variant="outline"
+            size="sm"
             disabled={pending}
             onClick={apply}
           >
             {pending && <Loader2 className="animate-spin" />}
             {pending ? tc("states.saving") : t("useButton", { exposed })}
           </Button>
-        )}
-        {error && (
-          <p className="text-destructive" role="alert">
-            {error}
-          </p>
-        )}
-      </AlertDescription>
-    </Alert>
+        ) : undefined
+      }
+    />
   )
 }

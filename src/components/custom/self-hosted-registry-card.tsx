@@ -13,6 +13,7 @@ import {
 import { useTranslations } from "next-intl"
 import { useEffect, useState, useTransition } from "react"
 import { toast } from "sonner"
+import { ActionAlert } from "@/components/custom/action-alert"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -379,19 +380,17 @@ export function SelfHostedRegistryCard({
       <div className="space-y-3">
         {dockerAlert}
         {unmanaged && (
-          <Alert>
-            <Info />
-            <AlertTitle>{t("unmanaged.title")}</AlertTitle>
-            <AlertDescription className="space-y-2">
-              <p>
-                {t.rich(
-                  isOwner
-                    ? "unmanaged.description"
-                    : "unmanaged.descriptionMember",
-                  { code: (c) => <code>{c}</code> }
-                )}
-              </p>
-              {isOwner && (
+          <ActionAlert
+            icon={<Info />}
+            title={t("unmanaged.title")}
+            description={t.rich(
+              isOwner
+                ? "unmanaged.description"
+                : "unmanaged.descriptionMember",
+              { code: (c) => <code>{c}</code> }
+            )}
+            actions={
+              isOwner ? (
                 <Button
                   size="sm"
                   variant="outline"
@@ -400,22 +399,20 @@ export function SelfHostedRegistryCard({
                 >
                   {t("unmanaged.replace")}
                 </Button>
-              )}
-            </AlertDescription>
-          </Alert>
+              ) : undefined
+            }
+          />
         )}
         {missing && (
-          <Alert>
-            <Info />
-            <AlertTitle>{t("missing.title")}</AlertTitle>
-            <AlertDescription className="space-y-2">
-              <p>
-                {t.rich(
-                  isOwner ? "missing.description" : "missing.descriptionMember",
-                  { code: (c) => <code>{c}</code> }
-                )}
-              </p>
-              {isOwner && (
+          <ActionAlert
+            icon={<Info />}
+            title={t("missing.title")}
+            description={t.rich(
+              isOwner ? "missing.description" : "missing.descriptionMember",
+              { code: (c) => <code>{c}</code> }
+            )}
+            actions={
+              isOwner ? (
                 <Button
                   size="sm"
                   variant="outline"
@@ -424,9 +421,9 @@ export function SelfHostedRegistryCard({
                 >
                   {t("missing.action")}
                 </Button>
-              )}
-            </AlertDescription>
-          </Alert>
+              ) : undefined
+            }
+          />
         )}
         <IllustratedEmptyState
           illustration={<RegistryIllustration />}

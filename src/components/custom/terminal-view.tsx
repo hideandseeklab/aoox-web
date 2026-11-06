@@ -9,6 +9,7 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import { useTranslations } from "next-intl"
 import Link from "next/link"
 import { io, type Socket } from "socket.io-client"
+import { ActionAlert } from "@/components/custom/action-alert"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -236,24 +237,23 @@ export function TerminalView({
   if (originMismatch) {
     const target = webOrigin + window.location.pathname + window.location.search
     return (
-      <Alert variant="destructive">
-        <AlertTitle>{t("origin.title")}</AlertTitle>
-        <AlertDescription className="space-y-3">
-          <p>
-            {t.rich("origin.description", {
-              webOrigin,
-              browserOrigin: browserOrigin ?? "",
-              code: (c) => <code>{c}</code>,
-            })}
-          </p>
+      <ActionAlert
+        variant="destructive"
+        title={t("origin.title")}
+        description={t.rich("origin.description", {
+          webOrigin,
+          browserOrigin: browserOrigin ?? "",
+          code: (c) => <code>{c}</code>,
+        })}
+        actions={
           <Button size="sm" asChild>
             <a href={target}>
               <ExternalLink data-icon="inline-start" />
               {t("origin.open", { webOrigin })}
             </a>
           </Button>
-        </AlertDescription>
-      </Alert>
+        }
+      />
     )
   }
 

@@ -16,7 +16,7 @@ import { ConfirmDialog } from "@/components/custom/confirm-dialog"
 import { LogViewer } from "@/components/custom/log-viewer"
 import { IllustratedEmptyState } from "@/components/custom/illustrated-empty-state"
 import { DeploymentsIllustration } from "@/components/custom/illustrations/deployments-illustration"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { ActionAlert } from "@/components/custom/action-alert"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -287,19 +287,11 @@ export function ApplicationDeployPanel({
   return (
     <div className="space-y-4">
       {domainProxyAutoProvisioned && !proxyWarningDismissed && (
-        <Alert variant="destructive">
-          <AlertTitle>{t("deploy.proxyWarning.title")}</AlertTitle>
-          <AlertDescription className="space-y-2">
-            <p>{t("deploy.proxyWarning.intro")}</p>
-            <ol className="ms-4 list-decimal space-y-1">
-              <li>{t("deploy.proxyWarning.dns")}</li>
-              <li>
-                {t.rich("deploy.proxyWarning.ports", {
-                  code: (chunks) => <code>{chunks}</code>,
-                })}
-              </li>
-              <li>{t("deploy.proxyWarning.cert")}</li>
-            </ol>
+        <ActionAlert
+          variant="destructive"
+          title={t("deploy.proxyWarning.title")}
+          description={<p>{t("deploy.proxyWarning.intro")}</p>}
+          actions={
             <Button
               variant="outline"
               size="sm"
@@ -307,18 +299,28 @@ export function ApplicationDeployPanel({
             >
               {tc("actions.close")}
             </Button>
-          </AlertDescription>
-        </Alert>
+          }
+        >
+          <ol className="ms-4 list-decimal space-y-1 text-xs/relaxed text-destructive/90">
+            <li>{t("deploy.proxyWarning.dns")}</li>
+            <li>
+              {t.rich("deploy.proxyWarning.ports", {
+                code: (chunks) => <code>{chunks}</code>,
+              })}
+            </li>
+            <li>{t("deploy.proxyWarning.cert")}</li>
+          </ol>
+        </ActionAlert>
       )}
 
       {!!app.currentImage && !hasAccess && (
-        <Alert>
-          <Globe />
-          <AlertTitle>{t("deploy.noAccess.title")}</AlertTitle>
-          <AlertDescription className="space-y-2">
-            <p>{t("deploy.noAccess.body")}</p>
-            {canEdit && (
-              <div className="flex gap-2">
+        <ActionAlert
+          icon={<Globe />}
+          title={t("deploy.noAccess.title")}
+          description={t("deploy.noAccess.body")}
+          actions={
+            canEdit ? (
+              <>
                 <Button
                   variant="outline"
                   size="sm"
@@ -333,22 +335,25 @@ export function ApplicationDeployPanel({
                 >
                   {t("deploy.noAccess.addDomain")}
                 </Button>
-              </div>
-            )}
-          </AlertDescription>
-        </Alert>
+              </>
+            ) : undefined
+          }
+        />
       )}
 
       {latestFailedStillServing && (
-        <Alert variant="destructive">
-          <TriangleAlert />
-          <AlertTitle>{t("deploy.lastFailed.title")}</AlertTitle>
-          <AlertDescription className="space-y-2">
-            {deployments[0].errorMessage && (
-              <p className="line-clamp-3 font-mono text-xs break-words">
+        <ActionAlert
+          variant="destructive"
+          icon={<TriangleAlert />}
+          title={t("deploy.lastFailed.title")}
+          description={
+            deployments[0].errorMessage ? (
+              <span className="line-clamp-3 block font-mono text-xs break-words">
                 {deployments[0].errorMessage}
-              </p>
-            )}
+              </span>
+            ) : undefined
+          }
+          actions={
             <Button
               variant="outline"
               size="sm"
@@ -356,8 +361,8 @@ export function ApplicationDeployPanel({
             >
               {t("deploy.lastFailed.viewLog")}
             </Button>
-          </AlertDescription>
-        </Alert>
+          }
+        />
       )}
 
       {app.service && (
@@ -491,16 +496,17 @@ export function ApplicationDeployPanel({
       )}
 
       {canEdit && imageCheck?.newerTag && imageCheck.newerImageRef && (
-        <Alert>
-          <Sparkles />
-          <AlertTitle>
-            {t.rich("deploy.image.newer.title", {
-              tag: imageCheck.newerTag,
-              code: (chunks) => <code>{chunks}</code>,
-            })}
-          </AlertTitle>
-          <AlertDescription className="space-y-2">
-            <p>{t("deploy.image.newer.body", { current: imageCheck.tag })}</p>
+        <ActionAlert
+          icon={<Sparkles />}
+          title={t.rich("deploy.image.newer.title", {
+            tag: imageCheck.newerTag,
+            code: (chunks) => <code>{chunks}</code>,
+          })}
+          description={t("deploy.image.newer.body", {
+            current: imageCheck.tag,
+            newer: imageCheck.newerTag,
+          })}
+          actions={
             <ConfirmDialog
               tone="neutral"
               trigger={
@@ -533,8 +539,8 @@ export function ApplicationDeployPanel({
                 return r
               }}
             />
-          </AlertDescription>
-        </Alert>
+          }
+        />
       )}
 
       {originMismatch && (
