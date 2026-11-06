@@ -10,6 +10,8 @@ export interface InstanceEnvStatus {
   terminalSshPasswordSet: boolean
   publicIp: string | null
   registryPublicHost: string | null
+  /** Raw `PROXY_READ_TIMEOUT` (seconds or a duration); null when unset. */
+  proxyReadTimeout: string | null
 }
 
 export interface UpdateInstanceEnvInput {
@@ -19,4 +21,5 @@ export interface UpdateInstanceEnvInput {
   terminalSshPassword?: string
   publicIp?: string
   registryPublicHost?: string
+  proxyReadTimeout?: string
 }

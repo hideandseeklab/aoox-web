@@ -1,9 +1,10 @@
 "use client"
 
-import { Play, Server as ServerIcon, Trash2 } from "lucide-react"
+import { Play, RefreshCw, Server as ServerIcon, Trash2 } from "lucide-react"
 import Link from "next/link"
 import { useTranslations } from "next-intl"
 import { useState, useTransition } from "react"
+import { ActionAlert } from "@/components/custom/action-alert"
 import { ConfirmDialog } from "@/components/custom/confirm-dialog"
 import { DetailList, type DetailItem } from "@/components/custom/detail-list"
 import { IllustratedEmptyState } from "@/components/custom/illustrated-empty-state"
@@ -20,6 +21,7 @@ import {
 } from "@/components/ui/card"
 import {
   provisionProxyAction,
+  reinstallProxyAction,
   removeProxyAction,
 } from "@/features/proxy/proxy.actions"
 import type { ProxyStatus } from "@/features/proxy/proxy.entity"
@@ -119,6 +121,20 @@ export function ProxyCard({
       value: status.customCerts ? t("filesOn") : t("filesOff"),
     })
   }
+  const runningTimeout = status.readTimeout ?? null
+  const configuredTimeout = status.configuredReadTimeout ?? null
+  // Only an API that reports the field can tell; undefined = older API, nothing to show.
+  if (status.readTimeout !== undefined) {
+    items.push({
+      label: t("readTimeout"),
+      value:
+        runningTimeout === null
+          ? t("readTimeoutDefault")
+          : t("readTimeoutSeconds", { seconds: runningTimeout }),
+    })
+  }
+  const timeoutMismatch =
+    status.readTimeout !== undefined && runningTimeout !== configuredTimeout
   if (!status.running) {
     items.push({ label: t("container"), value: status.state ?? "—" })
   }
@@ -138,6 +154,57 @@ export function ProxyCard({
       </CardHeader>
       <CardContent className="space-y-3">
         <DetailList items={items} columns={2} />
+        {timeoutMismatch && (
+          <ActionAlert
+            variant="warning"
+            title={t("timeoutMismatch.title")}
+            description={t("timeoutMismatch.body", {
+              running:
+                runningTimeout === null
+                  ? t("readTimeoutDefault")
+                  : t("readTimeoutSeconds", { seconds: runningTimeout }),
+              configured:
+                configuredTimeout === null
+                  ? t("readTimeoutDefault")
+                  : t("readTimeoutSeconds", { seconds: configuredTimeout }),
+            })}
+            actions={
+              !canManage ? undefined : server ? (
+                <Button variant="outline" asChild>
+                  <Link href="/infra/servers">
+                    <ServerIcon data-icon="inline-start" />
+                    {t("empty.openServers")}
+                  </Link>
+                </Button>
+              ) : (
+                <ConfirmDialog
+                  tone="neutral"
+                  trigger={
+                    <Button variant="outline">
+                      <RefreshCw data-icon="inline-start" />
+                      {t("reinstall")}
+                    </Button>
+                  }
+                  title={t("reinstallConfirmTitle")}
+                  description={t("reinstallConfirmDescription")}
+                  confirmLabel={t("reinstall")}
+                  onConfirm={async () => {
+                    try {
+                      const r = await reinstallProxyAction()
+                      if (!r.ok) return r
+                    } catch {
+                      // Behind its own proxy the panel loses this response while the
+                      // proxy restarts; the reinstall most likely ran: wait, then refresh.
+                    }
+                    await waitUntilPanelAnswers()
+                    router.refresh()
+                    return { ok: true }
+                  }}
+                />
+              )
+            }
+          />
+        )}
         {server ? (
           <p className="text-xs text-muted-foreground">
             {t.rich("remoteSettings", { link: serversLink })}
@@ -152,6 +219,22 @@ export function ProxyCard({
       </CardContent>
     </Card>
   )
+}
+
+/** Polls the current page until it answers again (the proxy in front of the panel restarts). */
+async function waitUntilPanelAnswers(): Promise<void> {
+  for (let i = 0; i < 20; i += 1) {
+    await new Promise((resolve) => setTimeout(resolve, 1000))
+    try {
+      const res = await fetch(window.location.href, {
+        method: "HEAD",
+        cache: "no-store",
+      })
+      if (res.ok) return
+    } catch {
+      // still restarting
+    }
+  }
 }
 
 function Port({ value }: { value: number }) {

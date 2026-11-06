@@ -28,6 +28,9 @@
       "publicIp": "IP publik",
       "publicIpPlaceholder": "kosong = deteksi otomatis",
       "registryHost": "Host publik registry",
+      "readTimeout": "Batas waktu baca proxy",
+      "readTimeoutPlaceholder": "kosong = 60 (bawaan Traefik)",
+      "readTimeoutHint": "Detik yang boleh dipakai klien untuk mengirim satu request utuh, termasuk unggahan (<code>300</code> atau <code>5m</code>, 1 sampai 86400). Bawaan Traefik 60 dtk; naikkan untuk unggahan besar dari koneksi lambat, mis. 300. Berlaku untuk setiap proxy yang dipasang aoox, dan baru aktif setelah proxy dipasang ulang.",
       "save": "Simpan Jaringan"
     }
   },
@@ -202,6 +205,16 @@
     "filesOn": "Dimuat",
     "filesOff": "Belum dimuat",
     "container": "Container",
+    "readTimeout": "Batas waktu baca",
+    "readTimeoutDefault": "60 dtk (bawaan)",
+    "readTimeoutSeconds": "{seconds} dtk",
+    "timeoutMismatch": {
+      "title": "Batas waktu baca belum diterapkan",
+      "body": "Proxy berjalan dengan {running}, tetapi panel diatur ke {configured}. Ini konfigurasi statis proxy: pasang ulang proxy untuk menerapkannya."
+    },
+    "reinstall": "Pasang ulang proxy",
+    "reinstallConfirmTitle": "Pasang ulang proxy?",
+    "reinstallConfirmDescription": "Container Traefik dibuat ulang dengan pengaturan saat ini. Semua domain tidak dapat diakses selama beberapa detik; sertifikat dan rute tetap disimpan.",
     "remoteSettings": "Port, email ACME, dan penghapusan proxy ini diatur di <link>Server remote</link>.",
     "remoteError": "Tidak dapat membaca proxy di server ini",
     "provision": "Aktifkan proxy",

@@ -32,6 +32,24 @@ export async function provisionProxyAction(): Promise<
   }
 }
 
+/**
+ * Replaces the running host proxy with a fresh one (POST /proxy answers 409 while it exists):
+ * the container is removed (volumes kept) and created again with the panel's current settings.
+ */
+export async function reinstallProxyAction(): Promise<
+  ActionResult<ProxyStatus>
+> {
+  try {
+    const token = await requireToken()
+    await api<void>("/proxy?purge=false", { method: "DELETE", token })
+    const data = await api<ProxyStatus>("/proxy", { method: "POST", token })
+    revalidatePath("/infra/proxy")
+    return { ok: true, data }
+  } catch (err) {
+    return fail(err)
+  }
+}
+
 export async function removeProxyAction(purge: boolean): Promise<ActionResult> {
   try {
     await api<void>(`/proxy?purge=${purge}`, {

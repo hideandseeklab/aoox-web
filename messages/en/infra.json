@@ -28,6 +28,9 @@
       "publicIp": "Public IP",
       "publicIpPlaceholder": "empty = detect automatically",
       "registryHost": "Registry public host",
+      "readTimeout": "Proxy read timeout",
+      "readTimeoutPlaceholder": "empty = 60 (Traefik default)",
+      "readTimeoutHint": "Seconds a client may take to send a whole request, upload included (<code>300</code> or <code>5m</code>, 1 to 86400). Traefik's default is 60 s; raise it for large uploads from slow connections, e.g. 300. Applies to every proxy aoox installs, and takes effect when the proxy is reinstalled.",
       "save": "Save Network"
     }
   },
@@ -202,6 +205,16 @@
     "filesOn": "Loaded",
     "filesOff": "Not loaded yet",
     "container": "Container",
+    "readTimeout": "Read timeout",
+    "readTimeoutDefault": "60 s (default)",
+    "readTimeoutSeconds": "{seconds} s",
+    "timeoutMismatch": {
+      "title": "Read timeout not applied yet",
+      "body": "The proxy runs with {running}, but the panel is set to {configured}. It is static proxy configuration: reinstall the proxy to apply it."
+    },
+    "reinstall": "Reinstall proxy",
+    "reinstallConfirmTitle": "Reinstall the proxy?",
+    "reinstallConfirmDescription": "The Traefik container is recreated with the current settings. Every domain is unreachable for a few seconds; certificates and routes are kept.",
     "remoteSettings": "Ports, the ACME email and removal of this proxy are managed under <link>Remote servers</link>.",
     "remoteError": "Could not read the proxy on this server",
     "provision": "Enable proxy",

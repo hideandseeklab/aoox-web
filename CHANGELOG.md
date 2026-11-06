@@ -10,10 +10,12 @@ Versions below 1.0.0 may include breaking changes in a minor release.
 
 ### Added
 
+- **Proxy read timeout** (needs the matching aoox-api). Infrastructure > Environment > Network has a "Proxy read timeout" field (seconds or a duration such as `300` / `5m`; empty = Traefik's 60 s default) for large uploads from slow connections. The Reverse proxy card shows the running read timeout and, when the panel setting differs, a warning with a "Reinstall proxy" confirmation (host) or a link to Remote servers. English and Indonesian.
 - **Swarm init: listen address and overlay MTU** (needs the matching aoox-api). The init form has optional "Listen address" and "Overlay MTU" fields next to "Advertise address", with a hint for nodes over a VPN such as WireGuard (advertise the tunnel IP, MTU = the tunnel MTU). Once the swarm is up the card shows the overlay MTU and how to change it. Inbox entries for a crashed task name the node.
 
 ### UI UX Improvement
 
+- **Reverse proxy card: read timeout row and a not-applied-yet warning** (`ActionAlert`, warning variant) plus the new field in the Environment card.
 - **Alerts with an action share one layout** (`ActionAlert`, `components/custom/action-alert.tsx`). Icon, title and description sit on the left and the button(s) on the right, vertically centred, with even padding; on a phone they stack with full-width buttons. Used by the "newer version is available" alert (its text now reads "This app runs X. Y is available in the registry."), the failed-deployment, no-access-address and proxy-warning alerts on the Deploy tab, the wrong-origin alerts (Deploy/Logs, Console, Terminal), the registry "unmanaged container" and "missing container" alerts and the exposed-port warning. English and Indonesian.
 - **Leaving the swarm warns about a Docker bug** (needs the matching aoox-api for the post-leave alert). The confirmation dialog says that, after leaving, `sudo systemctl restart docker` must be run on the server (copy button), and after a successful leave the Swarm card keeps an alert with the command, the reason (Docker's DNS stops resolving container names; the panel fails at its next api restart) and a link to moby/moby#45144. English and Indonesian.
 - **Swarm card init form** wraps the three fields and a hint on one row set (English and Indonesian, 375 px).

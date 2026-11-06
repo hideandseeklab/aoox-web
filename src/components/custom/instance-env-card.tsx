@@ -40,6 +40,9 @@ export function InstanceEnvCard({ status }: { status: InstanceEnvStatus }) {
   const [registryPublicHost, setRegistryPublicHost] = useState(
     status.registryPublicHost ?? ""
   )
+  const [proxyReadTimeout, setProxyReadTimeout] = useState(
+    status.proxyReadTimeout ?? ""
+  )
 
   const save = (
     section: "terminal" | "misc",
@@ -197,6 +200,22 @@ export function InstanceEnvCard({ status }: { status: InstanceEnvStatus }) {
                 placeholder="localhost"
               />
             </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="env-proxy-read-timeout">
+                {t("network.readTimeout")}
+              </Label>
+              <Input
+                id="env-proxy-read-timeout"
+                value={proxyReadTimeout}
+                onChange={(e) => setProxyReadTimeout(e.target.value)}
+                placeholder={t("network.readTimeoutPlaceholder")}
+                inputMode="text"
+                autoComplete="off"
+              />
+              <p className="text-xs text-muted-foreground">
+                {t.rich("network.readTimeoutHint", { code })}
+              </p>
+            </div>
           </div>
           <Button
             size="sm"
@@ -205,6 +224,7 @@ export function InstanceEnvCard({ status }: { status: InstanceEnvStatus }) {
               save("misc", {
                 publicIp: publicIp.trim(),
                 registryPublicHost: registryPublicHost.trim(),
+                proxyReadTimeout: proxyReadTimeout.trim(),
               })
             }
           >
