@@ -8,6 +8,8 @@ Versions below 1.0.0 may include breaking changes in a minor release.
 
 ## [Unreleased]
 
+## [0.1.0-beta.1] - 2026-11-07
+
 ### Added
 
 - **Proxy read timeout** (needs the matching aoox-api). Infrastructure > Environment > Network has a "Proxy read timeout" field (seconds or a duration such as `300` / `5m`; empty = Traefik's 60 s default) for large uploads from slow connections. The Reverse proxy card shows the running read timeout and, when the panel setting differs, a warning with a "Reinstall proxy" confirmation (host) or a link to Remote servers. English and Indonesian.
@@ -776,7 +778,8 @@ Versions below 1.0.0 may include breaking changes in a minor release.
   backups, notifications, and account/instance settings.
 - A web terminal (shell on the host or inside the API container) over WebSocket.
 
-[Unreleased]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.0-beta.0...HEAD
+[Unreleased]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.0-beta.1...HEAD
+[0.1.0-beta.1]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.0-beta.0...v0.1.0-beta.1
 [0.1.0-beta.0]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.0-alpha.13...v0.1.0-beta.0
 [0.1.0-alpha.13]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.0-alpha.12...v0.1.0-alpha.13
 [0.1.0-alpha.12]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.0-alpha.11...v0.1.0-alpha.12
