@@ -408,6 +408,11 @@
       "title": "Terapkan update?",
       "description": "Panel akan restart (biasanya 1–3 menit) — koneksi ke dashboard ini akan sempat terputus, itu wajar. Halaman ini akan memuat ulang sendiri begitu panel kembali dengan versi baru."
     },
+    "pinnedBlock": {
+      "title": "Instalasi ini dikunci ke tag versi",
+      "body": "Menerapkan update dari sini hanya akan menarik ulang <code>{tag}</code>, yang tidak mengubah versi, jadi tombolnya dinonaktifkan.",
+      "steps": "Untuk upgrade ke <code>v{latest}</code>, ubah dua baris ini di <code>.env.dist</code> pada server (atau hapus keduanya agar mengikuti <code>latest</code>), lalu jalankan <code>sudo aoox reinstall</code>:"
+    },
     "version": {
       "unknown": "Versi terbaru belum bisa dicek (server ini mungkin tidak punya akses ke registry). Dicoba lagi otomatis tiap beberapa jam.",
       "pinned": "Image dipasang dengan tag <code>{tag}</code> (bukan <code>:latest</code>), jadi update tidak dipantau otomatis. Versi terbaru yang dipublikasikan: <code>v{latest}</code>.",
@@ -420,7 +425,8 @@
       "lookupFailed": "Pencarian gagal",
       "newBaseline": "baseline baru",
       "available": "Update tersedia",
-      "latest": "Terbaru"
+      "latest": "Terbaru",
+      "pinned": "Dikunci"
     },
     "updatedToast": "aoox diperbarui ke v{version}",
     "changelog": "Changelog",

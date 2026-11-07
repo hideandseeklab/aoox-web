@@ -8,6 +8,14 @@ Versions below 1.0.0 may include breaking changes in a minor release.
 
 ## [Unreleased]
 
+### Fixed
+
+- **Update aoox card: no working "Apply update" on a pinned install** (needs the matching aoox-api). When the install is pinned to a version tag and applying would only pull the same tag, the button is disabled and an alert explains it and shows the two `.env.dist` lines to set (or remove) followed by `sudo aoox reinstall`; English and Indonesian.
+
+### UI UX Improvement
+
+- **Update aoox card on a pinned install**: the image rows show a "Pinned" badge instead of "Latest", and the pinned alert wraps on phones instead of being cut off.
+
 ## [0.1.0-beta.1] - 2026-11-07
 
 ### Added

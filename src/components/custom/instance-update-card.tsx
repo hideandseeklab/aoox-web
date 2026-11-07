@@ -105,10 +105,19 @@ export function InstanceUpdateCard({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  // `!= null`: an API without the field (older release) must not disable Apply.
+  const blocked = current.applyBlocked != null
+  // Only offer upgrade steps when a different version is published; a pinned
+  // install already on the newest version has nothing to move to.
+  const pinnedBehind =
+    blocked &&
+    !!current.version.latestVersion &&
+    current.version.latestVersion.replace(/^v/, "") !== current.currentVersion
   const available =
-    current.api.updateAvailable ||
-    current.web.updateAvailable ||
-    current.version.updateAvailable
+    !blocked &&
+    (current.api.updateAvailable ||
+      current.web.updateAvailable ||
+      current.version.updateAvailable)
 
   const confirmApply = () => {
     setConfirmOpen(false)
@@ -159,9 +168,33 @@ export function InstanceUpdateCard({
 
         <VersionSummary version={current.version} />
 
+        {pinnedBehind && !applying && (
+          <Alert>
+            <AlertTitle>{t("pinnedBlock.title")}</AlertTitle>
+            <AlertDescription className="min-w-0 space-y-2">
+              <p>
+                {t.rich("pinnedBlock.body", {
+                  tag: current.version.trackedTag ?? "",
+                  code: (c) => <code>{c}</code>,
+                })}
+              </p>
+              <p>
+                {t.rich("pinnedBlock.steps", {
+                  latest: current.version.latestVersion ?? "",
+                  code: (c) => <code>{c}</code>,
+                })}
+              </p>
+              <pre className="max-w-full overflow-x-auto rounded bg-muted p-2 font-mono text-xs">
+                {`API_IMAGE=hideandseeklab/aoox-api:${current.version.latestVersion ?? "<version>"}
+WEB_IMAGE=hideandseeklab/aoox-web:${current.version.latestVersion ?? "<version>"}`}
+              </pre>
+            </AlertDescription>
+          </Alert>
+        )}
+
         <ul className="divide-y rounded-md border text-xs">
-          <ImageRow label="api" image={current.api} />
-          <ImageRow label="web" image={current.web} />
+          <ImageRow label="api" image={current.api} pinned={blocked} />
+          <ImageRow label="web" image={current.web} pinned={blocked} />
         </ul>
 
         {!applying && (
@@ -200,15 +233,15 @@ export function InstanceUpdateCard({
         {timedOut && (
           <Alert variant="destructive">
             <AlertTitle>{t("timedOut.title")}</AlertTitle>
-            <AlertDescription className="space-y-2">
+            <AlertDescription className="min-w-0 space-y-2">
               <p>{t("timedOut.intro")}</p>
-              <pre className="overflow-x-auto rounded bg-muted p-2 font-mono text-xs">
+              <pre className="max-w-full overflow-x-auto rounded bg-muted p-2 font-mono text-xs">
                 {`docker ps -a --filter label=com.docker.compose.project=aoox\ndocker logs --tail 100 aoox-api-1\ndocker logs --tail 100 aoox-web-1`}
               </pre>
               <p>
                 {t.rich("timedOut.manual", { code: (c) => <code>{c}</code> })}
               </p>
-              <pre className="overflow-x-auto rounded bg-muted p-2 font-mono text-xs">
+              <pre className="max-w-full overflow-x-auto rounded bg-muted p-2 font-mono text-xs">
                 {`docker compose -f docker-compose.dist.yml \\\n  --env-file .env.dist up -d`}
               </pre>
               <p>{t("timedOut.docs")}</p>
@@ -309,9 +342,11 @@ function VersionSummary({
 function ImageRow({
   label,
   image,
+  pinned = false,
 }: {
   label: string
   image: InstanceUpdateStatus["api"]
+  pinned?: boolean
 }) {
   const t = useTranslations("infra.update")
   return (
@@ -330,6 +365,10 @@ function ImageRow({
       {image.error ? (
         <Badge variant="destructive" className="shrink-0">
           {t("image.lookupFailed")}
+        </Badge>
+      ) : pinned ? (
+        <Badge variant="outline" className="shrink-0">
+          {t("image.pinned")}
         </Badge>
       ) : image.currentDigest === null ? (
         <Badge variant="outline">{t("image.newBaseline")}</Badge>

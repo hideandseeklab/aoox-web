@@ -19,6 +19,12 @@ export interface InstanceUpdateStatus {
   api: ImageUpdateStatus
   web: ImageUpdateStatus
   version: InstanceVersionInfo
+  /**
+   * Why applying would not change the version (a pinned install whose tag did
+   * not move); null when applying makes sense. The API answers 409 with a
+   * similar text if it is applied anyway.
+   */
+  applyBlocked: string | null
 }
 
 /** Newest published version vs the running one — the signal the sidebar badge uses. */

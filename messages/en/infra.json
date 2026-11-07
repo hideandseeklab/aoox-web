@@ -408,6 +408,11 @@
       "title": "Apply the update?",
       "description": "The panel will restart (usually 1–3 minutes) — the connection to this dashboard will drop for a moment, which is expected. This page reloads by itself once the panel is back on the new version."
     },
+    "pinnedBlock": {
+      "title": "This install is pinned to a version tag",
+      "body": "Applying an update here would only pull <code>{tag}</code> again, which does not change the version, so the button is disabled.",
+      "steps": "To upgrade to <code>v{latest}</code>, set these two lines in <code>.env.dist</code> on the server (or remove both to follow <code>latest</code>), then run <code>sudo aoox reinstall</code>:"
+    },
     "version": {
       "unknown": "The latest version could not be checked (this server may have no access to the registry). It is retried automatically every few hours.",
       "pinned": "The images are installed with tag <code>{tag}</code> (not <code>:latest</code>), so updates are not tracked automatically. Latest published version: <code>v{latest}</code>.",
@@ -420,7 +425,8 @@
       "lookupFailed": "Lookup failed",
       "newBaseline": "new baseline",
       "available": "Update available",
-      "latest": "Latest"
+      "latest": "Latest",
+      "pinned": "Pinned"
     },
     "updatedToast": "aoox updated to v{version}",
     "changelog": "Changelog",
