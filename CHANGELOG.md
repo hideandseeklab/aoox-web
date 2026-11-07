@@ -8,6 +8,8 @@ Versions below 1.0.0 may include breaking changes in a minor release.
 
 ## [Unreleased]
 
+## [0.1.0-beta.2] - 2026-11-07
+
 ### Fixed
 
 - **Update aoox card: no working "Apply update" on a pinned install** (needs the matching aoox-api). When the install is pinned to a version tag and applying would only pull the same tag, the button is disabled and an alert explains it and shows the two `.env.dist` lines to set (or remove) followed by `sudo aoox reinstall`; English and Indonesian.
@@ -786,7 +788,8 @@ Versions below 1.0.0 may include breaking changes in a minor release.
   backups, notifications, and account/instance settings.
 - A web terminal (shell on the host or inside the API container) over WebSocket.
 
-[Unreleased]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.0-beta.1...HEAD
+[Unreleased]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.0-beta.2...HEAD
+[0.1.0-beta.2]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.0-beta.1...v0.1.0-beta.2
 [0.1.0-beta.1]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.0-beta.0...v0.1.0-beta.1
 [0.1.0-beta.0]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.0-alpha.13...v0.1.0-beta.0
 [0.1.0-alpha.13]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.0-alpha.12...v0.1.0-alpha.13
