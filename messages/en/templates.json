@@ -127,19 +127,21 @@
         "metabase-3000": "Web Metabase"
       }
     },
-    "minio": {
-      "description": "S3-compatible object storage, suitable as a backup destination.",
+    "rustfs": {
+      "description": "S3-compatible object storage (Apache-2.0) with a web console. To use it as a backup destination, give the stack a domain on any service (the console is fine) so it joins the aoox network, then use the stack container name with port 9000 as the endpoint.",
       "variables": {
-        "MINIO_ROOT_USER": {
-          "label": "Root user"
+        "RUSTFS_ACCESS_KEY": {
+          "label": "Access key",
+          "hint": "Generated automatically; it is the console login and the S3 access key. Find it in the stack env."
         },
-        "MINIO_ROOT_PASSWORD": {
-          "label": "Root password"
+        "RUSTFS_SECRET_KEY": {
+          "label": "Secret key",
+          "hint": "Generated automatically; it is the console password and the S3 secret key."
         }
       },
       "services": {
-        "minio-9001": "Console (UI)",
-        "minio-9000": "S3 API"
+        "rustfs-9001": "Console (UI)",
+        "rustfs-9000": "S3 API"
       }
     },
     "n8n": {

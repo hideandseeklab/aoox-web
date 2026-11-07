@@ -127,19 +127,21 @@
         "metabase-3000": "Web Metabase"
       }
     },
-    "minio": {
-      "description": "Object storage kompatibel S3 — cocok sebagai tujuan backup.",
+    "rustfs": {
+      "description": "Object storage kompatibel S3 (Apache-2.0) dengan konsol web. Untuk dipakai sebagai tujuan backup, beri stack sebuah domain pada service apa pun (konsol boleh) agar masuk ke network aoox, lalu pakai nama container stack dengan port 9000 sebagai endpoint.",
       "variables": {
-        "MINIO_ROOT_USER": {
-          "label": "Pengguna root"
+        "RUSTFS_ACCESS_KEY": {
+          "label": "Access key",
+          "hint": "Dibuat otomatis; dipakai untuk login konsol dan sebagai access key S3. Lihat di env stack."
         },
-        "MINIO_ROOT_PASSWORD": {
-          "label": "Kata sandi root"
+        "RUSTFS_SECRET_KEY": {
+          "label": "Secret key",
+          "hint": "Dibuat otomatis; dipakai sebagai password konsol dan secret key S3."
         }
       },
       "services": {
-        "minio-9001": "Konsol (UI)",
-        "minio-9000": "API S3"
+        "rustfs-9001": "Konsol (UI)",
+        "rustfs-9000": "API S3"
       }
     },
     "n8n": {

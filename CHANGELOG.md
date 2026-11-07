@@ -13,6 +13,10 @@ Versions below 1.0.0 may include breaking changes in a minor release.
 - **Proxy read timeout** (needs the matching aoox-api). Infrastructure > Environment > Network has a "Proxy read timeout" field (seconds or a duration such as `300` / `5m`; empty = Traefik's 60 s default) for large uploads from slow connections. The Reverse proxy card shows the running read timeout and, when the panel setting differs, a warning with a "Reinstall proxy" confirmation (host) or a link to Remote servers. English and Indonesian.
 - **Swarm init: listen address and overlay MTU** (needs the matching aoox-api). The init form has optional "Listen address" and "Overlay MTU" fields next to "Advertise address", with a hint for nodes over a VPN such as WireGuard (advertise the tunnel IP, MTU = the tunnel MTU). Once the swarm is up the card shows the overlay MTU and how to change it. Inbox entries for a crashed task name the node.
 
+### Changed
+
+- **MinIO template replaced by RustFS** (needs the matching aoox-api): catalog texts in English and Indonesian. The RustFS description now explains how to make it reachable as a backup destination (domain on any service, then the container name with port 9000), in English and Indonesian.
+
 ### UI UX Improvement
 
 - **Reverse proxy card: read timeout row and a not-applied-yet warning** (`ActionAlert`, warning variant) plus the new field in the Environment card.
