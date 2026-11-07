@@ -418,7 +418,7 @@ Read `AGENTS.md` — this version of Next.js has breaking changes; check `node_m
   from the list that is already loaded (no new call). The image delete dialog (`RemoveImageButton`) says that delete applies **per image ID** (the API uses `force`, so all tags disappear too), and shows all `DockerImage.tags` (mono, one per line, a `max-h-40` box ≈ 8 lines that scrolls); an image without tags shows a short ID + "untagged". Volumes/networks are read-only (`aoox`, `yatim` (orphan), `bawaan` (built-in), `internal` badges).
 - Action text in the audit log: the 6 keys `POST/DELETE /docker/...` in `audit-log.format.ts`. The server action (`docker.actions.ts`) calls `revalidatePath('/infra/docker')`, so the list refreshes itself;
   stopping a container that ignores SIGTERM takes about 10 seconds (the button stays locked on "Rendering…" during that time — this is normal).
-- **Not yet**: actions for remote servers are not yet tested live (the code is the same as for the host); volumes/networks have no delete; no exec/shell.
+- **Not yet**: remote-server actions (`?serverId`) were tested live on a Linux VPS in Nov 2026; volumes/networks have no delete; no exec/shell.
 
 ## Docker Swarm
 
