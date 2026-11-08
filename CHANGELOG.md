@@ -8,6 +8,10 @@ Versions below 1.0.0 may include breaking changes in a minor release.
 
 ## [Unreleased]
 
+### Fixed
+
+- The database companion type accepts a null `hostPortBind` (domain-only companions have no host port bind); the UI already showed no local-only label for them.
+
 ### UI UX Improvement
 
 - **Integration test results** (DNS providers, secret manager, S3 destinations, remote servers, notification channels, external registries): the connection test is a labelled "Test" button that reads "Testing…" while it runs, and its result is one shared block: a green check with a translated sentence on success (the DNS card adds the zone list, S3 the object count, servers the Docker version), an amber triangle when it worked but with a caveat (no zone visible, Docker not reachable), and a red cross with the provider's own message on failure. English and Indonesian.
