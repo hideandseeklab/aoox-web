@@ -109,7 +109,7 @@
     "url": "URL",
     "username": "Username",
     "prefix": "Prefix",
-    "test": "Test",
+    "testOk": "Registry reachable and credentials accepted",
     "deleteLabel": "Delete {name}",
     "add": "Add registry",
     "dialog": {

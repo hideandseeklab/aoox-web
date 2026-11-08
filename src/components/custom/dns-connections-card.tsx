@@ -1,8 +1,9 @@
 "use client"
 
-import { Cloud, Plug, Plus, Trash2 } from "lucide-react"
+import { Cloud, Plus, Trash2 } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { useActionState, useState, useTransition } from "react"
+import { TestButton, TestResult } from "@/components/custom/test-result"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -55,13 +56,19 @@ export function DnsConnectionsCard({
     {}
   )
 
-  const test = (id: string) =>
+  const [testingId, setTestingId] = useState<string | null>(null)
+
+  const test = (id: string) => {
+    // Set outside the transition: updates made inside one only commit when it ends.
+    setTestingId(id)
     start(async () => {
       setError(null)
       const r = await testDnsConnectionAction(id)
+      setTestingId(null)
       if (r.ok) setTests((prev) => ({ ...prev, [id]: r.data }))
       else setError(r.error)
     })
+  }
 
   return (
     <Card>
@@ -76,38 +83,38 @@ export function DnsConnectionsCard({
       </CardHeader>
       <CardContent>
         <ul className="divide-y rounded-md border">
-          {connections.map((c) => {
-            const result = tests[c.id]
+          {connections.map((conn) => {
+            const result = tests[conn.id]
+            const noZones = result?.ok && result.zones.length === 0
             return (
-              <li key={c.id} className="space-y-1 px-3 py-2 text-xs">
+              <li key={conn.id} className="space-y-1.5 px-3 py-2 text-xs">
                 <div className="flex items-center gap-3">
                   <Cloud className="size-4 shrink-0 text-muted-foreground" />
-                  <span className="font-medium">{c.name}</span>
-                  <span className="truncate text-xs text-muted-foreground">
+                  <span className="min-w-0 truncate font-medium">
+                    {conn.name}
+                  </span>
+                  <span className="hidden truncate text-xs text-muted-foreground sm:inline">
                     Cloudflare
-                    {c.accountId ? ` · ${c.accountId.slice(0, 8)}…` : ""}
+                    {conn.accountId ? ` · ${conn.accountId.slice(0, 8)}…` : ""}
                   </span>
                   <span className="ms-auto" />
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    aria-label={t("connections.testAria", { name: c.name })}
+                  <TestButton
+                    ariaLabel={t("connections.testAria", { name: conn.name })}
+                    testing={testingId === conn.id}
                     disabled={pending}
-                    onClick={() => test(c.id)}
-                  >
-                    <Plug />
-                  </Button>
+                    onClick={() => test(conn.id)}
+                  />
                   <Button
                     variant="ghost"
                     size="icon"
                     aria-label={t("connections.deleteAria", {
-                      name: c.name,
+                      name: conn.name,
                     })}
                     disabled={pending}
                     onClick={() =>
                       start(async () => {
                         setError(null)
-                        const r = await deleteDnsConnectionAction(c.id)
+                        const r = await deleteDnsConnectionAction(conn.id)
                         if (!r.ok) setError(r.error)
                       })
                     }
@@ -116,25 +123,26 @@ export function DnsConnectionsCard({
                   </Button>
                 </div>
                 {result && (
-                  <div
-                    className={
-                      result.ok
-                        ? "text-xs text-foreground"
-                        : "text-xs text-destructive"
+                  <TestResult
+                    status={
+                      !result.ok ? "failure" : noZones ? "warning" : "success"
+                    }
+                    detail={
+                      result.ok && result.zones.length > 0 ? (
+                        <span className="font-mono">
+                          {result.zones.join(", ")}
+                        </span>
+                      ) : undefined
                     }
                   >
-                    <p>
-                      {result.message}
-                      {result.ok && result.zones.length > 0
-                        ? ` · ${t("connections.zonesCount", { count: result.zones.length })}`
-                        : ""}
-                    </p>
-                    {result.ok && result.zones.length > 0 && (
-                      <p className="truncate font-mono text-muted-foreground">
-                        {result.zones.join(", ")}
-                      </p>
-                    )}
-                  </div>
+                    {!result.ok
+                      ? result.message
+                      : noZones
+                        ? t("connections.testNoZones")
+                        : t("connections.testOk", {
+                            count: result.zones.length,
+                          })}
+                  </TestResult>
                 )}
               </li>
             )

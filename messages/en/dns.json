@@ -19,8 +19,8 @@
     "tokenHelp": "Cannot be viewed again after saving.",
     "accountIdOptional": "Account ID (optional)",
     "accountIdHelp": "Only for account-owned tokens; leave empty for a normal user token.",
-    "zonesCount": "{count, plural, one {# zone} other {# zones}}",
-    "testing": "Testing"
+    "testOk": "Token is valid · {count, plural, one {# zone} other {# zones}} accessible",
+    "testNoZones": "Token is valid, but no zone is accessible. It needs Zone:Read."
   },
   "domain": {
     "dnsSection": "DNS",

@@ -109,7 +109,7 @@
     "url": "URL",
     "username": "Nama pengguna",
     "prefix": "Awalan",
-    "test": "Uji",
+    "testOk": "Registry dapat dijangkau dan kredensial diterima",
     "deleteLabel": "Hapus {name}",
     "add": "Tambah registry",
     "dialog": {

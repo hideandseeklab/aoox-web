@@ -1,8 +1,9 @@
 "use client"
 
-import { CloudUpload, Plus, RadioTower, Trash2 } from "lucide-react"
+import { CloudUpload, Plus, Trash2 } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { useActionState, useState, useTransition } from "react"
+import { TestButton, TestResult } from "@/components/custom/test-result"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -52,13 +53,19 @@ export function BackupDestinationsCard({
     Record<string, BackupDestinationTestResult>
   >({})
 
-  const test = (id: string) =>
+  const [testingId, setTestingId] = useState<string | null>(null)
+
+  const test = (id: string) => {
+    // Set outside the transition: updates made inside one only commit when it ends.
+    setTestingId(id)
     start(async () => {
       setError(null)
       const r = await testBackupDestinationAction(id)
+      setTestingId(null)
       if (r.ok) setTests((prev) => ({ ...prev, [id]: r.data }))
       else setError(r.error)
     })
+  }
 
   const remove = (id: string) =>
     start(async () => {
@@ -84,12 +91,19 @@ export function BackupDestinationsCard({
         <ul className="divide-y rounded-md border">
           {destinations.map((d) => {
             const result = tests[d.id]
+            // The API only reports the object count inside its message.
+            const found = result?.ok
+              ? /\((\d+) object/.exec(result.message)?.[1]
+              : undefined
+            const objects = found === undefined ? null : Number(found)
             return (
               <li key={d.id} className="space-y-1 px-3 py-2">
                 <div className="flex items-center gap-3">
-                  <CloudUpload className="size-4 text-muted-foreground" />
-                  <span className="font-medium">{d.name}</span>
-                  <span className="truncate font-mono text-xs text-muted-foreground">
+                  <CloudUpload className="size-4 shrink-0 text-muted-foreground" />
+                  <span className="max-w-40 min-w-0 truncate font-medium">
+                    {d.name}
+                  </span>
+                  <span className="hidden truncate font-mono text-xs text-muted-foreground sm:inline">
                     s3://{d.bucket}
                     {d.prefix ? `/${d.prefix}` : ""} ·{" "}
                     {d.endpoint
@@ -97,17 +111,14 @@ export function BackupDestinationsCard({
                       : `AWS ${d.region || t("backupDestinations.regionUnknown")}`}
                   </span>
                   <span className="ms-auto" />
-                  <Button
-                    variant="ghost"
-                    size="icon-sm"
-                    aria-label={t("backupDestinations.testAria", {
+                  <TestButton
+                    ariaLabel={t("backupDestinations.testAria", {
                       name: d.name,
                     })}
+                    testing={testingId === d.id}
                     disabled={pending}
                     onClick={() => test(d.id)}
-                  >
-                    <RadioTower />
-                  </Button>
+                  />
                   <Button
                     variant="ghost"
                     size="icon-sm"
@@ -121,11 +132,20 @@ export function BackupDestinationsCard({
                   </Button>
                 </div>
                 {result && (
-                  <p
-                    className={`text-xs ${result.ok ? "text-foreground" : "text-destructive"}`}
+                  <TestResult
+                    status={result.ok ? "success" : "failure"}
+                    detail={
+                      objects === null
+                        ? undefined
+                        : t("backupDestinations.testObjects", {
+                            count: objects,
+                          })
+                    }
                   >
-                    {result.message}
-                  </p>
+                    {result.ok
+                      ? t("backupDestinations.testOk")
+                      : result.message}
+                  </TestResult>
                 )}
               </li>
             )

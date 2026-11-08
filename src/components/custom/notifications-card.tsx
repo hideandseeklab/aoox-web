@@ -2,9 +2,10 @@
 
 import type { ReactNode } from "react"
 import { PathArrow } from "@/components/custom/arrows"
-import { BellRing, Plus, Send, Trash2 } from "lucide-react"
+import { BellRing, Plus, Trash2 } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { useActionState, useState, useTransition } from "react"
+import { TestButton, TestResult } from "@/components/custom/test-result"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -97,13 +98,19 @@ export function NotificationsCard({
   const [error, setError] = useState<string | null>(null)
   const [tests, setTests] = useState<Record<string, NotificationTestResult>>({})
 
-  const test = (id: string) =>
+  const [testingId, setTestingId] = useState<string | null>(null)
+
+  const test = (id: string) => {
+    // Set outside the transition: updates made inside one only commit when it ends.
+    setTestingId(id)
     start(async () => {
       setError(null)
       const r = await testNotificationAction(id)
+      setTestingId(null)
       if (r.ok) setTests((prev) => ({ ...prev, [id]: r.data }))
       else setError(r.error)
     })
+  }
 
   const remove = (id: string) =>
     start(async () => {
@@ -133,24 +140,23 @@ export function NotificationsCard({
             return (
               <li key={n.id} className="space-y-1 px-3 py-2">
                 <div className="flex items-center gap-3">
-                  <BellRing className="size-4 text-muted-foreground" />
-                  <span className="font-medium">{n.name}</span>
-                  <span className="truncate text-xs text-muted-foreground">
+                  <BellRing className="size-4 shrink-0 text-muted-foreground" />
+                  <span className="max-w-40 min-w-0 truncate font-medium">
+                    {n.name}
+                  </span>
+                  <span className="hidden truncate text-xs text-muted-foreground sm:inline">
                     {TYPE_LABEL[n.type]} · {n.targetHint} ·{" "}
                     {events.length
                       ? events.join(", ")
                       : t("notifications.none")}
                   </span>
                   <span className="ms-auto" />
-                  <Button
-                    variant="ghost"
-                    size="icon-sm"
-                    aria-label={t("notifications.testAria", { name: n.name })}
+                  <TestButton
+                    ariaLabel={t("notifications.testAria", { name: n.name })}
+                    testing={testingId === n.id}
                     disabled={pending}
                     onClick={() => test(n.id)}
-                  >
-                    <Send />
-                  </Button>
+                  />
                   <Button
                     variant="ghost"
                     size="icon-sm"
@@ -164,11 +170,9 @@ export function NotificationsCard({
                   </Button>
                 </div>
                 {result && (
-                  <p
-                    className={`text-xs ${result.ok ? "text-foreground" : "text-destructive"}`}
-                  >
-                    {result.message}
-                  </p>
+                  <TestResult status={result.ok ? "success" : "failure"}>
+                    {result.ok ? t("notifications.testOk") : result.message}
+                  </TestResult>
                 )}
               </li>
             )

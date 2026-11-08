@@ -1,10 +1,11 @@
 "use client"
 
-import { Copy, Plug, Plus, ServerIcon, Trash2 } from "lucide-react"
+import { Copy, Plus, ServerIcon, Trash2 } from "lucide-react"
 import { useActionState, useState, useTransition } from "react"
 import { toast } from "sonner"
 import { ServerProxyPanel } from "@/components/custom/server-proxy-panel"
 import { EmptyState } from "@/components/custom/empty-state"
+import { TestButton, TestResult } from "@/components/custom/test-result"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -117,13 +118,19 @@ export function ServersCard({
   const [error, setError] = useState<string | null>(null)
   const [tests, setTests] = useState<Record<string, ServerTestResult>>({})
 
-  const test = (id: string) =>
+  const [testingId, setTestingId] = useState<string | null>(null)
+
+  const test = (id: string) => {
+    // Set outside the transition: updates made inside one only commit when it ends.
+    setTestingId(id)
     start(async () => {
       setError(null)
       const r = await testServerAction(id)
+      setTestingId(null)
       if (r.ok) setTests((t) => ({ ...t, [id]: r.data }))
       else setError(r.error)
     })
+  }
 
   const remove = (id: string) =>
     start(async () => {
@@ -171,22 +178,21 @@ export function ServersCard({
               return (
                 <li key={s.id} className="space-y-2 px-3 py-2">
                   <div className="flex items-center gap-3">
-                    <ServerIcon className="size-4 text-muted-foreground" />
-                    <span className="font-medium">{s.name}</span>
+                    <ServerIcon className="size-4 shrink-0 text-muted-foreground" />
+                    <span className="max-w-40 min-w-0 truncate font-medium">
+                      {s.name}
+                    </span>
                     <span className="truncate text-xs text-muted-foreground">
                       {s.username}@{s.host}:{s.port}
                       {s.hasOwnKey ? ` · ${t("ownKey")}` : ""}
                     </span>
                     <span className="ms-auto" />
-                    <Button
-                      variant="ghost"
-                      size="icon-sm"
-                      aria-label={t("testConnection", { name: s.name })}
+                    <TestButton
+                      ariaLabel={t("testConnection", { name: s.name })}
+                      testing={testingId === s.id}
                       disabled={pending}
                       onClick={() => test(s.id)}
-                    >
-                      <Plug />
-                    </Button>
+                    />
                     <Button
                       variant="ghost"
                       size="icon-sm"
@@ -197,17 +203,36 @@ export function ServersCard({
                       <Trash2 />
                     </Button>
                   </div>
-                  <ServerHealthLine server={s} />
-                  <ServerProxyPanel server={s} />
                   {result && (
-                    <div className="space-y-1.5 text-xs">
-                      <p
-                        className={
-                          result.ok ? "text-foreground" : "text-destructive"
+                    <div className="space-y-1.5">
+                      <TestResult
+                        status={
+                          !result.ok
+                            ? "failure"
+                            : result.dockerVersion
+                              ? "success"
+                              : "warning"
+                        }
+                        detail={
+                          !result.ok
+                            ? undefined
+                            : result.dockerVersion
+                              ? t("testDockerOk", {
+                                  version: result.dockerVersion,
+                                })
+                              : (result.dockerError ?? undefined)
                         }
                       >
-                        {result.message}
-                      </p>
+                        {!result.ok
+                          ? result.message
+                          : result.dockerVersion
+                            ? t("testConnected", {
+                                where: `${s.username}@${s.host}:${s.port}`,
+                              })
+                            : t("testNoDocker", {
+                                where: `${s.username}@${s.host}:${s.port}`,
+                              })}
+                      </TestResult>
                       {result.authorizeCommand && (
                         <CommandBox
                           label={t("commandLabel")}
@@ -216,6 +241,8 @@ export function ServersCard({
                       )}
                     </div>
                   )}
+                  <ServerHealthLine server={s} />
+                  <ServerProxyPanel server={s} />
                 </li>
               )
             })}
@@ -344,9 +371,7 @@ function AddServerDialog() {
                 placeholder="-----BEGIN OPENSSH PRIVATE KEY-----"
                 autoComplete="off"
               />
-              <FieldDescription>
-                {t("add.privateKeyHint")}
-              </FieldDescription>
+              <FieldDescription>{t("add.privateKeyHint")}</FieldDescription>
               <FieldError errors={errs("privateKey")} />
             </Field>
             {state.error && (

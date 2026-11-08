@@ -19,8 +19,8 @@
     "tokenHelp": "Tidak dapat dilihat lagi setelah disimpan.",
     "accountIdOptional": "ID akun (opsional)",
     "accountIdHelp": "Hanya untuk token milik akun; kosongkan untuk token pengguna biasa.",
-    "zonesCount": "{count, plural, other {# zona}}",
-    "testing": "Menguji"
+    "testOk": "Token valid · {count, plural, other {# zona}} dapat diakses",
+    "testNoZones": "Token valid, tetapi tidak ada zona yang dapat diakses. Token butuh izin Zone:Read."
   },
   "domain": {
     "dnsSection": "DNS",

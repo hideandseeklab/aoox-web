@@ -36,4 +36,8 @@ export interface ServerTestResult {
   message: string
   /** Set when the platform key was rejected: run this on the server once. */
   authorizeCommand: string | null
+  /** Docker version reached through the SSH tunnel; null when it is not reachable. */
+  dockerVersion?: string | null
+  /** Why Docker could not be reached although SSH worked. */
+  dockerError?: string | null
 }

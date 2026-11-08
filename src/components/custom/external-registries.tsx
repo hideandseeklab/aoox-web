@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl"
 import { useActionState, useState, useTransition } from "react"
 import { IllustratedEmptyState } from "@/components/custom/illustrated-empty-state"
 import { ExternalRegistriesIllustration } from "@/components/custom/illustrations/external-registries-illustration"
+import { TestButton, TestResult } from "@/components/custom/test-result"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -99,7 +100,11 @@ function ExternalRegistryRow({
 }) {
   const t = useTranslations("registry.external")
   const [pending, start] = useTransition()
-  const [result, setResult] = useState<string | null>(null)
+  const [result, setResult] = useState<{
+    status: "success" | "failure"
+    message: string
+  } | null>(null)
+  const [testing, setTesting] = useState(false)
 
   return (
     <TableRow>
@@ -113,39 +118,52 @@ function ExternalRegistryRow({
       </TableCell>
       <TableCell>
         {canManage && (
-          <div className="flex items-center justify-end gap-1">
+          <div className="flex flex-col items-end gap-1.5">
+            <div className="flex items-center justify-end gap-1">
+              <TestButton
+                testing={testing}
+                disabled={pending}
+                onClick={() => {
+                  // Set outside the transition: updates made inside one only commit when it ends.
+                  setTesting(true)
+                  start(async () => {
+                    const r = await testRegistryAction(registry.id)
+                    setTesting(false)
+                    setResult(
+                      r.ok && r.data.ok
+                        ? { status: "success", message: t("testOk") }
+                        : {
+                            status: "failure",
+                            message: r.ok ? r.data.message : r.error,
+                          }
+                    )
+                  })
+                }}
+              />
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                aria-label={t("deleteLabel", { name: registry.name })}
+                disabled={pending}
+                onClick={() =>
+                  start(async () => {
+                    const r = await deleteRegistryAction(registry.id)
+                    if (!r.ok)
+                      setResult({ status: "failure", message: r.error })
+                  })
+                }
+              >
+                <Trash2 />
+              </Button>
+            </div>
             {result && (
-              <span className="me-2 max-w-48 truncate text-xs text-muted-foreground">
-                {result}
-              </span>
+              <TestResult
+                status={result.status}
+                className="w-64 max-w-full text-start whitespace-normal"
+              >
+                {result.message}
+              </TestResult>
             )}
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={pending}
-              onClick={() =>
-                start(async () => {
-                  const r = await testRegistryAction(registry.id)
-                  setResult(r.ok ? r.data.message : r.error)
-                })
-              }
-            >
-              {t("test")}
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              aria-label={t("deleteLabel", { name: registry.name })}
-              disabled={pending}
-              onClick={() =>
-                start(async () => {
-                  const r = await deleteRegistryAction(registry.id)
-                  if (!r.ok) setResult(r.error)
-                })
-              }
-            >
-              <Trash2 />
-            </Button>
           </div>
         )}
       </TableCell>

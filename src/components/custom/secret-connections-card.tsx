@@ -1,8 +1,9 @@
 "use client"
 
-import { Plug, Plus, Trash2, Vault } from "lucide-react"
+import { Plus, Trash2, Vault } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { useActionState, useState, useTransition } from "react"
+import { TestButton, TestResult } from "@/components/custom/test-result"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -55,13 +56,19 @@ export function SecretConnectionsCard({
     Record<string, SecretConnectionTestResult>
   >({})
 
-  const test = (id: string) =>
+  const [testingId, setTestingId] = useState<string | null>(null)
+
+  const test = (id: string) => {
+    // Set outside the transition: updates made inside one only commit when it ends.
+    setTestingId(id)
     start(async () => {
       setError(null)
       const r = await testSecretConnectionAction(id)
+      setTestingId(null)
       if (r.ok) setTests((prev) => ({ ...prev, [id]: r.data }))
       else setError(r.error)
     })
+  }
 
   return (
     <Card>
@@ -84,22 +91,21 @@ export function SecretConnectionsCard({
               <li key={c.id} className="space-y-1 px-3 py-2 text-xs">
                 <div className="flex items-center gap-3">
                   <Vault className="size-4 shrink-0 text-muted-foreground" />
-                  <span className="font-medium">{c.name}</span>
-                  <span className="truncate text-xs text-muted-foreground">
+                  <span className="max-w-40 min-w-0 truncate font-medium">
+                    {c.name}
+                  </span>
+                  <span className="hidden truncate text-xs text-muted-foreground sm:inline">
                     {c.url || t("secretConnections.cloud")} · {c.clientId}
                   </span>
                   <span className="ms-auto" />
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    aria-label={t("secretConnections.testAria", {
+                  <TestButton
+                    ariaLabel={t("secretConnections.testAria", {
                       name: c.name,
                     })}
+                    testing={testingId === c.id}
                     disabled={pending}
                     onClick={() => test(c.id)}
-                  >
-                    <Plug />
-                  </Button>
+                  />
                   <Button
                     variant="ghost"
                     size="icon"
@@ -119,15 +125,9 @@ export function SecretConnectionsCard({
                   </Button>
                 </div>
                 {result && (
-                  <p
-                    className={
-                      result.ok
-                        ? "text-xs text-foreground"
-                        : "text-xs text-destructive"
-                    }
-                  >
-                    {result.message}
-                  </p>
+                  <TestResult status={result.ok ? "success" : "failure"}>
+                    {result.ok ? t("secretConnections.testOk") : result.message}
+                  </TestResult>
                 )}
               </li>
             )
