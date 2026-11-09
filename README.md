@@ -9,6 +9,12 @@ Related repos: [aoox-api](https://github.com/hideandseeklab/aoox-api) (backend) 
 [aoox-cli](https://github.com/hideandseeklab/aoox-cli) (CLI) ·
 [aoox-landing](https://github.com/hideandseeklab/aoox-landing) (website and docs).
 
+## Using aoox?
+
+Install it on a server with the CLI: see [aoox.dev/docs/installation](https://aoox.dev/docs/installation).
+Found a bug in the dashboard (or anywhere else)? Report it at
+[aoox-api issues](https://github.com/hideandseeklab/aoox-api/issues/new/choose); all aoox issues are tracked there.
+
 ## Development
 
 ```bash

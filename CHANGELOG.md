@@ -8,6 +8,10 @@ Versions below 1.0.0 may include breaking changes in a minor release.
 
 ## [Unreleased]
 
+### Added
+
+- `SECURITY.md` and an issue-template config that send bug reports to aoox-api's issue forms; the README has a short "Using aoox?" section.
+
 ## [0.1.0-rc.1] - 2026-11-09
 
 ### Fixed
