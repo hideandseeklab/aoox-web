@@ -8,6 +8,8 @@ Versions below 1.0.0 may include breaking changes in a minor release.
 
 ## [Unreleased]
 
+## [0.1.0-rc.1] - 2026-11-09
+
 ### Fixed
 
 - The database companion type accepts a null `hostPortBind` (domain-only companions have no host port bind); the UI already showed no local-only label for them.
@@ -796,7 +798,8 @@ Versions below 1.0.0 may include breaking changes in a minor release.
   backups, notifications, and account/instance settings.
 - A web terminal (shell on the host or inside the API container) over WebSocket.
 
-[Unreleased]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.0-beta.2...HEAD
+[Unreleased]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.0-rc.1...HEAD
+[0.1.0-rc.1]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.0-beta.2...v0.1.0-rc.1
 [0.1.0-beta.2]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.0-beta.1...v0.1.0-beta.2
 [0.1.0-beta.1]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.0-beta.0...v0.1.0-beta.1
 [0.1.0-beta.0]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.0-alpha.13...v0.1.0-beta.0
