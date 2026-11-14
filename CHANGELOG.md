@@ -12,6 +12,10 @@ Versions below 1.0.0 may include breaking changes in a minor release.
 
 - `SECURITY.md` and an issue-template config that send bug reports to aoox-api's issue forms; the README has a short "Using aoox?" section.
 
+### UI UX Improvement
+
+- **New aoox logo**: a lime chevron on a square dark tile replaces the `$` mark in a circle in the favicon (`icon.svg`, `favicon.ico` with 16, 32 and 48 px images). The sidebar header now shows the logo before the name and version, and in the collapsed icon rail it stays visible as a 32 px icon (the header used to be hidden there).
+
 ## [0.1.0-rc.1] - 2026-11-09
 
 ### Fixed

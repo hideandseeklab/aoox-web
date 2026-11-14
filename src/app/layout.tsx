@@ -30,8 +30,9 @@ const firaCode = Fira_Code({
 // Both icons are declared here: a `metadata.icons` entry replaces the link the
 // `app/icon.svg` file convention would add on its own, so the SVG (served by
 // that convention at /icon.svg) is listed again next to `public/favicon.ico`,
-// the fallback for crawlers and browsers that ignore SVG icons. The ICO is made
-// from the same rounded tile — the panel has no full-bleed variant.
+// the fallback for crawlers and browsers that ignore SVG icons. The ICO (16, 32
+// and 48 px) is rendered from the same SVG: a lime chevron on a full-bleed
+// #0c1013 square, so nothing is lost when search engines crop it to a circle.
 export const metadata: Metadata = {
   icons: {
     icon: [

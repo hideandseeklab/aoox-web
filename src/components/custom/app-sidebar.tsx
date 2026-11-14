@@ -18,6 +18,7 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar"
 import type { AuthUser } from "@/features/auth/auth.entity"
+import { AooxLogo } from "./aoox-logo"
 import { AUDIT_LOG_NAV, visibleNav } from "./nav-items"
 import { UserMenu } from "./user-menu"
 
@@ -53,13 +54,15 @@ export function AppSidebar({
 
   return (
     <Sidebar collapsible="icon">
-      {/* Text only: name and version. Nothing here fits the 32px icon rail, so the
-          header is hidden in icon mode; the toggle lives in the top bar. */}
-      <SidebarHeader className="group-data-[collapsible=icon]:hidden">
+      {/* Logo, name and version. The logo is a 32px square, so in the icon rail
+          the `lg` button shrinks to exactly the logo and the text is clipped
+          away; the sidebar toggle lives in the top bar. */}
+      <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
               <Link href="/">
+                <AooxLogo className="size-8!" />
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-semibold">aoox</span>
                   <span

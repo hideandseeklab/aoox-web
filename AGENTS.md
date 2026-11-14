@@ -71,7 +71,7 @@ Read `AGENTS.md` — this version of Next.js has breaking changes; check `node_m
 - All authenticated pages live in the route group `src/app/(dashboard)/` — its `layout.tsx`
   mounts `SidebarProvider` + `AppSidebar` + `AppNavbar` (user dropdown on the right) and redirects to `/sign-in` when there is no session.
 - Shell: `src/components/custom/app-sidebar.tsx` (the navigation menu is in the `NAV` constant), `app-navbar.tsx`, `user-menu.tsx`.
-  Logo = `brand-logo.tsx` (inline salmon SVG on the primary tile, used in the sidebar header). Navbar: sidebar trigger, separator (`data-vertical:h-4 self-center` — the default ui
+  Logo = `aoox-logo.tsx` `AooxLogo` (inline SVG, the same drawing as `src/app/icon.svg`: lime `#84cc16` chevron on a square `#0c1013` tile, fixed brand colours, a faint 1px inner edge in dark mode, `aria-hidden`), `size-8!` before the name and version in the sidebar header, which stays visible in the icon rail (the 32 px logo is exactly the collapsed `lg` button). Navbar: sidebar trigger, separator (`data-vertical:h-4 self-center` — the default ui
   Separator `self-stretch` would make it as tall as the header), then the **breadcrumb** `app-breadcrumb.tsx` (shadcn `breadcrumb`): detail pages publish named crumbs via
   `<SetBreadcrumb items />` (`breadcrumb-store.ts`: module-level store + `useSyncExternalStore`; `useLayoutEffect` sets/clears — not context, because the navbar and the page
   are siblings in the layout), Settings via `SettingsTabs` (tab labels), otherwise derived from the pathname (`STATIC`). **Do not** use `useSearchParams` in
