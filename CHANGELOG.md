@@ -8,6 +8,27 @@ Versions below 1.0.0 may include breaking changes in a minor release.
 
 ## [Unreleased]
 
+### Fixed
+
+- **Deployment logs no longer hang on "Loading…" without the realtime socket.** When the `/logs` socket is not available (the page is opened on another address than `WEB_ORIGIN`, for example through an SSH tunnel; the gateway rejects it; the connection fails or drops; or it is still not up after 3 seconds), the Deploy tab reads the selected deployment over HTTP (`GET /deployments/:id`): a finished one once, a running one every 2 seconds until it ends (log, status and step times update, then the page refreshes once). With a working socket nothing changes. An empty log now reads "No output yet." and a failed read says so instead of loading forever.
+- **The Logs tab shows the container output without the socket too**: a one-off tail over HTTP (`GET /applications/:id/logs`, same line count choice) with a Refresh button and a note that live streaming is not available, instead of a disabled tab with no output.
+- **Domains tab: the "Proxy is not running" notice no longer sends people to the Settings page.** It says the proxy is started automatically when the first domain is added (viewers: when a developer adds one), or, with domains already present, that adding a domain or an owner on the Reverse proxy page starts it again, and links to Infrastructure → Reverse proxy. It is no longer shown for applications on a remote server (the status it read was the host's proxy).
+- The swarm placement constraint help points to Infrastructure → Docker Swarm instead of Settings.
+- The "not available at this address" notices for realtime logs and the Console no longer say the panel "has a custom domain" when its address is an IP or `localhost`; they now name the panel's address.
+- **Deleting a backup asks first.** The trash icon of database, volume and instance backups used to delete on one click; it now opens a confirmation that names the file and says when its S3 copy is deleted too. Deleting a backup destination (which leaves backups stored only in that bucket unrestorable from the panel) deleting an application domain (which takes the host off the proxy and removes the DNS records aoox created) and removing a swarm node (forced while the node is still up) confirm as well.
+- **HTTPS on the Domains tab follows the proxy that serves the application.** For an application on a remote server the switch and its hint used the aoox host's ACME email; they now use that server's proxy settings (owners and admins), and other roles see the switch enabled with a hint that HTTPS needs an ACME email on that server's proxy. Domain links use that proxy's ports too, and the Access → Domain step of the new-application form follows the chosen server.
+- **HTTPS with an uploaded certificate no longer needs an ACME email.** The switch is enabled when uploaded certificates exist; "Automatic (Let's Encrypt)" is then unavailable and a covering certificate is preselected.
+- Volume and instance backup status badges are translated (they showed the raw API value).
+- **The certificate picker of an existing domain follows the same ACME rule** as the add form: without an ACME email on the serving proxy, a domain on an uploaded certificate can no longer be switched back to "Automatic (Let's Encrypt)" (the option says it needs an ACME email); when the server's ACME setting cannot be read, the option says it works only if that proxy has one.
+- **The "HTTPS needs an ACME email" hint names both ways to set it** (the panel domain page under Infrastructure → Panel domain, or `PROXY_ACME_EMAIL` in `.env.dist`), on the Domains tab and in the new-application form.
+- **Deleting a backup destination names what still uses it**: the instance backup schedule and any registry that stores its images in that bucket (the registry keeps running but aoox loses the link to its storage).
+- **Confirmation dialogs show their spinner while the action runs** (state set inside the async transition only appeared when it had finished). Expanding a compose history entry also opens at the click instead of after its log has loaded.
+
+### UI UX Improvement
+
+- **Backup lists keep their layout while a backup runs** (database, volume and instance backups): the backup button keeps its label (its icon turns into a spinner instead of the shorter "Working…" text), a placeholder "Creating backup…" row takes the new row's place at the moment of the click (with the S3 and "all databases" line the new row will carry, so its height matches) so nothing moves when the backup finishes, and errors appear as a toast instead of a line pushed in above the table.
+- **Deploy tab explains a missing "Roll back to this"**: a successful deployment that runs the current image shows "This deployment runs the current image.", and one whose image was removed by cleanup says it cannot be rolled back to.
+
 ## [0.1.0] - 2026-11-17
 
 First stable release of the dashboard. The feature set is that of 0.1.0-rc.1; this release only adds the new logo and the bug-report pointers.

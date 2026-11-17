@@ -105,7 +105,8 @@
       "hostRequired": "Host is required",
       "domainHelp": "Opened through the reverse proxy (point this host's DNS to this server).",
       "proxyNotRunning": "The proxy is not running — it will be started automatically if needed.",
-      "httpsNeedsAcme": "HTTPS requires PROXY_ACME_EMAIL on the API.",
+      "httpsNeedsAcme": "HTTPS needs an ACME email for the reverse proxy: enter one with the panel domain (Infrastructure → Panel domain), or set PROXY_ACME_EMAIL in .env.dist on the server.",
+      "httpsNeedsServerAcme": "HTTPS requires an ACME email on the chosen server's proxy (Infrastructure → Remote servers).",
       "laterHelp": "The application is created without an access address — set a host port or domain later."
     },
     "env": {
@@ -122,7 +123,7 @@
       "deployModeHelp": "A service runs on the aoox host only. Stop/start = scale to 0 and back; logs & metrics come from its tasks. Changing the mode = redeploy the last image. Replicas > 1 share the same volume mounts.",
       "replicas": "Replicas",
       "constraint": "Extra constraint",
-      "constraintHelp": "Node labels are set in Settings<arrow></arrow>Docker Swarm. Combined with the placement below (all must be satisfied).",
+      "constraintHelp": "Node labels are set in Infrastructure<arrow></arrow>Docker Swarm. Combined with the placement below (all must be satisfied).",
       "rollingUpdate": "Rolling update",
       "rollingUpdateRow": "<parallelism></parallelism> tasks per batch, delay <delay></delay> seconds",
       "parallelismAria": "Tasks per batch",
@@ -253,6 +254,10 @@
     "failed": "Failed",
     "reconnect": "reconnect",
     "rollbackHere": "Roll back to this",
+    "rollbackUnavailable": {
+      "current": "This deployment runs the current image.",
+      "pruned": "Its image was removed by cleanup, so it cannot be rolled back to."
+    },
     "toast": {
       "started": "Deploy started — {trigger}"
     },
@@ -320,7 +325,10 @@
     "log": {
       "title": "Deployment log",
       "label": "Deployment log",
-      "select": "Select a deployment."
+      "select": "Select a deployment.",
+      "empty": "No output yet.",
+      "unavailable": "The log could not be loaded.",
+      "polling": "Realtime updates are not available here: the log and status refresh every 2 seconds."
     },
     "section": {
       "title": "Deployments",
@@ -334,6 +342,7 @@
     "tailLabel": "Initial lines",
     "tailOption": "Last {count} lines",
     "reconnect": "Reconnect",
+    "refresh": "Refresh",
     "connectFailed": "Could not connect to the logs",
     "status": {
       "connecting": "Connecting…",
@@ -342,7 +351,8 @@
       "disconnected": "Disconnected",
       "noContainer": "No container",
       "error": "Error",
-      "stopped": "Not running"
+      "stopped": "Not running",
+      "snapshot": "Snapshot"
     },
     "noContainer": {
       "title": "No running container",
@@ -360,11 +370,15 @@
     "error": {
       "title": "Could not load the logs"
     },
-    "emptyNoContainer": "No output."
+    "emptyNoContainer": "No output.",
+    "snapshot": {
+      "body": "Live streaming is not available here: showing the last {count} lines. Press Refresh for newer output.",
+      "failed": "The logs could not be loaded."
+    }
   },
   "realtimeOrigin": {
     "title": "Realtime logs are not available at this address",
-    "body": "This panel has a custom domain (<code>{webOrigin}</code>), and realtime logs only accept connections from that domain — not from <code>{browserOrigin}</code>, which you are using now.",
+    "body": "This panel's address is <code>{webOrigin}</code>, and realtime logs only accept connections from that address — not from <code>{browserOrigin}</code>, which you are using now.",
     "open": "Open this page at {origin}"
   },
   "stepper": {
@@ -393,8 +407,10 @@
   },
   "domains": {
     "proxyStopped": {
-      "title": "Proxy is not running",
-      "body": "New domains take effect once the reverse proxy is enabled on the Settings page."
+      "title": "Reverse proxy is not running",
+      "body": "It is started automatically when you add the first domain. Its status is on the <link>Reverse proxy</link> page.",
+      "bodyViewer": "It is started automatically when a developer adds the first domain. Its status is on the <link>Reverse proxy</link> page.",
+      "bodyWithDomains": "These domains are not reachable until it runs again. Adding a domain starts it automatically; an owner can also start it on the <link>Reverse proxy</link> page."
     },
     "notDeployed": "Domains are applied to the container when the application is deployed.",
     "autoProvisioned": {
@@ -409,10 +425,15 @@
       "certificate": "Certificate"
     },
     "certAuto": "Automatic (Let's Encrypt)",
+    "certAutoNeedsAcme": "needs an ACME email",
+    "certAutoAcmeUnknown": "only if the server's proxy has an ACME email",
     "customCert": "custom certificate",
     "certFor": "Certificate for {host}",
     "notCovered": "does not cover host",
-    "httpsNeedsEmail": "HTTPS requires <code>PROXY_ACME_EMAIL</code> on the API.",
+    "httpsNeedsEmail": "HTTPS needs an ACME email for the reverse proxy: enter one with the panel domain (Infrastructure → Panel domain), or set <code>PROXY_ACME_EMAIL</code> in <code>.env.dist</code> on the server.",
+    "httpsNeedsServerEmail": "HTTPS needs an ACME email on this server's proxy (Infrastructure → Remote servers).",
+    "httpsServerUnknown": "This application runs on a remote server: HTTPS gets a Let's Encrypt certificate only if that server's proxy has an ACME email, which an owner or admin sets in Infrastructure → Remote servers.",
+    "httpsUploadedOnly": "Until then, HTTPS works only with an uploaded certificate.",
     "empty": "No domains yet. The application can only be reached through its host port.",
     "deleteAria": "Delete {host}",
     "middleware": "Middleware",
@@ -448,6 +469,11 @@
     "conflict": {
       "orphan": "Container <code>{name}</code> was left over from a deleted project or app and still answers on this domain, so requests are split between it and this app. Remove it in <link>the Docker page</link> (Details).",
       "other": "Container <code>{name}</code> also routes this domain, so requests are split between it and this app. Stop or remove it, or use another hostname."
+    },
+    "deleteDialog": {
+      "title": "Delete this domain?",
+      "description": "The application stops answering on <code>{host}</code>: it is removed from the proxy right away. This cannot be undone; add the domain again to restore it.",
+      "descriptionDns": "The application stops answering on <code>{host}</code>: it is removed from the proxy right away, and the DNS records aoox created for it are deleted. This cannot be undone; add the domain again to restore it."
     }
   },
   "middlewares": {
@@ -742,7 +768,7 @@
     },
     "origin": {
       "title": "The console cannot be used from this address",
-      "body": "This panel already has a custom domain (<code>{webOrigin}</code>), and the Console only accepts connections from that domain — not from <code>{browserOrigin}</code>, which you are using now. This is a built-in security protection, not a bug.",
+      "body": "This panel's address is <code>{webOrigin}</code>, and the Console only accepts connections from that address — not from <code>{browserOrigin}</code>, which you are using now. This is a built-in security protection, not a bug.",
       "open": "Open the Console at {origin}"
     }
   },
@@ -753,7 +779,7 @@
     "s3Destination": "S3 destination",
     "volume": "Volume",
     "volumeDeleted": "(volume deleted)",
-    "processing": "Working…",
+    "creating": "Creating backup…",
     "backupVolume": "Back up {name}",
     "empty": "No backups yet.",
     "scheduled": "scheduled",
@@ -792,6 +818,11 @@
       "size": "Size",
       "trigger": "Trigger",
       "status": "Status"
+    },
+    "status": {
+      "running": "running",
+      "success": "success",
+      "failed": "failed"
     }
   },
   "dangerZone": {

@@ -71,7 +71,6 @@
     "rows": "{count} baris",
     "download": "Unduh",
     "restore": "Pulihkan",
-    "delete": "Hapus",
     "restoring": "Me-restore…",
     "cancel": "Batal",
     "presets": {
@@ -96,6 +95,12 @@
       "title": "Restore dari file",
       "description": "Unggah file <code>*.json.gz</code> hasil unduhan backup instance. Versi aoox (migrasi) harus sama. Semua data panel diganti.",
       "file": "File backup"
+    },
+    "creating": "Membuat backup…",
+    "status": {
+      "running": "berjalan",
+      "success": "berhasil",
+      "failed": "gagal"
     }
   },
   "page": {
@@ -373,6 +378,11 @@
     "drain": "Drain",
     "activate": "Aktifkan",
     "removeNode": "Hapus node",
+    "removeNodeDialog": {
+      "title": "Hapus node {hostname}?",
+      "description": "Node ini masih terjangkau dan dihapus secara paksa: Docker menjadwalkan ulang task yang berjalan di sana ke node lain, dan node ini harus bergabung lagi ke swarm agar bisa dipakai.",
+      "descriptionDown": "Node ini sedang mati. Node dihapus dari swarm; untuk memakainya lagi node harus bergabung lagi ke swarm."
+    },
     "addNode": "Jalankan di server lain (Docker terpasang). Setelah itu aplikasi bisa berjalan di node tersebut: pilih per aplikasi, atau biarkan swarm yang menjadwalkan. Aplikasi yang punya mount tetap di host ini, dan image yang di-build aoox butuh alamat registry yang bisa dijangkau semua node.",
     "copiedShort": "Tersalin",
     "registryWarning": "Registry lokal beralamat <code>{url}</code> — node lain tidak bisa menarik image hasil build. Set <code>REGISTRY_PUBLIC_HOST</code> ke alamat host yang dijangkau semua node (dan <code>insecure-registries</code> atau TLS di tiap daemon), lalu aktifkan ulang registry. Image publik (Docker Hub, GHCR) tidak terpengaruh.",

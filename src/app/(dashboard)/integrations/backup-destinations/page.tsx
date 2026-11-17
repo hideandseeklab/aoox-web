@@ -9,6 +9,8 @@ import { BackupDestinationsIllustration } from "@/components/custom/illustration
 import { canUseTerminal } from "@/features/auth/auth.entity"
 import { getVerifiedSession } from "@/features/auth/auth.session"
 import { listBackupDestinations } from "@/features/backup-destination/backup-destination.queries"
+import { getInstanceBackupSettings } from "@/features/instance-backup/instance-backup.queries"
+import { listRegistries } from "@/features/registry/registry.queries"
 import { IntegrationPage } from "../integration-page"
 
 export async function generateMetadata() {
@@ -21,7 +23,13 @@ export default async function BackupDestinationsPage() {
   const session = await getVerifiedSession()
   // Owner/admin only (the API enforces it too; members get a 404 rather than a 403 page).
   if (!session || !canUseTerminal(session.user)) notFound()
-  const data = await listBackupDestinations()
+  const [data, registries, instanceSettings] = await Promise.all([
+    listBackupDestinations(),
+    // For the delete dialog only: which registry stores its images in a
+    // destination, and the instance backup schedule (owner only, null else).
+    listRegistries().catch(() => []),
+    getInstanceBackupSettings().catch(() => null),
+  ])
   if (!data) notFound()
   return (
     <IntegrationPage title={t("title")} description={t("description")}>
@@ -33,7 +41,11 @@ export default async function BackupDestinationsPage() {
           actions={<AddDestinationDialog size="default" />}
         />
       ) : (
-        <BackupDestinationsCard destinations={data} />
+        <BackupDestinationsCard
+          destinations={data}
+          registries={registries}
+          instanceDestinationId={instanceSettings?.destinationId ?? null}
+        />
       )}
     </IntegrationPage>
   )

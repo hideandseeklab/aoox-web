@@ -323,19 +323,30 @@ export function SwarmCard({
                             : t("activate")}
                         </Button>
                         {n.id !== status.nodeId && (
-                          <Button
-                            variant="ghost"
-                            size="icon-sm"
-                            aria-label={t("removeNode")}
-                            disabled={pending}
-                            onClick={() =>
-                              run(() =>
-                                removeNodeAction(n.id, n.state !== "down")
-                              )
+                          <ConfirmDialog
+                            trigger={
+                              <Button
+                                variant="ghost"
+                                size="icon-sm"
+                                aria-label={t("removeNode")}
+                                disabled={pending}
+                              >
+                                <Trash2 />
+                              </Button>
                             }
-                          >
-                            <Trash2 />
-                          </Button>
+                            title={t("removeNodeDialog.title", {
+                              hostname: n.hostname,
+                            })}
+                            description={t(
+                              n.state === "down"
+                                ? "removeNodeDialog.descriptionDown"
+                                : "removeNodeDialog.description"
+                            )}
+                            confirmLabel={t("removeNode")}
+                            onConfirm={() =>
+                              removeNodeAction(n.id, n.state !== "down")
+                            }
+                          />
                         )}
                       </>
                     )}

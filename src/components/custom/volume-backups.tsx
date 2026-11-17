@@ -1,8 +1,16 @@
 "use client"
 
-import { Archive, Download, HardDriveDownload, RotateCcw, Trash2 } from "lucide-react"
+import {
+  Archive,
+  Download,
+  HardDriveDownload,
+  Loader2,
+  RotateCcw,
+  Trash2,
+} from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useState, useTransition } from "react"
+import { toast } from "sonner"
 import {
   DataActions,
   DataActionsHead,
@@ -14,6 +22,7 @@ import {
   DataTableHeader,
   IconButton,
 } from "@/components/custom/data-table"
+import { DeleteBackupButton } from "@/components/custom/delete-backup-button"
 import { EmptyState } from "@/components/custom/empty-state"
 import { SectionHeader } from "@/components/custom/section-header"
 import { Badge } from "@/components/ui/badge"
@@ -56,6 +65,7 @@ import {
 import type { VolumeBackup } from "@/features/volume-backup/volume-backup.entity"
 import { formatDateTime } from "@/i18n/format"
 import { ScheduleTimeZoneHint } from "@/components/custom/schedule-time-zone"
+import { usePendingRow } from "@/hooks/use-pending-row"
 import { useLocale, useTranslations } from "next-intl"
 
 const PRESETS: { key: string; cron: string }[] = [
@@ -102,7 +112,10 @@ export function VolumeBackups({
   const locale = useLocale()
   const router = useRouter()
   const [pending, start] = useTransition()
-  const [error, setError] = useState<string | null>(null)
+  // A manual backup in flight: a placeholder row (for the volume picked at
+  // click time) holds the new row's place, so nothing moves when it lands.
+  const placeholder = usePendingRow<string>(backups)
+  const showPlaceholder = placeholder.showPlaceholder
   const [restoreTarget, setRestoreTarget] = useState<VolumeBackup | null>(null)
   const volumes = mounts.filter((m) => m.type === "volume")
   const [chosenMount, setMountId] = useState("")
@@ -123,13 +136,33 @@ export function VolumeBackups({
   const mountName = (id: string) =>
     volumes.find((m) => m.id === id)?.name ?? t("volumeBackups.volumeDeleted")
 
+  // Errors go to a toast: an inline line above the table would push the rows
+  // (and their buttons) down while the user is aiming at them.
   const run = (fn: () => Promise<{ ok: boolean; error?: string }>) =>
     start(async () => {
-      setError(null)
       const r = await fn()
-      if (!r.ok) setError(r.error ?? tc("states.failed"))
+      if (!r.ok) toast.error(r.error ?? tc("states.failed"))
       else router.refresh()
     })
+
+  const backUpNow = () => {
+    const target = mountId
+    // Before the transition: state set inside an async action only commits
+    // when the action ends, which is too late for a placeholder.
+    placeholder.begin(target)
+    start(async () => {
+      const r = await createVolumeBackupAction(app.id, target)
+      if (r.ok) {
+        placeholder.landed(r.data.id)
+      } else {
+        // A failed backup comes back as an error without an id; its failed
+        // row shows after the refresh.
+        placeholder.cancel()
+        toast.error(r.error ?? tc("states.failed"))
+      }
+      router.refresh()
+    })
+  }
 
   if (volumes.length === 0 && backups.length === 0) return null
 
@@ -168,29 +201,26 @@ export function VolumeBackups({
                   </SelectContent>
                 </Select>
               )}
-              <Button
-                disabled={pending || !mountId}
-                onClick={() =>
-                  run(() => createVolumeBackupAction(app.id, mountId))
-                }
-              >
-                <HardDriveDownload data-icon="inline-start" />
-                {pending
-                  ? t("volumeBackups.processing")
-                  : t("volumeBackups.backupVolume", {
-                      name: mountName(mountId),
-                    })}
+              {/* The label stays while it runs (a shorter "Working…" would
+                  move the button); the icon turns into a spinner. */}
+              <Button disabled={pending || !mountId} onClick={backUpNow}>
+                {showPlaceholder ? (
+                  <Loader2
+                    data-icon="inline-start"
+                    className="motion-safe:animate-spin"
+                  />
+                ) : (
+                  <HardDriveDownload data-icon="inline-start" />
+                )}
+                {t("volumeBackups.backupVolume", {
+                  name: mountName(mountId),
+                })}
               </Button>
             </>
           )
         }
       />
-      {error && (
-        <p className="text-xs text-destructive" role="alert">
-          {error}
-        </p>
-      )}
-      {backups.length === 0 ? (
+      {backups.length === 0 && !showPlaceholder ? (
         <EmptyState icon={Archive} compact>
           {t("volumeBackups.empty")}
         </EmptyState>
@@ -206,6 +236,39 @@ export function VolumeBackups({
             <DataActionsHead label={tc("labels.actions")} />
           </DataTableHeader>
           <DataTableBody>
+            {showPlaceholder && (
+              <DataRow aria-busy="true">
+                <DataCell mono className="max-w-64 text-muted-foreground">
+                  <div className="truncate">{t("volumeBackups.creating")}</div>
+                  {/* Reserve the S3 sub-line the new row will have, so its
+                      height does not change on landing. */}
+                  {app.backupDestinationId && (
+                    <div className="font-sans">S3</div>
+                  )}
+                </DataCell>
+                <DataCell mono>{mountName(placeholder.detail ?? "")}</DataCell>
+                <DataCell className="text-muted-foreground">—</DataCell>
+                <DataCell mono>—</DataCell>
+                <DataCell className="text-muted-foreground">
+                  {t("volumeBackups.manual")}
+                </DataCell>
+                <DataCell>
+                  <Badge variant="secondary">
+                    {t("volumeBackups.status.running")}
+                  </Badge>
+                </DataCell>
+                <DataActions>
+                  {/* Same height as a real row (its delete button). */}
+                  <IconButton
+                    label={t("volumeBackups.deleteAria")}
+                    disabled
+                    className="invisible"
+                  >
+                    <Trash2 />
+                  </IconButton>
+                </DataActions>
+              </DataRow>
+            )}
             {backups.map((b) => (
               <DataRow key={b.id}>
                 <DataCell mono className="max-w-64">
@@ -251,7 +314,7 @@ export function VolumeBackups({
                           : "secondary"
                     }
                   >
-                    {b.status}
+                    {t(`volumeBackups.status.${b.status}`)}
                   </Badge>
                 </DataCell>
                 <DataActions>
@@ -279,15 +342,13 @@ export function VolumeBackups({
                     </>
                   )}
                   {canEdit && (
-                    <IconButton
-                      label={t("volumeBackups.deleteAria")}
+                    <DeleteBackupButton
+                      filename={b.filename}
+                      destinationId={b.destinationId}
+                      remoteKey={b.remoteKey}
                       disabled={pending}
-                      onClick={() =>
-                        run(() => deleteVolumeBackupAction(app.id, b.id))
-                      }
-                    >
-                      <Trash2 />
-                    </IconButton>
+                      onDelete={() => deleteVolumeBackupAction(app.id, b.id)}
+                    />
                   )}
                 </DataActions>
               </DataRow>

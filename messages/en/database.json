@@ -124,6 +124,7 @@
     "descriptionWithDestination": "Dumps are stored in the <code>aoox_backups</code> volume on this server and copied to {destination}. Restore overwrites existing data.",
     "s3Destination": "the S3 destination",
     "backupNow": "Back up now",
+    "creating": "Creating backup…",
     "empty": "No backups yet.",
     "trigger": {
       "scheduled": "scheduled",

@@ -14,6 +14,7 @@ import { SectionHeader } from "@/components/custom/section-header"
 import { useState, useTransition } from "react"
 import { toast } from "sonner"
 import { AddDialog } from "@/components/custom/add-dialog"
+import { ConfirmDialog } from "@/components/custom/confirm-dialog"
 import {
   DataActions,
   DataActionsHead,
@@ -63,6 +64,7 @@ import {
   updateDomainDnsAction,
 } from "@/features/dns/dns.actions"
 import type { CertMode, DnsConnection } from "@/features/dns/dns.entity"
+import type { AppProxy } from "@/features/proxy/app-proxy"
 import type { ProxyStatus } from "@/features/proxy/proxy.entity"
 
 /** Select value for "no custom certificate": the proxy gets one from Let's Encrypt. */
@@ -83,11 +85,13 @@ export function ApplicationDomains({
   middlewareOptions,
   canEdit,
   proxy,
+  appProxy,
   deployed,
   containerPort,
   exposedPorts,
   dnsConnections,
   proxyDnsEnabled,
+  remote = false,
 }: {
   applicationId: string
   domains: Domain[]
@@ -95,7 +99,10 @@ export function ApplicationDomains({
   middlewareOptions: DomainMiddlewareOption[]
   /** False for viewers: the certificate choice is then read-only. */
   canEdit: boolean
+  /** The aoox host's Traefik (used for the "not running" notice, host apps only). */
   proxy: ProxyStatus
+  /** The Traefik that serves this application (host or its remote server): ACME and ports. */
+  appProxy: AppProxy
   deployed: boolean
   containerPort: number
   /** Ports the image declares with EXPOSE (null = unknown). */
@@ -104,6 +111,8 @@ export function ApplicationDomains({
   dnsConnections: DnsConnection[]
   /** The proxy serving this application has DNS-01 (wildcard certificates). */
   proxyDnsEnabled: boolean
+  /** Runs on a remote server: `proxy` (the host's Traefik) is not the one serving it. */
+  remote?: boolean
 }) {
   const t = useTranslations("applications")
   const td = useTranslations("dns.domain")
@@ -142,9 +151,27 @@ export function ApplicationDomains({
     })
 
   const portSuffix = (secure: boolean) => {
-    const port = secure ? proxy.httpsPort : proxy.httpPort
+    const port = secure ? appProxy.httpsPort : appProxy.httpPort
+    // Unknown (a remote server a member cannot read): assume the default port.
+    if (port === null) return ""
     const isDefault = secure ? port === 443 : port === 80
     return isDefault ? "" : `:${port}`
+  }
+
+  // HTTPS needs a certificate: Let's Encrypt (the proxy's ACME email) or an
+  // uploaded one, which works without ACME. Unknown ACME (a remote server
+  // this user cannot read) keeps the switch on with a hint instead.
+  const noAcme = appProxy.acme === false
+  const httpsAvailable = !noAcme || certificates.length > 0
+  const firstCoveringCert = (h: string) =>
+    certificates.find((c) => !h || coversHost(c, h))?.id ?? null
+  const toggleHttps = (on: boolean) => {
+    setHttps(on)
+    // Without ACME "Let's Encrypt" cannot work: preselect an uploaded certificate.
+    if (on && noAcme && certId === AUTO) {
+      const id = firstCoveringCert(host.trim())
+      if (id) setCertId(id)
+    }
   }
 
   const resetForm = () => {
@@ -190,7 +217,9 @@ export function ApplicationDomains({
             <AddDialog
               title={t("domains.add.title")}
               description={t("domains.add.description")}
-              submitDisabled={!host.trim()}
+              submitDisabled={
+                !host.trim() || (https && noAcme && certId === AUTO)
+              }
               onOpenChange={resetForm}
               onSubmit={addDomain}
             >
@@ -211,16 +240,24 @@ export function ApplicationDomains({
                 <Switch
                   id="domain-https"
                   checked={https}
-                  onCheckedChange={setHttps}
-                  disabled={!proxy.acmeEmail}
+                  onCheckedChange={toggleHttps}
+                  disabled={!httpsAvailable}
                 />
                 <Label htmlFor="domain-https">HTTPS</Label>
               </div>
-              {!proxy.acmeEmail && (
+              {appProxy.acme !== true && (
                 <p className="text-xs text-muted-foreground">
-                  {t.rich("domains.httpsNeedsEmail", {
-                    code: (chunks) => <code>{chunks}</code>,
-                  })}
+                  {appProxy.acme === null
+                    ? t("domains.httpsServerUnknown")
+                    : t.rich(
+                        appProxy.remote
+                          ? "domains.httpsNeedsServerEmail"
+                          : "domains.httpsNeedsEmail",
+                        { code: (chunks) => <code>{chunks}</code> }
+                      )}
+                  {noAcme &&
+                    certificates.length > 0 &&
+                    ` ${t("domains.httpsUploadedOnly")}`}
                 </p>
               )}
               {https && certificates.length > 0 && (
@@ -233,8 +270,9 @@ export function ApplicationDomains({
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent position="popper">
-                      <SelectItem value={AUTO}>
+                      <SelectItem value={AUTO} disabled={noAcme}>
                         {t("domains.certAuto")}
+                        {noAcme && ` · ${t("domains.certAutoNeedsAcme")}`}
                       </SelectItem>
                       {certificates.map((c) => {
                         const covers =
@@ -334,10 +372,30 @@ export function ApplicationDomains({
           )
         }
       />
-      {!proxy.running && (
+      {/* `proxy` is the host's Traefik; a remote server has its own, which
+          adding a domain also starts. */}
+      {!proxy.running && !remote && (
         <Alert className="max-w-3xl">
           <AlertTitle>{t("domains.proxyStopped.title")}</AlertTitle>
-          <AlertDescription>{t("domains.proxyStopped.body")}</AlertDescription>
+          <AlertDescription>
+            {t.rich(
+              domains.length > 0
+                ? "domains.proxyStopped.bodyWithDomains"
+                : canEdit
+                  ? "domains.proxyStopped.body"
+                  : "domains.proxyStopped.bodyViewer",
+              {
+                link: (chunks) => (
+                  <Link
+                    href="/infra/proxy"
+                    className="underline underline-offset-2"
+                  >
+                    {chunks}
+                  </Link>
+                ),
+              }
+            )}
+          </AlertDescription>
         </Alert>
       )}
       {!deployed && (
@@ -486,6 +544,7 @@ export function ApplicationDomains({
                           certificates={certificates}
                           canEdit={canEdit}
                           pending={pending}
+                          acme={appProxy.acme}
                           onChange={(value) => setCertificate(d.id, value)}
                         />
                         {showCertMode && (
@@ -581,21 +640,32 @@ export function ApplicationDomains({
                       </IconButton>
                     )}
                     {canEdit && (
-                      <IconButton
-                        label={t("domains.deleteAria", { host: d.host })}
-                        disabled={pending}
-                        onClick={() =>
-                          start(async () => {
-                            const r = await deleteDomainAction(
-                              applicationId,
-                              d.id
-                            )
-                            if (!r.ok) setError(r.error)
-                          })
+                      <ConfirmDialog
+                        trigger={
+                          <IconButton
+                            label={t("domains.deleteAria", { host: d.host })}
+                            disabled={pending}
+                          >
+                            <Trash2 />
+                          </IconButton>
                         }
-                      >
-                        <Trash2 />
-                      </IconButton>
+                        title={t("domains.deleteDialog.title")}
+                        description={t.rich(
+                          d.dnsConnectionId
+                            ? "domains.deleteDialog.descriptionDns"
+                            : "domains.deleteDialog.description",
+                          {
+                            host: d.host,
+                            code: (chunks) => (
+                              <code className="break-all">{chunks}</code>
+                            ),
+                          }
+                        )}
+                        confirmLabel={tc("actions.delete")}
+                        onConfirm={() =>
+                          deleteDomainAction(applicationId, d.id)
+                        }
+                      />
                     )}
                   </DataActions>
                 </DataRow>
@@ -614,15 +684,26 @@ function CertificateCell({
   certificates,
   canEdit,
   pending,
+  acme,
   onChange,
 }: {
   domain: Domain
   certificates: Certificate[]
   canEdit: boolean
   pending: boolean
+  /** ACME email on the serving proxy (null = not visible to this user). */
+  acme: boolean | null
   onChange: (value: string) => void
 }) {
   const t = useTranslations("applications")
+  // Same rule as the add form: without ACME, Let's Encrypt cannot issue, so
+  // a domain on an uploaded certificate cannot switch back to it.
+  const autoNote =
+    acme === false
+      ? ` · ${t("domains.certAutoNeedsAcme")}`
+      : acme === null
+        ? ` · ${t("domains.certAutoAcmeUnknown")}`
+        : ""
   const current = certificates.find((c) => c.id === domain.certificateId)
   const state = current ? expiryState(current.notAfter) : null
   const expiryWhen = (notAfter: string) => {
@@ -649,7 +730,13 @@ function CertificateCell({
             <SelectValue />
           </SelectTrigger>
           <SelectContent position="popper">
-            <SelectItem value={AUTO}>{t("domains.certAuto")}</SelectItem>
+            <SelectItem
+              value={AUTO}
+              disabled={acme === false && !!domain.certificateId}
+            >
+              {t("domains.certAuto")}
+              {autoNote}
+            </SelectItem>
             {certificates.map((c) => {
               const covers = coversHost(c, domain.host)
               return (
@@ -667,7 +754,7 @@ function CertificateCell({
           </SelectContent>
         </Select>
       ) : (
-        <span>{label ?? t("domains.certAuto")}</span>
+        <span>{label ?? `${t("domains.certAuto")}${autoNote}`}</span>
       )}
       {current && state && state !== "ok" && (
         <span

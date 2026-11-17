@@ -64,6 +64,7 @@ import type { Job } from "@/features/job/job.entity"
 import type { HttpMonitorView } from "@/features/http-monitor/http-monitor.entity"
 import type { SecretConnection } from "@/features/secret-connection/secret-connection.entity"
 import type { MetricsResponse } from "@/features/monitoring/monitoring.entity"
+import { appProxyFor } from "@/features/proxy/app-proxy"
 import type { ProxyStatus } from "@/features/proxy/proxy.entity"
 import type { Registry } from "@/features/registry/registry.entity"
 import type { Server } from "@/features/server/server.entity"
@@ -182,6 +183,13 @@ export function ApplicationTabs({
     return shown.find((v) => v === initialTab) ?? "deploy"
   })
   const canEdit = app.projectRole !== "viewer"
+  // The Traefik that serves this app: the host's, or its remote server's.
+  const appProxy = appProxyFor({
+    serverId: app.serverId,
+    hostProxy: proxy,
+    servers,
+    proxyDnsEnabled,
+  })
 
   return (
     <Tabs value={tab} onValueChange={(v) => setTab(v as ApplicationTab)}>
@@ -254,11 +262,13 @@ export function ApplicationTabs({
           middlewareOptions={middlewareOptions}
           canEdit={canEdit}
           proxy={proxy}
+          appProxy={appProxy}
           deployed={!!app.currentImage}
           containerPort={app.containerPort}
           exposedPorts={app.exposedPorts}
           dnsConnections={dnsConnections}
           proxyDnsEnabled={proxyDnsEnabled}
+          remote={!!app.serverId}
         />
       </TabsContent>
       <TabsContent value="mounts" className="pt-4">

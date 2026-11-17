@@ -3,7 +3,7 @@
 import { RotateCw, ServerOff, TriangleAlert, Unplug } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useTranslations } from "next-intl"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { LogViewer } from "@/components/custom/log-viewer"
 import { RealtimeOriginAlert } from "@/components/custom/realtime-origin-alert"
 import { SectionHeader } from "@/components/custom/section-header"
@@ -17,6 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { fetchContainerLogsAction } from "@/features/application/application.actions"
 import type { ApplicationDetail } from "@/features/application/application.entity"
 import { useLogsSocket } from "@/features/application/use-logs-socket"
 import { useBrowserOrigin } from "./use-browser-host"
@@ -28,7 +29,13 @@ const DEFAULT_TAIL = 200
 const MAX_CHARS = 2_000_000
 
 type StreamStatus =
-  "connecting" | "live" | "ended" | "noContainer" | "disconnected" | "error"
+  | "connecting"
+  | "live"
+  | "ended"
+  | "noContainer"
+  | "disconnected"
+  | "error"
+  | "snapshot"
 
 const TONE: Record<StreamStatus, StatusTone> = {
   connecting: "transition",
@@ -37,6 +44,7 @@ const TONE: Record<StreamStatus, StatusTone> = {
   noContainer: "idle",
   disconnected: "error",
   error: "error",
+  snapshot: "idle",
 }
 
 /**
@@ -45,7 +53,9 @@ const TONE: Record<StreamStatus, StatusTone> = {
  * one feed). The tab content is unmounted when another tab is picked, so the
  * socket (and the daemon's log stream behind it) only exists while it shows.
  * Pausing is the viewer's Follow toggle: lines keep arriving, it only stops
- * scrolling to the newest one.
+ * scrolling to the newest one. Without a usable socket (another origin,
+ * rejected or dropped) the tab shows a one-off tail over HTTP
+ * (`GET /applications/:id/logs`) that Refresh reloads.
  */
 export function ApplicationLogsPanel({
   app,
@@ -65,8 +75,10 @@ export function ApplicationLogsPanel({
   const {
     socket,
     error: socketError,
+    state: socketState,
     reconnect,
   } = useLogsSocket(app.id, publicApiUrl, !originMismatch)
+  const fallback = socketState === "unavailable"
 
   const [tail, setTail] = useState<number>(DEFAULT_TAIL)
   // Bumped to subscribe again on the same socket (after the stream ended).
@@ -76,14 +88,41 @@ export function ApplicationLogsPanel({
     status: StreamStatus
     message?: string
   }>({ status: "connecting" })
+  // The HTTP tail used while the socket is unavailable; bumped by Refresh.
+  const [snapshotKey, setSnapshotKey] = useState(0)
+  // The text on screen is an HTTP tail: a stream that comes up later
+  // replaces it (it sends its own tail first) instead of appending to it.
+  const fromSnapshot = useRef(false)
+  const [snapshot, setSnapshot] = useState<{
+    status: "loading" | "loaded" | "error"
+    message?: string
+  }>({ status: "loading" })
+
+  useEffect(() => {
+    if (!fallback) return
+    let cancelled = false
+    void (async () => {
+      const r = await fetchContainerLogsAction(app.id, tail)
+      if (cancelled) return
+      if (!r.ok) return setSnapshot({ status: "error", message: r.error })
+      fromSnapshot.current = true
+      setText(r.data.length > MAX_CHARS ? r.data.slice(-MAX_CHARS) : r.data)
+      setSnapshot({ status: "loaded" })
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [fallback, app.id, tail, snapshotKey])
 
   useEffect(() => {
     if (!socket) return
     const onConnect = () =>
       setStream((s) => (s.status === "connecting" ? { status: "live" } : s))
     const onLog = (chunk: string) => {
+      const replace = fromSnapshot.current
+      fromSnapshot.current = false
       setText((prev) => {
-        const next = prev + chunk
+        const next = (replace ? "" : prev) + chunk
         return next.length > MAX_CHARS ? next.slice(-MAX_CHARS) : next
       })
       onConnect()
@@ -131,6 +170,14 @@ export function ApplicationLogsPanel({
     setStream({ status: "connecting" })
     // The container may have been started or replaced meanwhile: refresh the header too.
     router.refresh()
+    if (fallback) {
+      setSnapshot({ status: "loading" })
+      setTail(nextTail)
+      setSnapshotKey((n) => n + 1)
+      // Another origin never gets a socket; otherwise try the stream again.
+      if (!originMismatch) reconnect()
+      return
+    }
     if (nextTail !== tail) {
       setTail(nextTail)
       if (socket?.connected) return
@@ -144,7 +191,13 @@ export function ApplicationLogsPanel({
     stream.status === "connecting" && socketError
       ? { status: "error", message: socketError }
       : stream
-  const status = originMismatch ? "disconnected" : shown.status
+  const status: StreamStatus = fallback
+    ? snapshot.status === "loaded"
+      ? "snapshot"
+      : snapshot.status === "error"
+        ? "error"
+        : "connecting"
+    : shown.status
   // A stopped container still answers with its last lines, then the stream
   // ends: name that "not running" rather than a plain end of stream.
   const stopped =
@@ -177,7 +230,6 @@ export function ApplicationLogsPanel({
             <Select
               value={String(tail)}
               onValueChange={(v) => restart(Number(v))}
-              disabled={originMismatch}
             >
               <SelectTrigger aria-label={t("logs.tailLabel")}>
                 <SelectValue />
@@ -190,26 +242,22 @@ export function ApplicationLogsPanel({
                 ))}
               </SelectContent>
             </Select>
-            <Button
-              variant="outline"
-              disabled={originMismatch}
-              onClick={() => restart()}
-            >
+            <Button variant="outline" onClick={() => restart()}>
               <RotateCw data-icon="inline-start" />
-              {t("logs.reconnect")}
+              {fallback ? t("logs.refresh") : t("logs.reconnect")}
             </Button>
           </>
         }
       />
 
-      {!originMismatch && shown.status === "noContainer" && (
+      {!fallback && shown.status === "noContainer" && (
         <Alert>
           <ServerOff />
           <AlertTitle>{t("logs.noContainer.title")}</AlertTitle>
           <AlertDescription>{t("logs.noContainer.body")}</AlertDescription>
         </Alert>
       )}
-      {!originMismatch && shown.status === "ended" && (
+      {!fallback && shown.status === "ended" && (
         <Alert>
           <ServerOff />
           <AlertTitle>
@@ -220,14 +268,14 @@ export function ApplicationLogsPanel({
           </AlertDescription>
         </Alert>
       )}
-      {!originMismatch && shown.status === "disconnected" && (
+      {!fallback && shown.status === "disconnected" && (
         <Alert variant="destructive">
           <Unplug />
           <AlertTitle>{t("logs.disconnected.title")}</AlertTitle>
           <AlertDescription>{t("logs.disconnected.body")}</AlertDescription>
         </Alert>
       )}
-      {!originMismatch && shown.status === "error" && (
+      {!fallback && shown.status === "error" && (
         <Alert variant="destructive">
           <TriangleAlert />
           <AlertTitle>{t("logs.error.title")}</AlertTitle>
@@ -239,13 +287,39 @@ export function ApplicationLogsPanel({
         </Alert>
       )}
 
+      {fallback && snapshot.status === "error" && (
+        <Alert variant="destructive">
+          <TriangleAlert />
+          <AlertTitle>{t("logs.error.title")}</AlertTitle>
+          {snapshot.message && (
+            <AlertDescription className="break-words">
+              {snapshot.message}
+            </AlertDescription>
+          )}
+        </Alert>
+      )}
+      {fallback && snapshot.status !== "error" && (
+        <p className="text-xs text-muted-foreground">
+          {t("logs.snapshot.body", { count: tail })}
+          {!originMismatch && socketError && (
+            <span className="ms-1 break-words">({socketError})</span>
+          )}
+        </p>
+      )}
+
       <LogViewer
         text={text}
         label={t("logs.title")}
         empty={
-          shown.status === "noContainer"
-            ? t("logs.emptyNoContainer")
-            : undefined
+          fallback
+            ? snapshot.status === "loaded"
+              ? t("logs.emptyNoContainer")
+              : snapshot.status === "error"
+                ? t("logs.snapshot.failed")
+                : undefined
+            : shown.status === "noContainer"
+              ? t("logs.emptyNoContainer")
+              : undefined
         }
         downloadName={`${app.appName}-logs.txt`}
         className="h-[32rem] max-h-[70vh]"

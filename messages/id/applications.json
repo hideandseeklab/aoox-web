@@ -105,7 +105,8 @@
       "hostRequired": "Host wajib diisi",
       "domainHelp": "Dibuka lewat reverse proxy (arahkan DNS host ini ke server ini).",
       "proxyNotRunning": "Proxy belum berjalan — akan diaktifkan otomatis kalau perlu.",
-      "httpsNeedsAcme": "HTTPS memerlukan PROXY_ACME_EMAIL di API.",
+      "httpsNeedsAcme": "HTTPS memerlukan email ACME untuk reverse proxy: isi saat mengatur domain panel (Infrastruktur → Domain panel), atau atur PROXY_ACME_EMAIL di .env.dist di server.",
+      "httpsNeedsServerAcme": "HTTPS memerlukan email ACME di proxy server yang dipilih (Infrastruktur → Server remote).",
       "laterHelp": "Aplikasi dibuat tanpa alamat akses — atur port host atau domain belakangan."
     },
     "env": {
@@ -122,7 +123,7 @@
       "deployModeHelp": "Service hanya di host aoox. Stop/start = skala ke 0 dan kembali; log & metrik dari task-nya. Ganti mode = deploy ulang image terakhir. Replika > 1 berbagi mount volume yang sama.",
       "replicas": "Replika",
       "constraint": "Constraint tambahan",
-      "constraintHelp": "Label node diatur di Settings<arrow></arrow>Docker Swarm. Digabung dengan penempatan di bawah (semua harus terpenuhi).",
+      "constraintHelp": "Label node diatur di Infrastruktur<arrow></arrow>Docker Swarm. Digabung dengan penempatan di bawah (semua harus terpenuhi).",
       "rollingUpdate": "Pembaruan bertahap",
       "rollingUpdateRow": "<parallelism></parallelism> task/batch, jeda <delay></delay> detik",
       "parallelismAria": "Task per batch",
@@ -253,6 +254,10 @@
     "failed": "Gagal",
     "reconnect": "sambung ulang",
     "rollbackHere": "Rollback ke sini",
+    "rollbackUnavailable": {
+      "current": "Deployment ini menjalankan image yang sedang aktif.",
+      "pruned": "Image-nya sudah dihapus oleh pembersihan, jadi tidak bisa di-rollback ke sini."
+    },
     "toast": {
       "started": "Deploy dimulai — {trigger}"
     },
@@ -320,7 +325,10 @@
     "log": {
       "title": "Log deployment",
       "label": "Log deployment",
-      "select": "Pilih deployment."
+      "select": "Pilih deployment.",
+      "empty": "Belum ada output.",
+      "unavailable": "Log tidak dapat dimuat.",
+      "polling": "Pembaruan realtime tidak tersedia di sini: log dan status diperbarui setiap 2 detik."
     },
     "section": {
       "title": "Deployment",
@@ -334,6 +342,7 @@
     "tailLabel": "Baris awal",
     "tailOption": "{count} baris terakhir",
     "reconnect": "Sambung ulang",
+    "refresh": "Muat ulang",
     "connectFailed": "Tidak dapat terhubung ke log",
     "status": {
       "connecting": "Menghubungkan…",
@@ -342,7 +351,8 @@
       "disconnected": "Terputus",
       "noContainer": "Tanpa container",
       "error": "Galat",
-      "stopped": "Tidak berjalan"
+      "stopped": "Tidak berjalan",
+      "snapshot": "Cuplikan"
     },
     "noContainer": {
       "title": "Tidak ada container yang berjalan",
@@ -360,11 +370,15 @@
     "error": {
       "title": "Gagal memuat log"
     },
-    "emptyNoContainer": "Tidak ada output."
+    "emptyNoContainer": "Tidak ada output.",
+    "snapshot": {
+      "body": "Streaming langsung tidak tersedia di sini: menampilkan {count} baris terakhir. Tekan Muat ulang untuk output terbaru.",
+      "failed": "Log tidak dapat dimuat."
+    }
   },
   "realtimeOrigin": {
     "title": "Log realtime tidak tersedia lewat alamat ini",
-    "body": "Panel ini punya domain kustom (<code>{webOrigin}</code>), dan log realtime hanya menerima koneksi dari domain itu — bukan dari <code>{browserOrigin}</code> yang sedang kamu pakai.",
+    "body": "Alamat panel ini adalah <code>{webOrigin}</code>, dan log realtime hanya menerima koneksi dari alamat itu — bukan dari <code>{browserOrigin}</code> yang sedang kamu pakai.",
     "open": "Buka halaman ini di {origin}"
   },
   "stepper": {
@@ -393,8 +407,10 @@
   },
   "domains": {
     "proxyStopped": {
-      "title": "Proxy belum berjalan",
-      "body": "Domain baru berlaku setelah reverse proxy diaktifkan di halaman Settings."
+      "title": "Reverse proxy tidak berjalan",
+      "body": "Proxy dijalankan otomatis saat Anda menambahkan domain pertama. Statusnya ada di halaman <link>Reverse proxy</link>.",
+      "bodyViewer": "Proxy dijalankan otomatis saat developer menambahkan domain pertama. Statusnya ada di halaman <link>Reverse proxy</link>.",
+      "bodyWithDomains": "Domain ini tidak dapat diakses sampai proxy berjalan lagi. Menambahkan domain akan menjalankannya otomatis; owner juga dapat menjalankannya di halaman <link>Reverse proxy</link>."
     },
     "notDeployed": "Domain dipasang ke container saat aplikasi di-deploy.",
     "autoProvisioned": {
@@ -409,10 +425,15 @@
       "certificate": "Sertifikat"
     },
     "certAuto": "Otomatis (Let's Encrypt)",
+    "certAutoNeedsAcme": "perlu email ACME",
+    "certAutoAcmeUnknown": "hanya jika proxy server punya email ACME",
     "customCert": "sertifikat kustom",
     "certFor": "Sertifikat untuk {host}",
     "notCovered": "tidak mencakup host",
-    "httpsNeedsEmail": "HTTPS memerlukan <code>PROXY_ACME_EMAIL</code> di API.",
+    "httpsNeedsEmail": "HTTPS memerlukan email ACME untuk reverse proxy: isi saat mengatur domain panel (Infrastruktur → Domain panel), atau atur <code>PROXY_ACME_EMAIL</code> di <code>.env.dist</code> di server.",
+    "httpsNeedsServerEmail": "HTTPS memerlukan email ACME di proxy server ini (Infrastruktur → Server remote).",
+    "httpsServerUnknown": "Aplikasi ini berjalan di server remote: HTTPS mendapat sertifikat Let's Encrypt hanya jika proxy server itu punya email ACME, yang diatur owner atau admin di Infrastruktur → Server remote.",
+    "httpsUploadedOnly": "Sampai saat itu, HTTPS hanya bisa memakai sertifikat yang diunggah.",
     "empty": "Belum ada domain. Aplikasi hanya bisa diakses lewat port host.",
     "deleteAria": "Hapus {host}",
     "middleware": "Middleware",
@@ -448,6 +469,11 @@
     "conflict": {
       "orphan": "Container <code>{name}</code> sisa dari project atau aplikasi yang sudah dihapus dan masih melayani domain ini, sehingga request terbagi antara dia dan aplikasi ini. Hapus lewat <link>halaman Docker</link> (Detail).",
       "other": "Container <code>{name}</code> juga merutekan domain ini, sehingga request terbagi antara dia dan aplikasi ini. Hentikan atau hapus, atau pakai hostname lain."
+    },
+    "deleteDialog": {
+      "title": "Hapus domain ini?",
+      "description": "Aplikasi berhenti melayani <code>{host}</code>: domain langsung dilepas dari proxy. Tindakan ini tidak bisa dibatalkan; tambahkan domain lagi untuk memulihkannya.",
+      "descriptionDns": "Aplikasi berhenti melayani <code>{host}</code>: domain langsung dilepas dari proxy, dan record DNS yang dibuat aoox untuknya ikut dihapus. Tindakan ini tidak bisa dibatalkan; tambahkan domain lagi untuk memulihkannya."
     }
   },
   "middlewares": {
@@ -742,7 +768,7 @@
     },
     "origin": {
       "title": "Console tidak bisa diakses lewat alamat ini",
-      "body": "Panel ini sudah punya domain kustom (<code>{webOrigin}</code>), dan fitur Console hanya menerima koneksi dari domain itu — bukan dari <code>{browserOrigin}</code> yang sedang kamu pakai. Ini proteksi keamanan bawaan, bukan bug.",
+      "body": "Alamat panel ini adalah <code>{webOrigin}</code>, dan fitur Console hanya menerima koneksi dari alamat itu — bukan dari <code>{browserOrigin}</code> yang sedang kamu pakai. Ini proteksi keamanan bawaan, bukan bug.",
       "open": "Buka Console di {origin}"
     }
   },
@@ -753,7 +779,7 @@
     "s3Destination": "tujuan S3",
     "volume": "Volume",
     "volumeDeleted": "(volume dihapus)",
-    "processing": "Memproses…",
+    "creating": "Membuat backup…",
     "backupVolume": "Backup {name}",
     "empty": "Belum ada backup.",
     "scheduled": "terjadwal",
@@ -792,6 +818,11 @@
       "size": "Ukuran",
       "trigger": "Pemicu",
       "status": "Status"
+    },
+    "status": {
+      "running": "berjalan",
+      "success": "berhasil",
+      "failed": "gagal"
     }
   },
   "dangerZone": {

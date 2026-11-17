@@ -5,11 +5,13 @@ import {
   CloudUpload,
   Download,
   HardDriveDownload,
+  Loader2,
   RotateCcw,
   Trash2,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useState, useTransition } from "react"
+import { toast } from "sonner"
 import {
   DataActions,
   DataActionsHead,
@@ -21,6 +23,7 @@ import {
   DataTableHeader,
   IconButton,
 } from "@/components/custom/data-table"
+import { DeleteBackupButton } from "@/components/custom/delete-backup-button"
 import { EmptyState } from "@/components/custom/empty-state"
 import { SectionHeader } from "@/components/custom/section-header"
 import { Badge } from "@/components/ui/badge"
@@ -63,6 +66,7 @@ import type {
 } from "@/features/managed-database/managed-database.entity"
 import { formatDateTime, formatNumber } from "@/i18n/format"
 import { ScheduleTimeZoneHint } from "@/components/custom/schedule-time-zone"
+import { usePendingRow } from "@/hooks/use-pending-row"
 import { useLocale, useTranslations } from "next-intl"
 
 const PRESETS: { key: string; cron: string }[] = [
@@ -105,7 +109,13 @@ export function DatabaseBackups({
   const locale = useLocale()
   const router = useRouter()
   const [pending, start] = useTransition()
-  const [error, setError] = useState<string | null>(null)
+  // A manual backup in flight: a placeholder row holds the place the new row
+  // will take, so nothing below moves when it lands (clicks stay on target).
+  const placeholder = usePendingRow(backups)
+  const showPlaceholder = placeholder.showPlaceholder
+  // Key-value engines have no "all databases" dump (the API falls back).
+  const placeholderAll =
+    db.backupAllDatabases && db.engine !== "redis" && db.engine !== "valkey"
   const [restoreTarget, setRestoreTarget] = useState<DatabaseBackup | null>(
     null
   )
@@ -123,13 +133,31 @@ export function DatabaseBackups({
   const effectiveCron =
     mode === "custom" ? customCron.trim() : mode === "off" ? "" : mode
 
+  // Errors go to a toast: an inline line above the table would push the rows
+  // (and their buttons) down while the user is aiming at them.
   const run = (fn: () => Promise<{ ok: boolean; error?: string }>) =>
     start(async () => {
-      setError(null)
       const r = await fn()
-      if (!r.ok) setError(r.error ?? tc("messages.genericError"))
+      if (!r.ok) toast.error(r.error ?? tc("messages.genericError"))
       else router.refresh()
     })
+
+  // `begin` runs before the transition: state set inside an async action
+  // only commits when the action ends, which is too late for a placeholder.
+  const backUpNow = () => {
+    placeholder.begin(undefined)
+    start(async () => {
+      const r = await createBackupAction(db.id)
+      if (r.ok) {
+        placeholder.landed(r.data.id)
+      } else {
+        placeholder.cancel()
+        toast.error(r.error ?? tc("messages.genericError"))
+      }
+      // A failed backup is stored as a failed row: show it either way.
+      router.refresh()
+    })
+  }
 
   return (
     <div className="space-y-4">
@@ -148,22 +176,23 @@ export function DatabaseBackups({
         )}
         action={
           canEdit && (
-            <Button
-              disabled={pending || !running}
-              onClick={() => run(() => createBackupAction(db.id))}
-            >
-              <HardDriveDownload data-icon="inline-start" />
-              {pending ? tc("states.working") : t("backups.backupNow")}
+            // The label stays the same while it runs (a shorter "Working…"
+            // would move the button); the icon turns into a spinner.
+            <Button disabled={pending || !running} onClick={backUpNow}>
+              {showPlaceholder ? (
+                <Loader2
+                  data-icon="inline-start"
+                  className="motion-safe:animate-spin"
+                />
+              ) : (
+                <HardDriveDownload data-icon="inline-start" />
+              )}
+              {t("backups.backupNow")}
             </Button>
           )
         }
       />
-      {error && (
-        <p className="text-xs text-destructive" role="alert">
-          {error}
-        </p>
-      )}
-      {backups.length === 0 ? (
+      {backups.length === 0 && !showPlaceholder ? (
         <EmptyState icon={Archive} compact>
           {t("backups.empty")}
         </EmptyState>
@@ -178,6 +207,51 @@ export function DatabaseBackups({
             <DataActionsHead label={tc("labels.actions")} />
           </DataTableHeader>
           <DataTableBody>
+            {showPlaceholder && (
+              <DataRow aria-busy="true">
+                <DataCell mono className="max-w-64 text-muted-foreground">
+                  <div className="truncate">{t("backups.creating")}</div>
+                  {/* Reserve the sub-line the new row will have (S3 copy,
+                      all databases) so its height does not change on landing. */}
+                  {(db.backupDestinationId || placeholderAll) && (
+                    <div className="flex items-center gap-1.5 font-sans">
+                      {db.backupDestinationId && (
+                        <span className="inline-flex items-center gap-1">
+                          <CloudUpload className="size-3" />
+                          {t("backups.s3")}
+                        </span>
+                      )}
+                      {db.backupDestinationId && placeholderAll && (
+                        <span aria-hidden>·</span>
+                      )}
+                      {placeholderAll && (
+                        <span>{t("backups.allDatabases")}</span>
+                      )}
+                    </div>
+                  )}
+                </DataCell>
+                <DataCell className="text-muted-foreground">—</DataCell>
+                <DataCell mono>—</DataCell>
+                <DataCell className="text-muted-foreground">
+                  {t("backups.trigger.manual")}
+                </DataCell>
+                <DataCell>
+                  <Badge variant="secondary">
+                    {t("status.backup.running")}
+                  </Badge>
+                </DataCell>
+                <DataActions>
+                  {/* Same height as a real row (its delete button). */}
+                  <IconButton
+                    label={t("backups.deleteAria")}
+                    disabled
+                    className="invisible"
+                  >
+                    <Trash2 />
+                  </IconButton>
+                </DataActions>
+              </DataRow>
+            )}
             {backups.map((b) => (
               <DataRow key={b.id}>
                 <DataCell mono className="max-w-64">
@@ -261,13 +335,13 @@ export function DatabaseBackups({
                     </>
                   )}
                   {canEdit && (
-                    <IconButton
-                      label={t("backups.deleteAria")}
+                    <DeleteBackupButton
+                      filename={b.filename}
+                      destinationId={b.destinationId}
+                      remoteKey={b.remoteKey}
                       disabled={pending}
-                      onClick={() => run(() => deleteBackupAction(db.id, b.id))}
-                    >
-                      <Trash2 />
-                    </IconButton>
+                      onDelete={() => deleteBackupAction(db.id, b.id)}
+                    />
                   )}
                 </DataActions>
               </DataRow>

@@ -8,6 +8,7 @@ import { api, ApiError } from "@/lib/api"
 import type {
   ImageCheckResult,
   Application,
+  Deployment,
   DeploymentSummary,
   DnsCheck,
   Domain,
@@ -406,6 +407,24 @@ export async function deleteApplicationAction(
   })
   revalidatePath(`/projects/${projectId}`)
   redirect(`/projects/${projectId}`)
+}
+
+/**
+ * One deployment with its stored log, status and step times
+ * (`GET /deployments/:id`). The deploy panel reads it over HTTP while the
+ * realtime `/logs` socket is unavailable (another origin, rejected or dropped).
+ */
+export async function fetchDeploymentAction(
+  id: string
+): Promise<ActionResult<Deployment>> {
+  try {
+    const data = await api<Deployment>(`/deployments/${id}`, {
+      token: await requireToken(),
+    })
+    return { ok: true, data }
+  } catch (err) {
+    return await fail(err)
+  }
 }
 
 export async function fetchContainerLogsAction(

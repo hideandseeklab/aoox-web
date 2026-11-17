@@ -272,7 +272,11 @@
     "secretAccessKey": "Secret access key",
     "secretHelp": "Cannot be viewed again after saving.",
     "pathStyle": "Path-style (<code>host/bucket</code>) — required for MinIO, safe for the others",
-    "deleteAria": "Delete {name}"
+    "deleteAria": "Delete {name}",
+    "deleteTitle": "Delete backup destination {name}?",
+    "deleteDescription": "aoox stops copying backups to this bucket and forgets its credentials. Files already in the bucket are kept, but the panel can no longer download or restore from them, so a database, volume or instance backup that exists only on S3 can no longer be restored here. Databases and applications that used it keep backing up locally.",
+    "deleteInstanceBackup": "The instance backup schedule uses it and goes back to local only.",
+    "deleteRegistry": "{count, plural, one {The local registry {names} stores its images in this bucket.} other {The registries {names} store their images in this bucket.}} It keeps running, but aoox loses the link: changing its domain recreates it on local disk (the images stay in the bucket, out of reach) and deleting an image no longer removes its folder from the bucket."
   },
   "certificates": {
     "title": "SSL certificates",

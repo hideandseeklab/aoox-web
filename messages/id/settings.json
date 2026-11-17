@@ -272,7 +272,11 @@
     "secretAccessKey": "Secret kunci akses",
     "secretHelp": "Tidak bisa dilihat lagi setelah disimpan.",
     "pathStyle": "Path-style (<code>host/bucket</code>) — wajib untuk MinIO, aman untuk yang lain",
-    "deleteAria": "Hapus {name}"
+    "deleteAria": "Hapus {name}",
+    "deleteTitle": "Hapus tujuan backup {name}?",
+    "deleteDescription": "aoox berhenti menyalin backup ke bucket ini dan melupakan kredensialnya. Berkas yang sudah ada di bucket tetap disimpan, tetapi panel tidak bisa lagi mengunduh atau memulihkan dari sana, jadi backup database, volume, atau instance yang hanya ada di S3 tidak bisa dipulihkan lagi dari sini. Database dan aplikasi yang memakainya tetap membuat backup secara lokal.",
+    "deleteInstanceBackup": "Jadwal backup instance memakainya dan kembali ke lokal saja.",
+    "deleteRegistry": "{count, plural, other {Registry {names} menyimpan image-nya di bucket ini.}} Registry tetap berjalan, tetapi aoox kehilangan kaitannya: mengubah domainnya akan membuatnya ulang di disk lokal (image tetap di bucket, tidak terjangkau) dan menghapus image tidak lagi menghapus foldernya dari bucket."
   },
   "certificates": {
     "title": "Sertifikat SSL",

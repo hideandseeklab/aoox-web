@@ -22,12 +22,14 @@ import { Button } from "@/components/ui/button"
 import {
   checkImageUpdateAction,
   deployApplicationAction,
+  fetchDeploymentAction,
   rollbackApplicationAction,
   switchImageTagAction,
 } from "@/features/application/application.actions"
 import {
   ACTIVE_DEPLOYMENT_STATUSES,
   type ApplicationDetail,
+  type Deployment,
   type DeploymentStatus,
   type DeploymentStepTimes,
   type DeploymentSummary,
@@ -60,6 +62,11 @@ const STATUS_VARIANT: Record<
 
 const isActive = (s: string) =>
   ACTIVE_DEPLOYMENT_STATUSES.includes(s as DeploymentStatus)
+
+/** HTTP poll interval for a running deployment while the socket is unavailable. */
+const POLL_MS = 2_000
+/** Consecutive failed reads after which polling a running deployment gives up. */
+const MAX_POLL_FAILURES = 15
 
 /** Short, human line naming who/what queued a deployment — used for both the
  * toast on `deployment:created` and the tooltip on a history row. */
@@ -144,6 +151,12 @@ export function ApplicationDeployPanel({
     deployments[0]?.id ?? null
   )
   const [logText, setLogText] = useState("")
+  // The selected deployment's log arrived (socket snapshot or HTTP): an empty
+  // log then reads "no output yet" instead of "Loading…".
+  const [logLoaded, setLogLoaded] = useState(false)
+  // Latest HTTP read of the selected deployment while the socket is unavailable.
+  const [polled, setPolled] = useState<Deployment | null>(null)
+  const [httpError, setHttpError] = useState<string | null>(null)
   const [liveStatus, setLiveStatus] = useState<string | null>(null)
   // Step start times announced by the socket, per deployment (first one wins);
   // `finished` is the terminal status' time. Merged over the row's own times.
@@ -154,16 +167,26 @@ export function ApplicationDeployPanel({
   const {
     socket,
     error: socketError,
+    state: socketState,
     reconnect,
   } = useLogsSocket(app.id, publicApiUrl, !originMismatch)
+  // No usable socket (other origin, rejected, failed or dropped): the log and
+  // status come from `GET /deployments/:id` instead.
+  const httpFallback = socketState === "unavailable"
 
   const active = deployments.some((d) => isActive(d.status))
   // Read inside socket handlers without re-subscribing when it changes.
   const activeRef = useRef(active)
+  const deploymentsRef = useRef(deployments)
   useEffect(() => {
     activeRef.current = active
-  }, [active])
+    deploymentsRef.current = deployments
+  }, [active, deployments])
   const selected = deployments.find((d) => d.id === selectedId) ?? null
+  // The HTTP read is fresher than the server-rendered row (and covers a
+  // deployment queued a moment ago that the list does not show yet).
+  const view: DeploymentSummary | null =
+    httpFallback && polled && polled.id === selectedId ? polled : selected
 
   // Stream the selected deployment's log over the socket; refresh server
   // data once it reaches a terminal state.
@@ -180,6 +203,7 @@ export function ApplicationDeployPanel({
     }) => {
       if (deploymentId !== selectedId) return
       setLogText((t) => (snapshot ? chunk : t + chunk))
+      setLogLoaded(true)
     }
     const onStatus = ({
       deploymentId,
@@ -222,6 +246,53 @@ export function ApplicationDeployPanel({
     }
   }, [socket, selectedId, router])
 
+  // Without a socket, read the selected deployment over HTTP: once for a
+  // finished one, every POLL_MS while it runs, then refresh the page once.
+  // The read replaces the text (never appends), and a late answer after the
+  // socket came back is dropped, so nothing is duplicated.
+  useEffect(() => {
+    if (!httpFallback || !selectedId) return
+    let cancelled = false
+    let timer: ReturnType<typeof setTimeout> | undefined
+    let sawActive = false
+    let failures = 0
+    const load = async () => {
+      const r = await fetchDeploymentAction(selectedId)
+      if (cancelled) return
+      if (!r.ok) {
+        setHttpError(r.error)
+        // A running deployment keeps trying for a while (a dropped request is
+        // not the end of it).
+        const row = deploymentsRef.current.find((x) => x.id === selectedId)
+        const running = sawActive || !row || isActive(row.status)
+        if (running && ++failures < MAX_POLL_FAILURES)
+          timer = setTimeout(() => void load(), POLL_MS)
+        return
+      }
+      failures = 0
+      const d = r.data
+      setHttpError(null)
+      setLogText(d.logs ?? "")
+      setLogLoaded(true)
+      setPolled(d)
+      setLiveStatus(d.status)
+      if (isActive(d.status)) {
+        sawActive = true
+        timer = setTimeout(() => void load(), POLL_MS)
+      } else {
+        const row = deploymentsRef.current.find((x) => x.id === d.id)
+        // Finished while we watched, or the page still shows it running (or
+        // not at all yet): refresh the history and header once.
+        if (sawActive || !row || isActive(row.status)) router.refresh()
+      }
+    }
+    void load()
+    return () => {
+      cancelled = true
+      clearTimeout(timer)
+    }
+  }, [httpFallback, selectedId, router])
+
   // A new deployment from anywhere (webhook, auto-update, another user's
   // manual deploy) — broadcast to every socket ticketed for this app, not
   // just one already subscribed to a specific deployment (see logs.gateway.ts).
@@ -238,6 +309,9 @@ export function ApplicationDeployPanel({
         t("deploy.toast.started", { trigger: triggerLabel(payload, t) })
       )
       setLogText("")
+      setLogLoaded(false)
+      setPolled(null)
+      setHttpError(null)
       setLiveStatus(null)
       setSelectedId(payload.id)
       router.refresh()
@@ -248,9 +322,16 @@ export function ApplicationDeployPanel({
     }
   }, [socket, router, t])
 
-  const selectDeployment = (id: string) => {
+  function resetLog() {
     setLogText("")
+    setLogLoaded(false)
+    setPolled(null)
+    setHttpError(null)
     setLiveStatus(null)
+  }
+
+  const selectDeployment = (id: string) => {
+    resetLog()
     setSelectedId(id)
   }
 
@@ -260,6 +341,9 @@ export function ApplicationDeployPanel({
       const id = (e as CustomEvent<{ id: string }>).detail?.id
       if (!id) return
       setLogText("")
+      setLogLoaded(false)
+      setPolled(null)
+      setHttpError(null)
       setLiveStatus(null)
       setSelectedId(id)
     }
@@ -281,8 +365,18 @@ export function ApplicationDeployPanel({
     deployments[0]?.status === "failed" &&
     app.status === "running" &&
     app.container?.state === "running"
-  const shownStatus = liveStatus ?? selected?.status ?? null
-  const shownError = error ?? socketError
+  const shownStatus = liveStatus ?? view?.status ?? null
+  const shownError = error ?? socketError ?? httpError
+  // Rollback reuses the image of a successful deployment: say why the button
+  // is missing when that image is the running one or was cleaned up.
+  const rollbackNote =
+    canEdit && view?.status === "success"
+      ? !view.imageRef
+        ? t("deploy.rollbackUnavailable.pruned")
+        : view.imageRef === app.currentImage
+          ? t("deploy.rollbackUnavailable.current")
+          : null
+      : null
 
   return (
     <div className="space-y-4">
@@ -655,21 +749,21 @@ export function ApplicationDeployPanel({
             <div className="flex items-center justify-between gap-2">
               <h3 className="min-w-0 truncate text-sm font-medium">
                 {t("deploy.log.title")}{" "}
-                {selected && (
+                {view && (
                   <span className="font-normal text-muted-foreground">
-                    · {t(`deploy.kind.${selected.kind}`)} · {shownStatus}
-                    {selected.imageRef && ` · ${selected.imageRef}`}
+                    · {t(`deploy.kind.${view.kind}`)} · {shownStatus}
+                    {view.imageRef && ` · ${view.imageRef}`}
                     {" · "}
-                    <span title={triggerLabel(selected, t)}>
-                      {triggerLabel(selected, t)}
+                    <span title={triggerLabel(view, t)}>
+                      {triggerLabel(view, t)}
                     </span>
                   </span>
                 )}
               </h3>
               {canEdit &&
-                selected?.status === "success" &&
-                selected.imageRef &&
-                selected.imageRef !== app.currentImage && (
+                view?.status === "success" &&
+                view.imageRef &&
+                view.imageRef !== app.currentImage && (
                   <Button
                     variant="outline"
                     size="sm"
@@ -678,7 +772,7 @@ export function ApplicationDeployPanel({
                       run(async () => {
                         const r = await rollbackApplicationAction(
                           app.id,
-                          selected.id
+                          view.id
                         )
                         if (r.ok) selectDeployment(r.data.id)
                         return r
@@ -690,20 +784,36 @@ export function ApplicationDeployPanel({
                   </Button>
                 )}
             </div>
-            {selected && (
+            {rollbackNote && (
+              <p className="text-xs text-muted-foreground">{rollbackNote}</p>
+            )}
+            {view && (
               <DeployStepper
-                deployment={selected}
+                deployment={view}
                 sourceType={app.sourceType}
                 remote={!!app.serverId}
                 liveStatus={liveStatus}
-                liveTimes={liveTimes[selected.id]}
+                liveTimes={liveTimes[view.id]}
               />
+            )}
+            {httpFallback && view && isActive(shownStatus ?? view.status) && (
+              <p className="text-xs text-muted-foreground">
+                {t("deploy.log.polling")}
+              </p>
             )}
             <LogViewer
               key={selectedId ?? "none"}
               text={logText}
               label={t("deploy.log.label")}
-              empty={selectedId ? tc("states.loading") : t("deploy.log.select")}
+              empty={
+                !selectedId
+                  ? t("deploy.log.select")
+                  : logLoaded
+                    ? t("deploy.log.empty")
+                    : httpError
+                      ? t("deploy.log.unavailable")
+                      : tc("states.loading")
+              }
             />
           </div>
         </div>

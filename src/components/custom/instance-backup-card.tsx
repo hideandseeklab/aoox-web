@@ -6,13 +6,16 @@ import {
   CircleMinus,
   Cloud,
   Download,
+  HardDriveDownload,
+  Loader2,
   RotateCcw,
-  Trash2,
   TriangleAlert,
   Upload,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useState, useTransition } from "react"
+import { toast } from "sonner"
+import { DeleteBackupButton } from "@/components/custom/delete-backup-button"
 import { EmptyState } from "@/components/custom/empty-state"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
@@ -56,6 +59,7 @@ import type {
 } from "@/features/instance-backup/instance-backup.entity"
 import { formatDateTime } from "@/i18n/format"
 import { ScheduleTimeZoneHint } from "@/components/custom/schedule-time-zone"
+import { usePendingRow } from "@/hooks/use-pending-row"
 import { useLocale, useTranslations } from "next-intl"
 
 const INCLUDED = [
@@ -102,7 +106,10 @@ export function InstanceBackupCard({
   const locale = useLocale()
   const router = useRouter()
   const [pending, start] = useTransition()
-  const [error, setError] = useState<string | null>(null)
+  // A manual backup in flight: a placeholder row holds the new row's place
+  // (the buttons sit below the list), so nothing moves when it lands.
+  const placeholder = usePendingRow(backups)
+  const showPlaceholder = placeholder.showPlaceholder
   const [scheduleError, setScheduleError] = useState<string | null>(null)
   const [report, setReport] = useState<RestoreReport | null>(null)
   const [confirm, setConfirm] = useState<InstanceBackup | null>(null)
@@ -119,12 +126,22 @@ export function InstanceBackupCard({
   const effectiveCron =
     mode === "off" ? "" : mode === "custom" ? customCron.trim() : mode
 
-  const run = (fn: () => Promise<{ ok: boolean; error?: string }>) =>
+  // Errors go to a toast so nothing in the card moves under the pointer.
+  // `begin` runs before the transition: state set inside an async action
+  // only commits when the action ends, which is too late for a placeholder.
+  const backUpNow = () => {
+    placeholder.begin(undefined)
     start(async () => {
-      setError(null)
-      const r = await fn()
-      if (!r.ok) setError(r.error ?? t("failed"))
+      const r = await createInstanceBackupAction()
+      if (r.ok) {
+        placeholder.landed(r.data.id)
+      } else {
+        placeholder.cancel()
+        toast.error(r.error ?? t("failed"))
+      }
+      router.refresh()
     })
+  }
 
   const saveSchedule = () =>
     start(async () => {
@@ -189,12 +206,30 @@ export function InstanceBackupCard({
             </AlertDescription>
           </Alert>
 
-          {backups.length === 0 ? (
+          {backups.length === 0 && !showPlaceholder ? (
             <EmptyState icon={Archive} compact>
               {t("empty")}
             </EmptyState>
           ) : (
             <ul className="divide-y rounded-md border text-xs">
+              {showPlaceholder && (
+                <li
+                  aria-busy="true"
+                  className="flex items-center gap-2 px-3 py-2"
+                >
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="text-muted-foreground">
+                        {t("creating")}
+                      </span>
+                      <Badge variant="secondary">{t("status.running")}</Badge>
+                    </div>
+                    <p className="truncate text-xs text-muted-foreground">—</p>
+                  </div>
+                  {/* Same height as a real row (its icon buttons). */}
+                  <span aria-hidden className="size-6 shrink-0" />
+                </li>
+              )}
               {backups.map((b) => (
                 <li key={b.id} className="flex items-center gap-2 px-3 py-2">
                   <div className="min-w-0 flex-1">
@@ -210,7 +245,7 @@ export function InstanceBackupCard({
                           b.status === "success" ? "secondary" : "destructive"
                         }
                       >
-                        {b.status}
+                        {t(`status.${b.status}`)}
                       </Badge>
                       {b.trigger === "scheduled" && (
                         <Badge variant="outline">{t("scheduled")}</Badge>
@@ -255,15 +290,13 @@ export function InstanceBackupCard({
                       </Button>
                     </>
                   )}
-                  <Button
-                    variant="ghost"
-                    size="icon-sm"
-                    aria-label={t("delete")}
+                  <DeleteBackupButton
+                    filename={b.filename}
+                    destinationId={b.destinationId}
+                    remoteKey={b.remoteKey}
                     disabled={pending}
-                    onClick={() => run(() => deleteInstanceBackupAction(b.id))}
-                  >
-                    <Trash2 />
-                  </Button>
+                    onDelete={() => deleteInstanceBackupAction(b.id)}
+                  />
                 </li>
               ))}
             </ul>
@@ -279,20 +312,19 @@ export function InstanceBackupCard({
               <Upload data-icon="inline-start" />
               {t("restoreFromFile")}
             </Button>
-            <Button
-              size="sm"
-              disabled={pending}
-              onClick={() => run(createInstanceBackupAction)}
-            >
+            {/* The label stays while it runs; the icon turns into a spinner. */}
+            <Button size="sm" disabled={pending} onClick={backUpNow}>
+              {showPlaceholder ? (
+                <Loader2
+                  data-icon="inline-start"
+                  className="motion-safe:animate-spin"
+                />
+              ) : (
+                <HardDriveDownload data-icon="inline-start" />
+              )}
               {t("backupNow")}
             </Button>
           </div>
-
-          {error && (
-            <p className="text-right text-xs text-destructive" role="alert">
-              {error}
-            </p>
-          )}
           {report && (
             <Alert>
               <AlertTitle>
@@ -337,12 +369,11 @@ export function InstanceBackupCard({
                 onClick={() =>
                   confirm &&
                   start(async () => {
-                    setError(null)
                     const r = await restoreInstanceBackupAction(confirm.id)
                     if (r.ok) finishRestore(r.data)
                     else {
                       setConfirm(null)
-                      setError(r.error)
+                      toast.error(r.error)
                     }
                   })
                 }
@@ -369,12 +400,11 @@ export function InstanceBackupCard({
                 e.preventDefault()
                 const fd = new FormData(e.currentTarget)
                 start(async () => {
-                  setError(null)
                   const r = await restoreInstanceUploadAction(fd)
                   if (r.ok) finishRestore(r.data)
                   else {
                     setUploadOpen(false)
-                    setError(r.error)
+                    toast.error(r.error)
                   }
                 })
               }}

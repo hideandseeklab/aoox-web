@@ -94,14 +94,17 @@ export function ComposeHistory({
     }
   }, [busy, appId])
 
-  const open = (id: string) =>
+  // Expand at the click (state set inside an async transition only commits
+  // when it ends); the log fills in when it arrives.
+  const open = (id: string) => {
+    if (openId === id) return setOpenId(null)
+    setOpenId(id)
+    setLogs("")
     start(async () => {
-      if (openId === id) return setOpenId(null)
-      setOpenId(id)
-      setLogs("")
       const run = await fetchComposeDeploymentAction(id)
       setLogs(run?.logs || t("history.noOutput"))
     })
+  }
 
   return (
     <div className="space-y-4">

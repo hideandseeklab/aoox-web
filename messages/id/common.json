@@ -144,5 +144,11 @@
     "serviceModeNote": "Service Swarm selalu dipublikasikan di semua interface.",
     "shortLoopback": "hanya server ini"
   },
-  "copyManual": "Tidak bisa menyalin otomatis. Teks sudah dipilih: tekan Ctrl+C untuk menyalinnya."
+  "copyManual": "Tidak bisa menyalin otomatis. Teks sudah dipilih: tekan Ctrl+C untuk menyalinnya.",
+  "deleteBackup": {
+    "aria": "Hapus backup",
+    "title": "Hapus backup ini?",
+    "description": "Berkas <code>{file}</code> akan dihapus. Tindakan ini tidak bisa dibatalkan.",
+    "descriptionS3": "Berkas <code>{file}</code> beserta salinannya di S3 akan dihapus. Tindakan ini tidak bisa dibatalkan."
+  }
 }

@@ -57,6 +57,7 @@ import type {
   ApplicationFormState,
 } from "@/features/application/application.actions"
 import type { GitCredential } from "@/features/git-credential/git-credential.entity"
+import { appProxyFor } from "@/features/proxy/app-proxy"
 import type { ProxyStatus } from "@/features/proxy/proxy.entity"
 import type { Registry } from "@/features/registry/registry.entity"
 import type { Server } from "@/features/server/server.entity"
@@ -222,6 +223,14 @@ export function ApplicationForm({
   const [access, setAccess] = useState<Access>(v.hostPort ? "port" : "later")
   const [domainHost, setDomainHost] = useState("")
   const [domainHttps, setDomainHttps] = useState(false)
+  const [serverChoice, setServerChoice] = useState(v.serverId || "local")
+  // The proxy that will serve a domain added here: the host's, or the chosen
+  // remote server's (its own ACME email).
+  const domainProxy = appProxyFor({
+    serverId: serverChoice === "local" ? null : serverChoice,
+    hostProxy: proxy,
+    servers,
+  })
   const [domainPending, setDomainPending] = useState(false)
   const [domainError, setDomainError] = useState<string | null>(null)
   // The "Domain" create path submits outside the form action, so its field
@@ -345,7 +354,10 @@ export function ApplicationForm({
     const formData = new FormData(e.currentTarget)
     formData.set("hostPort", "")
     formData.set("domainHost", domainHost.trim())
-    formData.set("domainHttps", domainHttps ? "on" : "")
+    formData.set(
+      "domainHttps",
+      domainHttps && domainProxy.acme !== false ? "on" : ""
+    )
     setDomainError(null)
     setDomainFieldErrors(undefined)
     setDomainPending(true)
@@ -925,9 +937,9 @@ export function ApplicationForm({
                             </div>
                             <label className="flex items-center gap-2 pb-1.5 text-xs">
                               <Switch
-                                checked={domainHttps}
+                                checked={domainHttps && domainProxy.acme !== false}
                                 onCheckedChange={setDomainHttps}
-                                disabled={!proxy?.acmeEmail}
+                                disabled={domainProxy.acme === false}
                               />
                               HTTPS
                             </label>
@@ -935,11 +947,15 @@ export function ApplicationForm({
                           <FieldDescription>
                             {t("form.access.domainHelp")}
                             {proxy &&
+                              !domainProxy.remote &&
                               !proxy.running &&
                               ` ${t("form.access.proxyNotRunning")}`}
-                            {proxy &&
-                              !proxy.acmeEmail &&
-                              ` ${t("form.access.httpsNeedsAcme")}`}
+                            {domainProxy.acme === false &&
+                              ` ${t(
+                                domainProxy.remote
+                                  ? "form.access.httpsNeedsServerAcme"
+                                  : "form.access.httpsNeedsAcme"
+                              )}`}
                           </FieldDescription>
                           {domainError && (
                             <p
@@ -1038,7 +1054,8 @@ export function ApplicationForm({
                       </FieldLabel>
                       <Select
                         name="serverId"
-                        defaultValue={v.serverId || "local"}
+                        value={serverChoice}
+                        onValueChange={setServerChoice}
                       >
                         <SelectTrigger id="app-server">
                           <SelectValue />

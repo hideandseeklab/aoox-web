@@ -144,5 +144,11 @@
     "serviceModeNote": "Swarm services always publish on every interface.",
     "shortLoopback": "this server only"
   },
-  "copyManual": "Could not copy automatically. The text is selected: press Ctrl+C to copy it."
+  "copyManual": "Could not copy automatically. The text is selected: press Ctrl+C to copy it.",
+  "deleteBackup": {
+    "aria": "Delete backup",
+    "title": "Delete this backup?",
+    "description": "The file <code>{file}</code> is deleted. This cannot be undone.",
+    "descriptionS3": "The file <code>{file}</code> and its copy in S3 are deleted. This cannot be undone."
+  }
 }

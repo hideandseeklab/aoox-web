@@ -73,16 +73,19 @@ export function ConfirmDialog({
   const run = (
     which: "main" | "alternative",
     fn: () => Promise<ConfirmResult>
-  ) =>
+  ) => {
+    // Set before the transition: state set inside an async action only
+    // commits when it ends, so the spinner would never show.
+    setError(null)
+    setRunning(which)
     start(async () => {
-      setError(null)
-      setRunning(which)
       const r = await fn()
       setRunning(null)
       if (r && !r.ok) return setError(r.error ?? tc("states.failed"))
       if (controlledOpen === undefined) setInnerOpen(false)
       onOpenChange?.(false)
     })
+  }
 
   const spinner = (which: "main" | "alternative") =>
     pending &&

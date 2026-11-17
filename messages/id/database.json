@@ -124,6 +124,7 @@
     "descriptionWithDestination": "Dump disimpan di volume <code>aoox_backups</code> di server ini dan disalin ke {destination}. Restore menimpa data yang ada.",
     "s3Destination": "tujuan S3",
     "backupNow": "Backup sekarang",
+    "creating": "Membuat backup…",
     "empty": "Belum ada backup.",
     "trigger": {
       "scheduled": "terjadwal",

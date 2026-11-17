@@ -71,7 +71,6 @@
     "rows": "{count, plural, one {# row} other {# rows}}",
     "download": "Download",
     "restore": "Restore",
-    "delete": "Delete",
     "restoring": "Restoring…",
     "cancel": "Cancel",
     "presets": {
@@ -96,6 +95,12 @@
       "title": "Restore from file",
       "description": "Upload the <code>*.json.gz</code> file downloaded from an instance backup. The aoox version (migrations) must match. All panel data is replaced.",
       "file": "Backup file"
+    },
+    "creating": "Creating backup…",
+    "status": {
+      "running": "running",
+      "success": "success",
+      "failed": "failed"
     }
   },
   "page": {
@@ -373,6 +378,11 @@
     "drain": "Drain",
     "activate": "Activate",
     "removeNode": "Remove node",
+    "removeNodeDialog": {
+      "title": "Remove node {hostname}?",
+      "description": "The node is still reachable and is removed by force: Docker reschedules the tasks running on it to the other nodes, and it has to join the swarm again to be used.",
+      "descriptionDown": "The node is down. It is removed from the swarm; to use it again it has to join the swarm again."
+    },
     "addNode": "Run this on another server (with Docker installed). Applications can then run on that node: pick it per application, or let the swarm schedule them. Applications with mounts stay on this host, and images built by aoox need a registry address every node can reach.",
     "copiedShort": "Copied",
     "registryWarning": "The local registry address is <code>{url}</code> — other nodes cannot pull built images. Set <code>REGISTRY_PUBLIC_HOST</code> to a host address reachable by all nodes (and <code>insecure-registries</code> or TLS on each daemon), then re-enable the registry. Public images (Docker Hub, GHCR) are not affected.",

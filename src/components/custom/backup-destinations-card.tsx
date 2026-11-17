@@ -3,6 +3,7 @@
 import { CloudUpload, Plus, Trash2 } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { useActionState, useState, useTransition } from "react"
+import { ConfirmDialog } from "@/components/custom/confirm-dialog"
 import { TestButton, TestResult } from "@/components/custom/test-result"
 import { Button } from "@/components/ui/button"
 import {
@@ -43,10 +44,17 @@ import type {
 /** Settings card: S3-compatible buckets database backups are copied to. */
 export function BackupDestinationsCard({
   destinations,
+  registries = [],
+  instanceDestinationId = null,
 }: {
   destinations: BackupDestination[]
+  /** Registries, to name the ones that store their images in a destination. */
+  registries?: { name: string; storageDestinationId: string | null }[]
+  /** Destination of the instance backup schedule (null = none or unknown). */
+  instanceDestinationId?: string | null
 }) {
   const t = useTranslations("settings")
+  const tc = useTranslations("common")
   const [pending, start] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const [tests, setTests] = useState<
@@ -66,13 +74,6 @@ export function BackupDestinationsCard({
       else setError(r.error)
     })
   }
-
-  const remove = (id: string) =>
-    start(async () => {
-      setError(null)
-      const r = await deleteBackupDestinationAction(id)
-      if (!r.ok) setError(r.error)
-    })
 
   return (
     <Card>
@@ -119,17 +120,33 @@ export function BackupDestinationsCard({
                     disabled={pending}
                     onClick={() => test(d.id)}
                   />
-                  <Button
-                    variant="ghost"
-                    size="icon-sm"
-                    aria-label={t("backupDestinations.deleteAria", {
+                  <ConfirmDialog
+                    trigger={
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        aria-label={t("backupDestinations.deleteAria", {
+                          name: d.name,
+                        })}
+                        disabled={pending}
+                      >
+                        <Trash2 />
+                      </Button>
+                    }
+                    title={t("backupDestinations.deleteTitle", {
                       name: d.name,
                     })}
-                    disabled={pending}
-                    onClick={() => remove(d.id)}
-                  >
-                    <Trash2 />
-                  </Button>
+                    description={
+                      <DeleteDestinationDescription
+                        registries={registries
+                          .filter((r) => r.storageDestinationId === d.id)
+                          .map((r) => r.name)}
+                        instanceBackup={instanceDestinationId === d.id}
+                      />
+                    }
+                    confirmLabel={tc("actions.delete")}
+                    onConfirm={() => deleteBackupDestinationAction(d.id)}
+                  />
                 </div>
                 {result && (
                   <TestResult
@@ -309,5 +326,39 @@ export function AddDestinationDialog({
         </form>
       </DialogContent>
     </Dialog>
+  )
+}
+
+/**
+ * What deleting a destination does (the API sets every reference to null):
+ * backups stored only in that bucket can no longer be restored from the
+ * panel, schedules fall back to local, and a registry that keeps its images
+ * there loses the link (its container keeps running with the old settings).
+ */
+function DeleteDestinationDescription({
+  registries,
+  instanceBackup,
+}: {
+  registries: string[]
+  instanceBackup: boolean
+}) {
+  const t = useTranslations("settings")
+  return (
+    <>
+      {t("backupDestinations.deleteDescription")}
+      {instanceBackup && (
+        <span className="mt-2 block">
+          {t("backupDestinations.deleteInstanceBackup")}
+        </span>
+      )}
+      {registries.length > 0 && (
+        <span className="mt-2 block">
+          {t("backupDestinations.deleteRegistry", {
+            names: registries.join(", "),
+            count: registries.length,
+          })}
+        </span>
+      )}
+    </>
   )
 }
