@@ -8,9 +8,17 @@ Versions below 1.0.0 may include breaking changes in a minor release.
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-11-17
+
+First stable release of the dashboard. The feature set is that of 0.1.0-rc.1; this release only adds the new logo and the bug-report pointers.
+
 ### Added
 
 - `SECURITY.md` and an issue-template config that send bug reports to aoox-api's issue forms; the README has a short "Using aoox?" section.
+
+### Changed
+
+- The Docker Hub publish workflow pushes `hideandseeklab/aoox-web:latest` only for stable versions (no `-` in the tag); a pre-release such as `0.2.0-rc.1` pushes just its own version tag, so `latest` (the compose default) never moves onto a pre-release. A manual run on a branch pushes `<branch>` and no longer pushes `latest`.
 
 ### UI UX Improvement
 
@@ -806,7 +814,8 @@ Versions below 1.0.0 may include breaking changes in a minor release.
   backups, notifications, and account/instance settings.
 - A web terminal (shell on the host or inside the API container) over WebSocket.
 
-[Unreleased]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.0-rc.1...HEAD
+[Unreleased]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.0-rc.1...v0.1.0
 [0.1.0-rc.1]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.0-beta.2...v0.1.0-rc.1
 [0.1.0-beta.2]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.0-beta.1...v0.1.0-beta.2
 [0.1.0-beta.1]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.0-beta.0...v0.1.0-beta.1
