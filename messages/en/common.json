@@ -112,7 +112,23 @@
     "editNoteAria": "Edit the note of {name}",
     "noteAria": "Note for {name}",
     "notePlaceholder": "What this variable is for. Saved as # lines above it.",
-    "noteDone": "Done"
+    "noteDone": "Done",
+    "dragAria": "Drag to reorder {name}",
+    "dragTitle": "Drag to reorder (or Space, then the arrow keys)",
+    "dragRoleDescription": "sortable row",
+    "dragInstructions": "To pick up a row, press Space or Enter. Use the up and down arrow keys to move it, then press Space or Enter to drop it, or Escape to cancel.",
+    "dragStart": "Picked up {name}. It is at position {position} of {total}.",
+    "dragOver": "{name} moved to position {position} of {total}.",
+    "dragOutside": "{name} is no longer over the list.",
+    "dragEnd": "{name} dropped at position {position} of {total}.",
+    "dragCancel": "Moving {name} was cancelled.",
+    "moveMenu": "Move",
+    "moveMenuAria": "Move {name}",
+    "moveUp": "Move up",
+    "moveDown": "Move down",
+    "moveTop": "Move to top",
+    "moveBottom": "Move to bottom",
+    "movedStatus": "{name} moved to position {position} of {total}."
   },
   "metrics": {
     "range": {

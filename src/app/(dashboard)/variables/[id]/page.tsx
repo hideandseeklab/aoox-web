@@ -75,7 +75,9 @@ export default async function VariableSetPage({
           <span key="slug" className="font-mono">
             {set.slug}
           </span>,
-          t("detail.sharedWith", { names: sharing }),
+          set.sharedWithAll || set.projects.length > 0
+            ? t("detail.sharedWith", { names: sharing })
+            : sharing,
           t("list.usage", {
             apps: set.usage.applications,
             stacks: set.usage.composeApps,

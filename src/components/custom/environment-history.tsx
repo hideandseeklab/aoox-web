@@ -184,7 +184,7 @@ export function EnvironmentHistory({
               </p>
             ) : (
               <ul className="max-h-[55vh] divide-y overflow-y-auto rounded-md border text-xs">
-                {versions?.map((v) => (
+                {versions?.map((v, i) => (
                   <li key={v.id} className="space-y-1.5 px-3 py-2.5">
                     <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
                       <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
@@ -238,7 +238,7 @@ export function EnvironmentHistory({
                         : (v.authorEmail ?? "—")}{" "}
                       · {when(v)}
                     </p>
-                    <Summary v={v} />
+                    <Summary v={v} older={versions[i + 1]} />
                     {revealed[v.id] !== undefined && (
                       <pre className="max-h-48 overflow-auto rounded-md border bg-muted/40 p-2 font-mono text-xs break-all whitespace-pre-wrap">
                         {revealed[v.id] || t("emptyText")}
@@ -276,8 +276,37 @@ function actionLabel(
   return t(`action.${v.action}`)
 }
 
-/** `+ Added: A, B` lines; key names only, wrapped as they come. */
-function Summary({ v }: { v: EnvironmentVersion }) {
+/**
+ * Names of the variables whose note differs from the older version (the API
+ * summary does not list note changes). Null when it cannot be told: no older
+ * version in the list, or an API without notes.
+ */
+function changedNotes(
+  v: EnvironmentVersion,
+  older: EnvironmentVersion | undefined
+): string[] | null {
+  if (!older || !v.notes || !older.notes) return null
+  const a = v.notes
+  const b = older.notes
+  // An added or removed variable is already listed with its note.
+  const listed = new Set([...v.summary.added, ...v.summary.removed])
+  return [...new Set([...Object.keys(a), ...Object.keys(b)])]
+    .filter((k) => !listed.has(k) && (a[k] ?? "") !== (b[k] ?? ""))
+    .sort()
+}
+
+/**
+ * `+ Added: A, B` lines; key names only, wrapped as they come. A version
+ * that changed none of them (and no note) only moved rows or edited
+ * standalone comments: "Only comments or order changed".
+ */
+function Summary({
+  v,
+  older,
+}: {
+  v: EnvironmentVersion
+  older: EnvironmentVersion | undefined
+}) {
   const t = useTranslations("variables.editor.history")
   const s = v.summary
   const rows: Array<[string, string, string[]]> = [
@@ -285,6 +314,7 @@ function Summary({ v }: { v: EnvironmentVersion }) {
     ["~", t("changed"), s.changed],
     ["−", t("removed"), s.removed],
     ["•", t("flags"), s.flags],
+    ["#", t("notesChanged"), changedNotes(v, older) ?? []],
   ]
   // The baseline lists every variable as "added": hide it, it is not a change.
   if (v.action === "baseline") return null

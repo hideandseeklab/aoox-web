@@ -1,6 +1,9 @@
 /** Mirrors Job / JobRun in aoox-api (job module). */
 export type JobTarget = "container" | "run"
 export type JobRunStatus = "running" | "success" | "failed" | "timeout"
+/** Which runs notify: failures only (default), also successes, also starts. */
+export type JobNotify = "failure" | "finish" | "all"
+export const JOB_NOTIFY_LEVELS: JobNotify[] = ["failure", "finish", "all"]
 
 /** Who a job belongs to; drives the API path and the page to revalidate. */
 export type JobOwner =
@@ -34,6 +37,8 @@ export interface Job {
   target: JobTarget
   enabled: boolean
   timeoutSeconds: number
+  /** Absent on an older API: read as "failure". */
+  notify?: JobNotify
   lastRunAt: string | null
   lastStatus: JobRunStatus | null
   createdAt: string

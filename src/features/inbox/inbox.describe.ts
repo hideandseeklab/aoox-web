@@ -132,11 +132,24 @@ const BUILDERS: Record<string, Builder> = {
     return { application, volume, trigger: triggerOf(p), error: orNone(str(p, "error")) }
   },
   "backupFailure.instance": (p) => ({ trigger: triggerOf(p), error: orNone(str(p, "error")) }),
+  // Rows written before job notifications had a variant: {job, status} only.
   jobFailure: (p) => {
     const job = str(p, "job")
     if (!job) return null
     return { job, status: str(p, "status") === "timeout" ? "timeout" : "failed" }
   },
+  jobStarted: (p) => jobRun(p),
+  jobSuccess: (p, ctx) => jobFinished(p, ctx),
+  "jobFailure.failure": (p, ctx) => {
+    const values = jobFinished(p, ctx)
+    if (!values) return null
+    return {
+      ...values,
+      status: str(p, "status") === "timeout" ? "timeout" : "failed",
+      exitCode: orNone(num(p, "exitCode")),
+    }
+  },
+  "jobFailure.recovered": (p, ctx) => jobFinished(p, ctx),
   "containerDown.application": (p) => {
     const application = str(p, "application")
     const project = str(p, "project")
@@ -281,6 +294,24 @@ const BUILDERS: Record<string, Builder> = {
       downFor: orNone(duration(num(p, "downSeconds"), ctx)),
     }
   },
+}
+
+/** The values every job sentence shares; `owner`/`project` are null when the owner row is gone. */
+function jobRun(p: InboxParams): Values | null {
+  const job = str(p, "job")
+  if (!job) return null
+  return {
+    job,
+    owner: orNone(str(p, "owner")),
+    project: orNone(str(p, "project")),
+    trigger: triggerOf(p),
+  }
+}
+
+function jobFinished(p: InboxParams, ctx: Ctx): Values | null {
+  const values = jobRun(p)
+  if (!values) return null
+  return { ...values, duration: orNone(duration(num(p, "durationSeconds"), ctx)) }
 }
 
 function certificateWindow(p: InboxParams, locale: string): Values | null {

@@ -65,6 +65,8 @@ const EVENTS: Array<keyof Notification & `on${string}`> = [
   "onDeploymentFailure",
   "onBackupFailure",
   "onJobFailure",
+  "onJobStarted",
+  "onJobSuccess",
   "onDiskLow",
   "onCertificateFailure",
   "onDnsIssue",

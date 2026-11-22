@@ -9,6 +9,7 @@ import {
   ownerPage,
   type Job,
   type JobOwner,
+  type JobNotify,
   type JobRun,
   type JobTarget,
 } from "./job.entity"
@@ -33,6 +34,7 @@ export interface JobInput {
   target: JobTarget
   enabled: boolean
   timeoutSeconds: number
+  notify: JobNotify
   /** Compose only. */
   service?: string
 }

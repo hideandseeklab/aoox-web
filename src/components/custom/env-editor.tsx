@@ -1,14 +1,36 @@
 "use client"
 
+import {
+  type Announcements,
+  DndContext,
+  type DragEndEvent,
+  KeyboardSensor,
+  type Modifier,
+  PointerSensor,
+  type UniqueIdentifier,
+  closestCenter,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core"
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable"
 import { Eye, EyeOff, Plus, StickyNote, Trash2 } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { useId, useState } from "react"
+import {
+  EnvRowMoveMenu,
+  SortableEnvRow,
+} from "@/components/custom/env-row-reorder"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
 import {
   type EnvRow,
+  moveRow,
   NOTE_MAX,
   toRows,
   toText,
@@ -28,12 +50,18 @@ export interface SecretFlagsConfig {
   plainKeys: string[]
 }
 
+/** Rows only move up and down. */
+const verticalOnly: Modifier = ({ transform }) => ({ ...transform, x: 0 })
+
 /**
  * Per-line env editor with masked values. Submits as one `KEY=VALUE` text
  * field (`name`) so the API contract stays a plain text blob. Rows mode keeps
  * everything the text holds: a variable's note (the `#` lines directly above
  * it) is shown and edited under the row, standalone comments are their own
  * rows, and blank-line grouping survives (`features/variable-set/env-rows.ts`).
+ * Rows (variables with their notes, and comment blocks) can be reordered by
+ * dragging the handle (mouse, touch, or Space + arrow keys) or from the move
+ * menu; the new order is the order of the submitted text.
  * Text mode exposes the raw blob for pasting a whole .env.
  */
 export function EnvEditor({
@@ -127,6 +155,73 @@ export function EnvEditor({
       numbers.set(r.id, r.kind === "var" ? ++vars : ++comments)
     }
   }
+  const labelOf = (row: EnvRow) => {
+    const n = numbers.get(row.id) ?? 0
+    if (row.kind === "block") return t("commentAria", { n })
+    return row.key.trim() || t("rowFallback", { n })
+  }
+
+  // Reordering (Rows view, editors only). Sortable ids are strings: dnd-kit
+  // treats a falsy id (row 0) as "nothing".
+  const sortId = (row: EnvRow) => `${baseId}-s-${row.id}`
+  const indexOf = (id: UniqueIdentifier) =>
+    rows.findIndex((r) => sortId(r) === id)
+  const [moveStatus, setMoveStatus] = useState("")
+  // `announce`: the move menu says where the row went; a drag is announced
+  // by dnd-kit itself.
+  const moveTo = (from: number, to: number, announce = true) => {
+    if (from === to) return
+    updateRows(moveRow(rows, from, to))
+    if (!announce) return
+    setMoveStatus(
+      t("movedStatus", {
+        name: labelOf(rows[from]),
+        position: to + 1,
+        total: rows.length,
+      })
+    )
+  }
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  )
+  const nameAt = (id: UniqueIdentifier) => {
+    const i = indexOf(id)
+    return i >= 0 ? labelOf(rows[i]) : ""
+  }
+  const announcements: Announcements = {
+    onDragStart: ({ active }) =>
+      t("dragStart", {
+        name: nameAt(active.id),
+        position: indexOf(active.id) + 1,
+        total: rows.length,
+      }),
+    onDragOver: ({ active, over }) =>
+      over
+        ? t("dragOver", {
+            name: nameAt(active.id),
+            position: indexOf(over.id) + 1,
+            total: rows.length,
+          })
+        : t("dragOutside", { name: nameAt(active.id) }),
+    onDragEnd: ({ active, over }) =>
+      over
+        ? t("dragEnd", {
+            name: nameAt(active.id),
+            position: indexOf(over.id) + 1,
+            total: rows.length,
+          })
+        : t("dragCancel", { name: nameAt(active.id) }),
+    onDragCancel: ({ active }) => t("dragCancel", { name: nameAt(active.id) }),
+  }
+  const onDragEnd = ({ active, over }: DragEndEvent) => {
+    if (!over || active.id === over.id) return
+    const from = indexOf(active.id)
+    const to = indexOf(over.id)
+    if (from >= 0 && to >= 0) moveTo(from, to, false)
+  }
 
   return (
     <div className="space-y-2">
@@ -177,176 +272,251 @@ export function EnvEditor({
         />
       ) : (
         <div className="space-y-1.5">
-          {rows.map((row) => {
-            const gap = row.blankBefore > 0 && row !== rows[0] ? "pt-2" : ""
-            if (row.kind === "block") {
-              const n = numbers.get(row.id) ?? 0
-              return (
-                <div key={row.id} className={`flex items-start gap-1.5 ${gap}`}>
-                  <Textarea
-                    aria-label={t("commentAria", { n })}
-                    id={`${baseId}-c-${row.id}`}
-                    value={row.text}
-                    onChange={(e) => patchRow(row.id, { text: e.target.value })}
-                    readOnly={readOnly}
-                    rows={Math.min(row.text.split("\n").length, 6)}
-                    className="min-h-0 flex-1 py-1 font-mono text-xs text-muted-foreground"
-                    spellCheck={false}
-                  />
-                  {!readOnly && (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      aria-label={t("removeCommentAria", { n })}
-                      onClick={() =>
-                        updateRows(rows.filter((r) => r.id !== row.id))
-                      }
+          <DndContext
+            id={`${baseId}-dnd`}
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            modifiers={[verticalOnly]}
+            onDragEnd={onDragEnd}
+            accessibility={{
+              announcements,
+              screenReaderInstructions: { draggable: t("dragInstructions") },
+            }}
+          >
+            <SortableContext
+              items={rows.map(sortId)}
+              strategy={verticalListSortingStrategy}
+            >
+              {rows.map((row, index) => {
+                const gap = row.blankBefore > 0 && row !== rows[0] ? "pt-2" : ""
+                const label = labelOf(row)
+                const move = (to: number) => moveTo(index, to)
+                if (row.kind === "block") {
+                  const n = numbers.get(row.id) ?? 0
+                  return (
+                    <SortableEnvRow
+                      key={row.id}
+                      id={sortId(row)}
+                      disabled={readOnly}
+                      label={label}
+                      className={gap}
                     >
-                      <Trash2 />
-                    </Button>
-                  )}
-                </div>
-              )
-            }
-            const i = (numbers.get(row.id) ?? 1) - 1
-            const key = row.key.trim()
-            const label = key || t("rowFallback", { n: i + 1 })
-            const noteOpen = openNotes.has(row.id)
-            const noteId = `${baseId}-n-${row.id}`
-            return (
-              <div key={row.id} className={`space-y-1 ${gap}`}>
-                <div
-                  className={
-                    secrets
-                      ? "flex flex-wrap items-center gap-1.5 sm:flex-nowrap"
-                      : "flex items-center gap-1.5"
-                  }
-                >
-                  <Input
-                    aria-label={t("keyAria", { n: i + 1 })}
-                    id={`${baseId}-k-${row.id}`}
-                    value={row.key}
-                    onChange={(e) => patchRow(row.id, { key: e.target.value })}
-                    placeholder="KEY"
-                    readOnly={readOnly}
-                    className={
-                      !secrets
-                        ? "w-2/5 max-w-sm font-mono text-xs"
-                        : readOnly
-                          ? "w-full font-mono text-xs sm:w-2/5 sm:max-w-sm"
-                          : // Phone: the name shares its line with the note and
-                            // remove buttons; the value and Secret go below.
-                            "order-1 min-w-0 flex-1 basis-[calc(100%-4.5rem)] font-mono text-xs sm:order-none sm:w-2/5 sm:max-w-sm sm:flex-none sm:basis-auto"
-                    }
-                    autoComplete="off"
-                    spellCheck={false}
-                  />
-                  <Input
-                    aria-label={t("valueAria", { n: i + 1 })}
-                    id={`${baseId}-v-${row.id}`}
-                    type={revealed ? "text" : "password"}
-                    value={row.value}
-                    onChange={(e) =>
-                      patchRow(row.id, { value: e.target.value })
-                    }
-                    placeholder="value"
-                    readOnly={readOnly}
-                    className={
-                      secrets
-                        ? "order-3 min-w-0 flex-1 basis-40 font-mono text-xs sm:order-none"
-                        : "min-w-0 flex-1 font-mono text-xs"
-                    }
-                    autoComplete="off"
-                    spellCheck={false}
-                  />
-                  {secrets && key && (
-                    <label className="order-4 flex shrink-0 items-center gap-1.5 text-xs text-muted-foreground sm:order-none">
-                      <Switch
-                        size="sm"
-                        checked={isSecret(key)}
-                        onCheckedChange={() => toggleSecret(key)}
-                        disabled={readOnly}
-                        aria-label={t("secretAria", { name: key })}
-                      />
-                      {t("secret")}
-                    </label>
-                  )}
-                  {!readOnly && (
-                    <div className="order-2 flex shrink-0 items-center gap-1.5 sm:order-none">
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        aria-label={
-                          row.note
-                            ? t("editNoteAria", { name: label })
-                            : t("addNoteAria", { name: label })
-                        }
-                        aria-expanded={noteOpen}
-                        aria-controls={noteOpen ? noteId : undefined}
-                        title={row.note ? t("editNote") : t("addNote")}
-                        className={row.note ? "" : "text-muted-foreground"}
-                        onClick={() => setNoteOpen(row.id, !noteOpen)}
-                      >
-                        <StickyNote />
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        aria-label={t("removeAria", { name: label })}
-                        onClick={() =>
-                          updateRows(rows.filter((r) => r.id !== row.id))
-                        }
-                      >
-                        <Trash2 />
-                      </Button>
-                    </div>
-                  )}
-                </div>
-                {noteOpen && !readOnly ? (
-                  <div className="space-y-1">
-                    <Textarea
-                      id={noteId}
-                      aria-label={t("noteAria", { name: label })}
-                      value={row.note}
-                      onChange={(e) =>
-                        patchRow(row.id, { note: e.target.value })
-                      }
-                      onKeyDown={(e) => {
-                        if (e.key === "Escape") {
-                          e.preventDefault()
-                          setNoteOpen(row.id, false)
-                        }
-                      }}
-                      maxLength={NOTE_MAX}
-                      rows={2}
-                      placeholder={t("notePlaceholder")}
-                      className="text-xs"
-                      autoFocus
-                    />
-                    <div className="flex justify-end">
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => setNoteOpen(row.id, false)}
-                      >
-                        {t("noteDone")}
-                      </Button>
-                    </div>
-                  </div>
-                ) : (
-                  row.note.trim() && (
-                    <p className="px-0.5 text-xs break-words whitespace-pre-wrap text-muted-foreground">
-                      {row.note.trim()}
-                    </p>
+                      {(handle) => (
+                        <div className="flex items-start gap-1.5">
+                          {handle}
+                          <Textarea
+                            aria-label={t("commentAria", { n })}
+                            id={`${baseId}-c-${row.id}`}
+                            value={row.text}
+                            onChange={(e) =>
+                              patchRow(row.id, { text: e.target.value })
+                            }
+                            readOnly={readOnly}
+                            rows={Math.min(row.text.split("\n").length, 6)}
+                            className="min-h-0 min-w-0 flex-1 py-1 font-mono text-xs text-muted-foreground"
+                            spellCheck={false}
+                          />
+                          {!readOnly && (
+                            <>
+                              <EnvRowMoveMenu
+                                label={label}
+                                index={index}
+                                total={rows.length}
+                                onMove={move}
+                              />
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                aria-label={t("removeCommentAria", { n })}
+                                onClick={() =>
+                                  updateRows(
+                                    rows.filter((r) => r.id !== row.id)
+                                  )
+                                }
+                              >
+                                <Trash2 />
+                              </Button>
+                            </>
+                          )}
+                        </div>
+                      )}
+                    </SortableEnvRow>
                   )
-                )}
-              </div>
-            )
-          })}
+                }
+                const i = (numbers.get(row.id) ?? 1) - 1
+                const key = row.key.trim()
+                const noteOpen = openNotes.has(row.id)
+                const noteId = `${baseId}-n-${row.id}`
+                // Under the row, the note lines up with the name field.
+                const indent = readOnly ? "" : "ml-6.5"
+                return (
+                  <SortableEnvRow
+                    key={row.id}
+                    id={sortId(row)}
+                    disabled={readOnly}
+                    label={label}
+                    className={`space-y-1 ${gap}`}
+                    handleClassName={secrets ? "order-1 sm:order-none" : ""}
+                  >
+                    {(handle) => (
+                      <>
+                        <div
+                          className={
+                            secrets
+                              ? "flex flex-wrap items-center gap-1.5 sm:flex-nowrap"
+                              : "flex items-center gap-1.5"
+                          }
+                        >
+                          {handle}
+                          <Input
+                            aria-label={t("keyAria", { n: i + 1 })}
+                            id={`${baseId}-k-${row.id}`}
+                            value={row.key}
+                            onChange={(e) =>
+                              patchRow(row.id, { key: e.target.value })
+                            }
+                            placeholder="KEY"
+                            readOnly={readOnly}
+                            className={
+                              !secrets
+                                ? "w-2/5 max-w-sm font-mono text-xs"
+                                : readOnly
+                                  ? "w-full font-mono text-xs sm:w-2/5 sm:max-w-sm"
+                                  : // Phone: the handle and name share their line
+                                    // with the note, move and remove buttons; the
+                                    // value and Secret go below, under the name.
+                                    "order-1 min-w-0 flex-1 basis-[calc(100%-8.25rem)] font-mono text-xs sm:order-none sm:w-2/5 sm:max-w-sm sm:flex-none sm:basis-auto"
+                            }
+                            autoComplete="off"
+                            spellCheck={false}
+                          />
+                          <Input
+                            aria-label={t("valueAria", { n: i + 1 })}
+                            id={`${baseId}-v-${row.id}`}
+                            type={revealed ? "text" : "password"}
+                            value={row.value}
+                            onChange={(e) =>
+                              patchRow(row.id, { value: e.target.value })
+                            }
+                            placeholder="value"
+                            readOnly={readOnly}
+                            className={
+                              secrets
+                                ? readOnly
+                                  ? "order-3 min-w-0 flex-1 basis-40 font-mono text-xs sm:order-none"
+                                  : "order-3 ml-6.5 min-w-0 flex-1 basis-40 font-mono text-xs sm:order-none sm:ml-0"
+                                : "min-w-0 flex-1 font-mono text-xs"
+                            }
+                            autoComplete="off"
+                            spellCheck={false}
+                          />
+                          {secrets && key && (
+                            <label className="order-4 flex shrink-0 items-center gap-1.5 text-xs text-muted-foreground sm:order-none">
+                              <Switch
+                                size="sm"
+                                checked={isSecret(key)}
+                                onCheckedChange={() => toggleSecret(key)}
+                                disabled={readOnly}
+                                aria-label={t("secretAria", { name: key })}
+                              />
+                              {t("secret")}
+                            </label>
+                          )}
+                          {!readOnly && (
+                            <div className="order-2 flex shrink-0 items-center gap-1.5 sm:order-none">
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                aria-label={
+                                  row.note
+                                    ? t("editNoteAria", { name: label })
+                                    : t("addNoteAria", { name: label })
+                                }
+                                aria-expanded={noteOpen}
+                                aria-controls={noteOpen ? noteId : undefined}
+                                title={row.note ? t("editNote") : t("addNote")}
+                                className={
+                                  row.note ? "" : "text-muted-foreground"
+                                }
+                                onClick={() => setNoteOpen(row.id, !noteOpen)}
+                              >
+                                <StickyNote />
+                              </Button>
+                              <EnvRowMoveMenu
+                                label={label}
+                                index={index}
+                                total={rows.length}
+                                onMove={move}
+                              />
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                aria-label={t("removeAria", { name: label })}
+                                onClick={() =>
+                                  updateRows(
+                                    rows.filter((r) => r.id !== row.id)
+                                  )
+                                }
+                              >
+                                <Trash2 />
+                              </Button>
+                            </div>
+                          )}
+                        </div>
+                        {noteOpen && !readOnly ? (
+                          <div className={`space-y-1 ${indent}`}>
+                            <Textarea
+                              id={noteId}
+                              aria-label={t("noteAria", { name: label })}
+                              value={row.note}
+                              onChange={(e) =>
+                                patchRow(row.id, { note: e.target.value })
+                              }
+                              onKeyDown={(e) => {
+                                if (e.key === "Escape") {
+                                  e.preventDefault()
+                                  setNoteOpen(row.id, false)
+                                }
+                              }}
+                              maxLength={NOTE_MAX}
+                              rows={2}
+                              placeholder={t("notePlaceholder")}
+                              className="text-xs"
+                              autoFocus
+                            />
+                            <div className="flex justify-end">
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => setNoteOpen(row.id, false)}
+                              >
+                                {t("noteDone")}
+                              </Button>
+                            </div>
+                          </div>
+                        ) : (
+                          row.note.trim() && (
+                            <p
+                              className={`px-0.5 text-xs break-words whitespace-pre-wrap text-muted-foreground ${indent}`}
+                            >
+                              {row.note.trim()}
+                            </p>
+                          )
+                        )}
+                      </>
+                    )}
+                  </SortableEnvRow>
+                )
+              })}
+            </SortableContext>
+          </DndContext>
+          <p className="sr-only" aria-live="polite">
+            {moveStatus}
+          </p>
           {!readOnly && (
             <Button
               type="button"

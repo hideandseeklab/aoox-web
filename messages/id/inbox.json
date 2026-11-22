@@ -43,8 +43,24 @@
         "summary": "{trigger, select, scheduled {Terjadwal} other {Manual}}{error, select, none {} other { · {error}}}"
       }
     },
+    "jobStarted": {
+      "title": "Job dimulai: {job}",
+      "summary": "{owner, select, none {} other {{owner} · }}{project, select, none {} other {{project} · }}{trigger, select, scheduled {Terjadwal} other {Manual}}"
+    },
+    "jobSuccess": {
+      "title": "Job berhasil: {job}",
+      "summary": "{owner, select, none {} other {{owner} · }}{project, select, none {} other {{project} · }}{trigger, select, scheduled {Terjadwal} other {Manual}}{duration, select, none {} other { · {duration}}}"
+    },
     "jobFailure": {
-      "title": "{status, select, timeout {Job melewati batas waktu: {job}} other {Job gagal: {job}}}"
+      "title": "{status, select, timeout {Job melewati batas waktu: {job}} other {Job gagal: {job}}}",
+      "failure": {
+        "title": "{status, select, timeout {Job melewati batas waktu: {job}} other {Job gagal: {job}}}",
+        "summary": "{owner, select, none {} other {{owner} · }}{project, select, none {} other {{project} · }}{trigger, select, scheduled {Terjadwal} other {Manual}}{duration, select, none {} other { · {duration}}}{exitCode, select, none {} other { · exit code {exitCode}}}"
+      },
+      "recovered": {
+        "title": "Job berhasil lagi: {job}",
+        "summary": "{owner, select, none {} other {{owner} · }}{project, select, none {} other {{project} · }}{trigger, select, scheduled {Terjadwal} other {Manual}}{duration, select, none {} other { · {duration}}}"
+      }
     },
     "containerDown": {
       "application": {

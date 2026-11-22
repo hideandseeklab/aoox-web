@@ -169,7 +169,8 @@
       "revealValues": "Tampilkan nilai",
       "revealingValues": "Menampilkan…",
       "hideValues": "Sembunyikan nilai",
-      "emptyText": "(kosong)"
+      "emptyText": "(kosong)",
+      "notesChanged": "Catatan"
     },
     "compare": {
       "button": "Bandingkan",

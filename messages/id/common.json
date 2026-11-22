@@ -112,7 +112,23 @@
     "editNoteAria": "Ubah catatan {name}",
     "noteAria": "Catatan untuk {name}",
     "notePlaceholder": "Kegunaan variabel ini. Disimpan sebagai baris # di atasnya.",
-    "noteDone": "Selesai"
+    "noteDone": "Selesai",
+    "dragAria": "Seret untuk mengubah urutan {name}",
+    "dragTitle": "Seret untuk mengubah urutan (atau Spasi, lalu tombol panah)",
+    "dragRoleDescription": "baris yang bisa diurutkan",
+    "dragInstructions": "Untuk mengambil baris, tekan Spasi atau Enter. Gunakan tombol panah atas dan bawah untuk memindahkannya, lalu tekan Spasi atau Enter untuk meletakkannya, atau Escape untuk membatalkan.",
+    "dragStart": "{name} diambil. Posisinya {position} dari {total}.",
+    "dragOver": "{name} dipindah ke posisi {position} dari {total}.",
+    "dragOutside": "{name} tidak lagi berada di atas daftar.",
+    "dragEnd": "{name} diletakkan di posisi {position} dari {total}.",
+    "dragCancel": "Pemindahan {name} dibatalkan.",
+    "moveMenu": "Pindahkan",
+    "moveMenuAria": "Pindahkan {name}",
+    "moveUp": "Pindah ke atas",
+    "moveDown": "Pindah ke bawah",
+    "moveTop": "Pindah ke paling atas",
+    "moveBottom": "Pindah ke paling bawah",
+    "movedStatus": "{name} dipindah ke posisi {position} dari {total}."
   },
   "metrics": {
     "range": {

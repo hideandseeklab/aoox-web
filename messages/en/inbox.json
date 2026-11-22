@@ -43,8 +43,24 @@
         "summary": "{trigger, select, scheduled {Scheduled} other {Manual}}{error, select, none {} other { · {error}}}"
       }
     },
+    "jobStarted": {
+      "title": "Job started: {job}",
+      "summary": "{owner, select, none {} other {{owner} · }}{project, select, none {} other {{project} · }}{trigger, select, scheduled {Scheduled} other {Manual}}"
+    },
+    "jobSuccess": {
+      "title": "Job succeeded: {job}",
+      "summary": "{owner, select, none {} other {{owner} · }}{project, select, none {} other {{project} · }}{trigger, select, scheduled {Scheduled} other {Manual}}{duration, select, none {} other { · {duration}}}"
+    },
     "jobFailure": {
-      "title": "{status, select, timeout {Job timed out: {job}} other {Job failed: {job}}}"
+      "title": "{status, select, timeout {Job timed out: {job}} other {Job failed: {job}}}",
+      "failure": {
+        "title": "{status, select, timeout {Job timed out: {job}} other {Job failed: {job}}}",
+        "summary": "{owner, select, none {} other {{owner} · }}{project, select, none {} other {{project} · }}{trigger, select, scheduled {Scheduled} other {Manual}}{duration, select, none {} other { · {duration}}}{exitCode, select, none {} other { · exit code {exitCode}}}"
+      },
+      "recovered": {
+        "title": "Job succeeded again: {job}",
+        "summary": "{owner, select, none {} other {{owner} · }}{project, select, none {} other {{project} · }}{trigger, select, scheduled {Scheduled} other {Manual}}{duration, select, none {} other { · {duration}}}"
+      }
     },
     "containerDown": {
       "application": {

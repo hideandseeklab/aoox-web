@@ -169,7 +169,8 @@
       "revealValues": "Show values",
       "revealingValues": "Revealing…",
       "hideValues": "Hide values",
-      "emptyText": "(empty)"
+      "emptyText": "(empty)",
+      "notesChanged": "Notes"
     },
     "compare": {
       "button": "Compare",

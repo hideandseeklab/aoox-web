@@ -8,6 +8,12 @@ Versions below 1.0.0 may include breaking changes in a minor release.
 
 ## [Unreleased]
 
+### Added
+
+- **Variables can be reordered in the Rows view of the env editor** (variable set environments, an application's and a stack's own environment): drag a row by its grip handle (mouse or touch), or focus the handle and use Space/Enter plus the arrow keys, or pick Move up / Move down / Move to top / Move to bottom from the row's move menu (the fallback on phones). The order really changes: it is the order of the saved `KEY=VALUE` text and of the Text view. A variable's note moves with it; comment blocks such as section headers move as one row; blank lines stay between the groups they separated (a row moved up joins the group of the row it was dropped before, moved down the group of the row it was dropped after), and a comment that ends up directly above a variable or another comment gets a blank line so it does not become a note or merge. Read-only editors show no handles. Screen-reader announcements are translated.
+- `npm test` runs the pure checks of the env editor's row model (`node --test`, no new dependency).
+- **Job run notifications.** The new-job dialog (applications, databases and compose stacks) has a **Notify** select: *Failures only* (default, as before), *When finished* (also successful runs) or *Start and finish* (also the start of every run), with a short hint. Notification channels get two new toggles, **job started** and **job succeeded** (on by default; the job's own setting is the opt-in). The Notifications list shows the new events in English and Indonesian (job started, job succeeded, job failed or timed out with owner, project, trigger, duration and exit code, and "job succeeded again" after a failure); older job failure rows still read as before.
+
 ### Fixed
 
 - **Deployment logs no longer hang on "Loading…" without the realtime socket.** When the `/logs` socket is not available (the page is opened on another address than `WEB_ORIGIN`, for example through an SSH tunnel; the gateway rejects it; the connection fails or drops; or it is still not up after 3 seconds), the Deploy tab reads the selected deployment over HTTP (`GET /deployments/:id`): a finished one once, a running one every 2 seconds until it ends (log, status and step times update, then the page refreshes once). With a working socket nothing changes. An empty log now reads "No output yet." and a failed read says so instead of loading forever.
@@ -22,12 +28,15 @@ Versions below 1.0.0 may include breaking changes in a minor release.
 - **The certificate picker of an existing domain follows the same ACME rule** as the add form: without an ACME email on the serving proxy, a domain on an uploaded certificate can no longer be switched back to "Automatic (Let's Encrypt)" (the option says it needs an ACME email); when the server's ACME setting cannot be read, the option says it works only if that proxy has one.
 - **The "HTTPS needs an ACME email" hint names both ways to set it** (the panel domain page under Infrastructure → Panel domain, or `PROXY_ACME_EMAIL` in `.env.dist`), on the Domains tab and in the new-application form.
 - **Deleting a backup destination names what still uses it**: the instance backup schedule and any registry that stores its images in that bucket (the registry keeps running but aoox loses the link to its storage).
+- The header of a variable set that is not shared with any project reads "Not shared with any project" instead of "Shared with Not shared with any project".
 - **Confirmation dialogs show their spinner while the action runs** (state set inside the async transition only appeared when it had finished). Expanding a compose history entry also opens at the click instead of after its log has loaded.
 
 ### UI UX Improvement
 
 - **Backup lists keep their layout while a backup runs** (database, volume and instance backups): the backup button keeps its label (its icon turns into a spinner instead of the shorter "Working…" text), a placeholder "Creating backup…" row takes the new row's place at the moment of the click (with the S3 and "all databases" line the new row will carry, so its height matches) so nothing moves when the backup finishes, and errors appear as a toast instead of a line pushed in above the table.
 - **Deploy tab explains a missing "Roll back to this"**: a successful deployment that runs the current image shows "This deployment runs the current image.", and one whose image was removed by cleanup says it cannot be rolled back to.
+- **Jobs table has a Notify column**: developers change a job's notification level right from its row (a compact select); viewers see the level as text. The table is a little wider and still scrolls inside itself on phones.
+- **Version history names note changes**: a version whose notes differ from the version before it lists them ("Notes: NAME"), so "Only comments or order changed" now really means that (for example a pure reorder).
 
 ## [0.1.0] - 2026-11-17
 

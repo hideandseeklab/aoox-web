@@ -195,6 +195,8 @@
       "onDeploymentFailure": "deploy failed",
       "onBackupFailure": "backup failed",
       "onJobFailure": "job failed",
+      "onJobStarted": "job started",
+      "onJobSuccess": "job succeeded",
       "onDiskLow": "disk almost full",
       "onCertificateFailure": "certificate failed",
       "onDnsIssue": "domain DNS problem",

@@ -13,6 +13,8 @@ export interface Notification {
   onDeploymentFailure: boolean
   onBackupFailure: boolean
   onJobFailure: boolean
+  onJobStarted: boolean
+  onJobSuccess: boolean
   onDiskLow: boolean
   onCertificateFailure: boolean
   onDnsIssue: boolean

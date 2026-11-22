@@ -39,12 +39,14 @@ import {
   runJobAction,
   updateJobAction,
 } from "@/features/job/job.actions"
-import type {
-  Job,
-  JobOwner,
-  JobRun,
-  JobRunStatus,
-  JobTarget,
+import {
+  JOB_NOTIFY_LEVELS,
+  type Job,
+  type JobNotify,
+  type JobOwner,
+  type JobRun,
+  type JobRunStatus,
+  type JobTarget,
 } from "@/features/job/job.entity"
 import { formatDateTime } from "@/i18n/format"
 import { ScheduleTimeZoneHint } from "@/components/custom/schedule-time-zone"
@@ -105,6 +107,7 @@ export function ApplicationJobs({
   const [mode, setMode] = useState("off")
   const [customCron, setCustomCron] = useState("")
   const [timeout, setTimeout_] = useState("600")
+  const [notify, setNotify] = useState<JobNotify>("failure")
   const cron =
     mode === "custom" ? customCron.trim() : mode === "off" ? null : mode
 
@@ -116,6 +119,7 @@ export function ApplicationJobs({
     setMode("off")
     setCustomCron("")
     setTimeout_("600")
+    setNotify("failure")
   }
 
   return (
@@ -146,6 +150,7 @@ export function ApplicationJobs({
                   target,
                   enabled: true,
                   timeoutSeconds: Math.max(1, Number(timeout) || 600),
+                  notify,
                   ...(owner.kind === "compose" ? { service } : {}),
                 })
               }
@@ -250,6 +255,34 @@ export function ApplicationJobs({
                   />
                 </div>
               </div>
+              <div className="space-y-1">
+                <Label htmlFor="job-notify">{t("jobs.new.notify")}</Label>
+                <Select
+                  value={notify}
+                  onValueChange={(v) => setNotify(v as JobNotify)}
+                >
+                  <SelectTrigger
+                    id="job-notify"
+                    className="w-full"
+                    aria-describedby="job-notify-hint"
+                  >
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent position="popper">
+                    {JOB_NOTIFY_LEVELS.map((level) => (
+                      <SelectItem key={level} value={level}>
+                        {t(`jobs.notify.${level}`)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p
+                  id="job-notify-hint"
+                  className="text-xs text-muted-foreground"
+                >
+                  {t("jobs.new.notifyHint")}
+                </p>
+              </div>
             </AddDialog>
           )
         }
@@ -259,11 +292,12 @@ export function ApplicationJobs({
           {t("jobs.empty")}
         </EmptyState>
       ) : (
-        <DataTable minWidth="min-w-[52rem]">
+        <DataTable minWidth="min-w-[60rem]">
           <DataTableHeader>
             <DataHead>{t("jobs.columns.name")}</DataHead>
             <DataHead>{t("jobs.columns.schedule")}</DataHead>
             <DataHead>{t("jobs.columns.runIn")}</DataHead>
+            <DataHead>{t("jobs.columns.notify")}</DataHead>
             <DataHead>{t("jobs.columns.lastRun")}</DataHead>
             <DataHead>
               <span title={t("jobs.columns.activeHint")}>
@@ -300,6 +334,9 @@ function JobRow({
   const [error, setError] = useState<string | null>(null)
   const [pending, start] = useTransition()
   const running = runs?.some((r) => r.status === "running") ?? false
+  const notify: JobNotify = JOB_NOTIFY_LEVELS.includes(job.notify as JobNotify)
+    ? (job.notify as JobNotify)
+    : "failure"
 
   const router = useRouter()
   const wasRunning = useRef(false)
@@ -367,6 +404,36 @@ function JobRow({
           <div className="text-muted-foreground">
             {t("jobs.row.timeout", { seconds: job.timeoutSeconds })}
           </div>
+        </DataCell>
+        <DataCell>
+          {canEdit ? (
+            <Select
+              value={notify}
+              disabled={pending}
+              onValueChange={(v) =>
+                act(() =>
+                  updateJobAction(owner, job.id, { notify: v as JobNotify })
+                )
+              }
+            >
+              <SelectTrigger
+                size="sm"
+                className="w-40"
+                aria-label={t("jobs.row.notify", { name: job.name })}
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent position="popper">
+                {JOB_NOTIFY_LEVELS.map((level) => (
+                  <SelectItem key={level} value={level}>
+                    {t(`jobs.notify.${level}`)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          ) : (
+            t(`jobs.notify.${notify}`)
+          )}
         </DataCell>
         <DataCell>
           <div className="flex items-center gap-2">
@@ -445,7 +512,7 @@ function JobRow({
         </DataActions>
       </DataRow>
       {open && (
-        <DataDetailRow colSpan={6}>
+        <DataDetailRow colSpan={7}>
           {runs === null ? (
             <p className="text-xs text-muted-foreground">
               {tc("states.loading")}

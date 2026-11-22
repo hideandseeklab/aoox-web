@@ -503,6 +503,8 @@
       "schedule": "Jadwal",
       "cron": "Cron (5 kolom)",
       "timeout": "Timeout (detik)",
+      "notify": "Notifikasi",
+      "notifyHint": "Run mana yang diumumkan di Notifikasi dan di channel yang mengaktifkan event job. Run yang berhasil setelah gagal selalu diberitahukan.",
       "add": "Tambah job"
     },
     "preset": {
@@ -513,6 +515,11 @@
       "daily": "Setiap hari 02:00",
       "custom": "Kustom"
     },
+    "notify": {
+      "failure": "Hanya saat gagal",
+      "finish": "Saat selesai",
+      "all": "Saat mulai dan selesai"
+    },
     "row": {
       "openHistory": "Buka riwayat",
       "closeHistory": "Tutup riwayat",
@@ -522,6 +529,7 @@
       "timeout": "batas waktu {seconds}s",
       "last": "terakhir {when}",
       "active": "Jadwal untuk {name}",
+      "notify": "Notifikasi untuk {name}",
       "noSchedule": "Tanpa jadwal",
       "runNow": "Jalankan",
       "deleteAria": "Hapus job",
@@ -543,6 +551,7 @@
       "name": "Job",
       "schedule": "Jadwal",
       "runIn": "Dijalankan di",
+      "notify": "Notifikasi",
       "lastRun": "Terakhir jalan",
       "active": "Jadwal aktif",
       "activeHint": "Mematikan jadwal otomatis; tombol Run tetap bisa dipakai secara manual."

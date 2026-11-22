@@ -96,6 +96,8 @@ export interface EnvironmentVersion {
     removed: string[]
     flags: string[]
   }
+  /** Notes of that version's text (name -> note, plaintext, never values). */
+  notes?: Record<string, string>
   /** The newest version is the current content. */
   current: boolean
 }

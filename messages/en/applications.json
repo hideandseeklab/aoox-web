@@ -503,6 +503,8 @@
       "schedule": "Schedule",
       "cron": "Cron (5 fields)",
       "timeout": "Timeout (seconds)",
+      "notify": "Notify",
+      "notifyHint": "Which runs are announced in Notifications and on the channels that have job events turned on. A run that succeeds after a failure always says so.",
       "add": "Add job"
     },
     "preset": {
@@ -513,6 +515,11 @@
       "daily": "Every day at 02:00",
       "custom": "Custom"
     },
+    "notify": {
+      "failure": "Failures only",
+      "finish": "When finished",
+      "all": "Start and finish"
+    },
     "row": {
       "openHistory": "Open history",
       "closeHistory": "Close history",
@@ -522,6 +529,7 @@
       "timeout": "timeout {seconds}s",
       "last": "last {when}",
       "active": "Schedule for {name}",
+      "notify": "Notifications for {name}",
       "noSchedule": "No schedule",
       "runNow": "Run",
       "deleteAria": "Delete job",
@@ -543,6 +551,7 @@
       "name": "Job",
       "schedule": "Schedule",
       "runIn": "Runs in",
+      "notify": "Notify",
       "lastRun": "Last run",
       "active": "Schedule on",
       "activeHint": "Turns the automatic schedule off; Run still works manually."

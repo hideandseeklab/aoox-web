@@ -195,6 +195,8 @@
       "onDeploymentFailure": "deploy gagal",
       "onBackupFailure": "backup gagal",
       "onJobFailure": "job gagal",
+      "onJobStarted": "job dimulai",
+      "onJobSuccess": "job berhasil",
       "onDiskLow": "disk hampir penuh",
       "onCertificateFailure": "sertifikat gagal",
       "onDnsIssue": "DNS domain bermasalah",

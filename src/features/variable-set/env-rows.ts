@@ -128,9 +128,9 @@ export function toText(rows: EnvRow[]): string {
     let blanks = Math.max(row.blankBefore, carry)
     carry = 0
     // A standalone comment directly above a variable would become its
-    // note: keep it standalone with a blank line.
+    // note, and directly above another block it would merge with it (a
+    // moved section header, for example): keep it apart with a blank line.
     if (
-      row.kind === "var" &&
       blanks === 0 &&
       out.length > 0 &&
       out[out.length - 1].trim().startsWith("#")
@@ -170,4 +170,49 @@ export function varKeys(rows: EnvRow[]): string[] {
   return rows.flatMap((r) =>
     r.kind === "var" && r.key.trim() ? [r.key.trim()] : []
   )
+}
+
+/**
+ * Moves the row at index `from` to index `to` (the index it has afterwards,
+ * as in dnd-kit's `arrayMove`). A variable's note is part of its row, so it
+ * moves with it; a comment block (a section header) moves as one row.
+ *
+ * Blank lines are the gaps between groups of rows and stay where they are:
+ * - the gap the row leaves is closed, and the row that followed it takes
+ *   over the larger of the two gaps, so a group head hands its gap on and two
+ *   groups never merge (at the top, the leading blank lines are kept);
+ * - moved down, the row joins the group of the row it was dropped after
+ *   (no blank line before it);
+ * - moved up, it joins the group of the row it was dropped before: it takes
+ *   that row's gap and that row follows it directly.
+ *
+ * `toText` then keeps notes attached: a comment directly above a moved
+ * variable gets a blank line so it does not become its note, and one directly
+ * above another block gets one so the two stay apart.
+ */
+export function moveRow(rows: EnvRow[], from: number, to: number): EnvRow[] {
+  const last = rows.length - 1
+  if (from === to || from < 0 || to < 0 || from > last || to > last) {
+    return rows
+  }
+  const list = rows.slice()
+  const [moved] = list.splice(from, 1)
+  if (from < list.length) {
+    const next = list[from]
+    list[from] = {
+      ...next,
+      blankBefore:
+        from === 0
+          ? moved.blankBefore
+          : Math.max(next.blankBefore, moved.blankBefore),
+    }
+  }
+  if (to > from) {
+    list.splice(to, 0, { ...moved, blankBefore: 0 })
+  } else {
+    const target = list[to]
+    list.splice(to, 0, { ...moved, blankBefore: target.blankBefore })
+    list[to + 1] = { ...target, blankBefore: 0 }
+  }
+  return list
 }
