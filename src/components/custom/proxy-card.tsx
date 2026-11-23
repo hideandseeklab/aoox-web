@@ -76,7 +76,7 @@ export function ProxyCard({
         variant="warning"
         icon={<TriangleAlert />}
         title={tc("daemonUnreachable.title")}
-        description={tc("daemonUnreachable.description")}
+        description={tc("daemonUnreachable.proxyDescription")}
       >
         <p className="font-mono text-xs break-words opacity-80">
           {tc("daemonUnreachable.reason", { reason: status.unreachable })}

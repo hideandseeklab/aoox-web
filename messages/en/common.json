@@ -56,6 +56,7 @@
   "daemonUnreachable": {
     "title": "The Docker daemon is not reachable",
     "description": "This page shows what is stored in the database. Container state, logs and metrics are unavailable until Docker is back, then reload the page.",
+    "proxyDescription": "The proxy's state cannot be read and it cannot be installed or changed until Docker is back. Then reload the page.",
     "reason": "Reason: {reason}"
   },
   "labels": {
