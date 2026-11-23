@@ -10,9 +10,14 @@ Versions below 1.0.0 may include breaking changes in a minor release.
 
 ### Added
 
+- **Storage card** on the Overview of an application (Deploy tab), a database and a compose stack: total disk use and a breakdown (volumes, container layers, the image marked as not counted, backup files), measured when the page opens, with a Refresh button and a "measured" time. A daemon that cannot be reached shows the usual Docker notice inside the card.
 - **Variables can be reordered in the Rows view of the env editor** (variable set environments, an application's and a stack's own environment): drag a row by its grip handle (mouse or touch), or focus the handle and use Space/Enter plus the arrow keys, or pick Move up / Move down / Move to top / Move to bottom from the row's move menu (the fallback on phones). The order really changes: it is the order of the saved `KEY=VALUE` text and of the Text view. A variable's note moves with it; comment blocks such as section headers move as one row; blank lines stay between the groups they separated (a row moved up joins the group of the row it was dropped before, moved down the group of the row it was dropped after), and a comment that ends up directly above a variable or another comment gets a blank line so it does not become a note or merge. Read-only editors show no handles. Screen-reader announcements are translated.
 - `npm test` runs the pure checks of the env editor's row model (`node --test`, no new dependency).
 - **Job run notifications.** The new-job dialog (applications, databases and compose stacks) has a **Notify** select: *Failures only* (default, as before), *When finished* (also successful runs) or *Start and finish* (also the start of every run), with a short hint. Notification channels get two new toggles, **job started** and **job succeeded** (on by default; the job's own setting is the opt-in). The Notifications list shows the new events in English and Indonesian (job started, job succeeded, job failed or timed out with owner, project, trigger, duration and exit code, and "job succeeded again" after a failure); older job failure rows still read as before.
+
+### UI UX Improvement
+
+- The new Storage card keeps its height while loading (skeleton rows), wraps long volume and container names, and fits a 375px screen.
 
 ### Fixed
 

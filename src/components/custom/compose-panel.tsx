@@ -20,6 +20,7 @@ import { formatBytes } from "@/features/monitoring/monitoring.entity"
 import type { MetricsResponse } from "@/features/monitoring/monitoring.entity"
 import { formatNumber } from "@/i18n/format"
 import { MetricsPanel } from "@/components/custom/metrics-panel"
+import { ResourceStorageCard } from "@/components/custom/resource-storage-card"
 
 /** The sampler itself runs every 15s; this only refreshes what it has. */
 const METRICS_POLL_MS = 10_000
@@ -147,6 +148,8 @@ export function ComposePanel({
           </CardContent>
         </Card>
       </div>
+
+      <ResourceStorageCard target="compose" id={app.id} />
     </div>
   )
 }

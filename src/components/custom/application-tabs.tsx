@@ -68,6 +68,7 @@ import type { MetricsResponse } from "@/features/monitoring/monitoring.entity"
 import { appProxyFor } from "@/features/proxy/app-proxy"
 import type { ProxyStatus } from "@/features/proxy/proxy.entity"
 import type { Registry } from "@/features/registry/registry.entity"
+import { ResourceStorageCard } from "@/components/custom/resource-storage-card"
 import type { Server } from "@/features/server/server.entity"
 import type { SwarmNode } from "@/features/swarm/swarm.entity"
 import type { VolumeBackup } from "@/features/volume-backup/volume-backup.entity"
@@ -254,6 +255,7 @@ export function ApplicationTabs({
           domainProxyAutoProvisioned={domainProxyAutoProvisioned}
           onNavigateTab={setTab}
         />
+        <ResourceStorageCard target="application" id={app.id} />
       </TabsContent>
       <TabsContent value="logs" className="pt-4">
         <ApplicationLogsPanel

@@ -32,6 +32,7 @@ import { DaemonUnreachableAlert } from "@/components/custom/daemon-unreachable-a
 import { ContainerName } from "@/components/custom/container-name"
 import { HeaderFact } from "@/components/custom/header-fact"
 import { Badge } from "@/components/ui/badge"
+import { ResourceStorageCard } from "@/components/custom/resource-storage-card"
 import { Tabs, TabsContent } from "@/components/ui/tabs"
 import { ScrollableTabsList } from "@/components/custom/scrollable-tabs-list"
 import { PageTabsTrigger } from "@/components/custom/page-tabs-trigger"
@@ -220,6 +221,7 @@ export default async function DatabasePage({
             tools={companionTools}
             running={running}
           />
+          <ResourceStorageCard target="database" id={db.id} />
           <div
             className={cn("grid items-start gap-4", alerts && "lg:grid-cols-2")}
           >

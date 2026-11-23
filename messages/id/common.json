@@ -178,5 +178,24 @@
     "description": "Perubahan pada variabel belum disimpan. Jika Anda keluar sekarang, perubahan itu hilang.",
     "stay": "Lanjut mengedit",
     "discard": "Buang perubahan"
+  },
+  "storage": {
+    "title": "Penyimpanan",
+    "description": "Ruang disk yang dipakai resource ini: volume, layer container, dan file backup.",
+    "refresh": "Segarkan",
+    "total": "Total",
+    "failed": "Angka penyimpanan tidak dapat dibaca.",
+    "unreachable": "Ukuran tidak dapat diukur sampai Docker kembali aktif. Setelah itu, segarkan.",
+    "empty": "Belum ada yang terukur: belum ada volume atau container.",
+    "backupFiles": "File backup ({count})",
+    "kind": {
+      "volume": "Volume",
+      "container": "Layer container",
+      "companion": "Layer container alat admin",
+      "image": "Image",
+      "backups": "Backup"
+    },
+    "imageNote": "tidak dihitung dalam total, layer bisa dipakai bersama",
+    "measured": "Diukur {when}. Angka bisa tertinggal hingga semenit."
   }
 }

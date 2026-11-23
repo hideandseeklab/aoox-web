@@ -178,5 +178,24 @@
     "description": "Your changes to the variables have not been saved. If you leave now, they are lost.",
     "stay": "Keep editing",
     "discard": "Discard changes"
+  },
+  "storage": {
+    "title": "Storage",
+    "description": "Disk used by this resource: volumes, container layers and backup files.",
+    "refresh": "Refresh",
+    "total": "Total",
+    "failed": "Could not read the storage figures.",
+    "unreachable": "Sizes cannot be measured until Docker is back. Then refresh.",
+    "empty": "Nothing measured yet: no volumes or containers exist.",
+    "backupFiles": "Backup files ({count})",
+    "kind": {
+      "volume": "Volume",
+      "container": "Container layer",
+      "companion": "Admin tool container layer",
+      "image": "Image",
+      "backups": "Backups"
+    },
+    "imageNote": "not in total, layers may be shared",
+    "measured": "Measured {when}. Figures may be up to a minute old."
   }
 }
