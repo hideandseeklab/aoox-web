@@ -4,6 +4,7 @@ import { useMemo } from "react"
 import { useRouter as useNextRouter } from "next/navigation"
 
 import { isNavigationTarget, startNavigationProgress } from "@/lib/nav-progress"
+import { confirmDiscard } from "@/lib/unsaved-changes"
 
 /**
  * Drop-in replacement for `useRouter` from `next/navigation`: `push`/`replace`
@@ -12,7 +13,10 @@ import { isNavigationTarget, startNavigationProgress } from "@/lib/nav-progress"
  * programmatic navigation has begun). `back`/`forward` are covered by the
  * bar's own `popstate` listener; `refresh` deliberately does nothing extra so
  * polling never shows the bar. Use this instead of the `next/navigation` hook
- * wherever the code calls `push` or `replace`.
+ * wherever the code calls `push` or `replace`. A `push`/`replace` to another
+ * page while an editor has unsaved changes asks first (`confirmDiscard`); a
+ * form that navigates after a successful save calls `clearUnsavedChanges()`
+ * right before it.
  */
 export function useRouter() {
   const router = useNextRouter()
@@ -20,12 +24,20 @@ export function useRouter() {
     () => ({
       ...router,
       push: (...args: Parameters<typeof router.push>) => {
-        if (isNavigationTarget(args[0])) startNavigationProgress()
-        router.push(...args)
+        const go = () => {
+          if (isNavigationTarget(args[0])) startNavigationProgress()
+          router.push(...args)
+        }
+        if (isNavigationTarget(args[0])) confirmDiscard(go)
+        else go()
       },
       replace: (...args: Parameters<typeof router.replace>) => {
-        if (isNavigationTarget(args[0])) startNavigationProgress()
-        router.replace(...args)
+        const go = () => {
+          if (isNavigationTarget(args[0])) startNavigationProgress()
+          router.replace(...args)
+        }
+        if (isNavigationTarget(args[0])) confirmDiscard(go)
+        else go()
       },
     }),
     [router],

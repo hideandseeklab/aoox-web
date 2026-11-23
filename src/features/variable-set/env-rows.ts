@@ -216,3 +216,14 @@ export function moveRow(rows: EnvRow[], from: number, to: number): EnvRow[] {
   }
   return list
 }
+
+/**
+ * True when two env texts hold the same content as the editor writes it:
+ * both go through the row model, so what Rows view cannot tell apart
+ * (trailing blank lines, spaces around a name) is not a change, while a
+ * changed value, note, comment or order is. Used for the unsaved-changes guard.
+ */
+export function sameEnvText(a: string, b: string): boolean {
+  const norm = (text: string) => toText(toRows(text)).replace(/\s+$/, "")
+  return norm(a) === norm(b)
+}

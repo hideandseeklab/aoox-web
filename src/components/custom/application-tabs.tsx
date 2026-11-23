@@ -31,6 +31,7 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { Tabs, TabsContent } from "@/components/ui/tabs"
+import { confirmDiscard } from "@/lib/unsaved-changes"
 import type { ProjectVariableSet } from "@/features/variable-set/variable-set.entity"
 import { VariableSetLinksEditor } from "@/components/custom/variable-set-links"
 import { ScrollableTabsList } from "@/components/custom/scrollable-tabs-list"
@@ -192,7 +193,14 @@ export function ApplicationTabs({
   })
 
   return (
-    <Tabs value={tab} onValueChange={(v) => setTab(v as ApplicationTab)}>
+    // An inactive tab is unmounted: leaving the Environment or Settings tab
+    // with unsaved changes asks first.
+    <Tabs
+      value={tab}
+      onValueChange={(v) =>
+        confirmDiscard(() => setTab(v as ApplicationTab))
+      }
+    >
       <ScrollableTabsList>
         <PageTabsTrigger icon={Rocket} value="deploy">
           {t("tabs.deploy")}

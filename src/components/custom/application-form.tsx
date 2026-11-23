@@ -7,6 +7,8 @@ import { Check, Container, GitBranch, Loader2 } from "lucide-react"
 import { useTranslations } from "next-intl"
 import Link from "next/link"
 import { useRouter } from "@/lib/use-router"
+import { clearUnsavedChanges } from "@/lib/unsaved-changes"
+import { useUnsavedChanges } from "@/hooks/use-unsaved-changes"
 import {
   useActionState,
   useEffect,
@@ -197,9 +199,24 @@ export function ApplicationForm({
   const tc = useTranslations("common")
   const code = (chunks: React.ReactNode) => <code>{chunks}</code>
   const initial = { ...EMPTY, ...defaultValues }
-  const [state, formAction, pending] = useActionState(action, {
-    values: initial,
-  })
+  // `savedBuildArgs` is the build args text of the last successful save (the
+  // unsaved-changes baseline); a failed save returns the submitted values but
+  // keeps the previous baseline.
+  const [state, formAction, pending] = useActionState(
+    async (
+      prev: ApplicationFormState & { savedBuildArgs?: string },
+      formData: FormData
+    ) => {
+      const r = await action(prev, formData)
+      return {
+        ...r,
+        savedBuildArgs: r.saved
+          ? (r.values?.buildArgs ?? "")
+          : prev.savedBuildArgs,
+      }
+    },
+    { values: initial, savedBuildArgs: initial.buildArgs }
+  )
   const router = useRouter()
   const toastIdRef = useRef<string | number | undefined>(undefined)
   const wasPendingRef = useRef(false)
@@ -207,6 +224,15 @@ export function ApplicationForm({
     null
   )
   const v = state.values ?? initial
+  // Build args are a plain textarea: the typed text (null = untouched)
+  // against the last saved text feeds the unsaved-changes guard.
+  const [buildArgsText, setBuildArgsText] = useState<string | null>(null)
+  useUnsavedChanges(
+    !readOnly &&
+      !buildArgsHidden &&
+      buildArgsText !== null &&
+      buildArgsText !== (state.savedBuildArgs ?? "")
+  )
   const [buildType, setBuildType] = useState(v.buildType)
   // Create mode pre-fills the port per build type (nginx serves static sites on 80);
   // once the user types a port themselves it is never overwritten.
@@ -263,6 +289,7 @@ export function ApplicationForm({
           t("form.toast.created", { name: state.values?.name ?? "" }),
           { id: toastIdRef.current }
         )
+        clearUnsavedChanges()
         router.push(`/applications/${state.createdId}`)
       } else if (state.error || state.fieldErrors) {
         toast.error(state.error ?? t("form.toast.checkFields"), {
@@ -1353,6 +1380,7 @@ export function ApplicationForm({
                           rows={3}
                           placeholder="NODE_VERSION=22"
                           defaultValue={v.buildArgs}
+                          onChange={(e) => setBuildArgsText(e.target.value)}
                           className="font-mono text-xs"
                         />
                         <FieldDescription>

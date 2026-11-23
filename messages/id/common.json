@@ -172,5 +172,11 @@
     "title": "Hapus backup ini?",
     "description": "Berkas <code>{file}</code> akan dihapus. Tindakan ini tidak bisa dibatalkan.",
     "descriptionS3": "Berkas <code>{file}</code> beserta salinannya di S3 akan dihapus. Tindakan ini tidak bisa dibatalkan."
+  },
+  "unsavedChanges": {
+    "title": "Buang perubahan yang belum disimpan?",
+    "description": "Perubahan pada variabel belum disimpan. Jika Anda keluar sekarang, perubahan itu hilang.",
+    "stay": "Lanjut mengedit",
+    "discard": "Buang perubahan"
   }
 }

@@ -32,11 +32,13 @@ import {
   type EnvRow,
   moveRow,
   NOTE_MAX,
+  sameEnvText,
   toRows,
   toText,
   varKeys,
 } from "@/features/variable-set/env-rows"
 import { SECRET_NAME } from "@/features/variable-set/variable-set.entity"
+import { useUnsavedChanges } from "@/hooks/use-unsaved-changes"
 
 /**
  * Secret flags for the variable set environment editor. `initial*` are the flags
@@ -63,6 +65,12 @@ const verticalOnly: Modifier = ({ transform }) => ({ ...transform, x: 0 })
  * dragging the handle (mouse, touch, or Space + arrow keys) or from the move
  * menu; the new order is the order of the submitted text.
  * Text mode exposes the raw blob for pasting a whole .env.
+ *
+ * Unless read-only, the editor reports unsaved changes (`useUnsavedChanges`)
+ * while its text differs from `defaultValue` as it was when it mounted (a
+ * reorder counts) or a secret flag was changed, so leaving the page asks
+ * first. The baseline is fixed at mount: owners remount the editor (`key`)
+ * after a successful save, or unmount it.
  */
 export function EnvEditor({
   name,
@@ -123,6 +131,11 @@ export function EnvEditor({
     for (const [k, v] of Object.entries(touched)) if (present.has(k)) out[k] = v
     return JSON.stringify(out)
   })()
+  const [baseline] = useState(defaultValue)
+  const flagsChanged = flagsJson !== "" && flagsJson !== "{}"
+  useUnsavedChanges(
+    !readOnly && (flagsChanged || !sameEnvText(text, baseline))
+  )
 
   const updateRows = (next: EnvRow[]) => {
     setRows(next)

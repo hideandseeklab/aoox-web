@@ -39,6 +39,7 @@ Versions below 1.0.0 may include breaking changes in a minor release.
 - **Deploy tab explains a missing "Roll back to this"**: a successful deployment that runs the current image shows "This deployment runs the current image.", and one whose image was removed by cleanup says it cannot be rolled back to.
 - **Jobs table has a Notify column**: developers change a job's notification level right from its row (a compact select); viewers see the level as text. The table is a little wider and still scrolls inside itself on phones.
 - **Version history names note changes**: a version whose notes differ from the version before it lists them ("Notes: NAME"), so "Only comments or order changed" now really means that (for example a pure reorder).
+- **Unsaved variables are no longer lost silently**: while an env editor has unsaved changes (variable set environments, the application's Environment tab, the env and build args of the application form, the stack env; a reorder counts), leaving asks first. Links, breadcrumbs, the command palette, the browser back button and switching the page's own tabs open a "Discard unsaved changes?" dialog (Keep editing / Discard changes); reload, tab close and a typed URL get the browser's own "Leave site?" prompt. Saving or cancelling clears it, a failed save keeps it, and read-only editors never ask. New-tab clicks, downloads and external links are untouched.
 
 ## [0.1.0] - 2026-11-17
 

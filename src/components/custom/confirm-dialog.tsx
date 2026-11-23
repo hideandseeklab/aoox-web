@@ -42,6 +42,7 @@ export function ConfirmDialog({
   title,
   description,
   confirmLabel,
+  cancelLabel,
   tone = "destructive",
   onConfirm,
   alternative,
@@ -52,6 +53,8 @@ export function ConfirmDialog({
   title: string
   description: ReactNode
   confirmLabel: string
+  /** Label of the button that closes without acting (default "Cancel"). */
+  cancelLabel?: string
   tone?: "destructive" | "neutral"
   onConfirm: () => Promise<ConfirmResult>
   alternative?: ConfirmChoice
@@ -112,7 +115,7 @@ export function ConfirmDialog({
             disabled={pending}
             onClick={() => setOpen(false)}
           >
-            {tc("actions.cancel")}
+            {cancelLabel ?? tc("actions.cancel")}
           </Button>
           {alternative && (
             <Button

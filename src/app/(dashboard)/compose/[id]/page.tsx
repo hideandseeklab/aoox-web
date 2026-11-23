@@ -24,7 +24,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { Tabs, TabsContent } from "@/components/ui/tabs"
+import { TabsContent } from "@/components/ui/tabs"
+import { GuardedTabs } from "@/components/custom/guarded-tabs"
 import { ScrollableTabsList } from "@/components/custom/scrollable-tabs-list"
 import { PageTabsTrigger } from "@/components/custom/page-tabs-trigger"
 import { canUseTerminal } from "@/features/auth/auth.entity"
@@ -110,7 +111,7 @@ export default async function ComposeAppPage({
           backLabel={t("page.backToProject")}
         />
         <DaemonUnreachableAlert reason={proxy.unreachable} className="mb-4" />
-        <Tabs defaultValue="deploy">
+        <GuardedTabs defaultValue="deploy">
           <ScrollableTabsList>
             <PageTabsTrigger icon={Rocket} value="deploy">
               {t("page.tabs.deploy")}
@@ -218,7 +219,7 @@ export default async function ComposeAppPage({
               </CardContent>
             </Card>
           </TabsContent>
-        </Tabs>
+        </GuardedTabs>
       </ComposeLiveProvider>
     </>
   )

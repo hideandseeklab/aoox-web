@@ -4,6 +4,7 @@ import { Loader2 } from "lucide-react"
 import { useTranslations } from "next-intl"
 import Link from "next/link"
 import { useRouter } from "@/lib/use-router"
+import { clearUnsavedChanges } from "@/lib/unsaved-changes"
 import { useActionState, useEffect, useRef } from "react"
 import { toast } from "sonner"
 import { EnvEditor } from "@/components/custom/env-editor"
@@ -85,9 +86,20 @@ export function ComposeForm({
   const t = useTranslations("compose")
   const tc = useTranslations("common")
   const initial = { ...EMPTY, ...defaultValues }
-  const [state, formAction, pending] = useActionState(action, {
-    values: initial,
-  })
+  // `savedSeq` counts successful saves: the env editor is keyed on it, so it
+  // remounts with the saved text as its new unsaved-changes baseline, while a
+  // failed save keeps the editor (and its unsaved state) as it is.
+  const [state, formAction, pending] = useActionState(
+    async (
+      prev: ComposeFormState & { savedSeq?: number },
+      formData: FormData
+    ) => {
+      const r = await action(prev, formData)
+      const seq = prev.savedSeq ?? 0
+      return { ...r, savedSeq: r.saved ? seq + 1 : seq }
+    },
+    { values: initial, savedSeq: 0 }
+  )
   const router = useRouter()
   const toastIdRef = useRef<string | number | undefined>(undefined)
   const wasPendingRef = useRef(false)
@@ -108,6 +120,7 @@ export function ComposeForm({
           t("form.toast.created", { name: state.values?.name ?? "" }),
           { id: toastIdRef.current }
         )
+        clearUnsavedChanges()
         router.push(`/compose/${state.createdId}`)
       } else if (state.error || state.fieldErrors) {
         toast.error(state.error ?? t("form.toast.checkForm"), {
@@ -249,7 +262,12 @@ export function ComposeForm({
           {envHidden ? (
             <FieldDescription>{t("form.envHidden")}</FieldDescription>
           ) : (
-            <EnvEditor name="env" defaultValue={v.env} readOnly={readOnly} />
+            <EnvEditor
+              key={state.savedSeq ?? 0}
+              name="env"
+              defaultValue={v.env}
+              readOnly={readOnly}
+            />
           )}
           {!envHidden && (
             <FieldDescription>

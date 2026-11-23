@@ -52,6 +52,7 @@ import { Field, FieldDescription, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { Switch } from "@/components/ui/switch"
 import { Tabs, TabsContent } from "@/components/ui/tabs"
+import { confirmDiscard } from "@/lib/unsaved-changes"
 import { Textarea } from "@/components/ui/textarea"
 import { copyToClipboard, copyToClipboardLater } from "@/lib/clipboard"
 import { useRouter } from "@/lib/use-router"
@@ -102,7 +103,7 @@ export function VariableSetEnvironments({ set }: { set: VariableSetDetail }) {
             {canAdd && (
               <AddEnvironment
                 setId={set.id}
-                onCreated={(id) => setSelected(id)}
+                onCreated={(id) => confirmDiscard(() => setSelected(id))}
               />
             )}
           </CardAction>
@@ -114,7 +115,11 @@ export function VariableSetEnvironments({ set }: { set: VariableSetDetail }) {
             {t("noEnvironments")}
           </p>
         ) : (
-          <Tabs value={current} onValueChange={setSelected}>
+          // Another environment's tab unmounts an open editor: ask first.
+          <Tabs
+            value={current}
+            onValueChange={(id) => confirmDiscard(() => setSelected(id))}
+          >
             <ScrollableTabsList fade="card" wrapOnPhone>
               {environments.map((e) => (
                 <PageTabsTrigger

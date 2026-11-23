@@ -172,5 +172,11 @@
     "title": "Delete this backup?",
     "description": "The file <code>{file}</code> is deleted. This cannot be undone.",
     "descriptionS3": "The file <code>{file}</code> and its copy in S3 are deleted. This cannot be undone."
+  },
+  "unsavedChanges": {
+    "title": "Discard unsaved changes?",
+    "description": "Your changes to the variables have not been saved. If you leave now, they are lost.",
+    "stay": "Keep editing",
+    "discard": "Discard changes"
   }
 }

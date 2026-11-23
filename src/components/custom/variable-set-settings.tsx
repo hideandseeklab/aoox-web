@@ -26,6 +26,7 @@ import { Field, FieldGroup, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { useRouter } from "@/lib/use-router"
+import { clearUnsavedChanges } from "@/lib/unsaved-changes"
 import {
   deleteVariableSetAction,
   shareVariableSetAction,
@@ -278,6 +279,8 @@ export function DeleteVariableSetButton({ set }: { set: VariableSetDetail }) {
                 if (r.ok) {
                   toast.success(t("deleted", { name: set.name }))
                   setOpen(false)
+                  // The set is gone: an open environment editor has nothing to keep.
+                  clearUnsavedChanges()
                   router.push("/variables")
                 } else setError(r.error)
               })

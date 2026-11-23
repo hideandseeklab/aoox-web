@@ -2,7 +2,7 @@
 // TypeScript file directly (type stripping, Node 23.6+): `npm test`.
 import assert from "node:assert/strict"
 import { test } from "node:test"
-import { moveRow, noteOf, toRows, toText } from "./env-rows.ts"
+import { moveRow, noteOf, sameEnvText, toRows, toText } from "./env-rows.ts"
 
 const FIXTURE = [
   "# --- Database ---",
@@ -139,4 +139,22 @@ test("keys come out in the new order", () => {
     "SMTP_HOST",
     "SMTP_FROM",
   ])
+})
+
+test("sameEnvText: reorders and edits are changes, trailing blanks are not", () => {
+  const text = "# note\nA=1\nB=2\n"
+  assert.equal(sameEnvText(text, text), true)
+  assert.equal(sameEnvText(text, "# note\nA=1\nB=2\n\n\n"), true)
+  assert.equal(sameEnvText(text, "# note\nA=1\nB=2"), true)
+  assert.equal(sameEnvText("", "\n"), true)
+  // Form submissions echo the text back with CRLF line endings.
+  assert.equal(sameEnvText("A=1\r\nB=2", "A=1\nB=2"), true)
+  assert.equal(sameEnvText("# n\r\nA=1\r\n", "# n\nA=1\n"), true)
+  // A reorder alone.
+  assert.equal(sameEnvText(text, toText(moveRow(toRows(text), 1, 0))), false)
+  assert.equal(sameEnvText(text, "# note\nA=1\nB=3\n"), false)
+  assert.equal(sameEnvText(text, "# other\nA=1\nB=2\n"), false)
+  assert.equal(sameEnvText(text, "A=1\nB=2\n"), false)
+  // Rows view round trip of the same text is not a change.
+  assert.equal(sameEnvText(FIXTURE, toText(toRows(FIXTURE))), true)
 })

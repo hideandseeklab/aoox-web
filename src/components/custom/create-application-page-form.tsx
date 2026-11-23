@@ -2,6 +2,7 @@
 
 import { useTranslations } from "next-intl"
 import { useRouter } from "@/lib/use-router"
+import { clearUnsavedChanges } from "@/lib/unsaved-changes"
 import { toast } from "sonner"
 import { ApplicationForm } from "@/components/custom/application-form"
 import {
@@ -78,6 +79,8 @@ export function CreateApplicationPageForm({
         id: toastId,
       })
     }
+    // Saved: the form's editors still differ from their initial text.
+    clearUnsavedChanges()
     router.push(
       `/applications/${app.id}${proxyAutoProvisioned ? "?domainProxyAutoProvisioned=1" : ""}`
     )

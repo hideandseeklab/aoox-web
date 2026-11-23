@@ -3,6 +3,7 @@ import { redirect } from "next/navigation"
 import { AppNavbar } from "@/components/custom/app-navbar"
 import { AppSidebar } from "@/components/custom/app-sidebar"
 import { ServerTimeZoneProvider } from "@/components/custom/schedule-time-zone"
+import { UnsavedChangesGuard } from "@/components/custom/unsaved-changes-guard"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { canUseTerminal } from "@/features/auth/auth.entity"
 import { getVerifiedSession } from "@/features/auth/auth.session"
@@ -43,6 +44,8 @@ export default async function DashboardLayout({
           </ServerTimeZoneProvider>
         </div>
       </SidebarInset>
+      {/* Asks before leaving a page whose env editor has unsaved changes. */}
+      <UnsavedChangesGuard />
     </SidebarProvider>
   )
 }
