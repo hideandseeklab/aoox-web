@@ -4,6 +4,7 @@ import { CircleArrowUp, RefreshCw } from "lucide-react"
 import { useTranslations } from "next-intl"
 import Link from "next/link"
 import { usePathname, useSearchParams } from "next/navigation"
+import { useEffect } from "react"
 import {
   Sidebar,
   SidebarContent,
@@ -16,6 +17,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
+  useSidebar,
 } from "@/components/ui/sidebar"
 import type { AuthUser } from "@/features/auth/auth.entity"
 import { AooxLogo } from "./aoox-logo"
@@ -42,6 +44,14 @@ export function AppSidebar({
   const webVersion = process.env.NEXT_PUBLIC_WEB_VERSION
   const pathname = usePathname()
   const searchParams = useSearchParams()
+  const { setOpenMobile } = useSidebar()
+  const location = `${pathname}?${searchParams.toString()}`
+  // On phones the sidebar is a sheet over the page: close it once the route
+  // actually changes (not on the click, so a navigation the unsaved-changes
+  // guard holds back leaves it open).
+  useEffect(() => {
+    setOpenMobile(false)
+  }, [location, setOpenMobile])
   // Owner/admin gate is the same one that shows the terminal.
   const {
     platform: items,

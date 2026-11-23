@@ -35,6 +35,7 @@ Versions below 1.0.0 may include breaking changes in a minor release.
 
 ### UI UX Improvement
 
+- **The sidebar closes after navigating on phones.** On small screens the sidebar is a sheet over the page and stayed open after a link was tapped; it now closes once the route changes (a navigation held back by the unsaved-changes dialog leaves it open).
 - **Backup lists keep their layout while a backup runs** (database, volume and instance backups): the backup button keeps its label (its icon turns into a spinner instead of the shorter "Working…" text), a placeholder "Creating backup…" row takes the new row's place at the moment of the click (with the S3 and "all databases" line the new row will carry, so its height matches) so nothing moves when the backup finishes, and errors appear as a toast instead of a line pushed in above the table.
 - **Deploy tab explains a missing "Roll back to this"**: a successful deployment that runs the current image shows "This deployment runs the current image.", and one whose image was removed by cleanup says it cannot be rolled back to.
 - **Jobs table has a Notify column**: developers change a job's notification level right from its row (a compact select); viewers see the level as text. The table is a little wider and still scrolls inside itself on phones.
