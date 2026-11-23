@@ -26,8 +26,8 @@
     "noCredential": "Tidak ada (repo publik)",
     "env": "Environment (.env)",
     "envHidden": "Nilai environment disembunyikan dari viewer, karena biasanya berisi secret. Mintalah developer atau admin project ini untuk mengubah atau membagikannya.",
-    "envHint": "Ditulis ke <code>.aoox.env</code> dan dipakai sebagai sumber interpolasi <code>{varExample}</code> di file compose (tidak otomatis masuk ke container — pakai <code>environment:</code> atau <code>env_file: .aoox.env</code>). Mendukung <code>{varsRef}</code>.",
-    "envHintDb": "Ditulis ke <code>.aoox.env</code> dan dipakai sebagai sumber interpolasi <code>{varExample}</code> di file compose (tidak otomatis masuk ke container — pakai <code>environment:</code> atau <code>env_file: .aoox.env</code>). Mendukung <code>{varsRef}</code> dan <databases></databases>.",
+    "envHint": "Ditulis ke <code>.aoox.env</code> dan dipakai sebagai sumber interpolasi <code>{varExample}</code> di file compose (tidak otomatis masuk ke container — pakai <code>environment:</code> atau <code>env_file: .aoox.env</code>). Mendukung <code>{varsRef}</code> dan <code>{appRef}</code> (aplikasi project ini di host aoox).",
+    "envHintDb": "Ditulis ke <code>.aoox.env</code> dan dipakai sebagai sumber interpolasi <code>{varExample}</code> di file compose (tidak otomatis masuk ke container — pakai <code>environment:</code> atau <code>env_file: .aoox.env</code>). Mendukung <code>{varsRef}</code>, <databases></databases> dan <code>{appRef}</code> (aplikasi project ini di host aoox).",
     "saved": "Tersimpan — berlaku pada deploy berikutnya.",
     "createStack": "Buat stack",
     "toast": {

@@ -158,170 +158,180 @@ export function ComposeForm({
     >
       <input type="hidden" name="source" value={source} />
       <fieldset disabled={readOnly} className="contents">
-      <FieldGroup>
-        <Field data-invalid={invalid("name")}>
-          <FieldLabel htmlFor="cmp-name">{tc("labels.name")}</FieldLabel>
-          <Input id="cmp-name" name="name" defaultValue={v.name} required />
-          <FieldError errors={errs("name")} />
-        </Field>
-
-        {source === "template" && (
-          <Field data-invalid={invalid("composeContent")}>
-            <FieldLabel htmlFor="cmp-content">docker-compose.yml</FieldLabel>
-            <Textarea
-              id="cmp-content"
-              name="composeContent"
-              defaultValue={v.composeContent}
-              rows={18}
-              spellCheck={false}
-              className="font-mono text-xs"
-            />
-            <FieldDescription>
-              {t("form.templateHint")}
-            </FieldDescription>
-            <FieldError errors={errs("composeContent")} />
+        <FieldGroup>
+          <Field data-invalid={invalid("name")}>
+            <FieldLabel htmlFor="cmp-name">{tc("labels.name")}</FieldLabel>
+            <Input id="cmp-name" name="name" defaultValue={v.name} required />
+            <FieldError errors={errs("name")} />
           </Field>
-        )}
 
-        {source === "git" && (
-          <>
-            <Field data-invalid={invalid("gitUrl")}>
-              <FieldLabel htmlFor="cmp-git">{t("form.gitRepository")}</FieldLabel>
-              <Input
-                id="cmp-git"
-                name="gitUrl"
-                placeholder="https://github.com/org/repo.git"
-                defaultValue={v.gitUrl}
-                required
+          {source === "template" && (
+            <Field data-invalid={invalid("composeContent")}>
+              <FieldLabel htmlFor="cmp-content">docker-compose.yml</FieldLabel>
+              <Textarea
+                id="cmp-content"
+                name="composeContent"
+                defaultValue={v.composeContent}
+                rows={18}
+                spellCheck={false}
+                className="font-mono text-xs"
               />
-              <FieldError errors={errs("gitUrl")} />
+              <FieldDescription>{t("form.templateHint")}</FieldDescription>
+              <FieldError errors={errs("composeContent")} />
             </Field>
-
-            <div className="grid gap-4 sm:grid-cols-2">
-              <Field data-invalid={invalid("gitBranch")}>
-                <FieldLabel htmlFor="cmp-branch">{t("form.branch")}</FieldLabel>
-                <Input
-                  id="cmp-branch"
-                  name="gitBranch"
-                  defaultValue={v.gitBranch}
-                />
-                <FieldError errors={errs("gitBranch")} />
-              </Field>
-              <Field data-invalid={invalid("composePath")}>
-                <FieldLabel htmlFor="cmp-path">{t("form.composeFile")}</FieldLabel>
-                <Input
-                  id="cmp-path"
-                  name="composePath"
-                  placeholder="docker-compose.yml"
-                  defaultValue={v.composePath}
-                />
-                <FieldDescription>
-                  {t("form.composePathHint")}
-                </FieldDescription>
-                <FieldError errors={errs("composePath")} />
-              </Field>
-            </div>
-
-            <Field>
-              <FieldLabel htmlFor="cmp-cred">{t("form.gitCredential")}</FieldLabel>
-              <Select
-                name="gitCredentialId"
-                defaultValue={v.gitCredentialId || "none"}
-              >
-                <SelectTrigger id="cmp-cred">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent position="popper">
-                  <SelectItem value="none">{t("form.noCredential")}</SelectItem>
-                  {credentials.map((c) => (
-                    <SelectItem key={c.id} value={c.id}>
-                      {c.name} · {c.username}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </Field>
-          </>
-        )}
-
-        {/* Edit mode manages links in their own card on the Settings tab. */}
-        {mode === "create" && variableSets.length > 0 && (
-          <Field>
-            <FieldLabel>{t("form.variableSets.label")}</FieldLabel>
-            <VariableSetLinksEditor
-              mode="form"
-              namespace="compose"
-              available={variableSets}
-              canLinkProtected={canLinkProtected}
-            />
-          </Field>
-        )}
-
-        <Field data-invalid={invalid("env")}>
-          <FieldLabel>{t("form.env")}</FieldLabel>
-          {envHidden ? (
-            <FieldDescription>{t("form.envHidden")}</FieldDescription>
-          ) : (
-            <EnvEditor
-              key={state.savedSeq ?? 0}
-              name="env"
-              defaultValue={v.env}
-              readOnly={readOnly}
-            />
           )}
-          {!envHidden && (
-            <FieldDescription>
-              {t.rich(databaseSlugs?.length ? "form.envHintDb" : "form.envHint", {
-                varExample: "${VAR}",
-                varsRef: "${{vars.KEY}}",
-                code: (chunks) => <code>{chunks}</code>,
-                databases: () => (
-                  <>
-                    {(databaseSlugs ?? []).map((s, i) => (
-                      <span key={s}>
-                        {i > 0 && ", "}
-                        <code>{`\${{database.${s}.url}}`}</code>
-                      </span>
+
+          {source === "git" && (
+            <>
+              <Field data-invalid={invalid("gitUrl")}>
+                <FieldLabel htmlFor="cmp-git">
+                  {t("form.gitRepository")}
+                </FieldLabel>
+                <Input
+                  id="cmp-git"
+                  name="gitUrl"
+                  placeholder="https://github.com/org/repo.git"
+                  defaultValue={v.gitUrl}
+                  required
+                />
+                <FieldError errors={errs("gitUrl")} />
+              </Field>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Field data-invalid={invalid("gitBranch")}>
+                  <FieldLabel htmlFor="cmp-branch">
+                    {t("form.branch")}
+                  </FieldLabel>
+                  <Input
+                    id="cmp-branch"
+                    name="gitBranch"
+                    defaultValue={v.gitBranch}
+                  />
+                  <FieldError errors={errs("gitBranch")} />
+                </Field>
+                <Field data-invalid={invalid("composePath")}>
+                  <FieldLabel htmlFor="cmp-path">
+                    {t("form.composeFile")}
+                  </FieldLabel>
+                  <Input
+                    id="cmp-path"
+                    name="composePath"
+                    placeholder="docker-compose.yml"
+                    defaultValue={v.composePath}
+                  />
+                  <FieldDescription>
+                    {t("form.composePathHint")}
+                  </FieldDescription>
+                  <FieldError errors={errs("composePath")} />
+                </Field>
+              </div>
+
+              <Field>
+                <FieldLabel htmlFor="cmp-cred">
+                  {t("form.gitCredential")}
+                </FieldLabel>
+                <Select
+                  name="gitCredentialId"
+                  defaultValue={v.gitCredentialId || "none"}
+                >
+                  <SelectTrigger id="cmp-cred">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent position="popper">
+                    <SelectItem value="none">
+                      {t("form.noCredential")}
+                    </SelectItem>
+                    {credentials.map((c) => (
+                      <SelectItem key={c.id} value={c.id}>
+                        {c.name} · {c.username}
+                      </SelectItem>
                     ))}
-                  </>
-                ),
-              })}
+                  </SelectContent>
+                </Select>
+              </Field>
+            </>
+          )}
+
+          {/* Edit mode manages links in their own card on the Settings tab. */}
+          {mode === "create" && variableSets.length > 0 && (
+            <Field>
+              <FieldLabel>{t("form.variableSets.label")}</FieldLabel>
+              <VariableSetLinksEditor
+                mode="form"
+                namespace="compose"
+                available={variableSets}
+                canLinkProtected={canLinkProtected}
+              />
+            </Field>
+          )}
+
+          <Field data-invalid={invalid("env")}>
+            <FieldLabel>{t("form.env")}</FieldLabel>
+            {envHidden ? (
+              <FieldDescription>{t("form.envHidden")}</FieldDescription>
+            ) : (
+              <EnvEditor
+                key={state.savedSeq ?? 0}
+                name="env"
+                defaultValue={v.env}
+                readOnly={readOnly}
+              />
+            )}
+            {!envHidden && (
+              <FieldDescription>
+                {t.rich(
+                  databaseSlugs?.length ? "form.envHintDb" : "form.envHint",
+                  {
+                    varExample: "${VAR}",
+                    varsRef: "${{vars.KEY}}",
+                    appRef: "${{app.<appName>.url}}",
+                    code: (chunks) => <code>{chunks}</code>,
+                    databases: () => (
+                      <>
+                        {(databaseSlugs ?? []).map((s, i) => (
+                          <span key={s}>
+                            {i > 0 && ", "}
+                            <code>{`\${{database.${s}.url}}`}</code>
+                          </span>
+                        ))}
+                      </>
+                    ),
+                  }
+                )}
+              </FieldDescription>
+            )}
+            <FieldError errors={errs("env")} />
+          </Field>
+
+          {state.error && (
+            <FieldDescription className="text-destructive" role="alert">
+              {state.error}
             </FieldDescription>
           )}
-          <FieldError errors={errs("env")} />
-        </Field>
-
-        {state.error && (
-          <FieldDescription className="text-destructive" role="alert">
-            {state.error}
-          </FieldDescription>
-        )}
-        {state.saved && !state.error && (
-          <FieldDescription>
-            {t("form.saved")}
-          </FieldDescription>
-        )}
-
-        {!readOnly && (
-        <div className="flex justify-end gap-2">
-          {cancelHref && (
-            <Button asChild variant="outline">
-              <Link href={cancelHref}>{tc("actions.cancel")}</Link>
-            </Button>
+          {state.saved && !state.error && (
+            <FieldDescription>{t("form.saved")}</FieldDescription>
           )}
-          <Button type="submit" disabled={pending}>
-            {pending && (
-              <Loader2 data-icon="inline-start" className="animate-spin" />
-            )}
-            {pending
-              ? mode === "create"
-                ? tc("states.creating")
-                : tc("states.saving")
-              : submitLabel}
-          </Button>
-        </div>
-        )}
-      </FieldGroup>
+
+          {!readOnly && (
+            <div className="flex justify-end gap-2">
+              {cancelHref && (
+                <Button asChild variant="outline">
+                  <Link href={cancelHref}>{tc("actions.cancel")}</Link>
+                </Button>
+              )}
+              <Button type="submit" disabled={pending}>
+                {pending && (
+                  <Loader2 data-icon="inline-start" className="animate-spin" />
+                )}
+                {pending
+                  ? mode === "create"
+                    ? tc("states.creating")
+                    : tc("states.saving")
+                  : submitLabel}
+              </Button>
+            </div>
+          )}
+        </FieldGroup>
       </fieldset>
     </form>
   )

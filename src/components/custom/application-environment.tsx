@@ -24,6 +24,10 @@ export function EnvRefsHint({ databaseSlugs }: { databaseSlugs?: string[] }) {
   const t = useTranslations("applications")
   const code = (chunks: React.ReactNode) => <code>{chunks}</code>
   const varsRef = "${{vars.KEY}}"
+  const appHint = t.rich("shared.envRefsApp", {
+    code,
+    appRef: "${{app.<appName>.url}}",
+  })
   if (databaseSlugs && databaseSlugs.length > 0) {
     return (
       <>
@@ -40,7 +44,8 @@ export function EnvRefsHint({ databaseSlugs }: { databaseSlugs?: string[] }) {
               ))}
             </>
           ),
-        })}
+        })}{" "}
+        {appHint}
       </>
     )
   }
@@ -50,7 +55,8 @@ export function EnvRefsHint({ databaseSlugs }: { databaseSlugs?: string[] }) {
         code,
         varsRef,
         databaseRef: "${{database.<slug>.url}}",
-      })}
+      })}{" "}
+      {appHint}
     </>
   )
 }
@@ -122,7 +128,11 @@ export function ApplicationEnvironment({
         </CardDescription>
         {canEdit && (
           <CardAction>
-            <Button type="submit" form="application-env-form" disabled={pending}>
+            <Button
+              type="submit"
+              form="application-env-form"
+              disabled={pending}
+            >
               {pending && (
                 <Loader2 data-icon="inline-start" className="animate-spin" />
               )}

@@ -104,6 +104,8 @@ export interface ApplicationDetail extends Application {
   secretSource?:
     | import("@/features/secret-connection/secret-connection.entity").SecretSource
     | null
+  /** How other applications of the project reach this one by name; absent on an older API. */
+  internalAddress?: InternalAddress
   container: { id: string; state: string; status: string } | null
   /** The Docker daemon could not be reached: `container: null` then means unknown, not "not deployed". Absent on an older API. */
   daemonError?: string | null
@@ -129,6 +131,16 @@ export interface ApplicationDetail extends Application {
       since: string
     }>
   } | null
+}
+
+/** Mirrors InternalAddress in aoox-api; `scope` says who can reach it. */
+export interface InternalAddress {
+  host: string
+  port: number
+  url: string
+  /** `${{app.<appName>.url}}` */
+  reference: string
+  scope: "host" | "service" | "server"
 }
 
 /** ISO start of each timed step (`building` also covers pulling an image). */

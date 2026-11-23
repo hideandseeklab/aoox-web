@@ -34,6 +34,7 @@ import { Tabs, TabsContent } from "@/components/ui/tabs"
 import { confirmDiscard } from "@/lib/unsaved-changes"
 import type { ProjectVariableSet } from "@/features/variable-set/variable-set.entity"
 import { VariableSetLinksEditor } from "@/components/custom/variable-set-links"
+import { ApplicationInternalAddress } from "@/components/custom/application-internal-address"
 import { ScrollableTabsList } from "@/components/custom/scrollable-tabs-list"
 import { PageTabsTrigger } from "@/components/custom/page-tabs-trigger"
 import {
@@ -198,9 +199,7 @@ export function ApplicationTabs({
     // with unsaved changes asks first.
     <Tabs
       value={tab}
-      onValueChange={(v) =>
-        confirmDiscard(() => setTab(v as ApplicationTab))
-      }
+      onValueChange={(v) => confirmDiscard(() => setTab(v as ApplicationTab))}
     >
       <ScrollableTabsList>
         <PageTabsTrigger icon={Rocket} value="deploy">
@@ -264,7 +263,10 @@ export function ApplicationTabs({
           webOrigin={webOrigin}
         />
       </TabsContent>
-      <TabsContent value="domains" className="pt-4">
+      <TabsContent value="domains" className="space-y-4 pt-4">
+        {app.internalAddress && (
+          <ApplicationInternalAddress address={app.internalAddress} />
+        )}
         <ApplicationDomains
           applicationId={app.id}
           domains={domains}

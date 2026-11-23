@@ -249,7 +249,8 @@
   },
   "shared": {
     "envRefs": "Nilai bisa merujuk <code>{varsRef}</code> dan <code>{databaseRef}</code>.",
-    "envRefsWithDb": "Nilai bisa merujuk <code>{varsRef}</code> dan database project ini: <databases></databases> (juga <code>.host</code>, <code>.port</code>, <code>.username</code>, <code>.password</code>, <code>.database</code>)."
+    "envRefsWithDb": "Nilai bisa merujuk <code>{varsRef}</code> dan database project ini: <databases></databases> (juga <code>.host</code>, <code>.port</code>, <code>.username</code>, <code>.password</code>, <code>.database</code>).",
+    "envRefsApp": "Aplikasi lain di project ini: <code>{appRef}</code> (juga <code>.host</code>, <code>.port</code>)."
   },
   "deploy": {
     "failed": "Gagal",
@@ -846,5 +847,16 @@
     "multiple": "Image ini membuka port {exposed} (EXPOSE), tetapi Container port diatur ke {port}. Permintaan lewat domain akan gagal dengan Bad Gateway kecuali aplikasi memang mendengarkan port {port}.",
     "useButton": "Pakai port {exposed}",
     "applied": "Container port diubah ke {port}. Container sedang dibuat ulang."
+  },
+  "internalAddress": {
+    "title": "Alamat internal",
+    "scope": {
+      "host": "Aplikasi dan stack lain di project ini yang berjalan di host aoox bisa mengakses aplikasi ini lewat alamat ini, tanpa domain atau port host. Service stack harus ada di jaringan aoox (otomatis jika punya domain).",
+      "service": "Aplikasi service Swarm lain di project ini bisa mengakses aplikasi ini lewat alamat ini, tanpa domain atau port host.",
+      "server": "Aplikasi lain di project ini pada server remote yang sama bisa mengakses aplikasi ini lewat alamat ini, tanpa domain atau port host."
+    },
+    "notBrowser": "Hanya berfungsi antar-container, bukan dari browser.",
+    "address": "Alamat",
+    "reference": "Referensi env"
   }
 }

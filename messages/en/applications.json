@@ -249,7 +249,8 @@
   },
   "shared": {
     "envRefs": "Values can reference <code>{varsRef}</code> and <code>{databaseRef}</code>.",
-    "envRefsWithDb": "Values can reference <code>{varsRef}</code> and this project's databases: <databases></databases> (also <code>.host</code>, <code>.port</code>, <code>.username</code>, <code>.password</code>, <code>.database</code>)."
+    "envRefsWithDb": "Values can reference <code>{varsRef}</code> and this project's databases: <databases></databases> (also <code>.host</code>, <code>.port</code>, <code>.username</code>, <code>.password</code>, <code>.database</code>).",
+    "envRefsApp": "Another application of this project: <code>{appRef}</code> (also <code>.host</code>, <code>.port</code>)."
   },
   "deploy": {
     "failed": "Failed",
@@ -846,5 +847,16 @@
     "multiple": "This image exposes ports {exposed} (EXPOSE), but Container port is {port}. Requests through a domain will fail with Bad Gateway unless the app really listens on {port}.",
     "useButton": "Use port {exposed}",
     "applied": "Container port set to {port}. The container is being recreated."
+  },
+  "internalAddress": {
+    "title": "Internal address",
+    "scope": {
+      "host": "Other applications and stacks of this project that run on the aoox host can reach this application at this address, without a domain or a host port. A stack service must be on the aoox network (it is when it has a domain).",
+      "service": "Other Swarm service applications of this project can reach this application at this address, without a domain or a host port.",
+      "server": "Other applications of this project on the same remote server can reach this application at this address, without a domain or a host port."
+    },
+    "notBrowser": "It works between containers only, not from a browser.",
+    "address": "Address",
+    "reference": "Env reference"
   }
 }

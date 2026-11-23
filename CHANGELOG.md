@@ -10,6 +10,7 @@ Versions below 1.0.0 may include breaking changes in a minor release.
 
 ### Added
 
+- The environment help text (application Environment tab, create form, stack form) mentions `${{app.<appName>.url}}` (also `.host`, `.port`) for another application of the project; the API entity mirror has `internalAddress`.
 - The logs protocol mirror (`features/application/logs.protocol.ts`) now types `subscribe:container` as a tail number or `{tail, follow}` (the CLI's `aoox logs` uses `follow: false`); the dashboard keeps sending a bare number.
 - **Storage card** on the Overview of an application (Deploy tab), a database and a compose stack: total disk use and a breakdown (volumes, container layers, the image marked as not counted, backup files), measured when the page opens, with a Refresh button and a "measured" time. A daemon that cannot be reached shows the usual Docker notice inside the card.
 - **Variables can be reordered in the Rows view of the env editor** (variable set environments, an application's and a stack's own environment): drag a row by its grip handle (mouse or touch), or focus the handle and use Space/Enter plus the arrow keys, or pick Move up / Move down / Move to top / Move to bottom from the row's move menu (the fallback on phones). The order really changes: it is the order of the saved `KEY=VALUE` text and of the Text view. A variable's note moves with it; comment blocks such as section headers move as one row; blank lines stay between the groups they separated (a row moved up joins the group of the row it was dropped before, moved down the group of the row it was dropped after), and a comment that ends up directly above a variable or another comment gets a blank line so it does not become a note or merge. Read-only editors show no handles. Screen-reader announcements are translated.
@@ -18,6 +19,7 @@ Versions below 1.0.0 may include breaking changes in a minor release.
 
 ### UI UX Improvement
 
+- **Internal address card** on the Domains tab of an application: the `http://aoox-app-<appName>:<port>` address other applications of the project reach it at, and the `${{app.<appName>.url}}` env reference, each with a copy button, plus one sentence on who can reach it (aoox host, Swarm services, or the same remote server) and that it is not for browsers. Shown to every project member. English and Indonesian.
 - **Restore to new database** in the database backups list: a button on every successful backup row (developers and above) opens a dialog asking for the new database name and a target project (only projects where the caller can write; default: the source's project), then opens the new database page while it restores in the background. Whole-server SQL backups show the button disabled with the reason. A failed restore leaves the new database in `error` with its message and no retry button. The projects list type carries the caller's `myRole`.
 - The new Storage card keeps its height while loading (skeleton rows), wraps long volume and container names, and fits a 375px screen.
 
