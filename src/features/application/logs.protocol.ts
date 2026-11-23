@@ -3,7 +3,8 @@
 // client -> server
 export interface LogsClientEvents {
   "subscribe:deployment": (deploymentId: string) => void
-  "subscribe:container": (tail: number) => void
+  /** A bare number is the tail length (always following); `{follow: false}` sends the tail and ends. */
+  "subscribe:container": (tail: number | { tail?: number; follow?: boolean }) => void
   unsubscribe: () => void
 }
 
