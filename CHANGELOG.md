@@ -8,6 +8,10 @@ Versions below 1.0.0 may include breaking changes in a minor release.
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-11-23
+
+Adds the internal address card, restore to a new database, a storage card per application, database and stack, reordering of variables by drag and drop, the job notification setting, and a warning before leaving with unsaved variables. Fixes include pages that failed to open while the Docker daemon was down, deployment and container logs without the realtime socket, and confirmations before deleting backups.
+
 ### Added
 
 - The environment help text (application Environment tab, create form, stack form) mentions `${{app.<appName>.url}}` (also `.host`, `.port`) for another application of the project; the API entity mirror has `internalAddress`.
@@ -17,17 +21,10 @@ Versions below 1.0.0 may include breaking changes in a minor release.
 - `npm test` runs the pure checks of the env editor's row model (`node --test`, no new dependency).
 - **Job run notifications.** The new-job dialog (applications, databases and compose stacks) has a **Notify** select: *Failures only* (default, as before), *When finished* (also successful runs) or *Start and finish* (also the start of every run), with a short hint. Notification channels get two new toggles, **job started** and **job succeeded** (on by default; the job's own setting is the opt-in). The Notifications list shows the new events in English and Indonesian (job started, job succeeded, job failed or timed out with owner, project, trigger, duration and exit code, and "job succeeded again" after a failure); older job failure rows still read as before.
 
-### UI UX Improvement
-
-- **Internal address card** on the Domains tab of an application: the `http://aoox-app-<appName>:<port>` address other applications of the project reach it at, and the `${{app.<appName>.url}}` env reference, each with a copy button, plus one sentence on who can reach it (aoox host, Swarm services, or the same remote server) and that it is not for browsers. Shown to every project member. English and Indonesian.
-- **Restore to new database** in the database backups list: a button on every successful backup row (developers and above) opens a dialog asking for the new database name and a target project (only projects where the caller can write; default: the source's project), then opens the new database page while it restores in the background. Whole-server SQL backups show the button disabled with the reason. A failed restore leaves the new database in `error` with its message and no retry button. The projects list type carries the caller's `myRole`.
-- The new Storage card keeps its height while loading (skeleton rows), wraps long volume and container names, and fits a 375px screen.
-
 ### Fixed
 
 - **Backup lists no longer claim "S3 only" when the file's location is unknown.** With the matching aoox-api, backup rows carry `local: null` while Docker cannot be reached; the volume, database and instance backup lists then show the plain S3 label instead of "only on S3".
 - **Application, database and stack pages open while the Docker daemon is down.** They used to answer 500 (the proxy status read failed, and a running database's schema list was not guarded). They now render from the database with a short notice ("The Docker daemon is not reachable", with the reason); the application header shows "state unknown" instead of "not deployed", and the Reverse proxy card shows the notice (with its own wording: the proxy's state cannot be read and it cannot be installed or changed) instead of the "Enable proxy" empty state. Needs the matching aoox-api for the notice (an older API still answers 500).
-
 - **Deployment logs no longer hang on "Loading…" without the realtime socket.** When the `/logs` socket is not available (the page is opened on another address than `WEB_ORIGIN`, for example through an SSH tunnel; the gateway rejects it; the connection fails or drops; or it is still not up after 3 seconds), the Deploy tab reads the selected deployment over HTTP (`GET /deployments/:id`): a finished one once, a running one every 2 seconds until it ends (log, status and step times update, then the page refreshes once). With a working socket nothing changes. An empty log now reads "No output yet." and a failed read says so instead of loading forever.
 - **The Logs tab shows the container output without the socket too**: a one-off tail over HTTP (`GET /applications/:id/logs`, same line count choice) with a Refresh button and a note that live streaming is not available, instead of a disabled tab with no output.
 - **Domains tab: the "Proxy is not running" notice no longer sends people to the Settings page.** It says the proxy is started automatically when the first domain is added (viewers: when a developer adds one), or, with domains already present, that adding a domain or an owner on the Reverse proxy page starts it again, and links to Infrastructure → Reverse proxy. It is no longer shown for applications on a remote server (the status it read was the host's proxy).
@@ -45,6 +42,9 @@ Versions below 1.0.0 may include breaking changes in a minor release.
 
 ### UI UX Improvement
 
+- **Internal address card** on the Domains tab of an application: the `http://aoox-app-<appName>:<port>` address other applications of the project reach it at, and the `${{app.<appName>.url}}` env reference, each with a copy button, plus one sentence on who can reach it (aoox host, Swarm services, or the same remote server) and that it is not for browsers. Shown to every project member. English and Indonesian.
+- **Restore to new database** in the database backups list: a button on every successful backup row (developers and above) opens a dialog asking for the new database name and a target project (only projects where the caller can write; default: the source's project), then opens the new database page while it restores in the background. Whole-server SQL backups show the button disabled with the reason. A failed restore leaves the new database in `error` with its message and no retry button. The projects list type carries the caller's `myRole`.
+- The new Storage card keeps its height while loading (skeleton rows), wraps long volume and container names, and fits a 375px screen.
 - **The sidebar closes after navigating on phones.** On small screens the sidebar is a sheet over the page and stayed open after a link was tapped; it now closes once the route changes (a navigation held back by the unsaved-changes dialog leaves it open).
 - **Backup lists keep their layout while a backup runs** (database, volume and instance backups): the backup button keeps its label (its icon turns into a spinner instead of the shorter "Working…" text), a placeholder "Creating backup…" row takes the new row's place at the moment of the click (with the S3 and "all databases" line the new row will carry, so its height matches) so nothing moves when the backup finishes, and errors appear as a toast instead of a line pushed in above the table.
 - **Deploy tab explains a missing "Roll back to this"**: a successful deployment that runs the current image shows "This deployment runs the current image.", and one whose image was removed by cleanup says it cannot be rolled back to.
@@ -858,7 +858,8 @@ First stable release of the dashboard. The feature set is that of 0.1.0-rc.1; th
   backups, notifications, and account/instance settings.
 - A web terminal (shell on the host or inside the API container) over WebSocket.
 
-[Unreleased]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.0-rc.1...v0.1.0
 [0.1.0-rc.1]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.0-beta.2...v0.1.0-rc.1
 [0.1.0-beta.2]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.0-beta.1...v0.1.0-beta.2
