@@ -256,7 +256,7 @@ export function InstanceBackupCard({
                           aria-label={t("copiedToS3")}
                         />
                       )}
-                      {!b.local && b.status === "success" && (
+                      {b.local === false && b.status === "success" && (
                         <Badge variant="outline">{t("onlyOnS3")}</Badge>
                       )}
                     </div>

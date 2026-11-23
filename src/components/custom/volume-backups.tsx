@@ -280,7 +280,7 @@ export function VolumeBackups({
                   </div>
                   {b.remoteKey && (
                     <div className="font-sans text-muted-foreground">
-                      {b.local ? "S3" : t("volumeBackups.s3Only")}
+                      {b.local === false ? t("volumeBackups.s3Only") : "S3"}
                     </div>
                   )}
                   {b.errorMessage && (

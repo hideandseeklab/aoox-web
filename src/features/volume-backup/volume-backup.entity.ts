@@ -16,5 +16,5 @@ export interface VolumeBackup {
   createdAt: string
   finishedAt: string | null
   /** File is on this server; false = only the S3 copy remains (pulled on demand). */
-  local: boolean
+  local: boolean | null
 }

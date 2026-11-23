@@ -150,6 +150,6 @@ export interface DatabaseBackup {
   errorMessage: string | null
   createdAt: string
   finishedAt: string | null
-  /** File is on this server; false = only the S3 copy remains (pulled on demand). */
-  local: boolean
+  /** File is on this server; false = only the S3 copy remains (pulled on demand); null = unknown (Docker unreachable). */
+  local: boolean | null
 }

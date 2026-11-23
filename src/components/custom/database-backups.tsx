@@ -272,7 +272,7 @@ export function DatabaseBackups({
                           })}
                         >
                           <CloudUpload className="size-3" />
-                          {b.local ? t("backups.s3") : t("backups.s3Only")}
+                          {b.local === false ? t("backups.s3Only") : t("backups.s3")}
                         </span>
                       )}
                       {b.remoteKey && b.scope === "all" && (

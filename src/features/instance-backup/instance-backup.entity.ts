@@ -12,7 +12,7 @@ export interface InstanceBackup {
   errorMessage: string | null
   createdAt: string
   /** File still present in this server's backups volume. */
-  local: boolean
+  local: boolean | null
 }
 
 export interface InstanceBackupSettings {
