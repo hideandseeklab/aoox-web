@@ -11,6 +11,7 @@ import {
   ResourceStatus,
 } from "@/components/custom/resource-header"
 import { ContainerName } from "@/components/custom/container-name"
+import { DaemonUnreachableAlert } from "@/components/custom/daemon-unreachable-alert"
 import { BreakRef } from "@/components/custom/break-ref"
 import { HeaderFact } from "@/components/custom/header-fact"
 import { imageDisplay } from "@/features/application/image-ref"
@@ -156,7 +157,11 @@ export default async function ApplicationPage({
         badges={
           <>
             <ResourceStatus tone={running ? "success" : "neutral"}>
-              {app.container ? app.container.state : t("status.notDeployed")}
+              {app.container
+                ? app.container.state
+                : app.daemonError
+                  ? t("status.unknown")
+                  : t("status.notDeployed")}
             </ResourceStatus>
             {app.maintenanceEnabled && (
               <Badge variant="secondary">{t("status.maintenance")}</Badge>
@@ -254,6 +259,8 @@ export default async function ApplicationPage({
           )
         }
       />
+
+      <DaemonUnreachableAlert reason={app.daemonError} className="mb-4" />
 
       <ApplicationTabs
         app={app}

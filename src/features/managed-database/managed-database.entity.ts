@@ -105,6 +105,8 @@ export interface ManagedDatabase {
 
 export interface ManagedDatabaseDetail extends ManagedDatabase {
   container: { id: string; state: string; status: string } | null
+  /** The Docker daemon could not be reached (container state unknown). Absent on an older API. */
+  daemonError?: string | null
   /** The signed-in user's role in the owning project. */
   projectRole: "admin" | "developer" | "viewer"
   /** The API would accept "Retry provisioning" (status error, not interrupted by an API restart). Absent on an older API. */

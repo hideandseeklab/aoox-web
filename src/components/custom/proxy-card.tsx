@@ -1,6 +1,12 @@
 "use client"
 
-import { Play, RefreshCw, Server as ServerIcon, Trash2 } from "lucide-react"
+import {
+  Play,
+  RefreshCw,
+  Server as ServerIcon,
+  Trash2,
+  TriangleAlert,
+} from "lucide-react"
 import Link from "next/link"
 import { useTranslations } from "next-intl"
 import { useState, useTransition } from "react"
@@ -45,6 +51,7 @@ export function ProxyCard({
   server: Server | null
 }) {
   const t = useTranslations("infra.proxyCard")
+  const tc = useTranslations("common")
   const router = useRouter()
   const [pending, start] = useTransition()
   const [error, setError] = useState<string | null>(null)
@@ -62,6 +69,21 @@ export function ProxyCard({
       if (!r.ok) return setError(r.error ?? t("failed"))
       router.refresh()
     })
+
+  if (status.unreachable) {
+    return (
+      <ActionAlert
+        variant="warning"
+        icon={<TriangleAlert />}
+        title={tc("daemonUnreachable.title")}
+        description={tc("daemonUnreachable.description")}
+      >
+        <p className="font-mono text-xs break-words opacity-80">
+          {tc("daemonUnreachable.reason", { reason: status.unreachable })}
+        </p>
+      </ActionAlert>
+    )
+  }
 
   if (!status.installed) {
     return (

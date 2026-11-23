@@ -1,10 +1,4 @@
-import {
-  Rocket,
-  History,
-  HardDrive,
-  Timer,
-  Settings,
-} from "lucide-react"
+import { Rocket, History, HardDrive, Timer, Settings } from "lucide-react"
 import { getProject } from "@/features/project/project.queries"
 import { listProjectVariableSets } from "@/features/variable-set/variable-set.queries"
 import { VariableSetLinksEditor } from "@/components/custom/variable-set-links"
@@ -46,6 +40,7 @@ import { listJobs } from "@/features/job/job.queries"
 import { listGitCredentials } from "@/features/git-credential/git-credential.queries"
 import { listDatabases } from "@/features/managed-database/managed-database.queries"
 import { fetchMetricsAction } from "@/features/monitoring/monitoring.actions"
+import { DaemonUnreachableAlert } from "@/components/custom/daemon-unreachable-alert"
 import { getProxyStatus } from "@/features/proxy/proxy.queries"
 import { listTemplates } from "@/features/template/template.queries"
 
@@ -114,6 +109,7 @@ export default async function ComposeAppPage({
           backHref={`/projects/${app.projectId}`}
           backLabel={t("page.backToProject")}
         />
+        <DaemonUnreachableAlert reason={proxy.unreachable} className="mb-4" />
         <Tabs defaultValue="deploy">
           <ScrollableTabsList>
             <PageTabsTrigger icon={Rocket} value="deploy">

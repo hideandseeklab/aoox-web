@@ -53,6 +53,11 @@
     "failed": "Gagal",
     "noDataPoint": "tanpa data"
   },
+  "daemonUnreachable": {
+    "title": "Docker daemon tidak dapat dijangkau",
+    "description": "Halaman ini menampilkan data yang tersimpan di database. Status container, log, dan metrik tidak tersedia sampai Docker aktif kembali, lalu muat ulang halaman.",
+    "reason": "Penyebab: {reason}"
+  },
   "labels": {
     "name": "Nama",
     "description": "Deskripsi",

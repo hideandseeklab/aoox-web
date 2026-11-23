@@ -242,6 +242,7 @@
   },
   "status": {
     "notDeployed": "not deployed",
+    "unknown": "state unknown",
     "service": "service {running}/{desired}",
     "serviceUpdating": "service {running}/{desired} · {state}",
     "maintenance": "Maintenance"

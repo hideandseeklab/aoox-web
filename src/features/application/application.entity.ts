@@ -105,6 +105,8 @@ export interface ApplicationDetail extends Application {
     | import("@/features/secret-connection/secret-connection.entity").SecretSource
     | null
   container: { id: string; state: string; status: string } | null
+  /** The Docker daemon could not be reached: `container: null` then means unknown, not "not deployed". Absent on an older API. */
+  daemonError?: string | null
   /** The signed-in user's role in the owning project. */
   projectRole: "admin" | "developer" | "viewer"
   /** Swarm service summary (deployMode 'service'). */

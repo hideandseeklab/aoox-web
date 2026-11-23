@@ -28,6 +28,7 @@ import {
   ResourceHeader,
   ResourceStatus,
 } from "@/components/custom/resource-header"
+import { DaemonUnreachableAlert } from "@/components/custom/daemon-unreachable-alert"
 import { ContainerName } from "@/components/custom/container-name"
 import { HeaderFact } from "@/components/custom/header-fact"
 import { Badge } from "@/components/ui/badge"
@@ -95,7 +96,7 @@ export default async function DatabasePage({
     getVerifiedSession(),
     // Needs the server up (runs a query); skip otherwise to keep the page fast.
     running && db.engine !== "redis" && db.engine !== "valkey"
-      ? listSchemas(db.id)
+      ? listSchemas(db.id).catch(() => [])
       : [],
     listMounts({ kind: "database", id: db.id }),
     listJobs({ kind: "database", id: db.id }),
@@ -175,6 +176,7 @@ export default async function DatabasePage({
         ]}
         actions={db.projectRole !== "viewer" && <DatabaseStartStop db={db} />}
       />
+      <DaemonUnreachableAlert reason={db.daemonError} className="mb-4" />
       <Tabs defaultValue="overview">
         <ScrollableTabsList>
           <PageTabsTrigger icon={LayoutDashboard} value="overview">

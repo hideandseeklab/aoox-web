@@ -53,6 +53,11 @@
     "failed": "Failed",
     "noDataPoint": "no data"
   },
+  "daemonUnreachable": {
+    "title": "The Docker daemon is not reachable",
+    "description": "This page shows what is stored in the database. Container state, logs and metrics are unavailable until Docker is back, then reload the page.",
+    "reason": "Reason: {reason}"
+  },
   "labels": {
     "name": "Name",
     "description": "Description",

@@ -242,6 +242,7 @@
   },
   "status": {
     "notDeployed": "belum deploy",
+    "unknown": "status tidak diketahui",
     "service": "layanan {running}/{desired}",
     "serviceUpdating": "layanan {running}/{desired} · {state}",
     "maintenance": "Perawatan"

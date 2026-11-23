@@ -14,4 +14,6 @@ export interface ProxyStatus {
   readTimeout?: number | null
   /** The panel's `PROXY_READ_TIMEOUT` in seconds (null = default); applied on the next proxy install. */
   configuredReadTimeout?: number | null
+  /** Why the Docker daemon could not be asked (the other fields are then placeholders); null/absent = it answered. */
+  unreachable?: string | null
 }
