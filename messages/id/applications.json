@@ -297,6 +297,8 @@
     },
     "image": {
       "check": "Cek update image",
+      "checking": "Memeriksa…",
+      "lastChecked": "Terakhir dicek {time}",
       "pinned": "Referensi dipin ke digest tetap, jadi tidak bisa berubah.",
       "baseline": "Tag {tag}: digest dicatat ({digest}); belum ada pembanding.",
       "changedStarted": "Tag {tag} diperbarui di registry (digest {digest}) — deploy dimulai.",
@@ -304,8 +306,8 @@
       "upToDate": "Tag {tag} tidak berubah (digest {digest}). Hanya tag ini yang dibandingkan.",
       "tagError": "Gagal mencari tag versi yang lebih baru: {error}",
       "newer": {
-        "title": "Ada versi yang lebih baru: <code>{tag}</code>",
-        "body": "Aplikasi ini memakai {current}. {newer} tersedia di registry.",
+        "title": "Versi <code>{tag}</code> tersedia",
+        "body": "Ada tag versi yang lebih baru di registry. Mengganti akan menyimpan tag baru di pengaturan aplikasi dan langsung men-deploy-nya.",
         "switch": "Ganti dan deploy",
         "confirmTitle": "Ganti ke {tag} dan deploy?",
         "confirmBody": "Image berubah dari tag {current} ke {ref} (tersimpan di pengaturan aplikasi) dan deployment langsung dimulai. Bisa di-rollback dari riwayat."

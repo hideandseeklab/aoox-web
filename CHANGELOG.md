@@ -8,6 +8,10 @@ Versions below 1.0.0 may include breaking changes in a minor release.
 
 ## [Unreleased]
 
+### UI UX Improvement
+
+- Deploy tab of an image application: the "Check image update" button is now a filled secondary button with a spinner while it checks, and shows when the image was last checked. The "newer version available" notice is a brand-tinted callout with the new version in its title, a current to new tag comparison, and "Switch and deploy" as the primary button. The "no update" results stay quiet muted text. New `highlight` variant of `ActionAlert`.
+
 ## [0.1.1] - 2026-11-23
 
 Adds the internal address card, restore to a new database, a storage card per application, database and stack, reordering of variables by drag and drop, the job notification setting, and a warning before leaving with unsaved variables. Fixes include pages that failed to open while the Docker daemon was down, deployment and container logs without the realtime socket, and confirmations before deleting backups.

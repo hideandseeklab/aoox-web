@@ -2,7 +2,9 @@
 
 import {
   Globe,
+  ArrowRight,
   History,
+  Loader2,
   RefreshCw,
   Rocket,
   Sparkles,
@@ -44,7 +46,7 @@ import { DEPLOYMENT_QUEUED_EVENT } from "./application-actions"
 import { DeployStepper } from "./deploy-stepper"
 import { RealtimeOriginAlert } from "./realtime-origin-alert"
 import { useBrowserOrigin } from "./use-browser-host"
-import { formatDateTime, formatTime } from "@/i18n/format"
+import { formatDateTime, formatRelative, formatTime } from "@/i18n/format"
 import { useLocale, useTranslations } from "next-intl"
 import { SectionHeader } from "@/components/custom/section-header"
 
@@ -140,6 +142,7 @@ export function ApplicationDeployPanel({
   // Last "Check image update" result: carries the newer-version hint. Looked up
   // only when the button is pressed, never on page load.
   const [imageCheck, setImageCheck] = useState<ImageCheckResult | null>(null)
+  const [checking, setChecking] = useState(false)
   const [lastImageRef, setLastImageRef] = useState(app.imageRef)
   if (lastImageRef !== app.imageRef) {
     // The reference changed (switched here or in Settings): the hint is stale.
@@ -523,48 +526,75 @@ export function ApplicationDeployPanel({
         })}
         action={
           canEdit && app.sourceType === "image" ? (
-            <Button
-              variant="outline"
-              disabled={pending || active}
-              onClick={() =>
-                run(async () => {
-                  setImageNote(null)
-                  setImageCheck(null)
-                  const r = await checkImageUpdateAction(app.id, true)
-                  if (r.ok) {
-                    const d = r.data
-                    const values = {
-                      tag: d.tag,
-                      digest: d.remoteDigest?.slice(7, 19) ?? "",
+            <div className="flex items-center gap-3">
+              {app.imageCheckedAt && (
+                <span
+                  className="hidden text-xs text-muted-foreground sm:inline"
+                  suppressHydrationWarning
+                >
+                  {t("deploy.image.lastChecked", {
+                    time: formatRelative(app.imageCheckedAt, locale),
+                  })}
+                </span>
+              )}
+              <Button
+                variant="secondary"
+                className="border border-border"
+                disabled={pending || active}
+                onClick={() => {
+                  // Set outside the transition: state set inside an async
+                  // transition only commits when the action ends.
+                  setChecking(true)
+                  run(async () => {
+                    setImageNote(null)
+                    setImageCheck(null)
+                    let r: Awaited<ReturnType<typeof checkImageUpdateAction>>
+                    try {
+                      r = await checkImageUpdateAction(app.id, true)
+                    } finally {
+                      setChecking(false)
                     }
-                    const note =
-                      d.remoteDigest === null
-                        ? t("deploy.image.pinned")
-                        : d.baseline
-                          ? t("deploy.image.baseline", values)
-                          : d.changed
-                            ? t(
-                                d.deploymentId
-                                  ? "deploy.image.changedStarted"
-                                  : "deploy.image.changedBusy",
-                                values
-                              )
-                            : t("deploy.image.upToDate", values)
-                    setImageNote(
-                      d.tagError
-                        ? `${note} ${t("deploy.image.tagError", { error: d.tagError })}`
-                        : note
-                    )
-                    setImageCheck(d)
-                    if (d.deploymentId) selectDeployment(d.deploymentId)
-                  }
-                  return r
-                })
-              }
-            >
-              <RefreshCw data-icon="inline-start" />
-              {t("deploy.image.check")}
-            </Button>
+                    if (r.ok) {
+                      const d = r.data
+                      const values = {
+                        tag: d.tag,
+                        digest: d.remoteDigest?.slice(7, 19) ?? "",
+                      }
+                      const note =
+                        d.remoteDigest === null
+                          ? t("deploy.image.pinned")
+                          : d.baseline
+                            ? t("deploy.image.baseline", values)
+                            : d.changed
+                              ? t(
+                                  d.deploymentId
+                                    ? "deploy.image.changedStarted"
+                                    : "deploy.image.changedBusy",
+                                  values
+                                )
+                              : t("deploy.image.upToDate", values)
+                      setImageNote(
+                        d.tagError
+                          ? `${note} ${t("deploy.image.tagError", { error: d.tagError })}`
+                          : note
+                      )
+                      setImageCheck(d)
+                      if (d.deploymentId) selectDeployment(d.deploymentId)
+                    }
+                    return r
+                  })
+                }}
+              >
+                {checking ? (
+                  <Loader2 data-icon="inline-start" className="animate-spin" />
+                ) : (
+                  <RefreshCw data-icon="inline-start" />
+                )}
+                {checking
+                  ? t("deploy.image.checking")
+                  : t("deploy.image.check")}
+              </Button>
+            </div>
           ) : undefined
         }
       />
@@ -591,24 +621,18 @@ export function ApplicationDeployPanel({
 
       {canEdit && imageCheck?.newerTag && imageCheck.newerImageRef && (
         <ActionAlert
+          variant="highlight"
           icon={<Sparkles />}
           title={t.rich("deploy.image.newer.title", {
             tag: imageCheck.newerTag,
-            code: (chunks) => <code>{chunks}</code>,
+            code: (chunks) => <code className="font-mono">{chunks}</code>,
           })}
-          description={t("deploy.image.newer.body", {
-            current: imageCheck.tag,
-            newer: imageCheck.newerTag,
-          })}
+          description={t("deploy.image.newer.body")}
           actions={
             <ConfirmDialog
               tone="neutral"
               trigger={
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={pending || active}
-                >
+                <Button disabled={pending || active}>
                   <Rocket data-icon="inline-start" />
                   {t("deploy.image.newer.switch")}
                 </Button>
@@ -634,7 +658,17 @@ export function ApplicationDeployPanel({
               }}
             />
           }
-        />
+        >
+          <p className="flex flex-wrap items-center gap-1.5 text-xs">
+            <span className="rounded border bg-background/60 px-1.5 py-0.5 font-mono">
+              {imageCheck.tag}
+            </span>
+            <ArrowRight className="size-3 text-muted-foreground" aria-hidden />
+            <span className="rounded border border-primary/50 bg-background/60 px-1.5 py-0.5 font-mono font-medium">
+              {imageCheck.newerTag}
+            </span>
+          </p>
+        </ActionAlert>
       )}
 
       {originMismatch && (

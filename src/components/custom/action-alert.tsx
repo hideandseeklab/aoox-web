@@ -1,12 +1,12 @@
 import type { ReactNode } from "react"
 import { cn } from "cn"
-import {
-  Alert,
-  AlertDescription,
-  AlertTitle,
-} from "@/components/ui/alert"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
-type ActionAlertVariant = "default" | "destructive" | "warning"
+type ActionAlertVariant = "default" | "destructive" | "warning" | "highlight"
+
+// Brand-tinted callout for good news that wants an action (a new version).
+const HIGHLIGHT_CLASS =
+  "border-primary/50 bg-primary/10 text-foreground [&_[data-slot=alert-title]]:text-base [&_[data-slot=alert-description]]:text-foreground/80 [&_[data-slot=alert-description]]:text-pretty[&_[data-slot=action-alert-icon]]:text-lime-700 dark:[&_[data-slot=action-alert-icon]]:text-primary"
 
 const WARNING_CLASS =
   "border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-400 [&_[data-slot=alert-description]]:text-amber-700/90 dark:[&_[data-slot=alert-description]]:text-amber-400/90"
@@ -46,13 +46,18 @@ export function ActionAlert({
       className={cn(
         "flex flex-col gap-3 p-3 sm:flex-row sm:items-center sm:gap-4",
         variant === "warning" && WARNING_CLASS,
+        variant === "highlight" && HIGHLIGHT_CLASS,
         variant === "destructive" && DESTRUCTIVE_CLASS,
         className
       )}
     >
       <div className="flex min-w-0 flex-1 items-start gap-2.5">
         {icon && (
-          <span className="mt-0.5 shrink-0 [&_svg]:size-3.5" aria-hidden>
+          <span
+            data-slot="action-alert-icon"
+            className="mt-0.5 shrink-0 [&_svg]:size-3.5"
+            aria-hidden
+          >
             {icon}
           </span>
         )}

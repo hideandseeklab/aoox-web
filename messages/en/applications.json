@@ -297,6 +297,8 @@
     },
     "image": {
       "check": "Check image update",
+      "checking": "Checking…",
+      "lastChecked": "Last checked {time}",
       "pinned": "The reference is pinned to a fixed digest, so it cannot change.",
       "baseline": "Tag {tag}: digest recorded ({digest}); nothing to compare yet.",
       "changedStarted": "Tag {tag} was updated in the registry (digest {digest}) — deploy started.",
@@ -304,8 +306,8 @@
       "upToDate": "Tag {tag} has not changed (digest {digest}). Only this tag was compared.",
       "tagError": "Could not look for newer version tags: {error}",
       "newer": {
-        "title": "A newer version is available: <code>{tag}</code>",
-        "body": "This app runs {current}. {newer} is available in the registry.",
+        "title": "Version <code>{tag}</code> is available",
+        "body": "A newer version tag exists in the registry. Switching saves the new tag in the app settings and deploys it right away.",
         "switch": "Switch and deploy",
         "confirmTitle": "Switch to {tag} and deploy?",
         "confirmBody": "The image changes from tag {current} to {ref} (saved in the app settings) and a deployment starts right away. You can roll back from the history."
