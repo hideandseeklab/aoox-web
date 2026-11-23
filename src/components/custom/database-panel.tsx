@@ -128,7 +128,9 @@ export function DatabasePanel({
         <div className="flex flex-col gap-3 rounded-md border border-destructive/40 bg-destructive/10 p-3 text-xs text-destructive sm:flex-row sm:items-center sm:justify-between">
           <div className="min-w-0 space-y-1 break-words" role="alert">
             <p>
-              {t("panel.provisionFailed", { error: db.errorMessage ?? "" })}
+              {db.errorMessage?.startsWith("Restore of backup ")
+                ? db.errorMessage
+                : t("panel.provisionFailed", { error: db.errorMessage ?? "" })}
             </p>
             {db.container?.state === "running" && (
               <p className="text-destructive/80">

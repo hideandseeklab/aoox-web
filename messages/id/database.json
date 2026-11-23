@@ -166,6 +166,18 @@
       "size": "Ukuran",
       "trigger": "Pemicu",
       "status": "Status"
+    },
+    "restoreNew": {
+      "label": "Pulihkan ke database baru",
+      "unavailableAll": "Backup seluruh server untuk engine ini tidak bisa dipulihkan ke database baru",
+      "title": "Pulihkan ke database baru",
+      "description": "Membuat database <b>{engine}</b> baru dari <code>{file}</code> dengan engine dan versi yang sama, serta password sendiri. <b>{name}</b> tidak diubah.",
+      "nameLabel": "Nama database baru",
+      "nameSuffix": "(hasil pemulihan)",
+      "projectLabel": "Proyek",
+      "thisProject": "Proyek ini",
+      "submit": "Pulihkan ke database baru",
+      "started": "Database \"{name}\" dibuat. Backup sedang dipulihkan ke dalamnya; statusnya menjadi berjalan setelah selesai."
     }
   },
   "validation": {

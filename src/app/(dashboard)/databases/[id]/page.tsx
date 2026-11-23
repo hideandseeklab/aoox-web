@@ -5,7 +5,7 @@ import {
   HardDrive,
   Timer,
 } from "lucide-react"
-import { getProject } from "@/features/project/project.queries"
+import { getProject, listProjects } from "@/features/project/project.queries"
 import { SetBreadcrumb } from "@/components/custom/breadcrumb-store"
 import { EngineIcon } from "@/components/custom/brand-icon"
 import { getTranslations } from "next-intl/server"
@@ -88,6 +88,7 @@ export default async function DatabasePage({
     companion,
     companionTools,
     alerts,
+    writableProjects,
   ] = await Promise.all([
     // Viewers never get the password: the API refuses them, so do not ask.
     db.projectRole === "viewer" ? null : getDatabaseCredentials(db.id),
@@ -104,6 +105,16 @@ export default async function DatabasePage({
     getCompanion(db.id),
     listCompanionOptions(db.id),
     getResourceAlerts("database", db.id).catch(() => null),
+    // Targets for "Restore to new database": projects where the caller may write.
+    db.projectRole === "viewer"
+      ? []
+      : listProjects()
+          .then((list) =>
+            list
+              .filter((p) => p.myRole !== "viewer")
+              .map((p) => ({ id: p.id, name: p.name }))
+          )
+          .catch(() => []),
   ])
   // Same roles that may write through the data browser / add bind mounts (owner/admin).
   const canWrite = session ? canUseTerminal(session.user) : false
@@ -286,6 +297,7 @@ export default async function DatabasePage({
             backups={backups}
             running={running}
             destinations={destinations}
+            projects={writableProjects}
           />
         </TabsContent>
       </Tabs>

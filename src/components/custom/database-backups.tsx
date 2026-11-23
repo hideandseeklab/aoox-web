@@ -5,6 +5,7 @@ import {
   CloudUpload,
   Download,
   HardDriveDownload,
+  CopyPlus,
   Loader2,
   RotateCcw,
   Trash2,
@@ -24,6 +25,7 @@ import {
   IconButton,
 } from "@/components/custom/data-table"
 import { DeleteBackupButton } from "@/components/custom/delete-backup-button"
+import { RestoreToNewDialog } from "@/components/custom/restore-to-new-dialog"
 import { EmptyState } from "@/components/custom/empty-state"
 import { SectionHeader } from "@/components/custom/section-header"
 import { Badge } from "@/components/ui/badge"
@@ -97,11 +99,14 @@ export function DatabaseBackups({
   backups,
   running,
   destinations,
+  projects,
 }: {
   db: ManagedDatabaseDetail
   backups: DatabaseBackup[]
   running: boolean
   destinations: BackupDestination[]
+  /** Projects where the caller can write (targets of "Restore to new database"). */
+  projects: { id: string; name: string }[]
 }) {
   const t = useTranslations("database")
   const tc = useTranslations("common")
@@ -119,6 +124,11 @@ export function DatabaseBackups({
   const [restoreTarget, setRestoreTarget] = useState<DatabaseBackup | null>(
     null
   )
+  const [restoreNewTarget, setRestoreNewTarget] =
+    useState<DatabaseBackup | null>(null)
+  // Whole-server SQL backups cannot become a correct new database (API: 400).
+  const wholeServerSql = (b: DatabaseBackup) =>
+    b.scope === "all" && ["postgres", "mysql", "mariadb"].includes(db.engine)
 
   const preset = PRESETS.find((p) => p.cron === (db.backupCron ?? "off"))
   const [mode, setMode] = useState<string>(preset ? preset.cron : "custom")
@@ -255,10 +265,7 @@ export function DatabaseBackups({
             {backups.map((b) => (
               <DataRow key={b.id}>
                 <DataCell mono className="max-w-64">
-                  <div
-                    className="truncate"
-                    title={b.filename.split("/").pop()}
-                  >
+                  <div className="truncate" title={b.filename.split("/").pop()}>
                     {b.filename.split("/").pop()}
                   </div>
                   {(b.remoteKey || b.scope === "all") && (
@@ -272,13 +279,17 @@ export function DatabaseBackups({
                           })}
                         >
                           <CloudUpload className="size-3" />
-                          {b.local === false ? t("backups.s3Only") : t("backups.s3")}
+                          {b.local === false
+                            ? t("backups.s3Only")
+                            : t("backups.s3")}
                         </span>
                       )}
                       {b.remoteKey && b.scope === "all" && (
                         <span aria-hidden>·</span>
                       )}
-                      {b.scope === "all" && <span>{t("backups.allDatabases")}</span>}
+                      {b.scope === "all" && (
+                        <span>{t("backups.allDatabases")}</span>
+                      )}
                     </div>
                   )}
                   {b.errorMessage && (
@@ -332,6 +343,19 @@ export function DatabaseBackups({
                           <RotateCcw />
                         </IconButton>
                       )}
+                      {canEdit && (
+                        <IconButton
+                          label={
+                            wholeServerSql(b)
+                              ? t("backups.restoreNew.unavailableAll")
+                              : t("backups.restoreNew.label")
+                          }
+                          disabled={pending || wholeServerSql(b)}
+                          onClick={() => setRestoreNewTarget(b)}
+                        >
+                          <CopyPlus />
+                        </IconButton>
+                      )}
                     </>
                   )}
                   {canEdit && (
@@ -353,9 +377,7 @@ export function DatabaseBackups({
       <Card>
         <CardHeader>
           <CardTitle>{t("backups.schedule.title")}</CardTitle>
-          <CardDescription>
-            {t("backups.schedule.description")}
-          </CardDescription>
+          <CardDescription>{t("backups.schedule.description")}</CardDescription>
         </CardHeader>
         <CardContent>
           <form
@@ -374,77 +396,85 @@ export function DatabaseBackups({
             }}
           >
             <fieldset disabled={!canEdit} className="contents">
-            <div className="space-y-1">
-              <Label htmlFor="bk-preset">{t("backups.schedule.frequency")}</Label>
-              <Select value={mode} onValueChange={setMode}>
-                <SelectTrigger id="bk-preset" className="w-56">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent position="popper">
-                  {PRESETS.map((p) => (
-                    <SelectItem key={p.cron} value={p.cron}>
-                      {t(`backups.presets.${p.key}`)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            {mode === "custom" && (
               <div className="space-y-1">
-                <Label htmlFor="bk-cron">{t("backups.schedule.cron")}</Label>
+                <Label htmlFor="bk-preset">
+                  {t("backups.schedule.frequency")}
+                </Label>
+                <Select value={mode} onValueChange={setMode}>
+                  <SelectTrigger id="bk-preset" className="w-56">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent position="popper">
+                    {PRESETS.map((p) => (
+                      <SelectItem key={p.cron} value={p.cron}>
+                        {t(`backups.presets.${p.key}`)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              {mode === "custom" && (
+                <div className="space-y-1">
+                  <Label htmlFor="bk-cron">{t("backups.schedule.cron")}</Label>
+                  <Input
+                    id="bk-cron"
+                    value={customCron}
+                    onChange={(e) => setCustomCron(e.target.value)}
+                    placeholder="30 1 * * *"
+                    className="w-40 font-mono"
+                  />
+                </div>
+              )}
+              {mode !== "off" && <ScheduleTimeZoneHint />}
+              <div className="space-y-1">
+                <Label htmlFor="bk-keep">{t("backups.schedule.keep")}</Label>
                 <Input
-                  id="bk-cron"
-                  value={customCron}
-                  onChange={(e) => setCustomCron(e.target.value)}
-                  placeholder="30 1 * * *"
-                  className="w-40 font-mono"
+                  id="bk-keep"
+                  type="number"
+                  min={1}
+                  max={365}
+                  value={keep}
+                  onChange={(e) => setKeep(e.target.value)}
+                  className="w-24"
                 />
               </div>
-            )}
-            {mode !== "off" && <ScheduleTimeZoneHint />}
-            <div className="space-y-1">
-              <Label htmlFor="bk-keep">{t("backups.schedule.keep")}</Label>
-              <Input
-                id="bk-keep"
-                type="number"
-                min={1}
-                max={365}
-                value={keep}
-                onChange={(e) => setKeep(e.target.value)}
-                className="w-24"
-              />
-            </div>
-            <div className="space-y-1">
-              <Label htmlFor="bk-dest">{t("backups.schedule.destination")}</Label>
-              <Select value={destination} onValueChange={setDestination}>
-                <SelectTrigger id="bk-dest" className="w-56">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent position="popper">
-                  <SelectItem value="local">{t("backups.schedule.localOnly")}</SelectItem>
-                  {destinations.map((d) => (
-                    <SelectItem key={d.id} value={d.id}>
-                      {d.name}
+              <div className="space-y-1">
+                <Label htmlFor="bk-dest">
+                  {t("backups.schedule.destination")}
+                </Label>
+                <Select value={destination} onValueChange={setDestination}>
+                  <SelectTrigger id="bk-dest" className="w-56">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent position="popper">
+                    <SelectItem value="local">
+                      {t("backups.schedule.localOnly")}
                     </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            {db.engine !== "redis" && db.engine !== "valkey" && (
-              <div className="flex items-center gap-2 pb-1.5">
-                <Switch
-                  id="bk-all"
-                  checked={allDatabases}
-                  onCheckedChange={setAllDatabases}
-                />
-                <Label htmlFor="bk-all">{t("backups.schedule.allDatabases")}</Label>
+                    {destinations.map((d) => (
+                      <SelectItem key={d.id} value={d.id}>
+                        {d.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
-            )}
-            {canEdit && (
-            <Button type="submit" variant="outline" disabled={pending}>
-              {tc("actions.save")}
-            </Button>
-            )}
+              {db.engine !== "redis" && db.engine !== "valkey" && (
+                <div className="flex items-center gap-2 pb-1.5">
+                  <Switch
+                    id="bk-all"
+                    checked={allDatabases}
+                    onCheckedChange={setAllDatabases}
+                  />
+                  <Label htmlFor="bk-all">
+                    {t("backups.schedule.allDatabases")}
+                  </Label>
+                </div>
+              )}
+              {canEdit && (
+                <Button type="submit" variant="outline" disabled={pending}>
+                  {tc("actions.save")}
+                </Button>
+              )}
             </fieldset>
             <span className="text-xs text-muted-foreground">
               {t("backups.schedule.current")}{" "}
@@ -457,6 +487,13 @@ export function DatabaseBackups({
           </form>
         </CardContent>
       </Card>
+
+      <RestoreToNewDialog
+        db={db}
+        backup={restoreNewTarget}
+        projects={projects}
+        onClose={() => setRestoreNewTarget(null)}
+      />
 
       <Dialog
         open={restoreTarget !== null}
@@ -492,7 +529,9 @@ export function DatabaseBackups({
                 })
               }
             >
-              {pending ? t("backups.restoreDialog.restoring") : t("backups.restore")}
+              {pending
+                ? t("backups.restoreDialog.restoring")
+                : t("backups.restore")}
             </Button>
           </DialogFooter>
         </DialogContent>

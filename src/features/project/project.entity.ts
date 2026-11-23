@@ -30,6 +30,8 @@ export interface ProjectResourceUsageSummary {
 }
 
 export type ProjectListItem = Project & {
+  /** The caller's role in this project. */
+  myRole: "admin" | "developer" | "viewer"
   instances: ProjectInstance[]
   /** From the API's live sampler; null when nothing is running. */
   resourceUsage: ProjectResourceUsageSummary | null

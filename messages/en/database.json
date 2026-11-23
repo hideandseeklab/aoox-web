@@ -166,6 +166,18 @@
       "size": "Size",
       "trigger": "Trigger",
       "status": "Status"
+    },
+    "restoreNew": {
+      "label": "Restore to new database",
+      "unavailableAll": "Whole-server backups of this engine cannot be restored into a new database",
+      "title": "Restore to a new database",
+      "description": "Creates a new <b>{engine}</b> database from <code>{file}</code> with the same engine and version, and its own password. <b>{name}</b> is not changed.",
+      "nameLabel": "New database name",
+      "nameSuffix": "(restored)",
+      "projectLabel": "Project",
+      "thisProject": "This project",
+      "submit": "Restore to new database",
+      "started": "Database \"{name}\" created. The backup is being restored into it; it becomes running when done."
     }
   },
   "validation": {

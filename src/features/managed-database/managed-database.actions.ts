@@ -18,12 +18,7 @@ async function fail(err: unknown): Promise<{ ok: false; error: string }> {
 }
 
 type Field =
-  | "name"
-  | "engine"
-  | "variant"
-  | "imageTag"
-  | "hostPort"
-  | "hostPortBind"
+  "name" | "engine" | "variant" | "imageTag" | "hostPort" | "hostPortBind"
 
 export interface DatabaseFormState {
   error?: string
@@ -178,6 +173,27 @@ export async function restoreBackupAction(
     })
     revalidatePath(`/databases/${databaseId}`)
     return { ok: true, data: undefined }
+  } catch (err) {
+    return await fail(err)
+  }
+}
+
+/** Creates a NEW database from a backup; the source is untouched. 202: it restores in the background. */
+export async function restoreBackupToNewAction(
+  backupId: string,
+  input: { name: string; projectId: string }
+): Promise<ActionResult<ManagedDatabase>> {
+  try {
+    const data = await api<ManagedDatabase>(
+      `/backups/${backupId}/restore-to-new`,
+      {
+        method: "POST",
+        body: { name: input.name.trim(), projectId: input.projectId },
+        token: await requireToken(),
+      }
+    )
+    revalidatePath(`/projects/${data.projectId}`)
+    return { ok: true, data }
   } catch (err) {
     return await fail(err)
   }

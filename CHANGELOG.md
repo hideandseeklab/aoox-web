@@ -18,6 +18,7 @@ Versions below 1.0.0 may include breaking changes in a minor release.
 
 ### UI UX Improvement
 
+- **Restore to new database** in the database backups list: a button on every successful backup row (developers and above) opens a dialog asking for the new database name and a target project (only projects where the caller can write; default: the source's project), then opens the new database page while it restores in the background. Whole-server SQL backups show the button disabled with the reason. A failed restore leaves the new database in `error` with its message and no retry button. The projects list type carries the caller's `myRole`.
 - The new Storage card keeps its height while loading (skeleton rows), wraps long volume and container names, and fits a 375px screen.
 
 ### Fixed
