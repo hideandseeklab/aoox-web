@@ -8,6 +8,10 @@ Versions below 1.0.0 may include breaking changes in a minor release.
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-11-24
+
+Makes the image update check button and the newer-version notice on the Deploy tab of an image application easier to see.
+
 ### UI UX Improvement
 
 - Deploy tab of an image application: the "Check image update" button is now a filled secondary button with a spinner while it checks, and shows when the image was last checked. The "newer version available" notice is a brand-tinted callout with the new version in its title, a current to new tag comparison, and "Switch and deploy" as the primary button. The "no update" results stay quiet muted text. New `highlight` variant of `ActionAlert`.
@@ -862,7 +866,8 @@ First stable release of the dashboard. The feature set is that of 0.1.0-rc.1; th
   backups, notifications, and account/instance settings.
 - A web terminal (shell on the host or inside the API container) over WebSocket.
 
-[Unreleased]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.2...HEAD
+[0.1.2]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.0-rc.1...v0.1.0
 [0.1.0-rc.1]: https://github.com/hideandseeklab/aoox-web/compare/v0.1.0-beta.2...v0.1.0-rc.1
